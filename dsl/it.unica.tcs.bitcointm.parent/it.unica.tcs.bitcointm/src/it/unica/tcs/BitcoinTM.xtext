@@ -1,0 +1,9 @@
+grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
+
+generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
