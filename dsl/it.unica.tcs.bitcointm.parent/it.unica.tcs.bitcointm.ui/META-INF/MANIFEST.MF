@@ -11,6 +11,15 @@ Require-Bundle: it.unica.tcs.bitcointm,
  org.eclipse.xtext.ui.shared,
  org.eclipse.xtext.ui.codetemplates.ui,
  org.eclipse.ui.editors;bundle-version="3.5.0",
- org.eclipse.ui.ide;bundle-version="3.5.0"
+ org.eclipse.ui.ide;bundle-version="3.5.0",
+ org.eclipse.ui,
+ org.eclipse.compare,
+ org.eclipse.xtext.builder,
+ org.eclipse.xtend.lib;resolution:=optional,
+ org.eclipse.xtext.xbase.lib
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: it.unica.tcs.ui.quickfix,
+ it.unica.tcs.ui.contentassist,
+ it.unica.tcs.bitcointm.ui.internal
+Bundle-Activator: it.unica.tcs.bitcointm.ui.internal.BitcointmActivator

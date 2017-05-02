@@ -3,7 +3,124 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 Model:
-	greetings+=Greeting*;
+	transactions+=Element*;
 	
-Greeting:
-	'Hello' name=ID '!';
+Element:
+	Key | TransactionDeclaration ;
+
+	
+TransactionDeclaration:
+	"transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
+
+TransactionBody:
+	inputs+=Input+
+	witnesses+=Witness+
+	outputs+=Output+
+	values+=Val+
+	(tlock=Tlock)?
+	;
+
+Tlock: "tlock" INT;
+
+Input: 
+	"in" ("[" idx=INT "]")? "=" txref=[TransactionDeclaration];
+
+
+Witness: 
+	"wit" ("[" idx=INT "]")? "=" script=Script;
+
+Output: 
+	"out" ("[" idx=INT "]")? (params=Parameters)? "=" script=Script;
+
+
+Val: 
+	"val" ("[" idx=INT "]")? "=" value=Value;
+
+
+Value:
+	value=INT unit=("BTC"|"satoshi")?;
+
+Parameters:
+	"(" param+=Parameter ("," param+=Parameter)* ")"
+;
+
+Parameter:
+	name=ID
+;
+
+Script:
+	Expression
+;
+
+Expression:
+	ArithmExpression |
+	Signature |
+	IfThenElse 
+;
+
+IfThenElse:
+	{IfThenElse}
+	'if' if=Expression
+	"then" then=Expression
+	(=>'else' else=Expression)?
+;
+
+
+Key:
+	"key" name=ID "=" "(" private=STRING "," public=STRING ")"
+;
+
+Signature:
+	"sig" key=[Key] (modifier=Modifier)?
+;
+
+Modifier:
+	"AIAO" | "AINO" | "AISO" | "SIAO" | "SINO" | "SISO";
+
+// ======================================================================================
+// Expression grammar
+// ======================================================================================
+/*
+ * the following part is extracted (and partially modified) from 
+ * 		http://xsemantics.sourceforge.net/xsemantics-documentation/Expressions-example.html#Expressions
+ * a type-system is also provided
+ */
+ArithmExpression:
+    OrArithmExpression;
+
+OrArithmExpression returns ArithmExpression:
+	AndArithmExpression (({OrArithmExpression.left=current} '||' ) right=AndArithmExpression)*;
+
+AndArithmExpression returns ArithmExpression:
+	Comparison (({AndArithmExpression.left=current} '&&') right=Comparison)*;
+
+Comparison returns ArithmExpression:
+       Equals
+       (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
+
+Equals returns ArithmExpression:
+       Addition 
+       (({Equals.left=current} op=("==") ) right=Addition)*;
+ 
+Addition returns ArithmExpression:
+    Prefixed
+    (({Plus.left=current} '+' | {Minus.left=current} '-')
+        right=Prefixed)*; 
+
+Prefixed returns ArithmExpression:
+    {BooleanNegation} =>"!" ArithmExpression=Atomic | /* right associativity */
+    {ArithmeticSigned} =>"-" ArithmExpression=Atomic | /* right associativity */
+    Atomic;
+
+Atomic returns ArithmExpression:
+    '(' ArithmExpression ')' |
+    NumberLiteral |
+    StringLiteral |
+    BooleanLiteral |
+    {VariableReference} ref=[Parameter];
+
+NumberLiteral: value=INT;
+StringLiteral: value=STRING;
+BooleanLiteral: value=('true'|'false');
+
+
