@@ -52,75 +52,61 @@ Script:
 	Expression
 ;
 
+
 Expression:
-	ArithmExpression |
-	Signature |
-	IfThenElse 
-;
+    OrExpression;
 
-IfThenElse:
-	{IfThenElse}
-	'if' if=Expression
-	"then" then=Expression
-	(=>'else' else=Expression)?
-;
+OrExpression returns Expression:
+	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
 
+AndExpression returns Expression:
+	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
 
-Key:
-	"key" name=ID "=" "(" private=STRING "," public=STRING ")"
-;
+Comparison returns Expression:
+       Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
 
-Signature:
-	"sig" key=[Key] (modifier=Modifier)?
-;
-
-Modifier:
-	"AIAO" | "AINO" | "AISO" | "SIAO" | "SINO" | "SISO";
-
-// ======================================================================================
-// Expression grammar
-// ======================================================================================
-/*
- * the following part is extracted (and partially modified) from 
- * 		http://xsemantics.sourceforge.net/xsemantics-documentation/Expressions-example.html#Expressions
- * a type-system is also provided
- */
-ArithmExpression:
-    OrArithmExpression;
-
-OrArithmExpression returns ArithmExpression:
-	AndArithmExpression (({OrArithmExpression.left=current} '||' ) right=AndArithmExpression)*;
-
-AndArithmExpression returns ArithmExpression:
-	Comparison (({AndArithmExpression.left=current} '&&') right=Comparison)*;
-
-Comparison returns ArithmExpression:
-       Equals
-       (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
-
-Equals returns ArithmExpression:
-       Addition 
-       (({Equals.left=current} op=("==") ) right=Addition)*;
+Equals returns Expression:
+       Addition (({Equals.left=current} op=("==") ) right=Addition)*;
  
-Addition returns ArithmExpression:
-    Prefixed
-    (({Plus.left=current} '+' | {Minus.left=current} '-')
-        right=Prefixed)*; 
+Addition returns Expression:
+    Prefixed (({Plus.left=current} '+' | {Minus.left=current} '-') right=Prefixed)*; 
 
-Prefixed returns ArithmExpression:
-    {BooleanNegation} =>"!" ArithmExpression=Atomic | /* right associativity */
-    {ArithmeticSigned} =>"-" ArithmExpression=Atomic | /* right associativity */
+Prefixed returns Expression:
+    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
+    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
     Atomic;
 
-Atomic returns ArithmExpression:
-    '(' ArithmExpression ')' |
+Atomic returns Expression:
+    '(' Expression ')' |
     NumberLiteral |
     StringLiteral |
     BooleanLiteral |
-    {VariableReference} ref=[Parameter];
+    {VariableReference} ref=[Parameter] |
+    Signature |
+	Versig |
+	Hash |
+	IfThenElse;
 
 NumberLiteral: value=INT;
 StringLiteral: value=STRING;
 BooleanLiteral: value=('true'|'false');
 
+IfThenElse:
+	'if' if=Expression
+	"then" then=Atomic
+	(=> 'else' else=Atomic)?;
+
+Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
+
+Signature: "sig" key=[Key] (modifier=Modifier)?;
+
+Modifier: "AIAO" | "AINO" | "AISO" | "SIAO" | "SINO" | "SISO";
+	
+Versig:
+	"versig" "(" 
+		"{" pubkeys+=[Key] ("," pubkeys+=[Key])* "}" ","
+		"{" signatures+=Expression ("," signatures+=Expression)* "}" 
+	")";
+
+Hash: "hash" "(" value=Expression ")";
 

@@ -5,8 +5,13 @@ key A = ("priv", "pub")
 
 transaction T = {
 	in = inA
-	wit = sig A AIAO 
-	out = if true then 2 else "type error"
+	wit = sig A AIAO
+	 
+	out(sigma) = 
+		if versig({A},{sigma}) && hash(sigma)=="ABCD" 
+		then hash(sigma)
+		else "type error"
+		
 	val = 1 satoshi
 	tlock 97
 }
