@@ -14,7 +14,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<xsemantics.version>1.10.0</xsemantics.version>
 	</properties>
-	
+
 	<modules>
 		<module>it.unica.tcs.bitcointm</module>
 		<module>it.unica.tcs.bitcointm.ide</module>
@@ -242,10 +242,7 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<!-- 
-						Can be removed after first generator execution
-						https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097
-					-->
+					<!-- Can be removed after first generator execution https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097 -->
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho-version}</version>
@@ -283,6 +280,5 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<dependencies>
-	</dependencies>
+	
 </project>

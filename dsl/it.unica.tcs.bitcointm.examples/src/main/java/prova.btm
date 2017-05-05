@@ -15,3 +15,13 @@ transaction T = {
 	val = 1 satoshi
 	tlock 97
 }
+
+transaction T = {
+	in = inA
+	wit = sig A AIAO
+	 
+	out(sigma) = 12 + 12
+		
+	val = 1 satoshi
+	tlock 97
+}

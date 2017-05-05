@@ -114,3 +114,10 @@ Hash: "hash" "(" value=Expression ")";
 Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
+
+
+
+Type:
+    {IntType} value='int' |
+    {StringType} value='string' |
+    {BooleanType} value=('boolean'|'bool');

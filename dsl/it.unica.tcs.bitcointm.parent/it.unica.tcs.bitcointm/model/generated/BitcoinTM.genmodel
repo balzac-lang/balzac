@@ -94,6 +94,9 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Between/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Between/right"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Type">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Type/value"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//OrExpression">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/right"/>
@@ -129,5 +132,8 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//VariableReference">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableReference/ref"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//IntType"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//StringType"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//BooleanType"/>
   </genPackages>
 </genmodel:GenModel>
