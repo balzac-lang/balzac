@@ -85,7 +85,8 @@ Atomic returns Expression:
     Signature |
 	Versig |
 	Hash |
-	IfThenElse;
+	IfThenElse|
+	Min | Max | Between;
 
 NumberLiteral: value=INT;
 StringLiteral: value=STRING;
@@ -110,3 +111,6 @@ Versig:
 
 Hash: "hash" "(" value=Expression ")";
 
+Min: "min" "(" left=Expression "," right=Expression ")";
+Max: "max" "(" left=Expression"," right=Expression ")";
+Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
