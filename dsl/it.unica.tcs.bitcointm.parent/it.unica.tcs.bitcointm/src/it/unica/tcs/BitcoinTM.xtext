@@ -44,8 +44,10 @@ Parameters:
 	"(" param+=Parameter ("," param+=Parameter)* ")"
 ;
 
+Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
+
 Parameter:
-	name=ID
+	name=ID ":" paramType=Type
 ;
 
 Script:
@@ -85,8 +87,10 @@ Atomic returns Expression:
     Signature |
 	Versig |
 	Hash |
-	IfThenElse|
-	Min | Max | Between;
+	IfThenElse |
+	Min | Max | Between |
+	Size |
+	AfterTimeLock;
 
 NumberLiteral: value=INT;
 StringLiteral: value=STRING;
@@ -96,8 +100,6 @@ IfThenElse:
 	'if' if=Expression
 	"then" then=Atomic
 	(=> 'else' else=Atomic)?;
-
-Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
 
 Signature: "sig" key=[Key] (modifier=Modifier)?;
 
@@ -114,10 +116,13 @@ Hash: "hash" "(" value=Expression ")";
 Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
+Size: "size" "(" value=Expression ")";
+AfterTimeLock: "after" time=Expression ":" continuation=Atomic;
 
 
 
 Type:
     {IntType} value='int' |
     {StringType} value='string' |
-    {BooleanType} value=('boolean'|'bool');
+    {BooleanType} value=('boolean'|'bool') |
+    {SignatureType} value='signature';

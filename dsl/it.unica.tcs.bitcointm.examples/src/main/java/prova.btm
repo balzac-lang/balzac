@@ -7,7 +7,7 @@ transaction T = {
 	in = inA
 	wit = sig A AIAO
 	 
-	out(sigma) = 
+	out(sigma:signature) = 
 		if versig({A},{sigma}) && hash(sigma)=="ABCD" 
 		then hash(sigma)
 		else "type error"
@@ -20,7 +20,7 @@ transaction T = {
 	in = inA
 	wit = sig A AIAO
 	 
-	out(sigma) = 12 + 12
+	out(sigma:bool) = 12 + 12
 		
 	val = 1 satoshi
 	tlock 97
