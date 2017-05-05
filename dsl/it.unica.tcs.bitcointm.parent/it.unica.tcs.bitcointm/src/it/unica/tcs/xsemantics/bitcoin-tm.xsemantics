@@ -40,8 +40,8 @@ judgments {
 		source expression
 		
 	vartype ||- Parameter p : output Type
-//		error "cannot type " + stringRep(fn)
-//		source fn
+		error "cannot type " + stringRep(p)
+		source p
 //		
 //	validate |= EObject obj
 //		error "cannot type " + stringRep(obj)
@@ -81,11 +81,10 @@ from {
 
 
 rule Minus
-	G |- Minus minus : IntType type
+	G |- Minus minus : IntType t
 from {
-	var IntType intType
-	G |- minus.left : intType
-	G |- minus.right : intType
+	G |- minus.left : t
+	G |- minus.right : t
 }
 
 rule Plus
@@ -106,7 +105,7 @@ from {
 }
 
 rule Comparison
-	G |- Comparison comparison : BooleanType type
+	G |- Comparison comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
 	var IntType intType
 	G |- comparison.left : intType
@@ -114,7 +113,7 @@ from {
 }
 
 rule Equals
-	G |- Equals comparison : BooleanType type
+	G |- Equals comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
 	G |- comparison.left : var Type leftType
 	G |- comparison.right : var Type rightType
@@ -158,7 +157,7 @@ from {
 }
 
 rule VerSig
-	G |- Versig versig : BooleanType type
+	G |- Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
 	for (s : versig.signatures) {
 		G |- s : var SignatureType t
@@ -166,44 +165,44 @@ from {
 }
 
 rule Hash
-	G |- Hash hash: IntType intType
+	G |- Hash hash: BitcoinTMFactory::eINSTANCE.createIntType
 from {
 	G |- hash.value: var Type t
 }
 
 rule Min
-	G |- Min min: IntType intType
+	G |- Min min: IntType t
 from {
-	G |- min.left: var IntType tleft
-	G |- min.right: var IntType tright
+	G |- min.left: t
+	G |- min.right: t
 }
 
 rule Max
-	G |- Max max: IntType intType
+	G |- Max max: IntType t
 from {
-	G |- max.left: var IntType tleft
-	G |- max.right: var IntType tright
+	G |- max.left: t
+	G |- max.right: t
 }
 
 rule Between
-	G |- Between between: BooleanType t
+	G |- Between between: IntType t
 from {
-	G |- between.value: var IntType tvalue
-	G |- between.left: var IntType tleft
-	G |- between.right: var IntType tright
+	G |- between.value: t
+	G |- between.left: t
+	G |- between.right: t
 }
 
 rule Size
-	G |- Size size: IntType intType
+	G |- Size size: IntType t
 from {
-	G |- size.value: var IntType tvalue
+	G |- size.value: t
 }
 
 rule AfterTimeLock
-	G |- AfterTimeLock after: Type t
+	G |- AfterTimeLock after: Type texpr
 from {
 	G |- after.time: var IntType tvalue
-	G |- after.continuation: var Type texpr
+	G |- after.continuation: texpr
 }
 
 
@@ -216,4 +215,9 @@ from {
     empty |- expr : var Type type
 }
 
+checkrule CheckParameter for
+    Parameter p
+from {
+    empty ||- p : var Type type
+}
 

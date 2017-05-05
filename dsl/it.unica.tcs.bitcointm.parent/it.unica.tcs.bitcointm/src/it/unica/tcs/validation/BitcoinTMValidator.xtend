@@ -3,12 +3,14 @@
  */
 package it.unica.tcs.validation
 
+import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
+
 /**
  * This class contains custom validation rules. 
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
-class BitcoinTMValidator extends AbstractBitcoinTMValidator {
+class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 	
 //	public static val INVALID_NAME = 'invalidName'
 //
