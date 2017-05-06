@@ -4,24 +4,27 @@ transaction inA = "ccccc"
 key A = ("priv", "pub")
 
 transaction T = {
-	in = inA
-	wit = sig A AIAO
+	in : inA
+	wit : sig A AIAO
 	 
-	out(sigma:signature) = 
+	out : lambda (sigma:signature) . 
 		if versig({A},{sigma}) && hash(sigma)==5 
 		then hash(sigma)
 		else "type error"
 		
-	val = 1 satoshi
+	val : 1 satoshi
 	tlock 97
 }
 
 transaction T = {
-	in = inA
-	wit = sig A AIAO
+	in : inA
+	wit : sig A AIAO
 	 
-	out(sigma:bool) = (12-45) +78
+	out : [
+		(12-45) +78,
+		lambda (sigma:signature) . versig({A}, {sigma})
+	] 
 		
-	val = 1 satoshi
+	val : 1 satoshi
 	tlock 97
 }

@@ -12,47 +12,74 @@ Element:
 TransactionDeclaration:
 	"transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
 
+Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
+
 TransactionBody:
-	inputs+=Input+
-	witnesses+=Witness+
-	outputs+=Output+
-	values+=Val+
-	(tlock=Tlock)?
+	input=InputDeclaration
+	witness=WitnessDeclaration
+	outputs=OutputDeclaration
+	values=ValueDeclaration
+	(tlock=TlockDeclaration)?
 	;
 
-Tlock: "tlock" INT;
+InputDeclaration: 
+	"in" ":" (Input | MultipleInput);
 
-Input: 
-	"in" ("[" idx=INT "]")? "=" txref=[TransactionDeclaration];
+WitnessDeclaration:
+	"wit" ":" (Witness | MultipleWitness);
 
+OutputDeclaration:
+	"out" ":" (Output | MultipleOutput);
+
+ValueDeclaration:
+	"val" ":" (Val | MultipleVal);
+
+TlockDeclaration:
+	"tlock" value=INT;
+
+
+
+Input:
+	ref=[TransactionDeclaration];
+
+MultipleInput returns Input:
+	"[" inputs+=Input ("," inputs+=Input)* "]";
 
 Witness: 
-	"wit" ("[" idx=INT "]")? "=" script=Script;
+	script=Script;
 
-Output: 
-	"out" ("[" idx=INT "]")? (params=Parameters)? "=" script=Script;
+MultipleWitness: 
+	"[" witnesses+=Witness ("," witnesses+=Witness)* "]";
 
+Output: // rivedere insieme a Script
+	("lambda" params=Parameters ".")? script=Script;
+
+MultipleOutput:
+	"[" outputs+=Output ("," outputs+=Output)* "]";
 
 Val: 
-	"val" ("[" idx=INT "]")? "=" value=Value;
+	value=Value;
 
+MultipleVal:
+	"[" vals+=Val ("," outputs+=Val)* "]";
+
+
+// da rivedere Script con il nuovo modello
+Script:
+	Expression
+;
+
+Parameters:
+	"(" param+=Parameter ("," param+=Parameter)* ")";
 
 Value:
 	value=INT unit=("BTC"|"satoshi")?;
 
-Parameters:
-	"(" param+=Parameter ("," param+=Parameter)* ")"
-;
-
-Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
 
 Parameter:
 	name=ID ":" paramType=Type
 ;
 
-Script:
-	Expression
-;
 
 
 Expression:
