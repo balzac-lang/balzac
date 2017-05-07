@@ -45,7 +45,6 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//MultipleWitness/witnesses"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Output">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/params"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/script"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//MultipleOutput">
@@ -58,9 +57,9 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//MultipleVal/vals"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//MultipleVal/outputs"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Script"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Parameters">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Parameters/param"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Script">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Script/params"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Script/exp"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Value">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Value/value"/>
@@ -71,6 +70,9 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Parameter/paramType"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Expression"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//VariableReference">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableReference/ref"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//NumberLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NumberLiteral/value"/>
     </genClasses>
@@ -116,8 +118,12 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/time"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/continuation"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Type">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Type/value"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Type"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//BasicType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BasicType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TypeVariable">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TypeVariable/typevarName"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//OrExpression">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/left"/>
@@ -150,9 +156,6 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ArithmeticSigned">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ArithmeticSigned/exp"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//VariableReference">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableReference/ref"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//IntType"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//StringType"/>

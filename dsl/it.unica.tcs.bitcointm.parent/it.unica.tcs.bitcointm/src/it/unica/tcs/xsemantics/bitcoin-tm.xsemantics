@@ -1,6 +1,7 @@
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
+import it.unica.tcs.bitcoinTM.BasicType
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
@@ -19,25 +20,48 @@ import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
+import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
 validatorExtends AbstractBitcoinTMValidator
 
+inject LambdaUtils lambdaUtils
+
+
+auxiliary {
+	notoccur(Type type, Type other)
+        error stringRep(type) + " occurs in " + stringRep(other)
+        
+    typesubstitution(TypeSubstitutions substitutions, Type original) : Type
+    
+    unify(TypeSubstitutions substitutions, 
+            Type left, Type right) : Type
+        error "cannot unify " + stringRep(left) + 
+            " with " + stringRep(right)
+}
+
 judgments {
 
-	type |- Expression expression : output Type
-		error "cannot type " + stringRep(expression)
-		source expression
+	scriptType |~ Script s
+		error "cannot type " + stringRep(s)
+		source s
+	
+
+	type |- TypeSubstitutions substitutions |> Expression exp : output Type
+		error "cannot type " + stringRep(exp)
+		source exp
 		
 	vartype ||- Parameter p : output Type
 		error "cannot type " + stringRep(p)
@@ -50,174 +74,348 @@ judgments {
 //	interpret |- Expression expression ~> output Object
 }
 
+/*
+ * auxiliary functions
+ */
+
+auxiliary notoccur(Type type, Type other) { true }
+
+auxiliary notoccur(TypeVariable variable, TypeVariable other) {
+    variable.typevarName != other.typevarName
+}
+
+auxiliary typesubstitution(TypeSubstitutions substitutions, Type type) {
+    type
+}
+
+auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variable)
+{
+    var mapped = substitutions.mapped(variable.typevarName)
+    if (mapped !== null) {
+        val result = EcoreUtil::copy(mapped)
+        typesubstitution(substitutions, result) // recursive
+    } else
+        variable
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Type t1, Type t2) {
+    // if we get here we cannot unify the two types
+    fail
+	null
+} 
+
+auxiliary unify(TypeSubstitutions substitutions, StringType t1, StringType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, BooleanType t1, BooleanType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
+    EcoreUtil::copy(t1)
+}
+
+
+auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
+    substitutions.add(typeVar.typevarName, basicType)
+    EcoreUtil.copy(basicType)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, BasicType basicType, TypeVariable typeVar) {
+    unify(substitutions, typeVar, basicType)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable right) {
+    // unify both variables with a fresh new variable
+    val fresh = lambdaUtils.createFreshTypeVariable
+    substitutions.add(left.typevarName, fresh)
+    substitutions.add(right.typevarName, fresh)
+    fresh
+}
 
 /*
  * expressions
  */
 
-axiom NumeralLiteral
-	G |- NumberLiteral num : BitcoinTMFactory::eINSTANCE.createIntType
-
-axiom BooleanLiteral
-	G |- BooleanLiteral bool : BitcoinTMFactory::eINSTANCE.createBooleanType
-
-axiom StringLiteral
-	G |- StringLiteral str : BitcoinTMFactory::eINSTANCE.createStringType
-
-axiom Signature
-	G |- Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
-
-rule VariableReference
-	G |- VariableReference varRef : Type type
+rule Script
+	G |~ Script script
 from {
-	G ||- varRef.ref : type
+	for (p : script.params) {
+		G ||- p : var Type paramType
+		G.add(p, paramType)
+	}
+	G |- new TypeSubstitutions() |> script.exp : var Type texp
 }
 
 rule Parameter
 	G ||- Parameter p : Type type
 from {
-	type = p.paramType
+	{
+		p.paramType !== null
+		type = EcoreUtil.copy(p.paramType)
+	}
+	or {
+		type = lambdaUtils.createFreshTypeVariable
+	}
+}
+
+rule NumeralLiteral
+	G |- TypeSubstitutions substitutions |> NumberLiteral num : BitcoinTMFactory::eINSTANCE.createIntType
+from {
+}
+
+axiom BooleanLiteral
+	G |- TypeSubstitutions substitutions |> BooleanLiteral bool : BitcoinTMFactory::eINSTANCE.createBooleanType
+
+axiom StringLiteral
+	G |- TypeSubstitutions substitutions |> StringLiteral str : BitcoinTMFactory::eINSTANCE.createStringType
+
+axiom Signature
+	G |- TypeSubstitutions substitutions |> Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
+
+rule VariableReference
+	G |- TypeSubstitutions substitutions |> VariableReference varRef : Type type
+from {
+	type = typesubstitution(substitutions, EcoreUtil.copy(env(G, varRef.ref, Type)))
 }
 
 
 rule Minus
-	G |- Minus minus : IntType t
+	G |- TypeSubstitutions substitutions |> Minus minus : IntType t
 from {
-	G |- minus.left : t
-	G |- minus.right : t
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> minus.left: var Type leftType
+	G |- substitutions |> minus.right: var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	// the terms type must be unifiable with int type
+	unify(substitutions, leftType, t)
+	unify(substitutions, rightType, t)
 }
 
 rule Plus
-    G |- Plus plus : Type type
+    G |- TypeSubstitutions substitutions |> Plus plus : Type type
 from {
-    G |- plus.left : var Type leftType
-    G |- plus.right : var Type rightType
-    
+    G |- substitutions |> plus.left : var Type leftType
+    G |- substitutions |> plus.right : var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
     {
-        (leftType instanceof StringType && rightType instanceof StringType)
-        type = BitcoinTMFactory::eINSTANCE.createStringType
-    }
+    	type = BitcoinTMFactory::eINSTANCE.createStringType
+		// the terms type must be unifiable with int type
+		unify(substitutions, leftType, type)
+		unify(substitutions, rightType, type)
+	}
     or
     {
-        (leftType instanceof IntType && rightType instanceof IntType)
-        type = leftType // i.e., IntType
+       	type = BitcoinTMFactory::eINSTANCE.createIntType
+		// the terms type must be unifiable with int type
+		unify(substitutions, leftType, type)
+		unify(substitutions, rightType, type)
     }
 }
 
 rule Comparison
-	G |- Comparison comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- TypeSubstitutions substitutions |> Comparison comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
-	var IntType intType
-	G |- comparison.left : intType
-	G |- comparison.right : intType
+	var t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> comparison.left : var Type leftType
+	G |- substitutions |> comparison.right : var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	unify(substitutions, leftType, t)
+	unify(substitutions, rightType, t)
 }
 
 rule Equals
-	G |- Equals comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- TypeSubstitutions substitutions |> Equals comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
-	G |- comparison.left : var Type leftType
-	G |- comparison.right : var Type rightType
+	G |- substitutions |> comparison.left : var Type leftType
+	G |- substitutions |> comparison.right : var Type rightType
 	
-	// can compare only if they have the same type
-	(leftType.eClass == rightType.eClass)
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	// equals between elements of the same type
+	unify(substitutions, leftType, rightType)
 }
 
 rule BooleanNegation
-	G |- BooleanNegation negation : BooleanType boolType
+	G |- TypeSubstitutions substitutions |> BooleanNegation negation : BooleanType boolType
 from {
-	G |- negation.exp : boolType
+	boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- substitutions |> negation.exp : var Type t
+	
+	t = typesubstitution(substitutions, t)
+	
+	unify(substitutions, t, boolType)
 }
 
 rule Or
-	G |- OrExpression orExp : BooleanType boolType
+	G |- TypeSubstitutions substitutions |> OrExpression orExp : BooleanType boolType
 from {
-	G |- orExp.left : boolType
-	G |- orExp.right : boolType
+	boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- substitutions |> orExp.left : var Type leftType
+	G |- substitutions |> orExp.right : var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	unify(substitutions, leftType, boolType)
+	unify(substitutions, rightType, boolType)
 }
 
 rule And
-	G |- AndExpression andExp : BooleanType boolType
+	G |- TypeSubstitutions substitutions |> AndExpression andExp : BooleanType boolType
 from {
-	G |- andExp.left : boolType
-	G |- andExp.right : boolType
+	boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- substitutions |> andExp.left : var Type leftType
+	G |- substitutions |> andExp.right : var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	unify(substitutions, leftType, boolType)
+	unify(substitutions, rightType, boolType)
 }
 
 rule ArithmeticSigned
-	G |- ArithmeticSigned signed : IntType intType
+	G |- TypeSubstitutions substitutions |> ArithmeticSigned signed : IntType intType
 from {
-	G |- signed.exp : intType
+	intType = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> signed.exp : var Type t
+	
+	t = typesubstitution(substitutions, t)
+	
+	unify(substitutions, t, intType)
 }
 
 rule IfThenElse
-	G |- IfThenElse stmt : Type type
+	G |- TypeSubstitutions substitutions |> IfThenElse stmt : Type type
 from {
-	G |- stmt.^if: var BooleanType tIf
-	G |- stmt.then: var Type tThen
-	G |- stmt.^else: var Type tElse
+	var boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- substitutions |> stmt.^if: var Type tIf
+	G |- substitutions |> stmt.then: var Type tThen
+	
+	tIf = typesubstitution(substitutions, tIf)
+	tThen = typesubstitution(substitutions, tThen)
+	
+	unify(substitutions, tIf, boolType)
+
+	if (stmt.^else!==null) {
+		G |- substitutions |> stmt.^else: var Type tElse
+		tElse = typesubstitution(substitutions, tElse)
+		unify(substitutions, tThen, tElse)
+	}
+	
+	type=tThen
 }
 
 rule VerSig
-	G |- Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
+	G |- TypeSubstitutions substitutions |> Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
+	var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
+	
 	for (s : versig.signatures) {
-		G |- s : var SignatureType t
+		G |- substitutions |> s : var Type t
+		t = typesubstitution(substitutions, t)
+		unify(substitutions, t, sigType)
 	}	
 }
 
 rule Hash
-	G |- Hash hash: BitcoinTMFactory::eINSTANCE.createIntType
+	G |- TypeSubstitutions substitutions |> Hash hash: BitcoinTMFactory::eINSTANCE.createIntType
 from {
-	G |- hash.value: var Type t
+	G |- substitutions |> hash.value: var Type t
+	t = typesubstitution(substitutions, t)
 }
 
 rule Min
-	G |- Min min: IntType t
+	G |- TypeSubstitutions substitutions |> Min min: IntType t
 from {
-	G |- min.left: t
-	G |- min.right: t
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> min.left: var Type tleft
+	G |- substitutions |> min.right: var Type tright
+	
+	tleft = typesubstitution(substitutions, tleft)
+	tright = typesubstitution(substitutions, tright)
+	
+	unify(substitutions, tleft, t)
+	unify(substitutions, tright, t)
 }
 
 rule Max
-	G |- Max max: IntType t
+	G |- TypeSubstitutions substitutions |> Max max: IntType t
 from {
-	G |- max.left: t
-	G |- max.right: t
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> max.left: var Type tleft
+	G |- substitutions |> max.right: var Type tright
+	
+	tleft = typesubstitution(substitutions, tleft)
+	tright = typesubstitution(substitutions, tright)
+	
+	unify(substitutions, tleft, t)
+	unify(substitutions, tright, t)
 }
 
 rule Between
-	G |- Between between: IntType t
+	G |- TypeSubstitutions substitutions |> Between between: IntType t
 from {
-	G |- between.value: t
-	G |- between.left: t
-	G |- between.right: t
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> between.value: var Type tValue
+	G |- substitutions |> between.left: var Type tLeft
+	G |- substitutions |> between.right: var Type tRight
+	
+	tValue = typesubstitution(substitutions, tValue)
+	tLeft = typesubstitution(substitutions, tLeft)
+	tRight = typesubstitution(substitutions, tRight)
+	
+	unify(substitutions, tValue, t)
+	unify(substitutions, tLeft, t)
+	unify(substitutions, tRight, t)
 }
 
 rule Size
-	G |- Size size: IntType t
+	G |- TypeSubstitutions substitutions |> Size size: BitcoinTMFactory::eINSTANCE.createIntType
 from {
-	G |- size.value: t
+	G |- substitutions |> size.value: var Type t
+	
+	t = typesubstitution(substitutions, t)
 }
 
 rule AfterTimeLock
-	G |- AfterTimeLock after: Type texpr
+	G |- TypeSubstitutions substitutions |> AfterTimeLock after: Type texpr
 from {
-	G |- after.time: var IntType tvalue
-	G |- after.continuation: texpr
+	var intType = BitcoinTMFactory::eINSTANCE.createIntType
+	
+	G |- substitutions |> after.time: var Type tvalue
+	G |- substitutions |> after.continuation: texpr
+	
+	tvalue = typesubstitution(substitutions, tvalue)
+	texpr = typesubstitution(substitutions, texpr)
+	
+	unify(substitutions, tvalue, intType)
 }
 
 
 /*
  * rule invocations
  */
-checkrule CheckExpression for
-    Expression expr
+checkrule CheckScript for
+    Script script
 from {
-    empty |- expr : var Type type
-}
-
-checkrule CheckParameter for
-    Parameter p
-from {
-    empty ||- p : var Type type
+	lambdaUtils.resetCounter
+    empty |~ script
 }
 

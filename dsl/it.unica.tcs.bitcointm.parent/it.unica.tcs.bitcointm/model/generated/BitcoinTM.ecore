@@ -50,8 +50,6 @@
         eType="#//Witness" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Output" eSuperTypes="#//OutputDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="params" eType="#//Parameters"
-        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="script" eType="#//Script"
         containment="true"/>
   </eClassifiers>
@@ -69,10 +67,11 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="outputs" upperBound="-1"
         eType="#//Val" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Script"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Parameters">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="param" upperBound="-1"
+  <eClassifiers xsi:type="ecore:EClass" name="Script">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
         eType="#//Parameter" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Value">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
@@ -83,7 +82,10 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="paramType" eType="#//Type"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Expression" eSuperTypes="#//Script"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Expression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="VariableReference" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//Parameter"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="NumberLiteral" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
@@ -145,8 +147,12 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="continuation" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Type">
+  <eClassifiers xsi:type="ecore:EClass" name="Type"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BasicType" eSuperTypes="#//Type">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeVariable" eSuperTypes="#//Type">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typevarName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
@@ -194,11 +200,8 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="VariableReference" eSuperTypes="#//Expression">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//Parameter"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="IntType" eSuperTypes="#//Type"/>
-  <eClassifiers xsi:type="ecore:EClass" name="StringType" eSuperTypes="#//Type"/>
-  <eClassifiers xsi:type="ecore:EClass" name="BooleanType" eSuperTypes="#//Type"/>
-  <eClassifiers xsi:type="ecore:EClass" name="SignatureType" eSuperTypes="#//Type"/>
+  <eClassifiers xsi:type="ecore:EClass" name="IntType" eSuperTypes="#//BasicType"/>
+  <eClassifiers xsi:type="ecore:EClass" name="StringType" eSuperTypes="#//BasicType"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BooleanType" eSuperTypes="#//BasicType"/>
+  <eClassifiers xsi:type="ecore:EClass" name="SignatureType" eSuperTypes="#//BasicType"/>
 </ecore:EPackage>
