@@ -3,7 +3,14 @@
  */
 package it.unica.tcs.validation
 
+import it.unica.tcs.bitcoinTM.BitcoinTMPackage
+import it.unica.tcs.bitcoinTM.KeyDeclaration
+import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.validation.Check
 
 /**
  * This class contains custom validation rules. 
@@ -12,15 +19,108 @@ import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
  */
 class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					BitcoinTMPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
+
+	/*
+	 * INFO
+	 */
 	
+	@Check
+	def void checkEmptyLambda(Script script) {
+		if (script.isLambda && script.params.size==0)
+			info("Empty lambdas can be omitted.", 
+				BitcoinTMPackage.Literals.SCRIPT__PARAMS
+			);
+	}
+	
+	@Check
+	def void checkSingleElementArray(TransactionBody tbody) {
+		
+		var input = tbody.input
+		var witness = tbody.witness
+		var output = tbody.output
+		var value = tbody.value
+		
+		if (input.isMulti && input.txs.size==1) {
+			info("Single element arrays can be omitted", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUT
+			);	
+		}
+		
+		if (witness.isMulti && witness.scripts.size==1) {
+			info("Single element arrays can be omitted", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__WITNESS
+			);	
+		}
+		
+		if (output.isMulti && output.scripts.size==1) {
+			info("Single element arrays can be omitted", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUT
+			);	
+		}
+		
+		if (value.isMulti && value.values.size==1) {
+			info("Single element arrays can be omitted", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__VALUE
+			);	
+		}
+	}
+
+	/*
+	 * WARNING
+	 */
+	 
+	/*
+     * ERROR
+     */
+	
+    @Check
+	def void checkTransactionNameIsUnique(TransactionDeclaration t) {
+		
+		var root = EcoreUtil2.getRootContainer(t);
+		for (other: EcoreUtil2.getAllContentsOfType(root, TransactionDeclaration)){
+			
+			if (t!=other && t.getName.equals(other.name)) {
+				error("Transaction names must be unique.", 
+					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+				);
+			}
+		}
+	} 
+    
+    @Check
+	def void checkKeyNameIsUnique(KeyDeclaration t) {
+		
+		var root = EcoreUtil2.getRootContainer(t);
+		for (other: EcoreUtil2.getAllContentsOfType(root, KeyDeclaration)){
+			
+			if (t!=other && t.getName.equals(other.name)) {
+				error("Key names must be unique.", 
+					BitcoinTMPackage.Literals.KEY_DECLARATION__NAME
+				);
+			}
+		}
+	}
+	
+	@Check
+	def void checkUnbalancedInputsAndOutputs(TransactionBody tbody) {
+		
+		var inputs = tbody.input.txs
+		var witnesses = tbody.witness.scripts
+						
+		if (inputs.size != witnesses.size) {
+			error("Inputs and witnesses must have the same size.", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUT
+			);	
+		}
+		
+		var outputs = tbody.output.scripts
+		var values = tbody.value.values
+		
+		if (outputs.size != values.size) {
+			error("Output and values must have the same size.", 
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUT
+			);	
+		}
+		
+	}
 }

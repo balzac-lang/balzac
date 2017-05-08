@@ -24,7 +24,7 @@ class BitcoinTMScopeProvider extends AbstractBitcoinTMScopeProvider {
 		return getDeclaredVariables(ctx.eContainer);
 	}
 		
-	//utils: recursively get all free-names declarations until ProcessDefinition
+	//utils: recursively get all free-names declarations until Script definition
 	def dispatch IScope getDeclaredVariables(EObject cont) {
 		return getDeclaredVariables(cont.eContainer);
 	}

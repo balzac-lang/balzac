@@ -3,71 +3,58 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 Model:
-	transactions+=Element*;
-	
-Element:
-	Key | TransactionDeclaration ;
-
+	declarations+=(KeyDeclaration | TransactionDeclaration)*;
 	
 TransactionDeclaration:
-	"transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
+	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
 
-Key: "key" name=ID "=" "(" private=STRING "," public=STRING ")";
+KeyDeclaration: 
+	{KeyDeclaration} "key" name=ID "=" "(" private=STRING "," public=STRING ")";
 
 TransactionBody:
-	input=InputDeclaration
-	witness=WitnessDeclaration
-	outputs=OutputDeclaration
-	values=ValueDeclaration
-	(tlock=TlockDeclaration)?
+	input=Input
+	witness=Witness
+	output=Output
+	value=Val
+	(tlock=Tlock)?
 	;
 
-InputDeclaration: 
-	"in" ":" (Input | MultipleInput);
-
-WitnessDeclaration:
-	"wit" ":" (Witness | MultipleWitness);
-
-OutputDeclaration:
-	"out" ":" (Output | MultipleOutput);
-
-ValueDeclaration:
-	"val" ":" (Val | MultipleVal);
-
-TlockDeclaration:
-	"tlock" value=INT;
+Input:   "in"    ":" (SingleInput   | MultipleInput);
+Witness: "wit"   ":" (SingleWitness | MultipleWitness);
+Output:  "out"   ":" (SingleOutput  | MultipleOutput);
+Val:     "val"   ":" (SingleVal     | MultipleVal);
+Tlock:   "tlock" ":" value=INT;
 
 
-
-Input:
-	ref=[TransactionDeclaration];
+SingleInput returns Input:
+	txs+=[TransactionDeclaration];
 
 MultipleInput returns Input:
-	"[" inputs+=Input ("," inputs+=Input)* "]";
+	multi?="[" txs+=[TransactionDeclaration] ("," txs+=[TransactionDeclaration])* "]";
 
-Witness: 
-	script=Script;
+SingleWitness returns Witness: 
+	scripts+=Script;
 
-MultipleWitness: 
-	"[" witnesses+=Witness ("," witnesses+=Witness)* "]";
+MultipleWitness returns Witness: 
+	multi?="[" scripts+=Script ("," scripts+=Script)* "]";
 
-Output:
-	script=Script;
+SingleOutput returns Output:
+	scripts+=Script;
 
-MultipleOutput:
-	"[" outputs+=Output ("," outputs+=Output)* "]";
+MultipleOutput returns Output:
+	multi?="[" scripts+=Script ("," scripts+=Script)* "]";
 
-Val: 
-	value=Value;
+SingleVal returns Val: 
+	values+=Value;
 
-MultipleVal:
-	"[" vals+=Val ("," outputs+=Val)* "]";
+MultipleVal returns Val:
+	multi?="[" values+=Value ("," values+=Value)* "]";
 
 
 
 // da rivedere Script con il nuovo modello
 Script:
-	("lambda" "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 
+	(lambda?="lambda"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 
 	exp=Expression
 ;
 
@@ -129,14 +116,14 @@ IfThenElse:
 	"then" then=Atomic
 	(=> 'else' else=Atomic)?;
 
-Signature: "sig" key=[Key] (modifier=Modifier)?;
+Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
 
 Modifier: "AIAO" | "AINO" | "AISO" | "SIAO" | "SINO" | "SISO";
 	
 Versig:
 	"versig" "(" 
-		"{" pubkeys+=[Key] ("," pubkeys+=[Key])* "}" ","
-		"{" signatures+=Expression ("," signatures+=Expression)* "}" 
+		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
+		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
 Hash: "hash" "(" value=Expression ")";
