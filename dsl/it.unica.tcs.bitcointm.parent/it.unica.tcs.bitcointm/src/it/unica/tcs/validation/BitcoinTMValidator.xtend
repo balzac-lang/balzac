@@ -4,6 +4,7 @@
 package it.unica.tcs.validation
 
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
+import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.TransactionBody
@@ -70,7 +71,19 @@ class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 	/*
 	 * WARNING
 	 */
-	 
+	@Check
+	def void checkIncompleteKey(KeyBody kbody){
+		var pvt = kbody.pvt.value
+		var pub = kbody.pub.value
+		
+		if (pvt == "_" && pub == "_") {
+			warning("This key cannot be used anywhere.",
+				kbody.eContainer,
+				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
+			);
+		}		
+	}
+	
 	/*
      * ERROR
      */
@@ -160,5 +173,10 @@ class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
 			);
 		}
-	}
+	}	
+	
 }
+
+
+
+

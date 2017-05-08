@@ -1,7 +1,10 @@
 
 
-key A = ("priv", "pub")
-key B = ("priv", "pub")
+key A = [_, _]
+key B = {
+	public: "pub",
+	private: "priv"
+}
 
 transaction inA = "ccccc"
 

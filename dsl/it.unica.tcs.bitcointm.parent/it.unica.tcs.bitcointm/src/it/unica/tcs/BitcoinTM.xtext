@@ -5,11 +5,28 @@ generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 Model:
 	declarations+=(KeyDeclaration | TransactionDeclaration)*;
 	
+/*
+ * keys
+ */ 
+KeyDeclaration: 
+	{KeyDeclaration} "key" name=ID "=" body=(KeyBody|VerboseKeyBody);
+
+KeyBody: "[" pvt=PrivateKey "," pub=PublicKey "]";
+VerboseKeyBody returns KeyBody: 
+	"{" 
+		(("private" ":" pvt=PrivateKey "," "public" ":" pub=PublicKey) |
+		("public" ":" pub=PublicKey "," "private" ":" pvt=PrivateKey))	
+	"}";
+	
+PrivateKey: value=(STRING|NO_KEY);
+PublicKey: value=(STRING|NO_KEY);
+NO_KEY: "_";
+
+/*
+ * transactions
+ */
 TransactionDeclaration:
 	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
-
-KeyDeclaration: 
-	{KeyDeclaration} "key" name=ID "=" "(" private=STRING "," public=STRING ")";
 
 TransactionBody:
 	input=Input
@@ -65,7 +82,9 @@ Parameter:
 	name=ID (":" paramType=Type)?;
 
 
-
+/*
+ * expressions
+ */
 Expression:
     OrExpression;
 
