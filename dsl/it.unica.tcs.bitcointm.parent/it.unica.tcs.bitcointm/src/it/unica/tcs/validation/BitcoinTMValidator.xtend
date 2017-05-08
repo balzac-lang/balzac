@@ -11,6 +11,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
+import it.unica.tcs.bitcoinTM.Versig
 
 /**
  * This class contains custom validation rules. 
@@ -122,5 +123,22 @@ class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 			);	
 		}
 		
+	}
+	
+	@Check
+	def void checkVerSig(Versig versig) {
+		
+		if (versig.pubkeys.size>15) {
+			error("Cannot verify more than 15 public keys.", 
+				BitcoinTMPackage.Literals.VERSIG__PUBKEYS
+			);
+		}
+		
+		if (versig.signatures.size > versig.pubkeys.size) {
+			error("The number of signatures cannot exceed the number of public keys.", 
+				versig,
+				BitcoinTMPackage.Literals.VERSIG__SIGNATURES
+			);
+		}
 	}
 }

@@ -1,12 +1,13 @@
 
 
 transaction inA = "ccccc"
+
 key A = ("priv", "pub")
 key B = ("priv", "pub")
 
 transaction T = {
 	in : inA
-	wit : [sig A AIAO]
+	wit : sig A AIAO
 	  
 	out : [
 		lambda(x) . x - 3 > 123,
@@ -21,7 +22,7 @@ transaction T = {
 }
 
 transaction T1 = {
-	in : inA
+	in : T
 	wit : sig A AIAO
 	 
 	out : [
@@ -30,7 +31,7 @@ transaction T1 = {
 		min(12, 12+34),
 		after 123+2 : false,
 		versig(A; sig A),
-		lambda (sigma:signature) . versig(A; sigma),
+		lambda (sigma:signature) . versig(A, A; sigma, sigma),
 		lambda (a) . a-12
 	] 
 		
