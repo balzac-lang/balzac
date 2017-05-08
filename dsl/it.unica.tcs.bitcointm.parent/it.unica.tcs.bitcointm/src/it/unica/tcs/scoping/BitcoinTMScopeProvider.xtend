@@ -3,6 +3,11 @@
  */
 package it.unica.tcs.scoping
 
+import it.unica.tcs.bitcoinTM.Script
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.scoping.IScope
+import org.eclipse.xtext.scoping.Scopes
 
 /**
  * This class contains custom scoping description.
@@ -12,4 +17,20 @@ package it.unica.tcs.scoping
  */
 class BitcoinTMScopeProvider extends AbstractBitcoinTMScopeProvider {
 
+	/*
+	 * free-names resolution
+	 */
+	def IScope scope_Parameter(EObject ctx, EReference ref) {
+		return getDeclaredVariables(ctx.eContainer);
+	}
+		
+	//utils: recursively get all free-names declarations until ProcessDefinition
+	def dispatch IScope getDeclaredVariables(EObject cont) {
+		return getDeclaredVariables(cont.eContainer);
+	}
+	
+	def dispatch IScope getDeclaredVariables(Script obj) {
+		return Scopes.scopeFor(obj.params); // stop recursion
+	}
+	
 }
