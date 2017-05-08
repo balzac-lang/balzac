@@ -1,17 +1,17 @@
 
 
-transaction inA = "ccccc"
-
 key A = ("priv", "pub")
 key B = ("priv", "pub")
 
+transaction inA = "ccccc"
+
 transaction T = {
-	in : inA
+	in : [ inA@0 ]
 	wit : sig A AIAO
 	  
 	out : [
-		lambda(x) . x - 3 > 123,
-		lambda(y) . versig(A; y) 
+		fun(x) . x - 3 > 123,
+		fun(y) . versig(A; y) 
 	]
 	val : [ 
 		1 satoshi, 
@@ -22,7 +22,7 @@ transaction T = {
 }
 
 transaction T1 = {
-	in : T
+	in : T@1
 	wit : sig A AIAO
 	 
 	out : [
@@ -31,8 +31,8 @@ transaction T1 = {
 		min(12, 12+34),
 		after 123+2 : false,
 		versig(A; sig A),
-		lambda (sigma:signature) . versig(A, A; sigma, sigma),
-		lambda (a) . a-12
+		fun (sigma:signature) . versig(A, A; sigma, sigma),
+		fun (a) . a-12
 	] 
 		
 	val : [1 satoshi, 1, 3, 4, 5, 5, 6]

@@ -8,10 +8,11 @@ import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionReference
+import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
-import it.unica.tcs.bitcoinTM.Versig
 
 /**
  * This class contains custom validation rules. 
@@ -42,25 +43,25 @@ class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 		var value = tbody.value
 		
 		if (input.isMulti && input.txs.size==1) {
-			info("Single element arrays can be omitted", 
+			info("Single element arrays can be replaced by the element itself.",
 				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUT
 			);	
 		}
 		
 		if (witness.isMulti && witness.scripts.size==1) {
-			info("Single element arrays can be omitted", 
+			info("Single element arrays can be replaced by the element itself.", 
 				BitcoinTMPackage.Literals.TRANSACTION_BODY__WITNESS
 			);	
 		}
 		
 		if (output.isMulti && output.scripts.size==1) {
-			info("Single element arrays can be omitted", 
+			info("Single element arrays can be replaced by the element itself.", 
 				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUT
 			);	
 		}
 		
 		if (value.isMulti && value.values.size==1) {
-			info("Single element arrays can be omitted", 
+			info("Single element arrays can be replaced by the element itself.", 
 				BitcoinTMPackage.Literals.TRANSACTION_BODY__VALUE
 			);	
 		}
@@ -138,6 +139,25 @@ class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
 			error("The number of signatures cannot exceed the number of public keys.", 
 				versig,
 				BitcoinTMPackage.Literals.VERSIG__SIGNATURES
+			);
+		}
+	}
+	
+	@Check
+	def void checkInputIndex(TransactionReference tref) {
+		
+		/* 
+		 * TODO: quando sarà possibile deserializzare le transazioni il check
+		 * considerà anche questo caso 
+		 */
+		if (tref.txid.body===null)
+			return;
+		
+		var numOfOutput = tref.txid.body.output.scripts.size
+		
+		if (tref.idx>=numOfOutput) {
+			error("This input is pointing to an undefined output script.", 
+				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
 			);
 		}
 	}

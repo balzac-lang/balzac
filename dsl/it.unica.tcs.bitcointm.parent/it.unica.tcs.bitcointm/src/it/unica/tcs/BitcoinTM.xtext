@@ -16,8 +16,7 @@ TransactionBody:
 	witness=Witness
 	output=Output
 	value=Val
-	(tlock=Tlock)?
-	;
+	(tlock=Tlock)?;
 
 Input:   "in"    ":" (SingleInput   | MultipleInput);
 Witness: "wit"   ":" (SingleWitness | MultipleWitness);
@@ -27,10 +26,10 @@ Tlock:   "tlock" ":" value=INT;
 
 
 SingleInput returns Input:
-	txs+=[TransactionDeclaration];
+	txs+=TransactionReference;
 
 MultipleInput returns Input:
-	multi?="[" txs+=[TransactionDeclaration] ("," txs+=[TransactionDeclaration])* "]";
+	multi?="[" txs+=TransactionReference ("," txs+=TransactionReference)* "]";
 
 SingleWitness returns Witness: 
 	scripts+=Script;
@@ -52,20 +51,18 @@ MultipleVal returns Val:
 
 
 
-// da rivedere Script con il nuovo modello
-Script:
-	(lambda?="lambda"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 
-	exp=Expression
-;
+TransactionReference:
+	txid=[TransactionDeclaration] "@" idx=INT;
 
+Script:
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 
+	exp=Expression;
 
 Value:
 	value=INT unit=("BTC"|"satoshi")?;
 
-
 Parameter:
-	name=ID (":" paramType=Type)?
-;
+	name=ID (":" paramType=Type)?;
 
 
 
