@@ -29,4 +29,5 @@ Export-Package: it.unica.tcs.services,
  it.unica.tcs.parser.antlr
 Import-Package: org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,
- .
+ .,
+ lib/bitcoinj-core-0.14.4-bundled.jar

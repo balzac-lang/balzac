@@ -11,7 +11,6 @@ import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
@@ -20,7 +19,7 @@ import org.eclipse.xtext.validation.Check
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
-class BitcoinTMValidator extends BitcoinTMTypeSystemValidator {
+class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 
 	/*

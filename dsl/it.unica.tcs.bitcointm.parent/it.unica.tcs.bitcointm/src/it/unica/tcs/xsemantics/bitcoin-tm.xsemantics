@@ -48,8 +48,7 @@ auxiliary {
     
     unify(TypeSubstitutions substitutions, 
             Type left, Type right) : Type
-        error "cannot unify " + stringRep(left) + 
-            " with " + stringRep(right)
+        error "cannot unify " + stringRep(left) + " with " + stringRep(right)
 }
 
 judgments {
