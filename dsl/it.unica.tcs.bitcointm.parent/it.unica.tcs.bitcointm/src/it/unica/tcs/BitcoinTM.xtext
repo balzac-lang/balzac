@@ -18,9 +18,8 @@ VerboseKeyBody returns KeyBody:
 		("public" ":" pub=PublicKey "," "private" ":" pvt=PrivateKey))	
 	"}";
 	
-PrivateKey: value=(STRING|NO_KEY);
-PublicKey: value=(STRING|NO_KEY);
-NO_KEY: "_";
+PrivateKey: value=STRING | {PrivateKey} "_";
+PublicKey: value=STRING  | {PublicKey}  "_";
 
 /*
  * transactions

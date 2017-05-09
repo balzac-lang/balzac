@@ -7,12 +7,14 @@ import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
+
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
@@ -153,6 +155,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.VERSIG__SIGNATURES
 			);
 		}
+		
+		for(var i=0; i<versig.pubkeys.size; i++) {
+			var k = versig.pubkeys.get(i).body
+			
+			if (k.pvt.value===null && k.pub.value===null) {
+				error("The referred public key is not declared and cannot be computed by the private one.", 
+					versig,
+					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
+					i
+				);
+			}
+		}		
+	}
+	
+	@Check
+	def void checkSign(Signature sig) {
+		var k = sig.key.body
+		
+		if (k.pvt.value===null) {
+			error("The referred private key is not declared.", 
+				sig,
+				BitcoinTMPackage.Literals.SIGNATURE__KEY
+			);
+		}
 	}
 	
 	@Check
@@ -180,20 +206,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		var pvtKey = keyDecl.body.pvt.value;
 		var pubKey = keyDecl.body.pub.value;
 		
-		if (pvtKey != "_" && !pvtKey.isValidKey) {
+		if (pvtKey !== null && !pvtKey.isValidKey) {
 			error("Invalid encoding of the private key. The string must represent a valid bitcon address or hex-characters.",
 				keyDecl.body.pvt,
 				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
 			);
 		}
 		
-		if (pubKey != "_" && !pubKey.isValidKey) {
+		if (pubKey !== null && !pubKey.isValidKey) {
 			error("Invalid encoding of the public key. The string must represent a valid bitcon address or hex-characters.",
 				keyDecl.body.pub,
 				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
 			);
 		}
 		
+		/*
+		 * TODO: verificare che le chiavi siano una coppia valida 
+		 */
 	}
 	
 }
