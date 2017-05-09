@@ -3,7 +3,6 @@
  */
 package it.unica.tcs
 
-import it.unica.tcs.validation.BitcoinJValidator
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
@@ -16,11 +15,6 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 	
 	def Class<? extends StringRepresentation> bindStringRepresentation() {
 		return BitcoinTMStringRepresentation;
-	}
-	
-	@SingletonBinding(eager=true)
-	def Class<? extends BitcoinJValidator> bindBitcoinJValidator() {
-		return BitcoinJValidator;
 	}
 	
 	@SingletonBinding(eager=true)

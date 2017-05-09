@@ -13,6 +13,7 @@ import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
+import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
  * This class contains custom validation rules. 
@@ -20,7 +21,6 @@ import org.eclipse.xtext.validation.Check
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
-	
 
 	/*
 	 * INFO
@@ -172,7 +172,29 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
 			);
 		}
-	}	
+	}
+	
+	@Check
+	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
+		
+		var pvtKey = keyDecl.body.pvt.value;
+		var pubKey = keyDecl.body.pub.value;
+		
+		if (pvtKey != "_" && !pvtKey.isValidKey) {
+			error("Invalid encoding of the private key. The string must represent a valid bitcon address or hex-characters.",
+				keyDecl.body.pvt,
+				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
+			);
+		}
+		
+		if (pubKey != "_" && !pubKey.isValidKey) {
+			error("Invalid encoding of the public key. The string must represent a valid bitcon address or hex-characters.",
+				keyDecl.body.pub,
+				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
+			);
+		}
+		
+	}
 	
 }
 

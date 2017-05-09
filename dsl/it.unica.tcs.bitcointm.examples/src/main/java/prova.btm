@@ -2,8 +2,8 @@
 
 key A = [_, _]
 key B = {
-	public: "pub",
-	private: "priv"
+	private: "cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp",
+	public: "pub"
 }
 
 transaction inA = "ccccc"
