@@ -9,6 +9,8 @@
 	<artifactId>it.unica.tcs.bitcointm</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
+	<properties>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -18,50 +20,6 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<!-- we also need this one because this is an eclipse project, so it needs 
-				to resolve xsemantics runtime dependencies from the p2 repository -->
-			<id>Xsemantics</id>
-			<layout>p2</layout>
-			<url>https://dl.bintray.com/lorenzobettini/xsemantics/updates/</url>
-		</repository>
-		<repository>
-			<id>eclipse</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/neon</url>
-		</repository>
-		<repository>
-			<id>Xtext Update Site</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/${xtext.version}</url>
-		</repository>
-	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>sonatype_releases</id>
-			<url>https://oss.sonatype.org/content/repositories/releases/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-
-		<pluginRepository>
-			<id>sonatype_snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
-	
 	<build>
 		<plugins>
 			<plugin>
@@ -133,6 +91,12 @@
 							</includes>
 						</fileset>
 						<fileset>
+							<directory>${basedir}/../it.unica.tcs.bitcointm/xsemantics-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
 							<directory>${basedir}/../it.unica.tcs.bitcointm.tests/src-gen/</directory>
 							<includes>
 								<include>**/*</include>
@@ -164,9 +128,6 @@
 						</fileset>
 						<fileset>
 							<directory>${basedir}/model/generated/</directory>
-						</fileset>
-						<fileset>
-							<directory>${basedir}/xsemantics-gen</directory>
 						</fileset>
 					</filesets>
 				</configuration>
@@ -228,11 +189,7 @@
 						</languages>
 					</configuration>
 					<dependencies>
-						<dependency>
-							<groupId>net.sf.xsemantics</groupId>
-							<artifactId>it.xsemantics.dsl</artifactId>
-							<version>${xsemantics.version}</version>
-						</dependency>
+					 <!-- add a dependency to the language core bundle, this will only be needed during generation and will not pollute your project's classpath. -->
 					</dependencies>
 				</plugin>
 			</plugins>
