@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcoinTM.WitnessScript
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
@@ -223,6 +224,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * TODO: verificare che le chiavi siano una coppia valida 
 		 */
+	}
+	
+	@Check
+	def void checkWitnessScript(WitnessScript witness) {
+		var freeVars = witness.redeemScript.params.size;
+		if (freeVars != witness.exps.size) {
+			error("Invalid script application. You must specify exactly "+freeVars+" expressions.",
+				BitcoinTMPackage.Literals.WITNESS_SCRIPT__EXPS
+			);
+		}
 	}
 	
 }

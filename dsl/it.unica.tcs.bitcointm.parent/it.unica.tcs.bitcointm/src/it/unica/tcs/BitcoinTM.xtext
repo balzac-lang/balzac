@@ -49,19 +49,19 @@ SingleInput returns Input:
 	txs+=TransactionReference;
 
 MultipleInput returns Input:
-	multi?="[" txs+=TransactionReference ("," txs+=TransactionReference)* "]";
+	multi?="[" txs+=TransactionReference (txs+=TransactionReference)* "]";
 
 SingleWitness returns Witness: 
-	scripts+=Script;
+	scripts+=WitnessScript;
 
 MultipleWitness returns Witness: 
-	multi?="[" scripts+=Script ("," scripts+=Script)* "]";
+	multi?="[" scripts+=(WitnessScript) (";" scripts+=WitnessScript)* "]";
 
 SingleOutput returns Output:
 	scripts+=Script;
 
 MultipleOutput returns Output:
-	multi?="[" scripts+=Script ("," scripts+=Script)* "]";
+	multi?="[" scripts+=Script (";" scripts+=Script)* "]";
 
 SingleVal returns Val: 
 	values+=Value;
@@ -74,9 +74,12 @@ MultipleVal returns Val:
 TransactionReference:
 	txid=[TransactionDeclaration] ("@" idx=INT)?;
 
+WitnessScript:
+	{WitnessScript} ("{" => redeemScript=Script "}")? (exps+=Expression ("," exps+=Expression)*)?;
+
 Script:
-	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 
-	exp=Expression;
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
+
 
 Value:
 	value=INT unit=("BTC"|"satoshi")?;

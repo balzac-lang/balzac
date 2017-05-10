@@ -4,10 +4,12 @@
 package it.unica.tcs.scoping
 
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.WitnessScript
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
+import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 
 /**
  * This class contains custom scoping description.
@@ -15,12 +17,13 @@ import org.eclipse.xtext.scoping.Scopes
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#scoping
  * on how and when to use it.
  */
-class BitcoinTMScopeProvider extends AbstractBitcoinTMScopeProvider {
+class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 
 	/*
 	 * free-names resolution
 	 */
 	def IScope scope_Parameter(EObject ctx, EReference ref) {
+//		println("Resolving variable: "+ref.name)
 		return getDeclaredVariables(ctx.eContainer);
 	}
 		
@@ -30,7 +33,12 @@ class BitcoinTMScopeProvider extends AbstractBitcoinTMScopeProvider {
 	}
 	
 	def dispatch IScope getDeclaredVariables(Script obj) {
+//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(obj.params); // stop recursion
 	}
 	
+	def dispatch IScope getDeclaredVariables(WitnessScript obj) {
+//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
+		return Scopes.scopeFor(obj.redeemScript.params); // stop recursion
+	}
 }

@@ -30,6 +30,7 @@ import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcoinTM.WitnessScript
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -46,24 +47,28 @@ auxiliary {
         
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
     
-    unify(TypeSubstitutions substitutions, 
-            Type left, Type right) : Type
-        error "cannot unify " + stringRep(left) + " with " + stringRep(right)
+    unify(TypeSubstitutions substitutions, Type left, Type right) : Type
+        error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
+        
 }
 
 judgments {
 
 	scriptType |~ Script s
-		error "cannot type " + stringRep(s)
+		error "Cannot type " + stringRep(s)
+		source s
+	
+	witscriptType ||~ WitnessScript s
+		error "Cannot type " + stringRep(s)
 		source s
 	
 
 	type |- TypeSubstitutions substitutions |> Expression exp : output Type
-		error "cannot type " + stringRep(exp)
+		error "Cannot type " + stringRep(exp)
 		source exp
 		
 	vartype ||- Parameter p : output Type
-		error "cannot type " + stringRep(p)
+		error "Cannot type " + stringRep(p)
 		source p
 //		
 //	validate |= EObject obj
@@ -137,6 +142,8 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     fresh
 }
 
+
+
 /*
  * expressions
  */
@@ -149,6 +156,22 @@ from {
 		G.add(p, paramType)
 	}
 	G |- new TypeSubstitutions() |> script.exp : var Type texp
+}
+
+rule WitnessScript
+	G ||~ WitnessScript witness
+from {
+	
+	var substitutions = new TypeSubstitutions()
+
+	for (var i=0; i<witness.exps.size; i++) {
+		var exp = witness.exps.get(i)
+		var param = witness.redeemScript.params.get(i)	// we assume the same size
+		
+		G |- substitutions |> exp : var BasicType texp
+		G ||- param : var Type tparam
+		unify(substitutions,tparam, texp)
+	}
 }
 
 rule Parameter
@@ -414,5 +437,12 @@ checkrule CheckScript for
 from {
 	lambdaUtils.resetCounter
     empty |~ script
+}
+
+checkrule CheckWitnessScript for
+    WitnessScript script
+from {
+	lambdaUtils.resetCounter
+    empty ||~ script
 }
 
