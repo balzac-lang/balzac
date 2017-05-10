@@ -163,10 +163,8 @@ from {
 	}
 }
 
-rule NumeralLiteral
+axiom NumeralLiteral
 	G |- TypeSubstitutions substitutions |> NumberLiteral num : BitcoinTMFactory::eINSTANCE.createIntType
-from {
-}
 
 axiom BooleanLiteral
 	G |- TypeSubstitutions substitutions |> BooleanLiteral bool : BitcoinTMFactory::eINSTANCE.createBooleanType

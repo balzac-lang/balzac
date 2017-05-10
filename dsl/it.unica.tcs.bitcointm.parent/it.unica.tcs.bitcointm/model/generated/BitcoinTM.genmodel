@@ -7,7 +7,11 @@
   <genPackages prefix="BitcoinTM" basePackage="it.unica.tcs" disposableProviderFactory="true"
       fileExtensions="btm" ecorePackage="BitcoinTM.ecore#/">
     <genClasses ecoreClass="BitcoinTM.ecore#//Model">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/net"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/declarations"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//NetworkDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NetworkDeclaration/type"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyDeclaration/name"/>

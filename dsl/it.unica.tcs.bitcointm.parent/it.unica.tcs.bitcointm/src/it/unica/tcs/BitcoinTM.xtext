@@ -3,8 +3,12 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 Model:
+	net=NetworkDeclaration?
 	declarations+=(KeyDeclaration | TransactionDeclaration)*;
-	
+
+NetworkDeclaration:
+	"network" type=("testnet"|"mainnet");
+
 /*
  * keys
  */ 
@@ -25,7 +29,7 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING );
+	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING | "_" );
 
 TransactionBody:
 	input=Input
@@ -68,7 +72,7 @@ MultipleVal returns Val:
 
 
 TransactionReference:
-	txid=[TransactionDeclaration] "@" idx=INT;
+	txid=[TransactionDeclaration] ("@" idx=INT)?;
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? 

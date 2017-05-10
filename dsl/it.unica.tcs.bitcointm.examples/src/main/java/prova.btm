@@ -1,6 +1,7 @@
 
+network testnet
 
-key A = [_, _]
+key A = ["cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp", _]
 key B = {
 	private: "cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp",
 	public: _
@@ -9,7 +10,7 @@ key B = {
 transaction inA = "ccccc"
 
 transaction T = {
-	in : [ inA@0 ]
+	in : inA@0
 	wit : sig B AIAO
 	  
 	out : [
@@ -34,7 +35,7 @@ transaction T1 = {
 		min(12, 12+34),
 		after 123+2 : false,
 		versig(B; sig B),
-		fun (sigma:signature) . versig(B, B; sigma, sigma),
+		fun (sigma:signature) . versig(B, B; if true then sig B , sigma),
 		fun (a) . a-12
 	] 
 		
