@@ -30,11 +30,11 @@ transaction T1 = {
 	wit : sig kB AIAO
 	 
 	out : [ 
-		(12-45) +12;
+		(12-45) + 2147483647 + 2147483647;
 		fun (a) . a-45;
 		12
 	] 
-		
+	
 	val : [1 satoshi, 1, 3]
 }
 

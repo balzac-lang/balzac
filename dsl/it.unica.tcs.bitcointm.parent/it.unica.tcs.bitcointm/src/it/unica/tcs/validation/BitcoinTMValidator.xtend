@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
+import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
@@ -83,6 +84,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
 			);
 		}		
+	}
+	
+	@Check
+	def void checkUnusedParameters(Script script){
+
+		for (param : script.params) {
+			var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
+			
+			if (references.size==0)
+				warning("Unused variable '"+param.name+"'.", 
+					param,
+					BitcoinTMPackage.Literals.PARAMETER__NAME
+				);			
+		}
 	}
 	
 	/*
