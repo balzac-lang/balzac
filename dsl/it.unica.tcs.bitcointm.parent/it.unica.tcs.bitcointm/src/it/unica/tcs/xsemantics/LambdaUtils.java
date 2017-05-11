@@ -21,7 +21,7 @@ public class LambdaUtils {
 	public TypeVariable createTypeVariable(String name) {
 		TypeVariable typeVariable = BitcoinTMFactory.eINSTANCE
 				.createTypeVariable();
-		typeVariable.setTypevarName(name);
+		typeVariable.setValue(name);
 		return typeVariable;
 	}
 

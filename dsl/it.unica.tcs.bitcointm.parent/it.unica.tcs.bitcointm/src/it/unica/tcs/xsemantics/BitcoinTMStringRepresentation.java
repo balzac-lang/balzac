@@ -41,7 +41,7 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 	}
 
 	protected String stringRep(TypeVariable typeVariable) {
-		return typeVariable.getTypevarName();
+		return typeVariable.getValue();
 	}
 
 	protected String stringRep(TypeSubstitutions substitutions) {

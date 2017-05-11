@@ -85,7 +85,7 @@ judgments {
 auxiliary notoccur(Type type, Type other) { true }
 
 auxiliary notoccur(TypeVariable variable, TypeVariable other) {
-    variable.typevarName != other.typevarName
+    variable.value != other.value
 }
 
 auxiliary typesubstitution(TypeSubstitutions substitutions, Type type) {
@@ -94,7 +94,7 @@ auxiliary typesubstitution(TypeSubstitutions substitutions, Type type) {
 
 auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variable)
 {
-    var mapped = substitutions.mapped(variable.typevarName)
+    var mapped = substitutions.mapped(variable.value)
     if (mapped !== null) {
         val result = EcoreUtil::copy(mapped)
         typesubstitution(substitutions, result) // recursive
@@ -126,7 +126,7 @@ auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
 
 
 auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
-    substitutions.add(typeVar.typevarName, basicType)
+    substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
 }
 
@@ -137,8 +137,8 @@ auxiliary unify(TypeSubstitutions substitutions, BasicType basicType, TypeVariab
 auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable right) {
     // unify both variables with a fresh new variable
     val fresh = lambdaUtils.createFreshTypeVariable
-    substitutions.add(left.typevarName, fresh)
-    substitutions.add(right.typevarName, fresh)
+    substitutions.add(left.value, fresh)
+    substitutions.add(right.value, fresh)
     fresh
 }
 
@@ -166,11 +166,13 @@ from {
 
 	for (var i=0; i<witness.exps.size; i++) {
 		var exp = witness.exps.get(i)
-		var param = witness.redeemScript.params.get(i)	// we assume the same size
-		
 		G |- substitutions |> exp : var BasicType texp
-		G ||- param : var Type tparam
-		unify(substitutions,tparam, texp)
+		
+		if (witness.redeemScript!==null) {
+			var param = witness.redeemScript.params.get(i)	// we assume the same size
+			G ||- param : var Type tparam
+			unify(substitutions, tparam, texp)
+		}
 	}
 }
 
@@ -202,6 +204,7 @@ rule VariableReference
 	G |- TypeSubstitutions substitutions |> VariableReference varRef : Type type
 from {
 	type = typesubstitution(substitutions, EcoreUtil.copy(env(G, varRef.ref, Type)))
+	varRef.ref.paramType = type	// set the param type, useful just for the ui
 }
 
 

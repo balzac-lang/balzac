@@ -58,10 +58,10 @@ MultipleWitness returns Witness:
 	multi?="[" scripts+=(WitnessScript) (";" scripts+=WitnessScript)* "]";
 
 SingleOutput returns Output:
-	scripts+=Script;
+	scripts+=OutputScript;
 
 MultipleOutput returns Output:
-	multi?="[" scripts+=Script (";" scripts+=Script)* "]";
+	multi?="[" scripts+=OutputScript (";" scripts+=OutputScript)* "]";
 
 SingleVal returns Val: 
 	values+=Value;
@@ -77,6 +77,9 @@ TransactionReference:
 WitnessScript:
 	{WitnessScript} ("{" => redeemScript=Script "}")? (exps+=Expression ("," exps+=Expression)*)?;
 
+OutputScript:
+	(P2SH?="P2SH" "(" script=Script ")") | script=Script;
+
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
 
@@ -85,7 +88,7 @@ Value:
 	value=INT unit=("BTC"|"satoshi")?;
 
 Parameter:
-	name=ID (":" paramType=Type)?;
+	name=ID (":" paramType=ParameterType)?;
 
 
 /*
@@ -157,6 +160,8 @@ Size: "size" "(" value=Expression ")";
 AfterTimeLock: "after" time=Expression ":" continuation=Atomic;
 
 
+ParameterType returns Type:
+	BasicType;
 
 Type:
 	BasicType |
@@ -169,4 +174,4 @@ BasicType:
     {SignatureType} value='signature';
 
 TypeVariable:
-	typevarName=ID;
+	value=ID;

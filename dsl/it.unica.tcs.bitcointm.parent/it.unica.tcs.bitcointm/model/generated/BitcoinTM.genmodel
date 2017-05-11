@@ -66,6 +66,10 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//WitnessScript/redeemScript"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//WitnessScript/exps"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//OutputScript">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//OutputScript/P2SH"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OutputScript/script"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Script">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Script/lambda"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Script/params"/>
@@ -128,13 +132,11 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/time"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/continuation"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Type"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//BasicType">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BasicType/value"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Type">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Type/value"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TypeVariable">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TypeVariable/typevarName"/>
-    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//BasicType"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TypeVariable"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//OrExpression">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/right"/>

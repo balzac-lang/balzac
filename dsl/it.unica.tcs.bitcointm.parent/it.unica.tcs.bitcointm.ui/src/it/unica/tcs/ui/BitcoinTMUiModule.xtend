@@ -3,11 +3,17 @@
  */
 package it.unica.tcs.ui
 
+import it.unica.tcs.ui.hover.BitcoinTMEObjectHoverProvider
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
  */
 @FinalFieldsConstructor
 class BitcoinTMUiModule extends AbstractBitcoinTMUiModule {
+	
+	def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
+		return 	BitcoinTMEObjectHoverProvider;
+	}
 }
