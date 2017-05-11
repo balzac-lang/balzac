@@ -75,7 +75,8 @@ TransactionReference:
 	txid=[TransactionDeclaration] ("@" idx=INT)?;
 
 WitnessScript:
-	{WitnessScript} ("{" => redeemScript=Script "}")? (exps+=Expression ("," exps+=Expression)*)?;
+	{WitnessScript} //("{" => redeemScript=Script "}")? 
+	(exps+=Expression ("," exps+=Expression)*)?;
 
 OutputScript:
 	(P2SH?="P2SH" "(" script=Script ")") | script=Script;

@@ -63,7 +63,6 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionReference/idx"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//WitnessScript">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//WitnessScript/redeemScript"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//WitnessScript/exps"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//OutputScript">

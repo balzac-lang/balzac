@@ -4,7 +4,6 @@
 package it.unica.tcs.scoping
 
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.WitnessScript
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
@@ -35,10 +34,5 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	def dispatch IScope getDeclaredVariables(Script obj) {
 //		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(obj.params); // stop recursion
-	}
-	
-	def dispatch IScope getDeclaredVariables(WitnessScript obj) {
-//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
-		return Scopes.scopeFor(obj.redeemScript.params); // stop recursion
 	}
 }

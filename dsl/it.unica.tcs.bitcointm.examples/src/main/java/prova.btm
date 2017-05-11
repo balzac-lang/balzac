@@ -11,7 +11,7 @@ transaction inA = "ccccc"
 
 transaction T = {
 	in : inA@0
-	wit : {sig B AIAO}
+	wit : sig B AIAO
 	  
 	out : [
 		fun(x:signature) . x;
@@ -48,6 +48,11 @@ transaction A = {
 	wit: true
 	out: P2SH(fun(sigma,sigma2). versig(A; sigma))
 	val: 1BTC
-} 
+}
 
-
+transaction B = {
+	in : inA
+	wit: sig A, 6
+	out: true
+	val: 1BTC
+}
