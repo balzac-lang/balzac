@@ -225,6 +225,21 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 */
 	}
 	
+	@Check
+	def void checkUniqueLambdaParameters(Script p) {
+		
+		for (var i=0; i<p.params.size-1; i++) {
+			for (var j=1; j<p.params.size; j++) {
+				if (p.params.get(i).name == p.params.get(j).name) {
+					error(
+						"Duplicate parameter name '"+p.params.get(j).name+"'", 
+						p.params.get(j),
+						BitcoinTMPackage.Literals.PARAMETER__NAME, j
+					);
+				}
+			}
+		}
+	}
 }
 
 

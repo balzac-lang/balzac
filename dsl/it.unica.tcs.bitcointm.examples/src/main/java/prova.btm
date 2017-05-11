@@ -55,4 +55,4 @@ transaction B = {
 	wit: sig A, 6
 	out: true
 	val: 1BTC
-}
+} 
