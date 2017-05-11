@@ -167,12 +167,6 @@ from {
 	for (var i=0; i<witness.exps.size; i++) {
 		var exp = witness.exps.get(i)
 		G |- substitutions |> exp : var BasicType texp
-		
-		if (witness.redeemScript!==null) {
-			var param = witness.redeemScript.params.get(i)	// we assume the same size
-			G ||- param : var Type tparam
-			unify(substitutions, tparam, texp)
-		}
 	}
 }
 
