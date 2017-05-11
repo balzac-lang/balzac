@@ -4,12 +4,12 @@
 package it.unica.tcs.validation
 
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
+import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.xtext.EcoreUtil2
@@ -90,33 +90,19 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      */
 	
     @Check
-	def void checkTransactionNameIsUnique(TransactionDeclaration t) {
+	def void checkDeclarationNameIsUnique(Declaration t) {
 		
 		var root = EcoreUtil2.getRootContainer(t);
-		for (other: EcoreUtil2.getAllContentsOfType(root, TransactionDeclaration)){
+		for (other: EcoreUtil2.getAllContentsOfType(root, Declaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
-				error("Transaction names must be unique.", 
-					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+				error("Duplicated name '"+other.name+"'.", 
+					BitcoinTMPackage.Literals.DECLARATION__NAME
 				);
 			}
 		}
 	} 
-    
-    @Check
-	def void checkKeyNameIsUnique(KeyDeclaration t) {
-		
-		var root = EcoreUtil2.getRootContainer(t);
-		for (other: EcoreUtil2.getAllContentsOfType(root, KeyDeclaration)){
-			
-			if (t!=other && t.getName.equals(other.name)) {
-				error("Key names must be unique.", 
-					BitcoinTMPackage.Literals.KEY_DECLARATION__NAME
-				);
-			}
-		}
-	}
-	
+    	
 	@Check
 	def void checkUnbalancedInputsAndOutputs(TransactionBody tbody) {
 		

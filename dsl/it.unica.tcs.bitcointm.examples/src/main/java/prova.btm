@@ -1,8 +1,8 @@
 
 network testnet
 
-key A = ["cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp", _]
-key B = {
+key kA = ["cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp", _]
+key kB = {
 	private: "cRp4uUnreGMZN8vB7nQFX6XWMHU5Lc73HMAhmcDEwHfbgRS66Cqp",
 	public: _
 }
@@ -11,11 +11,11 @@ transaction inA = "ccccc"
 
 transaction T = {
 	in : inA@0
-	wit : sig B AIAO
+	wit : sig kB AIAO
 	  
 	out : [
 		fun(x:signature) . x;
-		fun(y) . versig(B; y)
+		fun(y) . versig(kB; y)
 	]
 	val : [ 
 		1 satoshi,  
@@ -27,7 +27,7 @@ transaction T = {
 
 transaction T1 = {
 	in : T@1
-	wit : sig B AIAO
+	wit : sig kB AIAO
 	 
 	out : [ 
 		(12-45) +12;
@@ -46,13 +46,13 @@ transaction T1 = {
 transaction A = {
 	in : inA
 	wit: true
-	out: P2SH(fun(sigma,sigma2). versig(A; sigma))
+	out: P2SH(fun(sigma,sigma2). versig(kA; sigma))
 	val: 1BTC
 }
 
 transaction B = {
 	in : inA
-	wit: sig A, 6
+	wit: sig kA, 6
 	out: true
 	val: 1BTC
 } 

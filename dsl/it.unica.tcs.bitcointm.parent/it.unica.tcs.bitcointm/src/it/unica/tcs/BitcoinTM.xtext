@@ -4,14 +4,17 @@ generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 Model:
 	net=NetworkDeclaration?
-	declarations+=(KeyDeclaration | TransactionDeclaration)*;
+	declarations+=Declaration*;
 
 NetworkDeclaration:
 	"network" type=("testnet"|"mainnet");
 
+Declaration:
+	KeyDeclaration | TransactionDeclaration; 
+
 /*
  * keys
- */ 
+ */
 KeyDeclaration: 
 	{KeyDeclaration} "key" name=ID "=" body=(KeyBody|VerboseKeyBody);
 
