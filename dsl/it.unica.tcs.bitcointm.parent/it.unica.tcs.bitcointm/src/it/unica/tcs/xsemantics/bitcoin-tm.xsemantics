@@ -153,9 +153,18 @@ rule Script
 from {
 	for (p : script.params) {
 		G ||- p : var Type paramType
-		G.add(p, paramType)
+		G.add(p, paramType)			// store the type in the environment
+		p.paramType = paramType		// and in the AST
 	}
-	G |- new TypeSubstitutions() |> script.exp : var Type texp
+	var substitutions = new TypeSubstitutions()
+	G |- substitutions |> script.exp : var Type texp
+	
+	// all the parameters should have a basic type
+	for (p : script.params) {
+		p.paramType = typesubstitution(substitutions, p.paramType)
+		{p.paramType instanceof BasicType}
+	}
+	
 }
 
 rule WitnessScript

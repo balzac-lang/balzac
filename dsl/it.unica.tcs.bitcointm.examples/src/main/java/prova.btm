@@ -46,7 +46,7 @@ transaction T1 = {
 transaction A = {
 	in : inA
 	wit: true
-	out: P2SH(fun(sigma,sigma2). versig(kA; sigma))
+	out: P2SH(fun(sigma:signature, sigma2:int). versig(kA; sigma)) 
 	val: 1BTC
 }
 
