@@ -12,7 +12,7 @@ transaction inA = "ccccc"
 transaction T = {
 	in : inA@0
 	wit : sig kB AIAO
-	  
+	    
 	out : [
 		fun(x:signature) . x;
 		fun(y) . versig(kB; y)
@@ -30,7 +30,7 @@ transaction T1 = {
 	wit : sig kB AIAO
 	 
 	out : [ 
-		(12-45) + 2147483647 + 2147483647;
+		(12-45) + 2147483647 + 2147483647; 
 		fun (a) . a-45;
 		12
 	] 

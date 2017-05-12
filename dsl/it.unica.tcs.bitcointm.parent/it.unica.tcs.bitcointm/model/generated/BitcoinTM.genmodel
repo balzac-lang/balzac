@@ -6,6 +6,27 @@
     complianceLevel="6.0" copyrightFields="false" runtimeVersion="2.12">
   <genPackages prefix="BitcoinTM" basePackage="it.unica.tcs" disposableProviderFactory="true"
       fileExtensions="btm" ecorePackage="BitcoinTM.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//Modifier">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/AIAO"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/AINO"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/AISO"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/SIAO"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/SINO"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Modifier/SISO"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//IntTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//IntTypeEnum/int"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//StringTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//StringTypeEnum/string"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//BoolTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//BoolTypeEnum/bool"/>
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//BoolTypeEnum/boolean"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//SignatureTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//SignatureTypeEnum/signature"/>
+    </genEnums>
     <genClasses ecoreClass="BitcoinTM.ecore#//Model">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/net"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/declarations"/>
@@ -132,11 +153,11 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/time"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/continuation"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Type">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Type/value"/>
-    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Type"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//BasicType"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TypeVariable"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TypeVariable">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TypeVariable/value"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//OrExpression">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/right"/>
@@ -169,9 +190,17 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//ArithmeticSigned">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ArithmeticSigned/exp"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//IntType"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//StringType"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//BooleanType"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//SignatureType"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//IntType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//IntType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//StringType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//StringType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//BooleanType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BooleanType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//SignatureType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SignatureType/value"/>
+    </genClasses>
   </genPackages>
 </genmodel:GenModel>

@@ -147,7 +147,7 @@ IfThenElse:
 
 Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
 
-Modifier: "AIAO" | "AINO" | "AISO" | "SIAO" | "SINO" | "SISO";
+enum Modifier: AIAO | AINO | AISO | SIAO | SINO | SISO;
 	
 Versig:
 	"versig" "(" 
@@ -172,10 +172,15 @@ Type:
 	TypeVariable;
 
 BasicType:
-	{IntType} value='int' |
-    {StringType} value='string' |
-    {BooleanType} value=('boolean'|'bool') |
-    {SignatureType} value='signature';
+	{IntType} value=IntTypeEnum |
+    {StringType} value=StringTypeEnum |
+    {BooleanType} value=BoolTypeEnum |
+    {SignatureType} value=SignatureTypeEnum;
 
 TypeVariable:
 	value=ID;
+
+enum IntTypeEnum: int;
+enum StringTypeEnum: string;
+enum BoolTypeEnum: bool | boolean;
+enum SignatureTypeEnum: signature;
