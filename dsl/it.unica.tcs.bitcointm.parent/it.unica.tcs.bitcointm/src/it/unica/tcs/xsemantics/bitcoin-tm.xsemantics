@@ -159,7 +159,7 @@ from {
 	var substitutions = new TypeSubstitutions()
 	G |- substitutions |> script.exp : var Type texp
 	
-	// all the parameters should have a basic type
+	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : script.params) {
 		p.paramType = typesubstitution(substitutions, p.paramType)
 		{p.paramType instanceof BasicType}
@@ -172,14 +172,15 @@ rule Input
 from {
 	var substitutions = new TypeSubstitutions()
 
-	var isTxSerialized = input.txRef.tx.body===null 
+	var txCanBeTypeChecked = input.txRef.tx.body!==null 
+	
 
 	var outputIdx = input.txRef.idx
 	var Script outputScript = null
 	
-	if (!isTxSerialized && outputIdx<=input.txRef.tx.body.inputs.size) {
-		outputScript = input.txRef.tx.body?.outputs.get(outputIdx).script 
-		G |~ outputScript	// all the params will have basic type
+	if (txCanBeTypeChecked && outputIdx<=input.txRef.tx.body.outputs.size) {
+		outputScript = input.txRef.tx.body.outputs.get(outputIdx).script 
+		G |~ outputScript	// all the params will have a basic type
 	}
 	
 	for (var i=0; i<input.actual.exps.size; i++) {
@@ -187,7 +188,7 @@ from {
 		G |- substitutions |> exp : var BasicType texp
 		
 		// TODO: modify when serialized transactions will be analized (?) 
-		if (!isTxSerialized && outputScript!==null && outputScript.params.size==input.actual.exps.size) {
+		if (txCanBeTypeChecked && outputScript!==null && outputScript.params.size==input.actual.exps.size) {
 			var param = outputScript.params.get(i)
 			
 			if(param.paramType.class != texp.class) {

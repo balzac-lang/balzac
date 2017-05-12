@@ -32,7 +32,7 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING | "_" );
+	"transaction" name=ID '=' ( ('{' body=TransactionBody '}') | bytes=STRING | placeholder?="_" );
 
 TransactionBody:
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )

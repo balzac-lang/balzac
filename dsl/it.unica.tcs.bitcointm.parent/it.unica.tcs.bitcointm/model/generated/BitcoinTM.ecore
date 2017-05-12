@@ -33,6 +33,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TransactionBody"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="placeholder" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionBody">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
