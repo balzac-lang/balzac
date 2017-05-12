@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcoinTM.Witness
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
@@ -240,6 +241,35 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				}
 			}
 		}
+	}
+	
+	@Check
+	def void checkWitness(Witness witnesses) {
+		
+		var txbody = witnesses.eContainer as TransactionBody
+		
+		for (var i=0; i<witnesses.scripts.size; i++) {
+			
+			var witScript = witnesses.scripts.get(i)
+			var txRef = txbody.input.txs.get(i)		// another validation ensure this (checkUnbalancedInputsAndOutputs)
+			
+			var tx = txRef.txid
+			var outputIdx = txRef.idx
+					
+			var outputScript = tx.body.output.scripts.get(outputIdx).script;		// another validation ensure this (see checkInputIndex)
+			
+			
+			var numOfParams = outputScript.params.size
+			var numOfExps = witScript.exps.size
+			
+			if (numOfExps!=numOfParams)
+				error(
+					"The number of expressions does not match the number of parameters", 
+					BitcoinTMPackage.Literals.WITNESS__SCRIPTS, i
+				);
+		}
+		
+						
 	}
 }
 

@@ -14,7 +14,7 @@ transaction T = {
 	wit : sig kB AIAO
 	    
 	out : [
-		fun(x:signature) . x;
+		fun(x:signature, y:int) . x;
 		fun(y) . versig(kB; y)
 	]
 	val : [ 
@@ -26,8 +26,8 @@ transaction T = {
 }
 
 transaction T1 = {
-	in : T@1
-	wit : sig kB AIAO
+	in : T@0
+	wit : sig kB AIAO, 23
 	 
 	out : [ 
 		(12-45) + 2147483647 + 2147483647; 
