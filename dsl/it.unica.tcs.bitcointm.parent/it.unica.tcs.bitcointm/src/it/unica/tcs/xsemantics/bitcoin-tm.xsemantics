@@ -177,17 +177,17 @@ from {
 	var outputIdx = input.txRef.idx
 	var Script outputScript = null
 	
-	if (!isTxSerialized) {
+	if (!isTxSerialized && outputIdx<=input.txRef.tx.body.inputs.size) {
 		outputScript = input.txRef.tx.body?.outputs.get(outputIdx).script 
 		G |~ outputScript	// all the params will have basic type
 	}
 	
-	for (var i=0; i<input.exps.size; i++) {
-		var exp = input.exps.get(i)
+	for (var i=0; i<input.actual.exps.size; i++) {
+		var exp = input.actual.exps.get(i)
 		G |- substitutions |> exp : var BasicType texp
 		
 		// TODO: modify when serialized transactions will be analized (?) 
-		if (!isTxSerialized) {			
+		if (!isTxSerialized && outputScript!==null && outputScript.params.size==input.actual.exps.size) {
 			var param = outputScript.params.get(i)
 			
 			if(param.paramType.class != texp.class) {

@@ -11,7 +11,6 @@ import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
@@ -147,25 +146,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-	@Check
-	def void checkInputIndex(TransactionReference tref) {
 		
-		/* 
-		 * TODO: quando sarà possibile deserializzare le transazioni il check
-		 * considerà anche questo caso 
-		 */
-		if (tref.tx.body===null)
-			return;
-		
-		var numOfOutput = tref.tx.body.outputs.size
-		
-		if (tref.idx>=numOfOutput) {
-			error("This input is pointing to an undefined output script.", 
-				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
-			);
-		}
-	}
-	
 	@Check
 	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
 		
@@ -198,7 +179,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			for (var j=1; j<p.params.size; j++) {
 				if (p.params.get(i).name == p.params.get(j).name) {
 					error(
-						"Duplicate parameter name '"+p.params.get(j).name+"'", 
+						"Duplicate parameter name '"+p.params.get(j).name+"'.", 
 						p.params.get(j),
 						BitcoinTMPackage.Literals.PARAMETER__NAME, j
 					);
@@ -208,21 +189,63 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkWitnessExpressionsSize(Input input) {
+	def void checkInput(Input input) {
 		
+		/* 
+		 * TODO: quando sarà possibile deserializzare le transazioni il check
+		 * considerà anche questo caso 
+		 */
+		if (input.txRef.tx.body===null)
+			return;
+		
+		var outputs = input.txRef.tx.body.outputs;
+		
+		if (input.txRef.idx>=outputs.size) {
+			error("This input is pointing to an undefined output script.",
+				input.txRef,
+				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
+			);
+			return;
+		}
+				
 		var outputIdx = input.txRef.idx
-		var outputScript = input.txRef.tx.body.outputs.get(outputIdx).script;		// another validation ensure this (see checkInputIndex)
+		var outputScript = outputs.get(outputIdx).script;
 		
-		var numOfExps = input.exps.size
+		var numOfExps = input.actual.exps.size
 		
 		var numOfParams = outputScript.params.size
-		if (numOfExps!=numOfParams)
+		if (numOfExps!=numOfParams) {
 			error(
-				"The number of expressions does not match the number of parameters", 
-				BitcoinTMPackage.Literals.INPUT__EXPS
+				"The number of expressions does not match the number of parameters.",
+				BitcoinTMPackage.Literals.INPUT__ACTUAL
 			);
+		}						
+	}
+	
+	@Check
+	def void checkInputsAreUnique(TransactionBody tbody) {
 		
-						
+		for (var i=0; i<tbody.inputs.size-1; i++) {
+			for (var j=1; j<tbody.inputs.size; j++) {
+				
+				var inputA = tbody.inputs.get(i)
+				var inputB = tbody.inputs.get(j)
+				
+				if (inputA.txRef.tx==inputB.txRef.tx && inputA.txRef.idx==inputB.txRef.idx) {
+					error(
+						"You cannot redeem the output twice.",
+						inputA,
+						BitcoinTMPackage.Literals.INPUT__TX_REF
+					);
+				
+					error(
+						"You cannot redeem the output twice.",
+						inputB,
+						BitcoinTMPackage.Literals.INPUT__TX_REF
+					);
+				}
+			}
+		}
 	}
 }
 

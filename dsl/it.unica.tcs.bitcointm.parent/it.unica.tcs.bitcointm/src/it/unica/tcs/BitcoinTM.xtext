@@ -42,7 +42,7 @@ TransactionBody:
 
 
 Input:
-	txRef=TransactionReference ":" exps+=Expression ("," exps+=Expression)*;
+	txRef=TransactionReference ":" actual=ActualParameters;
 
 Output:
 	value=Value ":" script=Script;
@@ -50,7 +50,8 @@ Output:
 Tlock:
 	value=INT;
 
-
+ActualParameters:
+	exps+=Expression ("," exps+=Expression)*;
 
 
 TransactionReference:
