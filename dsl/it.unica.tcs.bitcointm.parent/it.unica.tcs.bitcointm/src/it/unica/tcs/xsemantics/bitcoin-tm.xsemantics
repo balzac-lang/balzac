@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.IfThenElse
+import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
@@ -30,7 +31,6 @@ import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcoinTM.WitnessScript
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -58,7 +58,7 @@ judgments {
 		error "Cannot type " + stringRep(s)
 		source s
 	
-	witscriptType ||~ WitnessScript s
+	witscriptType ||~ Input s
 		error "Cannot type " + stringRep(s)
 		source s
 	
@@ -167,15 +167,35 @@ from {
 	
 }
 
-rule WitnessScript
-	G ||~ WitnessScript witness
+rule Input
+	G ||~ Input input
 from {
-	
 	var substitutions = new TypeSubstitutions()
 
-	for (var i=0; i<witness.exps.size; i++) {
-		var exp = witness.exps.get(i)
+	var isTxSerialized = input.txRef.tx.body===null 
+
+	var outputIdx = input.txRef.idx
+	var Script outputScript = null
+	
+	if (!isTxSerialized) {
+		outputScript = input.txRef.tx.body?.outputs.get(outputIdx).script 
+		G |~ outputScript	// all the params will have basic type
+	}
+	
+	for (var i=0; i<input.exps.size; i++) {
+		var exp = input.exps.get(i)
 		G |- substitutions |> exp : var BasicType texp
+		
+		// TODO: modify when serialized transactions will be analized (?) 
+		if (!isTxSerialized) {			
+			var param = outputScript.params.get(i)
+			
+			if(param.paramType.class != texp.class) {
+				fail
+					error "Invalid type '"+stringRep(texp)+"'. The parameter has type '"+stringRep(param.paramType)+"'."
+					source exp
+			} 
+		}
 	}
 }
 
@@ -445,8 +465,8 @@ from {
     empty |~ script
 }
 
-checkrule CheckWitnessScript for
-    WitnessScript script
+checkrule CheckInput for
+    Input script
 from {
 	lambdaUtils.resetCounter
     empty ||~ script

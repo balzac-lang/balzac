@@ -17,7 +17,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	}
 	
 	dispatch def String getLabelInternal(Parameter p) {
-		return p.name+" : "+p.paramType.toStringType
+		return p.name+" : "+p.paramType?.toStringType
 	}
 	
 	dispatch def String getLabelInternal(EObject obj) {

@@ -55,41 +55,27 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionDeclaration/bytes"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionBody">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/input"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/witness"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/output"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/inputs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiIn"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/outputs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiOut"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/tlock"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Input">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txs"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Input/multi"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Witness">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Witness/scripts"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Witness/multi"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txRef"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/exps"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Output">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/scripts"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Output/multi"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Val">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Val/values"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Val/multi"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Output/P2SH"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/script"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Tlock">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Tlock/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionReference">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/txid"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/tx"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionReference/idx"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//WitnessScript">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//WitnessScript/exps"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//OutputScript">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//OutputScript/P2SH"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OutputScript/script"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Script">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Script/lambda"/>

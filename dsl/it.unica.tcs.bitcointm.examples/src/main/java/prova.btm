@@ -10,32 +10,28 @@ key kB = {
 transaction inA = "ccccc"
 
 transaction T = {
-	in : inA@0
-	wit : sig kB AIAO
-	    
-	out : [
-		fun(x:signature, y:int) . x;
-		fun(y) . versig(kB; y)
-	]
-	val : [ 
-		1 satoshi,  
-		0 BTC
+	input = 
+		inA@0: sig kB AIAO
+	
+	output = [
+		1 satoshi: 	fun(x:signature, y:int) . x;
+		0 BTC:		fun(y) . versig(kB; y)
 	]
 	
-	tlock : 97
+	tlock = 97
 }
 
 transaction T1 = {
-	in : T@0
-	wit : sig kB AIAO, 23
+	input = [
+		T@0: sig kB AIAO, 23;
+		T@1: 23	
+	]
 	 
-	out : [ 
-		(12-45) + 2147483647 + 2147483647; 
-		fun (a) . a-45;
-		12
+	output = [ 
+		1 satoshi: 	(12-45) + 2147483647 + 2147483647; 
+		1:			fun (a) . a-45;
+		3:			12
 	] 
-	
-	val : [1 satoshi, 1, 3]
 }
 
 
@@ -44,15 +40,11 @@ transaction T1 = {
  */
 
 transaction A = {
-	in : inA
-	wit: true
-	out: P2SH(fun(sigma:signature, sigma2:int). versig(kA; sigma)) 
-	val: 1BTC
+	input = inA:	true 
+	output= 1BTC:	fun(sigma:signature, sigma2:int). versig(kA; sigma) 
 }
 
 transaction B = {
-	in : inA
-	wit: sig kA, 6
-	out: true
-	val: 1BTC
+	input = inA: sig kA, 6
+	output= 1BTC: true
 } 

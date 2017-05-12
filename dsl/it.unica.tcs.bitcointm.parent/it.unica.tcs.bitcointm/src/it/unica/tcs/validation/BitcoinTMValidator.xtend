@@ -5,6 +5,7 @@ package it.unica.tcs.validation
 
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.Declaration
+import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
@@ -12,7 +13,6 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcoinTM.Witness
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
@@ -41,32 +41,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSingleElementArray(TransactionBody tbody) {
 		
-		var input = tbody.input
-		var witness = tbody.witness
-		var output = tbody.output
-		var value = tbody.value
+		var inputs = tbody.inputs
+		var outputs = tbody.outputs
 		
-		if (input.isMulti && input.txs.size==1) {
+		if (tbody.isMultiIn && inputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.",
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUT
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
 			);	
 		}
 		
-		if (witness.isMulti && witness.scripts.size==1) {
+		if (tbody.isIsMultiOut && outputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__WITNESS
-			);	
-		}
-		
-		if (output.isMulti && output.scripts.size==1) {
-			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUT
-			);	
-		}
-		
-		if (value.isMulti && value.values.size==1) {
-			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__VALUE
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
 			);	
 		}
 	}
@@ -119,28 +105,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	} 
     	
-	@Check
-	def void checkUnbalancedInputsAndOutputs(TransactionBody tbody) {
-		
-		var inputs = tbody.input.txs
-		var witnesses = tbody.witness.scripts
-						
-		if (inputs.size != witnesses.size) {
-			error("Inputs and witnesses must have the same size.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUT
-			);	
-		}
-		
-		var outputs = tbody.output.scripts
-		var values = tbody.value.values
-		
-		if (outputs.size != values.size) {
-			error("Output and values must have the same size.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUT
-			);	
-		}
-		
-	}
 	
 	@Check
 	def void checkVerSig(Versig versig) {
@@ -190,10 +154,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 * TODO: quando sarà possibile deserializzare le transazioni il check
 		 * considerà anche questo caso 
 		 */
-		if (tref.txid.body===null)
+		if (tref.tx.body===null)
 			return;
 		
-		var numOfOutput = tref.txid.body.output.scripts.size
+		var numOfOutput = tref.tx.body.outputs.size
 		
 		if (tref.idx>=numOfOutput) {
 			error("This input is pointing to an undefined output script.", 
@@ -244,30 +208,19 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkWitness(Witness witnesses) {
+	def void checkWitnessExpressionsSize(Input input) {
 		
-		var txbody = witnesses.eContainer as TransactionBody
+		var outputIdx = input.txRef.idx
+		var outputScript = input.txRef.tx.body.outputs.get(outputIdx).script;		// another validation ensure this (see checkInputIndex)
 		
-		for (var i=0; i<witnesses.scripts.size; i++) {
-			
-			var witScript = witnesses.scripts.get(i)
-			var txRef = txbody.input.txs.get(i)		// another validation ensure this (checkUnbalancedInputsAndOutputs)
-			
-			var tx = txRef.txid
-			var outputIdx = txRef.idx
-					
-			var outputScript = tx.body.output.scripts.get(outputIdx).script;		// another validation ensure this (see checkInputIndex)
-			
-			
-			var numOfParams = outputScript.params.size
-			var numOfExps = witScript.exps.size
-			
-			if (numOfExps!=numOfParams)
-				error(
-					"The number of expressions does not match the number of parameters", 
-					BitcoinTMPackage.Literals.WITNESS__SCRIPTS, i
-				);
-		}
+		var numOfExps = input.exps.size
+		
+		var numOfParams = outputScript.params.size
+		if (numOfExps!=numOfParams)
+			error(
+				"The number of expressions does not match the number of parameters", 
+				BitcoinTMPackage.Literals.INPUT__EXPS
+			);
 		
 						
 	}

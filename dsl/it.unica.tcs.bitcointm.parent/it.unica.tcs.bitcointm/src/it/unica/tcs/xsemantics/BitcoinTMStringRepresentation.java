@@ -6,8 +6,10 @@ package it.unica.tcs.xsemantics;
 import java.util.Map.Entry;
 
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
+import it.unica.tcs.bitcoinTM.BooleanType;
 import it.unica.tcs.bitcoinTM.IntType;
 import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.StringType;
 import it.unica.tcs.bitcoinTM.Type;
@@ -40,24 +42,33 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 		return variable.getRef().getName();
 	}
 
-	protected String stringRep(TypeVariable typeVariable) {
-		return typeVariable.getValue();
-	}
-
 	protected String stringRep(TypeSubstitutions substitutions) {
 		return "subst{" + stringIterable(substitutions.getSubstitutions())
 				+ "}";
 	}
 
-	protected String stringRep(StringType type) {
-		return "string";
-	}
-
-	protected String stringRep(IntType type) {
-		return "int";
-	}
-
 	protected String stringRep(Entry<String, Type> entry) {
 		return string(entry.getKey()) + "=" + string(entry.getValue());
 	}
+
+	protected String stringRep(TypeVariable typeVariable) {
+		return typeVariable.getValue();
+	}
+	
+	protected String stringRep(StringType type) {
+		return type.getValue().getLiteral();
+	}
+
+	protected String stringRep(IntType type) {
+		return type.getValue().getLiteral();
+	}
+
+	protected String stringRep(BooleanType type) {
+		return type.getValue().getLiteral();
+	}
+
+	protected String stringRep(SignatureType type) {
+		return type.getValue().getLiteral();
+	}
+	
 }

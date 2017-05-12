@@ -35,54 +35,29 @@ TransactionDeclaration:
 	{TransactionDeclaration} "transaction" name=ID '=' ( ('{' body=TransactionBody	'}') | bytes=STRING | "_" );
 
 TransactionBody:
-	input=Input
-	witness=Witness
-	output=Output
-	value=Val
-	(tlock=Tlock)?;
-
-Input:   "in"    ":" (SingleInput   | MultipleInput);
-Witness: "wit"   ":" (SingleWitness | MultipleWitness);
-Output:  "out"   ":" (SingleOutput  | MultipleOutput);
-Val:     "val"   ":" (SingleVal     | MultipleVal);
-Tlock:   "tlock" ":" value=INT;
+	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
+	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
+	("tlock" "=" tlock=Tlock)?;
 
 
-SingleInput returns Input:
-	txs+=TransactionReference;
 
-MultipleInput returns Input:
-	multi?="[" txs+=TransactionReference (txs+=TransactionReference)* "]";
+Input:
+	txRef=TransactionReference ":" exps+=Expression ("," exps+=Expression)*;
 
-SingleWitness returns Witness: 
-	scripts+=WitnessScript;
+Output:
+	value=Value ":" script=Script;
 
-MultipleWitness returns Witness: 
-	multi?="[" scripts+=(WitnessScript) (";" scripts+=WitnessScript)* "]";
+Tlock:
+	value=INT;
 
-SingleOutput returns Output:
-	scripts+=OutputScript;
-
-MultipleOutput returns Output:
-	multi?="[" scripts+=OutputScript (";" scripts+=OutputScript)* "]";
-
-SingleVal returns Val: 
-	values+=Value;
-
-MultipleVal returns Val:
-	multi?="[" values+=Value ("," values+=Value)* "]";
 
 
 
 TransactionReference:
-	txid=[TransactionDeclaration] ("@" idx=INT)?;
+	tx=[TransactionDeclaration] ("@" idx=INT)?;
 
-WitnessScript:
-	{WitnessScript} //("{" => redeemScript=Script "}")? 
-	(exps+=Expression ("," exps+=Expression)*)?;
+	
 
-OutputScript:
-	(P2SH?="P2SH" "(" script=Script ")") | script=Script;
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
