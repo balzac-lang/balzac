@@ -13,6 +13,8 @@ public class Test {
 	
 	public static void main(String[] args) {
 
+		System.out.println(new String(Utils.parseAsHexOrBase58("")));
+		
 		ECKey clientKey = new ECKey();
 		
 		System.out.println(clientKey);

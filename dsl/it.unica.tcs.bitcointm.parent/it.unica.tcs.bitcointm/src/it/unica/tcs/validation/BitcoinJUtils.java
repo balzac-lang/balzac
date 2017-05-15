@@ -1,5 +1,6 @@
 package it.unica.tcs.validation;
 
+import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
@@ -29,5 +30,13 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 		}
 		
 		return true;
+	}
+	
+	public static boolean isValidKeyPair(String pvtKey, String pubKey) {
+		ECKey keyPair = ECKey.fromPrivate(Utils.parseAsHexOrBase58(pvtKey));
+		return keyPair.getPublicKeyAsHex().equals(pubKey);
+		/*
+		 * TODO: estendere per considerare l'address
+		 */
 	}
 }

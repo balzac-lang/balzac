@@ -171,24 +171,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		var pvtKey = keyDecl.body.pvt.value;
 		var pubKey = keyDecl.body.pub.value;
 		
-		if (pvtKey !== null && !pvtKey.isValidKey) {
+		
+		if (pvtKey !== null && (pvtKey.isEmpty  || !pvtKey.isValidKey)) {
 			error("Invalid encoding of the private key. The string must represent a valid bitcon address or hex-characters.",
 				keyDecl.body.pvt,
 				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
 			);
 		}
 		
-		if (pubKey !== null && !pubKey.isValidKey) {
+		
+		if (pubKey !== null && (pubKey.isEmpty || !pubKey.isValidKey)) {
 			error("Invalid encoding of the public key. The string must represent a valid bitcon address or hex-characters.",
 				keyDecl.body.pub,
 				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
 			);
 		}
 		
-		/*
-		 * TODO: verificare che le chiavi siano una coppia valida 
-		 */
+		
+		if (pubKey!==null && pvtKey!==null && !pubKey.isEmpty && !pvtKey.isEmpty && !isValidKeyPair(pvtKey,pubKey)) {
+			error("The given keys are not a valid pair. You can omit the public part (it will be derived).",
+				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
+			);
+		}
 	}
+	
 	
 	@Check
 	def void checkUniqueLambdaParameters(Script p) {
