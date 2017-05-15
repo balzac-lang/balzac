@@ -27,16 +27,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 	/*
 	 * INFO
-	 */
-	
-	@Check
-	def void checkEmptyLambda(Script script) {
-		if (script.isLambda && script.params.size==0)
-			info("Empty lambdas can be omitted.", 
-				BitcoinTMPackage.Literals.SCRIPT__PARAMS
-			);
-	}
-	
+	 */	
 	@Check
 	def void checkSingleElementArray(TransactionBody tbody) {
 		
@@ -101,6 +92,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				}
 			}
 		}		
+	}
+	
+	@Check
+	def void checkEmptyLambda(Script script) {
+		if (script.params.size==0)
+			warning("This output could be redeemed without providing any arguments.",
+				script.eContainer,
+				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
+			);
 	}
 	
 	/*

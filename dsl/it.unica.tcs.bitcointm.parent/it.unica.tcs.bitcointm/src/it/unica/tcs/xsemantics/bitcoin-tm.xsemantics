@@ -157,7 +157,7 @@ from {
 		p.paramType = paramType		// and in the AST
 	}
 	var substitutions = new TypeSubstitutions()
-	G |- substitutions |> script.exp : var Type texp
+	G |- substitutions |> script.exp : var Type texp	// shouldn't be boolean?
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : script.params) {

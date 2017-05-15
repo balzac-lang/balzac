@@ -30,7 +30,7 @@ transaction T1 = {
 	output = [ 
 		1 satoshi: 	(12-45) + 2147483647 + 2147483647; 
 		1:			fun (a) . a-45;
-		3:			12
+		3:			fun().12
 	] 
 }
 
