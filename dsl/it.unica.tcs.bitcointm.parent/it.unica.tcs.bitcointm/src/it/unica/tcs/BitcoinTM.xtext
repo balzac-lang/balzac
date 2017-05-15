@@ -114,7 +114,7 @@ Atomic returns Expression:
 VariableReference: ref=[Parameter];
 NumberLiteral: value=INT;
 StringLiteral: value=STRING;
-BooleanLiteral: value=('true'|'false');
+BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 
 IfThenElse:
 	'if' if=Expression

@@ -25,7 +25,7 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 
 
 	protected String stringRep(BooleanLiteral intConstant) {
-		return intConstant.getValue() + "";
+		return intConstant.isTrue()? "true" : "false";
 	}
 
 	protected String stringRep(StringLiteral stringConstant) {

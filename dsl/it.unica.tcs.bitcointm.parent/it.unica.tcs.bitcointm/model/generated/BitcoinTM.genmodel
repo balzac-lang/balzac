@@ -104,7 +104,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//StringLiteral/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//BooleanLiteral">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BooleanLiteral/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BooleanLiteral/true"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//IfThenElse">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//IfThenElse/if"/>
