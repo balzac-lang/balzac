@@ -51,7 +51,7 @@ Tlock:
 	value=INT;
 
 ActualParameters:
-	exps+=Expression ("," exps+=Expression)*;
+	exps+=Atomic ( exps+=Atomic)*;
 
 
 TransactionReference:
