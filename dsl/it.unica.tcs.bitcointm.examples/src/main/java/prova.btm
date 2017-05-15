@@ -15,7 +15,7 @@ transaction T = {
 	
 	output = [
 		1 satoshi: 	fun(x:signature, y:int) . x;
-		0 BTC:		fun(y) . versig(kB; y)
+		0 BTC:		fun(y) . versig(kB, kB; y)
 	]
 	
 	tlock = 97

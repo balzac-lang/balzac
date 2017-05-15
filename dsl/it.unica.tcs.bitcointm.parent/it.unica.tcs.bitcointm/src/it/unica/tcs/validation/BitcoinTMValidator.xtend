@@ -86,6 +86,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
+	@Check
+	def void checkVerSigDuplicatedKeys(Versig versig) {
+		
+		for(var i=0; i<versig.pubkeys.size-1; i++) {
+			for(var j=i; j<versig.pubkeys.size; j++) {
+				
+				var k1 = versig.pubkeys.get(i)
+				var k2 = versig.pubkeys.get(j)
+				
+				if (k1==k2) {
+					warning("Duplicated public key.", versig, BitcoinTMPackage.Literals.VERSIG__PUBKEYS, i);
+					warning("Duplicated public key.", versig,BitcoinTMPackage.Literals.VERSIG__PUBKEYS, j);
+				}
+			}
+		}		
+	}
+	
 	/*
      * ERROR
      */
