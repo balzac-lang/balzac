@@ -17,6 +17,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -264,6 +265,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			}
 		}
 	}
+	
+	@Check
+	def void checkSerialTransaction(TransactionDeclaration txDecl) {
+		
+		if (txDecl.bytes!==null && !txDecl.bytes.isValidTransaction) {
+			error(
+				"The string does not represent a valid transaction.",
+				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BYTES
+			);
+		}
+	}
+	
 }
 
 
