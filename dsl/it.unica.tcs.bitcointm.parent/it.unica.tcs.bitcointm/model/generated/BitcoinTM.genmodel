@@ -32,7 +32,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/declarations"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//NetworkDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NetworkDeclaration/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NetworkDeclaration/testnet"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Declaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Declaration/name"/>

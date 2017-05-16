@@ -11,13 +11,13 @@ import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -25,6 +25,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
+
 
 	/*
 	 * INFO
@@ -164,6 +165,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
+	
 		
 	@Check
 	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
@@ -171,27 +173,82 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		var pvtKey = keyDecl.body.pvt.value;
 		var pubKey = keyDecl.body.pub.value;
 		
+		var pvtErr = false;
+		var pubErr = false;
 		
-		if (pvtKey !== null && (pvtKey.isEmpty  || !pvtKey.isValidKey)) {
-			error("Invalid encoding of the private key. The string must represent a valid bitcon address or hex-characters.",
+		/*
+		 * WiF format: 	[1 byte version][32 bytes key][1 byte compression (optional)][4 bytes checksum] 
+		 * Length:		36 o 38 bytes (without/with compression)
+		 */
+		if (pvtKey!==null && pvtKey.length!=52) {
+			error("Invalid key length.", 
 				keyDecl.body.pvt,
 				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
-			);
+			)
+			pvtErr = true
 		}
 		
-		
-		if (pubKey !== null && (pubKey.isEmpty || !pubKey.isValidKey)) {
-			error("Invalid encoding of the public key. The string must represent a valid bitcon address or hex-characters.",
+		/*
+		 * WiF format: 	[1 byte version][20 bytes key][4 bytes checksum] 
+		 * Length:		50 bytes
+		 */
+		if (pubKey!==null && pubKey.length!=34) {
+			error("Invalid key length.", 
 				keyDecl.body.pub,
 				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
-			);
+			)
+			pubErr = true
 		}
 		
 		
-		if (pubKey!==null && pvtKey!==null && !pubKey.isEmpty && !pvtKey.isEmpty && !isValidKeyPair(pvtKey,pubKey)) {
+		/*
+		 * Check if the encoding is valid (like the checksum bytes)
+		 */
+		if (!pvtErr && pvtKey !== null && !pvtKey.isBase58WithChecksum) {
+			error("Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format.",
+				keyDecl.body.pvt,
+				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
+			)
+			pvtErr = true
+		}		
+		
+		if (!pubErr && pubKey !== null && !pubKey.isBase58WithChecksum) {
+			error("Invalid encoding of the public key. The string must represent a valid bitcon address in WiF format.",
+				keyDecl.body.pub,
+				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
+			)
+			pubErr = true
+		}
+		
+				
+		/*
+		 * Check if the declarations reflect the network declaration
+		 */
+		if (!pvtErr && pvtKey !== null && !pvtKey.isValidPrivateKey(keyDecl.networkParams)) {
+			error("The address it is not compatible with the network declaration (default is testnet).",
+				keyDecl.body.pvt,
+				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
+			)
+			pvtErr = true
+		}
+		
+		if (!pubErr && pubKey !== null && !pubKey.isValidPublicKey(keyDecl.networkParams)) {
+			error("The address it is not compatible with the network declaration (default is testnet).",
+				keyDecl.body.pub,
+				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
+			)
+			pubErr = true
+		}
+		
+		
+		/*
+		 * Check if the declared keys are a valid pair
+		 */
+		if (!pvtErr && !pubErr && pubKey!==null && pvtKey!==null && !isValidKeyPair(pvtKey,pubKey,keyDecl.networkParams)
+		) {
 			error("The given keys are not a valid pair. You can omit the public part (it will be derived).",
 				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
-			);
+			)
 		}
 	}
 	
