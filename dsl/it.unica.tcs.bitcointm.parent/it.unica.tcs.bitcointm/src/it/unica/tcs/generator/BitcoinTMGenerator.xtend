@@ -18,25 +18,33 @@ import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.Minus
+import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.PrivateKey
-import it.unica.tcs.bitcoinTM.PublicKey
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
+import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import org.bitcoinj.core.ECKey
+import java.io.File
+import java.util.HashMap
+import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.ScriptBuilder
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import it.unica.tcs.bitcoinTM.SignatureType
+
+import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
  * Generates code from your model files on save.
@@ -46,20 +54,71 @@ import it.unica.tcs.bitcoinTM.SignatureType
 class BitcoinTMGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(Greeting)
-//				.map[name]
-//				.join(', '))
+				
+		var resourceName = resource.URI.lastSegment.replace(".btm","")
+		
+		for (e : resource.allContents.toIterable.filter(Model)) {
+			
+//			var basepath = if (e.^package==null) "" else e.^package.fullyQualifiedName.toString(File.separator) ;
+			var outputFilename = ""+ File.separator+ resourceName+".test"
+
+			println('''generating «outputFilename»''')
+			fsa.generateFile(outputFilename, e.compile)
+		}
 	}
 	
 	
+	def dispatch String compile(EObject obj) {
+		throw new IllegalStateException("compilation error")
+	}
+
+	def dispatch String compile(Model obj) {
+		obj.declarations.map[x|x.compile].join("\n")
+	}
 	
+	def dispatch String compile(KeyDeclaration obj) {
+		""		
+	}
+	
+	def dispatch String compile(TransactionDeclaration obj) {
+		'''transaction «obj.name» «obj.body?.compile»'''
+	}
+	
+	def dispatch String compile(TransactionBody obj) {
+		'''{
+			input  [
+				«FOR i: obj.inputs»
+				«i.compile»
+				«ENDFOR»
+			]
+			output [
+				«FOR i: obj.outputs»
+				«i.compile»
+				«ENDFOR»
+			]
+		}'''
+	}
+	
+	def dispatch String compile(Input obj) {
+		obj.toBytecode
+	}
+	
+	def dispatch String compile(Output obj) {
+		obj.toBytecode
+	}
+	
+	
+	var altstackSize = 0
+	val altstackPositions = new HashMap<Parameter,Integer>()
+	
+	/*
+	 * utility methods
+	 */
 	def boolean isP2PKH(Script script) {
 		var onlyOneSignatureParam = script.params.size==1 && (script.params.get(0).paramType instanceof SignatureType)
-		var onlyVersig = script.exp instanceof Versig
+		var onlyOnePubkey = (script.exp instanceof Versig) && (script.exp as Versig).pubkeys.size==1
 		
-		return onlyOneSignatureParam && onlyVersig
+		return onlyOneSignatureParam && onlyOnePubkey
 	}
 	
 	def boolean isOpReturn(Script script) {
@@ -73,10 +132,31 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		return !script.isP2PKH && !script.isOpReturn
 	}
 	
+	def String getReedeemScript(Script outScript) {
+		
+		val sb = new StringBuilder()
+		
+		altstackSize = 0
+		
+		for (var i=0; i<outScript.params.size; i++) {
+			var Parameter p = outScript.params.get(i)
+			altstackPositions.put(p, altstackSize++)
+			sb.append("OP_TOALTSTACK ");
+		}
+		
+		sb.append(outScript.exp.toBytecode)
+		sb.toString
+	}
 
-	
+	/*
+	 * compiler
+	 */
 	def dispatch String toBytecode(Input stmt) {
 		var outIdx = stmt.txRef.idx
+		
+		if (stmt.txRef.tx.body===null)
+			return "<input>"
+		
 		var redeemedOutput = stmt.txRef.tx.body.outputs.get(outIdx).script;
 		
 		if (redeemedOutput.isP2PKH) {
@@ -84,20 +164,31 @@ class BitcoinTMGenerator extends AbstractGenerator {
 			'''«sig.toBytecode» «sig.key.body.pub.toBytecode»'''
 		}
 		else if (redeemedOutput.isP2SH) {
-			'''«stmt.actual.exps.map[e|e.toBytecode].join(" ")» «redeemedOutput.toBytecode»'''
+			var redeemScript = getReedeemScript(redeemedOutput);
+			var redeemScriptSerialized = "serialOf("+(redeemScript)+")";
+			
+			'''«stmt.actual.exps.map[e|e.toBytecode].join(" ")» «redeemScriptSerialized»'''
 		}
 		else throw new UnsupportedOperationException
 	}
 	
+	def dispatch String toBytecode(Output output) {
+		output.script.toBytecode
+	}
+	
 	def dispatch String toBytecode(Script output) {
-		/*
-		 * TODO
-		 */
 		if (output.isP2PKH) {
-			'''OP_DUP OP_HASH160 push(h(kaddress)) OP_EQUALVERIFY OP_CHECKSIG'''
+			var versig = output.exp as Versig
+			var pkHash = versig.pubkeys.get(0).body.pub.value.wifToHash(output.networkParams)
+			
+			'''OP_DUP OP_HASH160 «pkHash.toBytecode» OP_EQUALVERIFY OP_CHECKSIG'''
 		}
 		else if (output.isP2SH) {
-			'''OP_HASH160 push(h(λ (z1, ..., zn) . e)) OP_EQUAL'''
+			var redeemScript = getReedeemScript(output)
+			var redeemScriptHash = Utils.sha256hash160(redeemScript.bytes);
+			var redeemScriptHashPush = new ScriptBuilder().data(redeemScriptHash).build().toString
+						
+			'''OP_HASH160 «redeemScriptHashPush» OP_EQUAL'''
 		}
 		else if (output.isOpReturn) {
 			var c = output.exp as StringLiteral
@@ -111,21 +202,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		throw new UnsupportedOperationException
 	}
 	
-	def dispatch String toBytecode(int exp) {
-		throw new UnsupportedOperationException
-	}
-	
 	def dispatch String toBytecode(KeyDeclaration stmt) {
-		throw new UnsupportedOperationException
-	}
-	
-	def dispatch String toBytecode(PrivateKey stmt) {
-		throw new UnsupportedOperationException
-	}
-	
-	def dispatch String toBytecode(PublicKey stmt) {
-		// TODO: return the corresponding bitcoin address
-		throw new UnsupportedOperationException
+		/* push the public key */
+		val pvtkey = stmt.body.pvt.value
+		val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
+		
+		key.pubKey.toBytecode
 	}
 	
 	def dispatch String toBytecode(Hash hash) {
@@ -195,17 +277,31 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	
 	def dispatch String toBytecode(Versig stmt) {
 		if (stmt.pubkeys.size==1) {
-			'''«stmt.signatures.get(0).toBytecode» «stmt.pubkeys.get(0).body.pub.toBytecode» OP_CHECKSIG '''
+			'''«stmt.signatures.get(0).toBytecode» «stmt.pubkeys.get(0).toBytecode» OP_CHECKSIG '''
 		}
 		else {
-			'''OP_0 «stmt.signatures.size.toBytecode»''' + 
+			'''OP_0 '''+
 			'''«stmt.signatures.map[s|s.toBytecode].join(" ")» ''' + 
-			'''«stmt.pubkeys.size.toBytecode»''' + 
+			'''«stmt.signatures.size.toBytecode» ''' + 
 			'''«stmt.pubkeys.map[s|s.toBytecode].join(" ")» ''' + 
+			'''«stmt.pubkeys.size.toBytecode» ''' + 
 			'''OP_CHECKMULTISIG '''
 		}
 	}
 	
+	
+	def dispatch String toBytecode(int n) {
+		new ScriptBuilder().number(n).build().toString
+	}
+	
+	def dispatch String toBytecode(byte[] b) {
+		new ScriptBuilder().data(b).build().toString
+	}
+	
+	def dispatch String toBytecode(String s) {
+		new ScriptBuilder().data(s.bytes).build().toString
+	}
+		
 	def dispatch String toBytecode(NumberLiteral n) {
 		new ScriptBuilder().number(n.value).build().toString
 	}
@@ -222,13 +318,30 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		/*
 		 * TODO
 		 */
-		var pvtKey = stmt.key.body.pvt.value
-		
-		var key = ECKey.fromPrivate(Utils.parseAsHexOrBase58(pvtKey));
-		var tx = null;	// TODO: get transaction to sign
+//		var pvtKey = stmt.key.body.pvt.value
+//		
+//		var key = ECKey.fromPrivate(Utils.parseAsHexOrBase58(pvtKey));
+//		var tx = null;	// TODO: get transaction to sign
 		
 		
 		'''<sig «stmt.key.name» «stmt.modifier»> '''
 	}
 	
+	def dispatch String toBytecode(VariableReference varRef) {
+		var param = varRef.ref
+		var pos = altstackPositions.get(param)
+		
+		if (pos===null)	throw new IllegalStateException("compilation error")
+		
+		var popFromAlt = 	(1 .. altstackSize-pos).map[x|"OP_FROMALTSTACK"].join(" ")
+		var pushBackToAlt = "OP_DUP OP_TOALTSTACK "
+
+		if (altstackSize-pos-1>0)
+			pushBackToAlt = (1 .. altstackSize-pos-1).map[x|"OP_SWAP OP_TOALTSTACK"].join(" ")
+		
+		var sb = new StringBuilder()
+		sb.append(popFromAlt).append(" ")
+		sb.append(pushBackToAlt)				
+		sb.toString()
+	}
 }

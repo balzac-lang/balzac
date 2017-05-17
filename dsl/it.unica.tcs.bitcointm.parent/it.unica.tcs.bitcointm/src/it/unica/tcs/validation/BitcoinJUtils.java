@@ -18,7 +18,10 @@ import it.unica.tcs.bitcoinTM.NetworkDeclaration;
 
 public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 
-
+	public static byte[] wifToHash(String wif, NetworkParameters params) {
+		Address pubkeyAddr = Address.fromBase58(params, wif);
+		return pubkeyAddr.getHash160();
+	}
 
 	public static boolean isBase58WithChecksum(String key) {
 		try {
