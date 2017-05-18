@@ -36,13 +36,15 @@ import it.unica.tcs.bitcoinTM.Versig
 import java.io.File
 import java.util.HashMap
 import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.Utils
+import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+
+import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
@@ -100,11 +102,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	}
 	
 	def dispatch String compile(Input obj) {
-		obj.toBytecode
+		obj.toBytecodeString
 	}
 	
 	def dispatch String compile(Output obj) {
-		obj.toBytecode
+		obj.toBytecodeString
 	}
 	
 	
@@ -132,189 +134,237 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		return !script.isP2PKH && !script.isOpReturn
 	}
 	
-	def String getReedeemScript(Script outScript) {
+	
+	
+	/**
+	 * Prepend OP_TOALTSTACK to an input script
+	 */
+	def org.bitcoinj.script.Script prependTOALTSTACK(Script outScript) {
 		
-		val sb = new StringBuilder()
+		val sb = new ScriptBuilder()
 		
 		altstackSize = 0
 		
 		for (var i=0; i<outScript.params.size; i++) {
 			var Parameter p = outScript.params.get(i)
 			altstackPositions.put(p, altstackSize++)
-			sb.append("OP_TOALTSTACK ");
+			sb.op(OP_TOALTSTACK );
 		}
 		
-		sb.append(outScript.exp.toBytecode)
-		sb.toString
+		outScript.exp.toBytecode(sb)
+		sb.build
 	}
 
 	/*
 	 * compiler
 	 */
-	def dispatch String toBytecode(Input stmt) {
+	def dispatch String toBytecodeString(Input stmt) {
 		var outIdx = stmt.txRef.idx
 		
 		if (stmt.txRef.tx.body===null)
 			return "<input>"
 		
-		var redeemedOutput = stmt.txRef.tx.body.outputs.get(outIdx).script;
+		var inScript = stmt.txRef.tx.body.outputs.get(outIdx).script;
 		
-		if (redeemedOutput.isP2PKH) {
+		if (inScript.isP2PKH) {
 			var sig = stmt.actual.exps.get(0) as Signature
-			'''«sig.toBytecode» «sig.key.body.pub.toBytecode»'''
-		}
-		else if (redeemedOutput.isP2SH) {
-			var redeemScript = getReedeemScript(redeemedOutput);
-			var redeemScriptSerialized = "serialOf("+(redeemScript)+")";
+			val sb = new ScriptBuilder()
+            
+            sig.toBytecode(sb)
+			sig.key.body.pub.toBytecode(sb)
 			
-			'''«stmt.actual.exps.map[e|e.toBytecode].join(" ")» «redeemScriptSerialized»'''
+			/* <sig> <pubkey> */
+            sb.build.toString
 		}
-		else throw new UnsupportedOperationException
-	}
-	
-	def dispatch String toBytecode(Output output) {
-		output.script.toBytecode
-	}
-	
-	def dispatch String toBytecode(Script output) {
-		if (output.isP2PKH) {
-			var versig = output.exp as Versig
-			var pkHash = versig.pubkeys.get(0).body.pub.value.wifToHash(output.networkParams)
+		else if (inScript.isP2SH) {
+			var realInScript = prependTOALTSTACK(inScript);
+			val sb = new ScriptBuilder()
 			
-			'''OP_DUP OP_HASH160 «pkHash.toBytecode» OP_EQUALVERIFY OP_CHECKSIG'''
-		}
-		else if (output.isP2SH) {
-			var redeemScript = getReedeemScript(output)
-			var redeemScriptHash = Utils.sha256hash160(redeemScript.bytes);
-			var redeemScriptHashPush = new ScriptBuilder().data(redeemScriptHash).build().toString
-						
-			'''OP_HASH160 «redeemScriptHashPush» OP_EQUAL'''
-		}
-		else if (output.isOpReturn) {
-			var c = output.exp as StringLiteral
-			'''OP_RETURN «c.toBytecode»'''
+			stmt.actual.exps.forEach[e|e.toBytecode(sb)]
+			sb.data(realInScript.program)
+
+            /* <e1> ... <en> <serialized script> */
+			sb.build.toString
 		}
 		else throw new UnsupportedOperationException
 	}
 	
 	
-	def dispatch String toBytecode(Expression exp) {
+	def dispatch String toBytecodeString(Output output) {
+		
+		var outScript = output.script
+		
+		if (outScript.isP2PKH) {
+			var versig = outScript.exp as Versig
+			var pk = versig.pubkeys.get(0).body.pub.value.wifToAddress(output.networkParams)
+			
+			var script = ScriptBuilder.createOutputScript(pk)
+           
+            if (script.scriptType != ScriptType.P2PKH) 
+                throw new IllegalStateException("compilation error")
+            
+            /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+            script.toString
+		}
+		else if (outScript.isP2SH) {
+			var realInScript = prependTOALTSTACK(outScript)
+			
+			var script = ScriptBuilder.createP2SHOutputScript(realInScript)
+			
+			if (script.scriptType != ScriptType.P2SH) 
+                throw new IllegalStateException("compilation error")
+					
+			/* OP_HASH160 <script hash-160> OP_EQUAL */
+			script.toString
+		}
+		else if (outScript.isOpReturn) {
+			var c = outScript.exp as StringLiteral
+			var script = ScriptBuilder.createOpReturnScript(c.value.bytes)
+			
+			if (script.scriptType != ScriptType.NO_TYPE) 
+                throw new IllegalStateException("compilation error")
+			
+			/* OP_RETURN <bytes> */
+			script.toString
+		}
+		else throw new UnsupportedOperationException
+	}
+	
+	
+	
+	
+	
+	def dispatch void toBytecode(Expression exp, ScriptBuilder sb) {
 		throw new UnsupportedOperationException
 	}
 	
-	def dispatch String toBytecode(KeyDeclaration stmt) {
+	def dispatch void toBytecode(KeyDeclaration stmt, ScriptBuilder sb) {
 		/* push the public key */
 		val pvtkey = stmt.body.pvt.value
 		val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
 		
-		key.pubKey.toBytecode
+		sb.data(key.pubKey)
 	}
 	
-	def dispatch String toBytecode(Hash hash) {
-		'''«hash.value.toBytecode» OP_HASH160 '''
+	def dispatch void toBytecode(Hash hash, ScriptBuilder sb) {
+		hash.value.toBytecode(sb)
+		sb.op(OP_HASH160)
 	}
 	
-	def dispatch String toBytecode(AfterTimeLock stmt) {
-		'''«stmt.time.toBytecode» OP_CHECKLOCKVERIFY «stmt.continuation.toBytecode» '''
+	def dispatch void toBytecode(AfterTimeLock stmt, ScriptBuilder sb) {
+		stmt.time.toBytecode(sb)
+		sb.op(OP_CHECKLOCKTIMEVERIFY)
+		stmt.continuation.toBytecode(sb)
 	}
 	
-	def dispatch String toBytecode(AndExpression stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_BOOLAND '''
+	def dispatch void toBytecode(AndExpression stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_BOOLAND)
 	}
 
-	def dispatch String toBytecode(OrExpression stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_BOOLOR '''
+	def dispatch void toBytecode(OrExpression stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_BOOLOR)
 	}
 
-	def dispatch String toBytecode(Plus stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_ADD '''
+	def dispatch void toBytecode(Plus stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_ADD)
 	}
 	
-	def dispatch String toBytecode(Minus stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_SUB '''
+	def dispatch void toBytecode(Minus stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_SUB)
 	}
 	
-	def dispatch String toBytecode(Max stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_MAX '''
+	def dispatch void toBytecode(Max stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_MAX)
 	}
 	
-	def dispatch String toBytecode(Min stmt) {
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» OP_MIN '''
+	def dispatch void toBytecode(Min stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_MIN)
 	}
 	
-	def dispatch String toBytecode(Size stmt) {
-		'''«stmt.value.toBytecode» OP_SIZE '''
+	def dispatch void toBytecode(Size stmt, ScriptBuilder sb) {
+		stmt.value.toBytecode(sb)
+		sb.op(OP_SIZE)
 	}
 	
-	def dispatch String toBytecode(BooleanNegation stmt) {
-		'''«stmt.exp.toBytecode» OP_NOT '''
+	def dispatch void toBytecode(BooleanNegation stmt, ScriptBuilder sb) {
+		stmt.exp.toBytecode(sb)
+		sb.op(OP_NOT)
 	}
 	
-	def dispatch String toBytecode(ArithmeticSigned stmt) {
-		'''«stmt.exp.toBytecode» OP_NEGATE '''
+	def dispatch void toBytecode(ArithmeticSigned stmt, ScriptBuilder sb) {
+		stmt.exp.toBytecode(sb)
+		sb.op(OP_NEGATE)
 	}
 	
-	def dispatch String toBytecode(Between stmt) {
-		'''«stmt.value.toBytecode» «stmt.left.toBytecode» «stmt.right.toBytecode» OP_WITHIN '''
+	def dispatch void toBytecode(Between stmt, ScriptBuilder sb) {
+		stmt.value.toBytecode(sb)
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
+		sb.op(OP_WITHIN)
 	}
 	
-	def dispatch String toBytecode(Comparison stmt) {
-		var String opcode
+	def dispatch void toBytecode(Comparison stmt, ScriptBuilder sb) {
+		stmt.left.toBytecode(sb)
+		stmt.right.toBytecode(sb)
 		
 		switch (stmt.op) {
-			case "<" : opcode = "OP_LESSTHAN"
-			case ">" : opcode = "OP_GREATERTHAN"
-			case "<=": opcode = "OP_LESSTHANOREQUAL"
-			case ">=": opcode = "OP_GREATERTHANOREQUAL"
+			case "<" : sb.op(OP_LESSTHAN)
+			case ">" : sb.op(OP_GREATERTHAN)
+			case "<=": sb.op(OP_LESSTHANOREQUAL)
+			case ">=": sb.op(OP_GREATERTHANOREQUAL)
 		}
-		
-		'''«stmt.left.toBytecode» «stmt.right.toBytecode» «opcode» '''
 	}
 	
-	def dispatch String toBytecode(IfThenElse stmt) {
-		'''«stmt.^if.toBytecode» OP_IF «stmt.then.toBytecode» OP_ELSE «stmt.^else.toBytecode» OP_ENDIF '''
+	def dispatch void toBytecode(IfThenElse stmt, ScriptBuilder sb) {
+		stmt.^if.toBytecode(sb)
+		sb.op(OP_IF)
+		stmt.then.toBytecode(sb)
+		sb.op(OP_ELSE)
+		stmt.^else.toBytecode(sb)
+		sb.op(OP_ENDIF)
 	}
 	
-	def dispatch String toBytecode(Versig stmt) {
+	def dispatch void toBytecode(Versig stmt, ScriptBuilder sb) {
 		if (stmt.pubkeys.size==1) {
-			'''«stmt.signatures.get(0).toBytecode» «stmt.pubkeys.get(0).toBytecode» OP_CHECKSIG '''
+			stmt.signatures.get(0).toBytecode(sb)
+			stmt.pubkeys.get(0).toBytecode(sb)
+			sb.op(OP_CHECKSIG)
 		}
 		else {
-			'''OP_0 '''+
-			'''«stmt.signatures.map[s|s.toBytecode].join(" ")» ''' + 
-			'''«stmt.signatures.size.toBytecode» ''' + 
-			'''«stmt.pubkeys.map[s|s.toBytecode].join(" ")» ''' + 
-			'''«stmt.pubkeys.size.toBytecode» ''' + 
-			'''OP_CHECKMULTISIG '''
+			sb.number(OP_0)
+            stmt.signatures.forEach[s|s.toBytecode(sb)]
+            sb.number(stmt.signatures.size)
+            stmt.pubkeys.forEach[k|k.toBytecode(sb)]
+            sb.number(stmt.pubkeys.size)
+            sb.op(OP_CHECKMULTISIG)
 		}
 	}
 	
-	
-	def dispatch String toBytecode(int n) {
-		new ScriptBuilder().number(n).build().toString
+	def dispatch void toBytecode(NumberLiteral n, ScriptBuilder sb) {
+		sb.number(n.value).build().toString
 	}
 	
-	def dispatch String toBytecode(byte[] b) {
-		new ScriptBuilder().data(b).build().toString
+	def dispatch void toBytecode(BooleanLiteral n, ScriptBuilder sb) {
+		sb.number(if (n.isTrue) 1 else 0).build().toString
 	}
 	
-	def dispatch String toBytecode(String s) {
-		new ScriptBuilder().data(s.bytes).build().toString
-	}
-		
-	def dispatch String toBytecode(NumberLiteral n) {
-		new ScriptBuilder().number(n.value).build().toString
+	def dispatch void toBytecode(StringLiteral s, ScriptBuilder sb) {
+		sb.data(s.value.bytes).build().toString
 	}
 	
-	def dispatch String toBytecode(BooleanLiteral n) {
-		new ScriptBuilder().number(if (n.isTrue) 1 else 0).build().toString
-	}
-	
-	def dispatch String toBytecode(StringLiteral s) {
-		new ScriptBuilder().data(s.value.bytes).build().toString
-	}
-	
-	def dispatch String toBytecode(Signature stmt) {
+	def dispatch void toBytecode(Signature stmt, ScriptBuilder sb) {
 		/*
 		 * TODO
 		 */
@@ -324,24 +374,31 @@ class BitcoinTMGenerator extends AbstractGenerator {
 //		var tx = null;	// TODO: get transaction to sign
 		
 		
-		'''<sig «stmt.key.name» «stmt.modifier»> '''
+		sb.data(('''<sig «stmt.key.name» «stmt.modifier»>'''+"").bytes)
 	}
 	
-	def dispatch String toBytecode(VariableReference varRef) {
+	/*
+	 * N: altezza dell'altstack
+	 * i: posizione della variabile interessata
+	 * 
+	 * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
+	 * 	                                       x ora è in cima al main stack
+	 * 
+	 * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
+	 * 
+	 * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
+	 * 
+	 */
+	def dispatch void toBytecode(VariableReference varRef, ScriptBuilder sb) {
 		var param = varRef.ref
 		var pos = altstackPositions.get(param)
 		
 		if (pos===null)	throw new IllegalStateException("compilation error")
 		
-		var popFromAlt = 	(1 .. altstackSize-pos).map[x|"OP_FROMALTSTACK"].join(" ")
-		var pushBackToAlt = "OP_DUP OP_TOALTSTACK "
+		(1 .. altstackSize-pos).forEach[x| sb.op(OP_FROMALTSTACK)]
+		sb.op(OP_DUP).op(OP_TOALTSTACK)
 
-		if (altstackSize-pos-1>0)
-			pushBackToAlt = (1 .. altstackSize-pos-1).map[x|"OP_SWAP OP_TOALTSTACK"].join(" ")
-		
-		var sb = new StringBuilder()
-		sb.append(popFromAlt).append(" ")
-		sb.append(pushBackToAlt)				
-		sb.toString()
+		if (altstackSize-pos-1>0) 
+			(1 .. altstackSize-pos-1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
 	}
 }

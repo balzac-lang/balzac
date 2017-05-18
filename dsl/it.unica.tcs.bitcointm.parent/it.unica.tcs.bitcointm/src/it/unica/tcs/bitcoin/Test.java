@@ -8,20 +8,15 @@ import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.core.VersionedChecksummedBytes;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptOpCodes;
 
 public class Test {
 
 	
 	
 	public static void main(String[] args) {
-
+		
 		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
-
 		
 		assert Arrays.equals(
 				Utils.parseAsHexOrBase58("cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC"), 
@@ -93,7 +88,6 @@ public class Test {
 	}
 	
 	private static void issueWiFRepresentation() {
-		
 		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
 
 		BigInteger good = new BigInteger("5c6dcc4abbbd6ff562346234623464326bf31e37ecbc68cebc82896ae7619fbc", 16);	// exactly 32-bytes
