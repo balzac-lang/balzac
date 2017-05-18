@@ -29,6 +29,7 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
+import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
@@ -172,14 +173,13 @@ rule Input
 from {
 	var substitutions = new TypeSubstitutions()
 
-	var txCanBeTypeChecked = input.txRef.tx.body!==null 
-	
-
+    var inputTx = if (input.txRef.tx.body instanceof UserDefinedTxBody) input.txRef.tx.body as UserDefinedTxBody else null
 	var outputIdx = input.txRef.idx
+	
 	var Script outputScript = null
 	
-	if (txCanBeTypeChecked && outputIdx<=input.txRef.tx.body.outputs.size) {
-		outputScript = input.txRef.tx.body.outputs.get(outputIdx).script 
+	if (inputTx!==null && outputIdx<=inputTx.outputs.size) {
+		outputScript = inputTx.outputs.get(outputIdx).script 
 		G |~ outputScript	// all the params will have a basic type
 	}
 	
@@ -188,7 +188,9 @@ from {
 		G |- substitutions |> exp : var BasicType texp
 		
 		// TODO: modify when serialized transactions will be analized (?) 
-		if (txCanBeTypeChecked && outputScript!==null && outputScript.params.size==input.actual.exps.size) {
+		if (inputTx!==null && outputScript!==null && 
+		    outputScript.params.size==input.actual.exps.size
+		) {
 			var param = outputScript.params.get(i)
 			
 			if(param.paramType.class != texp.class) {

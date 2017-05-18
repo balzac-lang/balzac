@@ -30,12 +30,15 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TransactionBody"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TxBody"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="placeholder" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionBody">
+  <eClassifiers xsi:type="ecore:EClass" name="TxBody"/>
+  <eClassifiers xsi:type="ecore:EClass" name="DummyTxBody" eSuperTypes="#//TxBody"/>
+  <eClassifiers xsi:type="ecore:EClass" name="SerialTxBody" eSuperTypes="#//TxBody">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UserDefinedTxBody" eSuperTypes="#//TxBody">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
         eType="#//Input" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>

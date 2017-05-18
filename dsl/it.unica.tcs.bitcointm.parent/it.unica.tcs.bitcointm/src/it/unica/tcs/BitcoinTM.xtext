@@ -34,12 +34,17 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-	"transaction" name=ID '=' ( ('{' body=TransactionBody '}')|bytes=STRING | placeholder?="_" );
+	"transaction" name=ID '=' body=TxBody;
 
-TransactionBody:
+TxBody: SerialTxBody | DummyTxBody | UserDefinedTxBody;
+
+DummyTxBody: {DummyTxBody} "_";
+SerialTxBody: bytes=STRING;
+UserDefinedTxBody: "{"
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
-	("tlock" "=" tlock=Tlock)?;
+	("tlock" "=" tlock=Tlock)?
+"}";
 
 
 

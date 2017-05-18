@@ -41,7 +41,6 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 			DumpedPrivateKey.fromBase58(params, key);
 			return true;
 		} catch (AddressFormatException e2) {
-			System.out.println(e2);
 			return false;
 		}
 	}
@@ -51,7 +50,6 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 			Address.fromBase58(params, key);
 			return true;
 		} catch (AddressFormatException e2) {
-			System.out.println(e2);
 			return false;
 		}
 	}
@@ -71,6 +69,7 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 	}
 	
 
+		
 	public static boolean isValidTransaction(String txString) {
 		
 		/*

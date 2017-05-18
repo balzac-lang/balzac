@@ -9,9 +9,9 @@ import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
@@ -31,20 +31,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 * INFO
 	 */	
 	@Check
-	def void checkSingleElementArray(TransactionBody tbody) {
+	def void checkSingleElementArray(UserDefinedTxBody tbody) {
 		
 		var inputs = tbody.inputs
 		var outputs = tbody.outputs
 		
 		if (tbody.isMultiIn && inputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.",
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
+				BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__INPUTS
 			);	
 		}
 		
 		if (tbody.isIsMultiOut && outputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
+				BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__OUTPUTS
 			);	
 		}
 	}
@@ -276,10 +276,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 * TODO: quando sarà possibile deserializzare le transazioni il check
 		 * considerà anche questo caso 
 		 */
-		if (input.txRef.tx.body===null)
-			return;
 		
-		var outputs = input.txRef.tx.body.outputs;
+        if (!(input.txRef.tx.body instanceof UserDefinedTxBody))
+            return
+		
+		var inputTx = input.txRef.tx.body as UserDefinedTxBody		 
+		var outputs = inputTx.outputs;
 		
 		if (input.txRef.idx>=outputs.size) {
 			error("This input is pointing to an undefined output script.",
@@ -304,7 +306,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkInputsAreUnique(TransactionBody tbody) {
+	def void checkInputsAreUnique(UserDefinedTxBody tbody) {
 		
 		for (var i=0; i<tbody.inputs.size-1; i++) {
 			for (var j=1; j<tbody.inputs.size; j++) {
@@ -330,12 +332,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkSerialTransaction(TransactionDeclaration txDecl) {
+	def void checkSerialTransaction(SerialTxBody tx) {
 		
-		if (txDecl.bytes!==null && !txDecl.bytes.isValidTransaction) {
+		if (!tx.bytes.isValidTransaction) {
 			error(
 				"The string does not represent a valid transaction.",
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BYTES
+				BitcoinTMPackage.Literals.SERIAL_TX_BODY__BYTES
 			);
 		}
 	}
