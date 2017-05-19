@@ -16,8 +16,24 @@ import org.eclipse.xtext.EcoreUtil2;
 
 import it.unica.tcs.bitcoinTM.NetworkDeclaration;
 
-public class BitcoinJUtils extends AbstractBitcoinTMValidator{
+public class BitcoinJUtils {
 
+	public static ValidationResult VALIDATION_OK = new ValidationResult(true);
+	public static ValidationResult VALIDATION_ERROR = new ValidationResult(false);
+	public static class ValidationResult {
+		boolean ok;
+		String message;
+		
+		public ValidationResult(boolean ok) {
+			this(ok, null);
+		}
+		
+		public ValidationResult(boolean ok, String message) {
+			this.ok = ok;
+			this.message = message;
+		}
+	}
+	
 	public static byte[] wifToHash(String wif, NetworkParameters params) {
 		return wifToAddress(wif, params).getHash160();
 	}
@@ -27,30 +43,30 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 		return pubkeyAddr;
 	}
 
-	public static boolean isBase58WithChecksum(String key) {
+	public static ValidationResult isBase58WithChecksum(String key) {
 		try {
 			Base58.decodeChecked(key);
-			return true;
+			return VALIDATION_OK;
 		} catch (AddressFormatException e1) {
-			return false;
+			return new ValidationResult(false, e1.getMessage());
 		}
 	}
 	
-	public static boolean isValidPrivateKey(String key, NetworkParameters params) {
+	public static ValidationResult isValidPrivateKey(String key, NetworkParameters params) {
 		try {
 			DumpedPrivateKey.fromBase58(params, key);
-			return true;
+			return VALIDATION_OK;
 		} catch (AddressFormatException e2) {
-			return false;
+			return new ValidationResult(false, e2.getMessage());
 		}
 	}
 		
-	public static boolean isValidPublicKey(String key, NetworkParameters params) {
+	public static ValidationResult isValidPublicKey(String key, NetworkParameters params) {
 		try {
 			Address.fromBase58(params, key);
-			return true;
+			return VALIDATION_OK;
 		} catch (AddressFormatException e2) {
-			return false;
+			return new ValidationResult(false, e2.getMessage());
 		}
 	}
 	
@@ -70,32 +86,32 @@ public class BitcoinJUtils extends AbstractBitcoinTMValidator{
 	
 
 		
-	public static boolean isValidTransaction(String txString) {
+	public static ValidationResult isValidTransaction(String txString, NetworkParameters params) {
 		
 		/*
 		 * TODO: perché non consentire anche il recupero della transazione
 		 * tramite il suo hash? Non so ancora quale sia il modo migliore per farlo.
 		 */
 		try {
-			NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
-			Transaction tx = new Transaction(params, Utils.parseAsHexOrBase58(txString));
-			
+			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
 			tx.verify();
 		}
 		catch (Exception e) {
-			return false;
+			return new ValidationResult(false, e.getMessage());
 		}
 		
-		return true;
+		return VALIDATION_OK;
 	}
 	
-	public static boolean isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {
+	public static ValidationResult isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {
 		
 		System.out.println(params.getId());
 		
 		ECKey keyPair = DumpedPrivateKey.fromBase58(params, pvtKey).getKey();
 		Address pubkeyAddr = Address.fromBase58(params, pubKey);
+
+		boolean isValid = Arrays.equals(keyPair.getPubKeyHash(), pubkeyAddr.getHash160());
 		
-		return Arrays.equals(keyPair.getPubKeyHash(), pubkeyAddr.getHash160());
+		return isValid? VALIDATION_OK: VALIDATION_ERROR;
 	}
 }

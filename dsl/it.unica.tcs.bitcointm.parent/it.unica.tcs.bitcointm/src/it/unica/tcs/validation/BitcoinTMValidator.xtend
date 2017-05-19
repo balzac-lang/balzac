@@ -18,6 +18,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 
 /**
  * This class contains custom validation rules. 
@@ -175,6 +176,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		var pvtErr = false;
 		var pubErr = false;
+		var ValidationResult validationResult;
 		
 		/*
 		 * WiF format: 	[1 byte version][32 bytes key][1 byte compression (optional)][4 bytes checksum] 
@@ -204,16 +206,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * Check if the encoding is valid (like the checksum bytes)
 		 */
-		if (!pvtErr && pvtKey !== null && !pvtKey.isBase58WithChecksum) {
-			error("Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format.",
+		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isBase58WithChecksum).ok) {
+			error('''Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
 				keyDecl.body.pvt,
 				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
 			)
 			pvtErr = true
 		}		
 		
-		if (!pubErr && pubKey !== null && !pubKey.isBase58WithChecksum) {
-			error("Invalid encoding of the public key. The string must represent a valid bitcon address in WiF format.",
+		if (!pubErr && pubKey !== null && !(validationResult=pubKey.isBase58WithChecksum).ok) {
+			error('''Invalid encoding of the public key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
 				keyDecl.body.pub,
 				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
 			)
@@ -224,16 +226,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * Check if the declarations reflect the network declaration
 		 */
-		if (!pvtErr && pvtKey !== null && !pvtKey.isValidPrivateKey(keyDecl.networkParams)) {
-			error("The address it is not compatible with the network declaration (default is testnet).",
+		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isValidPrivateKey(keyDecl.networkParams)).ok) {
+			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
 				keyDecl.body.pvt,
 				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
 			)
 			pvtErr = true
 		}
 		
-		if (!pubErr && pubKey !== null && !pubKey.isValidPublicKey(keyDecl.networkParams)) {
-			error("The address it is not compatible with the network declaration (default is testnet).",
+		if (!pubErr && pubKey !== null && !(validationResult=pubKey.isValidPublicKey(keyDecl.networkParams)).ok) {
+			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
 				keyDecl.body.pub,
 				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
 			)
@@ -244,7 +246,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * Check if the declared keys are a valid pair
 		 */
-		if (!pvtErr && !pubErr && pubKey!==null && pvtKey!==null && !isValidKeyPair(pvtKey,pubKey,keyDecl.networkParams)
+		if (!pvtErr && !pubErr && pubKey!==null && pvtKey!==null && !(validationResult=isValidKeyPair(pvtKey,pubKey,keyDecl.networkParams)).ok
 		) {
 			error("The given keys are not a valid pair. You can omit the public part (it will be derived).",
 				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
@@ -334,9 +336,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSerialTransaction(SerialTxBody tx) {
 		
-		if (!tx.bytes.isValidTransaction) {
+		var ValidationResult validationResult;
+        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
 			error(
-				"The string does not represent a valid transaction.",
+				'''The string does not represent a valid transaction. Details: «validationResult.message»''',
 				BitcoinTMPackage.Literals.SERIAL_TX_BODY__BYTES
 			);
 		}
