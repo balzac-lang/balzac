@@ -76,7 +76,7 @@ judgments {
 //		error "cannot type " + stringRep(obj)
 //		source obj
 	
-//	interpret |- Expression expression ~> output Object
+	interpret |- Expression expression ~> output Object
 }
 
 /*
@@ -457,9 +457,155 @@ from {
 	unify(substitutions, tvalue, intType)
 }
 
+/*
+ * 
+ * Expression Interpreter
+ * 
+ */
+  
+axiom InterpretNumberLiteral
+    G |- NumberLiteral number ~> number.value
+
+axiom InterpretStringLiteral
+    G |- StringLiteral str ~> str.value
+
+axiom InterpretBooleanLiteral
+    G |- BooleanLiteral bool ~> bool.^true
+
+rule InterpretMinus
+    G |- Minus minus ~> Integer result
+from {
+    G |- minus.left ~> var Integer leftResult
+    G |- minus.right ~> var Integer rightResult
+    result = leftResult.intValue - rightResult.intValue
+}
+
+rule InterpretPlus
+    G |- Plus plus ~> Object result
+from {
+    G |- plus.left ~> var Object leftResult
+    G |- plus.right ~> var Object rightResult
+    
+    if (leftResult instanceof String || rightResult instanceof String) {
+        var leftString = leftResult.toString
+        var rightString = rightResult.toString
+        result = leftString + rightString
+    } else {
+        // both are int if the expression is well-typed
+        var leftInt = leftResult as Integer
+        var rightInt = rightResult as Integer
+        result = leftInt + rightInt
+    }
+}
+
+rule InterpretArithmeticSigned
+    G |- ArithmeticSigned signed ~> Integer result
+from {
+    G |- signed.exp ~> var Integer expResult
+    result = -(expResult)
+}
+
+rule InterpretAnd
+    G |- AndExpression and ~> Boolean result
+from {
+    G |- and.left ~> var Boolean leftResult
+    G |- and.right ~> var Boolean rightResult
+    
+    result = leftResult.booleanValue && rightResult.booleanValue
+}
+
+rule InterpretOr
+    G |- OrExpression orExp ~> Boolean result
+from {
+    G |- orExp.left ~> var Boolean leftResult
+    G |- orExp.right ~> var Boolean rightResult
+    
+    result = leftResult.booleanValue || rightResult.booleanValue
+}
+
+rule InterpretBooleanNegation
+    G |- BooleanNegation neg ~> Boolean result
+from {
+    G |- neg.exp ~> var Boolean expResult
+    result = !expResult
+}
+
+rule InterpretComparison
+    G |- Comparison comparison ~> Boolean result
+from {
+    G |- comparison.left ~> var Object leftResult
+    G |- comparison.right ~> var Object rightResult
+    
+    if (leftResult instanceof String && rightResult instanceof String) {
+        result = leftResult.toString < rightResult.toString
+    } else {
+        // both are int if the expression is well-typed
+        result = (leftResult as Integer) < (rightResult as Integer)
+    }
+}
+
+rule InterpretEquals
+    G |- Equals comparison ~> Boolean result
+from {
+    G |- comparison.left ~> var Object leftResult
+    G |- comparison.right ~> var Object rightResult
+    
+    result = leftResult.toString == rightResult.toString
+}
+
+rule InterpretIfThenElse
+    G |- IfThenElse stmt ~> Object result
+from {
+    G |- stmt.^if ~> var Boolean ifCondition
+    
+    if (ifCondition) {
+        G |- stmt.then ~> var Object thenResult
+        result = thenResult
+    }
+    else {
+        G |- stmt.^else ~> var Object elseResult
+        result = elseResult
+    }
+}
+
+rule InterpretMin
+    G |- Min stmt ~> Integer result
+from {
+    G |- stmt.left ~> var Integer leftRes
+    G |- stmt.right ~> var Integer rightRes
+    
+    if (leftRes<=rightRes)
+        result = leftRes
+    else 
+        result = rightRes
+}
+
+rule InterpretMax
+    G |- Max stmt ~> Integer result
+from {
+    G |- stmt.left ~> var Integer leftRes
+    G |- stmt.right ~> var Integer rightRes
+    
+    if (leftRes>=rightRes)
+        result = leftRes
+    else 
+        result = rightRes
+}
+
+rule InterpretBetween
+    G |- Between stmt ~> Boolean result
+from {
+    G |- stmt.value ~> var Integer valueRes
+    G |- stmt.left ~> var Integer leftRes
+    G |- stmt.right ~> var Integer rightRes
+    
+    result = leftRes<=valueRes && valueRes<rightRes
+}
 
 /*
+ * 
  * rule invocations
+ * 
  */
 checkrule CheckScript for
     Script script

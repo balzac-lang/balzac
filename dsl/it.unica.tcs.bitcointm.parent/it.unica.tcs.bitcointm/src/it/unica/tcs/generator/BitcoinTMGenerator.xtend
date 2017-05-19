@@ -3,6 +3,7 @@
  */
 package it.unica.tcs.generator
 
+import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
@@ -35,6 +36,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
 import org.bitcoinj.core.DumpedPrivateKey
@@ -56,6 +58,8 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class BitcoinTMGenerator extends AbstractGenerator {
+
+    @Inject BitcoinTMTypeSystem typeSystem
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
@@ -268,15 +272,38 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch void toScript(Plus stmt, ScriptBuilder sb) {
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-        sb.op(OP_ADD)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_ADD)
+        }
+        else {
+            if (res.first instanceof String){
+                sb.data((res.first as String).bytes)
+            }
+            else if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error")            
+        }
     }
 
     def dispatch void toScript(Minus stmt, ScriptBuilder sb) {
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-        sb.op(OP_SUB)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_SUB)
+        }
+        else {
+            if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(Max stmt, ScriptBuilder sb) {
