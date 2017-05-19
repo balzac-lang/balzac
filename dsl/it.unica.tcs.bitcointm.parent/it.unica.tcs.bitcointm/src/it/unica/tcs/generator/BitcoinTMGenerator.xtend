@@ -233,8 +233,14 @@ class BitcoinTMGenerator extends AbstractGenerator {
             throw new UnsupportedOperationException
     }
 
+
+
     /*
      * 
+     * EXPRESSIONS
+     * the compiler tries to simplify simple expressions like 
+     *  1+2 ~> 3
+     *  if (12==10+2) then "foo" else "bar" ~> "foo"
      */
     def dispatch void toScript(Expression exp, ScriptBuilder sb) {
         throw new UnsupportedOperationException
@@ -260,12 +266,22 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch void toScript(AndExpression stmt, ScriptBuilder sb) {
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            
+        }
         stmt.left.toScript(sb)
         stmt.right.toScript(sb)
         sb.op(OP_BOOLAND)
     }
 
     def dispatch void toScript(OrExpression stmt, ScriptBuilder sb) {
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            
+        }        
         stmt.left.toScript(sb)
         stmt.right.toScript(sb)
         sb.op(OP_BOOLOR)
@@ -307,15 +323,35 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch void toScript(Max stmt, ScriptBuilder sb) {
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-        sb.op(OP_MAX)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_MAX)
+        }
+        else {
+            if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(Min stmt, ScriptBuilder sb) {
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-        sb.op(OP_MIN)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_MIN)
+        }
+        else {
+            if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(Size stmt, ScriptBuilder sb) {
@@ -324,41 +360,106 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch void toScript(BooleanNegation stmt, ScriptBuilder sb) {
-        stmt.exp.toScript(sb)
-        sb.op(OP_NOT)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.exp.toScript(sb)
+            sb.op(OP_NOT)            
+        }
+        else {
+            if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(ArithmeticSigned stmt, ScriptBuilder sb) {
-        stmt.exp.toScript(sb)
-        sb.op(OP_NEGATE)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.exp.toScript(sb)
+            sb.op(OP_NEGATE)
+        }
+        else {
+            if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(Between stmt, ScriptBuilder sb) {
-        stmt.value.toScript(sb)
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-        sb.op(OP_WITHIN)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.value.toScript(sb)
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_WITHIN)
+        }
+        else {
+            if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new IllegalStateException("compilation error") 
+        }
     }
 
     def dispatch void toScript(Comparison stmt, ScriptBuilder sb) {
-        stmt.left.toScript(sb)
-        stmt.right.toScript(sb)
-
-        switch (stmt.op) {
-            case "<": sb.op(OP_LESSTHAN)
-            case ">": sb.op(OP_GREATERTHAN)
-            case "<=": sb.op(OP_LESSTHANOREQUAL)
-            case ">=": sb.op(OP_GREATERTHANOREQUAL)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+    
+            switch (stmt.op) {
+                case "<": sb.op(OP_LESSTHAN)
+                case ">": sb.op(OP_GREATERTHAN)
+                case "<=": sb.op(OP_LESSTHANOREQUAL)
+                case ">=": sb.op(OP_GREATERTHANOREQUAL)
+            }
+        }
+        else {
+            if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new IllegalStateException("compilation error") 
         }
     }
 
     def dispatch void toScript(IfThenElse stmt, ScriptBuilder sb) {
-        stmt.^if.toScript(sb)
-        sb.op(OP_IF)
-        stmt.then.toScript(sb)
-        sb.op(OP_ELSE)
-        stmt.^else.toScript(sb)
-        sb.op(OP_ENDIF)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.^if.toScript(sb)
+            sb.op(OP_IF)
+            stmt.then.toScript(sb)
+            sb.op(OP_ELSE)
+            stmt.^else.toScript(sb)
+            sb.op(OP_ENDIF)            
+        }
+        else {
+            if (res.first instanceof String){
+                sb.data((res.first as String).bytes)
+            }
+            else if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new IllegalStateException("compilation error")            
+        }
     }
 
     def dispatch void toScript(Versig stmt, ScriptBuilder sb) {
@@ -381,7 +482,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch void toScript(BooleanLiteral n, ScriptBuilder sb) {
-        sb.number(if(n.isTrue) 1 else 0).build().toString
+        sb.number(if(n.isTrue) OP_TRUE else OP_FALSE).build().toString
     }
 
     def dispatch void toScript(StringLiteral s, ScriptBuilder sb) {
