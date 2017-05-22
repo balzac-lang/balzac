@@ -103,10 +103,21 @@ public class BitcoinJUtils {
 		return VALIDATION_OK;
 	}
 	
+	public static long getOutputAmount(String txString, NetworkParameters params, int index) {
+		// here we assume a valid transaction
+		Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
+		
+		return tx.getOutput(index).getValue().value;
+	}
+	
+	public static int getNumberOfOutputs(String txString, NetworkParameters params) {
+		// here we assume a valid transaction
+		Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
+
+		return tx.getOutputs().size();
+	}
+	
 	public static ValidationResult isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {
-		
-		System.out.println(params.getId());
-		
 		ECKey keyPair = DumpedPrivateKey.fromBase58(params, pvtKey).getKey();
 		Address pubkeyAddr = Address.fromBase58(params, pubKey);
 

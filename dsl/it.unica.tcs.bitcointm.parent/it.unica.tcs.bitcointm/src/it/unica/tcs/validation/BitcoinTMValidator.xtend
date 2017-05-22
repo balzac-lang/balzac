@@ -33,7 +33,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 */	
 	@Check
 	def void checkSingleElementArray(UserDefinedTxBody tbody) {
-		
 		var inputs = tbody.inputs
 		var outputs = tbody.outputs
 		
@@ -271,42 +270,63 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-	@Check
-	def void checkInput(Input input) {
+
+	def boolean checkInputIndex(Input input) {
+
+        var outIndex = input.txRef.idx
+		var int numOfOutputs
 		
-		/* 
-		 * TODO: quando sarà possibile deserializzare le transazioni il check
-		 * considerà anche questo caso 
-		 */
+		if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+		    var inputTx = input.txRef.tx.body as UserDefinedTxBody
+		    numOfOutputs = inputTx.outputs.size
+		}
+		else if (input.txRef.tx.body instanceof SerialTxBody) {
+		    var inputTx = input.txRef.tx.body as SerialTxBody
+		    numOfOutputs = inputTx.bytes.getNumberOfOutputs(input.networkParams)
+		}
+		else {
+		    return true
+		}
 		
-        if (!(input.txRef.tx.body instanceof UserDefinedTxBody))
-            return
-		
-		var inputTx = input.txRef.tx.body as UserDefinedTxBody		 
-		var outputs = inputTx.outputs;
-		
-		if (input.txRef.idx>=outputs.size) {
+		if (outIndex>=numOfOutputs) {
 			error("This input is pointing to an undefined output script.",
 				input.txRef,
 				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
 			);
-			return;
+			return false
 		}
-				
-		var outputIdx = input.txRef.idx
-		var outputScript = outputs.get(outputIdx).script;
 		
-		var numOfExps = input.actual.exps.size
-		
-		var numOfParams = outputScript.params.size
-		if (numOfExps!=numOfParams) {
-			error(
-				"The number of expressions does not match the number of parameters.",
-				BitcoinTMPackage.Literals.INPUT__ACTUAL
-			);
-		}						
+		return true
+	}
+
+    def boolean checkInputExpressions(Input input) {
+        
+        if (!(input.txRef.tx.body instanceof UserDefinedTxBody))
+            return true
+        
+        var inputTx = input.txRef.tx.body as UserDefinedTxBody
+        var outputIdx = input.txRef.idx
+        var outputScript = inputTx.outputs.get(outputIdx).script;
+        
+        var numOfExps = input.actual.exps.size
+        
+        var numOfParams = outputScript.params.size
+        if (numOfExps!=numOfParams) {
+            error(
+                "The number of expressions does not match the number of parameters.",
+                BitcoinTMPackage.Literals.INPUT__ACTUAL
+            );
+            return false
+        }
+        return true
 	}
 	
+	@Check
+    def void checkInput(Input input) {
+        // these checks need to be executed in this order
+	    input.checkInputIndex && input.checkInputExpressions
+	}
+
 	@Check
 	def void checkInputsAreUnique(UserDefinedTxBody tbody) {
 		
@@ -344,6 +364,52 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			);
 		}
 	}
+	
+	@Check
+    def void checkFee(UserDefinedTxBody tx) {
+        
+        var amount = 0L
+        
+        for (in : tx.inputs) {
+            if (in.txRef.tx.body instanceof UserDefinedTxBody) {
+                var index = in.txRef.idx
+                var output = (in.txRef.tx.body as UserDefinedTxBody).outputs.get(index) 
+                var value = output.value.value
+                if (output.value.unit=="BTC") value*=Math.pow(value, 8) as int
+                amount+=value                
+            }
+            else if (in.txRef.tx.body instanceof SerialTxBody){
+                var index = in.txRef.idx
+                var txbody = (in.txRef.tx.body as SerialTxBody).bytes
+                var value = txbody.getOutputAmount(tx.networkParams, index)
+                amount+=value
+            }
+            else {
+                // dummy tx body
+                return
+            }
+        }
+        
+        for (out : tx.outputs) {
+            var value = out.value.value
+            if (out.value.unit=="BTC") value*=Math.pow(value, 8) as int
+                amount-=value
+        }
+
+        if (amount==0) {
+            warning("Fees are zero.",
+                tx.eContainer,
+                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BODY
+            );
+        }
+        
+        if (amount<0) {
+            error("The transaction spends more than expected.",
+                tx.eContainer,
+                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BODY
+            );
+        }
+    }
 	
 }
 

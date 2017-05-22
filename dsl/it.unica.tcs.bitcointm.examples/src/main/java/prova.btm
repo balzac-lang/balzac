@@ -18,11 +18,11 @@ transaction fooTx = "01000000026d95842f4f81132c7ee30b4254291a4f5497dac5af29a3178
 transaction T = {
 	input = [
 		inA@0: sig kA AIAO; 
-		fooTx: sig kA 
+		fooTx@21: sig kA 
 	]
 	 
 	output = [
-		1 satoshi: 	fun(x:signature, y:string) . x;
+		10 satoshi: 	fun(x:signature, y:string) . x;
 		0 BTC:		fun(y) . versig(kA, kA; y)
 	]
 	
@@ -36,8 +36,8 @@ transaction T1 = {
 	]
 	 
 	output = [ 
-		1 satoshi: 	(12-45) + 2147483647 + 2147483647; 
-		1:			fun (a) . a-45;
+		4 satoshi: 	(12-45) + 2147483647 + 2147483647; 
+		2:			fun (a) . a-45;
 		3:			fun(). if (12==10+2) then 3 else 4
 	] 
 }
