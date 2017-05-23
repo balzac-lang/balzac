@@ -21,5 +21,5 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 	def Class<? extends BitcoinTMTypeSystemValidator> bindBitcoinTMTypeSystemValidator() {
 		return BitcoinTMTypeSystemValidator;
 	}
-	
+    
 }

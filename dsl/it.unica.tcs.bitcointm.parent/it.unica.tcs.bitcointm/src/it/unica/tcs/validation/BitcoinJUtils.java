@@ -104,17 +104,23 @@ public class BitcoinJUtils {
 	}
 	
 	public static long getOutputAmount(String txString, NetworkParameters params, int index) {
-		// here we assume a valid transaction
-		Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
-		
-		return tx.getOutput(index).getValue().value;
+		try {
+			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
+			return tx.getOutput(index).getValue().value;
+		}
+		catch (Exception e) {
+			return -1;
+		}
 	}
 	
 	public static int getNumberOfOutputs(String txString, NetworkParameters params) {
-		// here we assume a valid transaction
-		Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
-
-		return tx.getOutputs().size();
+		try {
+			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
+			return tx.getOutputs().size();
+		}
+		catch (Exception e) {
+			return -1;
+		}
 	}
 	
 	public static ValidationResult isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {

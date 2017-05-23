@@ -13,12 +13,12 @@ import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 
 /**
  * This class contains custom validation rules. 
@@ -27,7 +27,7 @@ import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-
+    
 	/*
 	 * INFO
 	 */	
@@ -270,34 +270,77 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
+	@Check
+	def void checkSerialTransaction(SerialTxBody tx) {
+		
+		var ValidationResult validationResult;
+        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
+			error(
+				'''The string does not represent a valid transaction. Details: «validationResult.message»''',
+				BitcoinTMPackage.Literals.SERIAL_TX_BODY__BYTES
+			);
+		}
+	}
+	
+	@Check
+	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
+		
+		/*
+		 * Verify that inputs are valid
+		 */
+		var hasError = false;
+		
+		for (var i=0; i<tbody.inputs.size-1; i++) {
+			for (var j=1; j<tbody.inputs.size; j++) {
+				
+				var inputA = tbody.inputs.get(i)
+				var inputB = tbody.inputs.get(j)
+				
+				// these checks need to be executed in this order
+				var AisValid = inputA.checkInputIndex && inputA.checkInputExpressions 
+                var BisValid = inputB.checkInputIndex && inputB.checkInputExpressions
+				
+				var areValid = AisValid && BisValid && checkInputsAreUnique(inputA, inputB)
+				
+				hasError = hasError || !areValid
+			}
+		}
+		
+		guard(!hasError)  // interrupt the check
 
+		/*
+		 * Verify that the fees are positive
+		 */
+        tbody.checkFee
+	}
+	
 	def boolean checkInputIndex(Input input) {
 
         var outIndex = input.txRef.idx
-		var int numOfOutputs
-		
-		if (input.txRef.tx.body instanceof UserDefinedTxBody) {
-		    var inputTx = input.txRef.tx.body as UserDefinedTxBody
-		    numOfOutputs = inputTx.outputs.size
-		}
-		else if (input.txRef.tx.body instanceof SerialTxBody) {
-		    var inputTx = input.txRef.tx.body as SerialTxBody
-		    numOfOutputs = inputTx.bytes.getNumberOfOutputs(input.networkParams)
-		}
-		else {
-		    return true
-		}
-		
-		if (outIndex>=numOfOutputs) {
-			error("This input is pointing to an undefined output script.",
-				input.txRef,
-				BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
-			);
-			return false
-		}
-		
-		return true
-	}
+        var int numOfOutputs
+        
+        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+            var inputTx = input.txRef.tx.body as UserDefinedTxBody
+            numOfOutputs = inputTx.outputs.size
+        }
+        else if (input.txRef.tx.body instanceof SerialTxBody) {
+            var inputTx = input.txRef.tx.body as SerialTxBody
+            numOfOutputs = inputTx.bytes.getNumberOfOutputs(input.networkParams)
+        }
+        else {
+            return true
+        }
+        
+        if (outIndex>=numOfOutputs) {
+            error("This input is pointing to an undefined output script.",
+                input.txRef,
+                BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
+            );
+            return false
+        }
+        
+        return true
+    }
 
     def boolean checkInputExpressions(Input input) {
         
@@ -314,58 +357,32 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (numOfExps!=numOfParams) {
             error(
                 "The number of expressions does not match the number of parameters.",
+                input,
                 BitcoinTMPackage.Literals.INPUT__ACTUAL
             );
             return false
         }
         return true
-	}
+    }
+    
+    def boolean checkInputsAreUnique(Input inputA, Input inputB) {
+        if (inputA.txRef.tx==inputB.txRef.tx && inputA.txRef.idx==inputB.txRef.idx) {
+            error(
+                "You cannot redeem the output twice.",
+                inputA,
+                BitcoinTMPackage.Literals.INPUT__TX_REF
+            );
+        
+            error(
+                "You cannot redeem the output twice.",
+                inputB,
+                BitcoinTMPackage.Literals.INPUT__TX_REF
+            );
+            return false
+        }
+        return true
+    }
 	
-	@Check
-    def void checkInput(Input input) {
-        // these checks need to be executed in this order
-	    input.checkInputIndex && input.checkInputExpressions
-	}
-
-	@Check
-	def void checkInputsAreUnique(UserDefinedTxBody tbody) {
-		
-		for (var i=0; i<tbody.inputs.size-1; i++) {
-			for (var j=1; j<tbody.inputs.size; j++) {
-				
-				var inputA = tbody.inputs.get(i)
-				var inputB = tbody.inputs.get(j)
-				
-				if (inputA.txRef.tx==inputB.txRef.tx && inputA.txRef.idx==inputB.txRef.idx) {
-					error(
-						"You cannot redeem the output twice.",
-						inputA,
-						BitcoinTMPackage.Literals.INPUT__TX_REF
-					);
-				
-					error(
-						"You cannot redeem the output twice.",
-						inputB,
-						BitcoinTMPackage.Literals.INPUT__TX_REF
-					);
-				}
-			}
-		}
-	}
-	
-	@Check
-	def void checkSerialTransaction(SerialTxBody tx) {
-		
-		var ValidationResult validationResult;
-        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
-			error(
-				'''The string does not represent a valid transaction. Details: «validationResult.message»''',
-				BitcoinTMPackage.Literals.SERIAL_TX_BODY__BYTES
-			);
-		}
-	}
-	
-	@Check
     def void checkFee(UserDefinedTxBody tx) {
         
         var amount = 0L
@@ -410,9 +427,4 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             );
         }
     }
-	
 }
-
-
-
-
