@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
 import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.DummyTxBody
+import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.IfThenElse
@@ -26,13 +27,13 @@ import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
@@ -40,6 +41,8 @@ import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.Transaction
+import org.bitcoinj.script.Script
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.emf.ecore.EObject
@@ -59,7 +62,18 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  */
 class BitcoinTMGenerator extends AbstractGenerator {
 
-    @Inject BitcoinTMTypeSystem typeSystem
+    public static class CompilationException extends RuntimeException {
+        
+        new() {
+            this("compile error")
+        }
+        
+        new(String message) {
+            super(message)
+        }
+    }
+
+    @Inject private BitcoinTMTypeSystem typeSystem
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
@@ -76,7 +90,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(EObject obj) {
-        throw new IllegalStateException("compilation error")
+        throw new CompilationException
     }
 
     def dispatch String compile(Model obj) {
@@ -111,11 +125,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(Input obj) {
-        obj.toBytecodeString
+        obj.toScript?.toString
     }
 
     def dispatch String compile(Output obj) {
-        obj.toBytecodeString
+        obj.toScript?.toString
     }
 
     var altstackSize = 0
@@ -124,28 +138,28 @@ class BitcoinTMGenerator extends AbstractGenerator {
     /*
      * utility methods
      */
-    def boolean isP2PKH(Script script) {
+    def boolean isP2PKH(it.unica.tcs.bitcoinTM.Script script) {
         var onlyOneSignatureParam = script.params.size == 1 && (script.params.get(0).paramType instanceof SignatureType)
         var onlyOnePubkey = (script.exp instanceof Versig) && (script.exp as Versig).pubkeys.size == 1
 
         return onlyOneSignatureParam && onlyOnePubkey
     }
 
-    def boolean isOpReturn(Script script) {
+    def boolean isOpReturn(it.unica.tcs.bitcoinTM.Script script) {
         var noParam = script.params.size == 0
         var onlyString = script.exp instanceof StringLiteral
 
         return noParam && onlyString
     }
 
-    def boolean isP2SH(Script script) {
+    def boolean isP2SH(it.unica.tcs.bitcoinTM.Script script) {
         return !script.isP2PKH && !script.isOpReturn
     }
 
     /**
      * Prepend OP_TOALTSTACK to an input script
      */
-    def org.bitcoinj.script.Script prependTOALTSTACK(Script outScript) {
+    def Script prependTOALTSTACK(it.unica.tcs.bitcoinTM.Script outScript) {
 
         val sb = new ScriptBuilder()
 
@@ -164,11 +178,28 @@ class BitcoinTMGenerator extends AbstractGenerator {
     /*
      * compiler
      */
-    def dispatch String toBytecodeString(Input stmt) {
+    def Transaction toTransaction(UserDefinedTxBody stmt) {
+        throw new UnsupportedOperationException("TODO")    
+    }
+    
+
+
+
+    def dispatch Script toOutputScript(UserDefinedTxBody tbody, int index) {
+        return tbody.outputs.get(index).toScript
+    }
+    
+    def dispatch Script toOutputScript(TxBody tbody, int index) {
+        return null
+    }
+    
+    
+    
+    def dispatch Script toScript(Input stmt) {
         var outIdx = stmt.txRef.idx
 
         if (!(stmt.txRef.tx.body instanceof UserDefinedTxBody))
-            return "<input>"
+            return null
         
         var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
         var inScript = inputTx.outputs.get(outIdx).script;
@@ -181,7 +212,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             sig.key.body.pub.toScript(sb)
 
             /* <sig> <pubkey> */
-            sb.build.toString
+            sb.build
         } else if (inScript.isP2SH) {
             var realInScript = prependTOALTSTACK(inScript);
             val sb = new ScriptBuilder()
@@ -190,12 +221,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
             sb.data(realInScript.program)
 
             /* <e1> ... <en> <serialized script> */
-            sb.build.toString
+            sb.build
         } else
             throw new UnsupportedOperationException
     }
 
-    def dispatch String toBytecodeString(Output output) {
+    def dispatch Script toScript(Output output) {
 
         var outScript = output.script
 
@@ -206,29 +237,29 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var script = ScriptBuilder.createOutputScript(pk)
 
             if (script.scriptType != ScriptType.P2PKH)
-                throw new IllegalStateException("compilation error")
+                throw new CompilationException
 
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-            script.toString
+            script
         } else if (outScript.isP2SH) {
             var realInScript = prependTOALTSTACK(outScript)
 
             var script = ScriptBuilder.createP2SHOutputScript(realInScript)
 
             if (script.scriptType != ScriptType.P2SH)
-                throw new IllegalStateException("compilation error")
+                throw new CompilationException
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
-            script.toString
+            script
         } else if (outScript.isOpReturn) {
             var c = outScript.exp as StringLiteral
             var script = ScriptBuilder.createOpReturnScript(c.value.bytes)
 
             if (script.scriptType != ScriptType.NO_TYPE)
-                throw new IllegalStateException("compilation error")
+                throw new CompilationException
 
             /* OP_RETURN <bytes> */
-            script.toString
+            script
         } else
             throw new UnsupportedOperationException
     }
@@ -302,7 +333,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             else if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error")            
+            else throw new CompilationException            
         }
     }
 
@@ -318,7 +349,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -334,7 +365,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -350,7 +381,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -373,7 +404,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -388,7 +419,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -405,7 +436,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
         }
     }
 
@@ -430,7 +461,26 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new IllegalStateException("compilation error") 
+            else throw new CompilationException 
+        }
+    }
+    
+    def dispatch void toScript(Equals stmt, ScriptBuilder sb) {
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+            stmt.left.toScript(sb)
+            stmt.right.toScript(sb)
+            sb.op(OP_EQUAL)
+        }
+        else {
+            if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new CompilationException 
         }
     }
 
@@ -458,7 +508,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new IllegalStateException("compilation error")            
+            else throw new CompilationException            
         }
     }
 
@@ -516,7 +566,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var param = varRef.ref
         var pos = altstackPositions.get(param)
 
-        if(pos === null) throw new IllegalStateException("compilation error")
+        if(pos === null) throw new CompilationException;
 
         (1 .. altstackSize - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
         sb.op(OP_DUP).op(OP_TOALTSTACK)

@@ -11,6 +11,7 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.script.Script;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
@@ -120,6 +121,16 @@ public class BitcoinJUtils {
 		}
 		catch (Exception e) {
 			return -1;
+		}
+	}
+	
+	public static Script getOutput(String txString, NetworkParameters params, int index) {
+		try {
+			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
+			return tx.getOutputs().get(index).getScriptPubKey();
+		}
+		catch (Exception e) {
+			return null;
 		}
 	}
 	
