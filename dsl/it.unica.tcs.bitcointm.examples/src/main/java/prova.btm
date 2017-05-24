@@ -18,23 +18,23 @@ transaction fooTx = "01000000026d95842f4f81132c7ee30b4254291a4f5497dac5af29a3178
 transaction T = {
 	input = [ 
 		inA@0: sig kA AIAO; 
-		fooTx@21: sig kA 
+		fooTx@21: sig kA
 	]
 	 
 	output = [
+		5 BTC:		fun(n) . n==42;
 		10 satoshi: fun(x:signature, y:string) . x; 
-		0 BTC:		fun(y) . versig(kA, kA; y);
-		5 BTC:		fun(n) . n==42
-	] 
+		0 BTC:		fun(y) . versig(kA, kA; y)
+	]
 	
-	tlock = 97
+	tlock = 97 
 }
 
 transaction T1 = {   
 	input = [
-		T@0: sig kA AIAO if (12==10+2) then "abc" else "xyz";
-		T@1: sig kA;
-		T@2: 43
+		T@0: 43;
+		T@1: sig kA AIAO if (12==10+2) then "abc" else "xyz";
+		T@2: sig kA
 	]
 	 
 	output = [ 
@@ -44,7 +44,7 @@ transaction T1 = {
 	] 
 }
 
-
+ 
 /*
  * P2SH
  */

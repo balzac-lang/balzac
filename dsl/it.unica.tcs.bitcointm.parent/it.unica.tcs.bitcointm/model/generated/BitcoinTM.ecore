@@ -66,6 +66,8 @@
   <eClassifiers xsi:type="ecore:EClass" name="ActualParameters">
     <eStructuralFeatures xsi:type="ecore:EReference" name="exps" upperBound="-1" eType="#//Expression"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="script" eType="#//Script"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>

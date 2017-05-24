@@ -40,8 +40,12 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
+import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.TransactionInput
+import org.bitcoinj.core.TransactionOutput
+import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
@@ -54,6 +58,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import org.bitcoinj.core.TransactionOutPoint
 
 /**
  * Generates code from your model files on save.
@@ -178,11 +183,54 @@ class BitcoinTMGenerator extends AbstractGenerator {
     /*
      * compiler
      */
-    def Transaction toTransaction(UserDefinedTxBody stmt) {
-        throw new UnsupportedOperationException("TODO")    
+    def dispatch Transaction toTransaction(UserDefinedTxBody stmt) {
+        
+        var netParams = stmt.networkParams
+        
+        var Transaction tx = new Transaction(netParams)
+        
+        for (input : stmt.inputs) {
+            
+            var outIndex = input.txRef.idx
+            var txToRedeem = input.txRef.tx.body.toTransaction
+            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
+            
+            var TransactionInput txInput = new TransactionInput(netParams, tx, input.toScript.program, outPoint)
+            
+            tx.addInput(txInput)            
+        }
+        
+        for (output : stmt.outputs) {
+            
+            var value = if (output.value.unit=="BTC") Coin.COIN.times(output.value.value) else Coin.SATOSHI.times(output.value.value)
+            var txOutput = new TransactionOutput(netParams, tx, value, output.toScript.program)
+            
+            tx.addOutput(txOutput)
+        }
+        
+        return tx    
     }
     
-
+    def dispatch Transaction toTransaction(SerialTxBody stmt) {
+        return new Transaction(stmt.networkParams, Utils.HEX.decode(stmt.bytes))
+    }
+    
+    def dispatch Transaction toTransaction(DummyTxBody stmt) {
+        var netParams = stmt.networkParams
+        var tx = new Transaction(netParams);
+        
+        var input = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
+        var output = new TransactionOutput(netParams, tx, netParams.maxMoney, new ScriptBuilder().number(1).build().getProgram());      
+        
+        tx.addInput(input);
+        tx.addOutput(output);
+        
+        /*
+         * return a coinbase tx with a lot of money always redeemable
+         */
+        return tx
+    }
+    
 
 
     def dispatch Script toOutputScript(UserDefinedTxBody tbody, int index) {
@@ -198,32 +246,62 @@ class BitcoinTMGenerator extends AbstractGenerator {
     def dispatch Script toScript(Input stmt) {
         var outIdx = stmt.txRef.idx
 
-        if (!(stmt.txRef.tx.body instanceof UserDefinedTxBody))
-            return null
-        
-        var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
-        var inScript = inputTx.outputs.get(outIdx).script;
-
-        if (inScript.isP2PKH) {
-            var sig = stmt.actual.exps.get(0) as Signature
-            val sb = new ScriptBuilder()
-
-            sig.toScript(sb)
-            sig.key.body.pub.toScript(sb)
-
-            /* <sig> <pubkey> */
-            sb.build
-        } else if (inScript.isP2SH) {
-            var realInScript = prependTOALTSTACK(inScript);
-            val sb = new ScriptBuilder()
-
-            stmt.actual.exps.forEach[e|e.toScript(sb)]
-            sb.data(realInScript.program)
-
-            /* <e1> ... <en> <serialized script> */
-            sb.build
-        } else
-            throw new UnsupportedOperationException
+        if (stmt.txRef.tx.body instanceof UserDefinedTxBody){
+            
+            var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
+            var outScript = inputTx.outputs.get(outIdx).script;
+    
+            if (outScript.isP2PKH) {
+                var sig = stmt.actual.exps.get(0) as Signature
+                val sb = new ScriptBuilder()
+    
+                sig.toScript(sb)
+                sig.key.body.pub.toScript(sb)
+    
+                /* <sig> <pubkey> */
+                sb.build
+            } else if (outScript.isP2SH) {
+                var realInScript = prependTOALTSTACK(outScript);
+                val sb = new ScriptBuilder()
+    
+                stmt.actual.exps.forEach[e|e.toScript(sb)]
+                sb.data(realInScript.program)
+    
+                /* <e1> ... <en> <serialized script> */
+                sb.build
+            } else
+                throw new UnsupportedOperationException
+        }
+        else if (stmt.txRef.tx.body instanceof SerialTxBody){
+            var output = stmt.txRef.tx.body.toTransaction.getOutput(outIdx)
+            
+            if (output.scriptPubKey.isSentToAddress) {
+                var sig = stmt.actual.exps.get(0) as Signature
+                val sb = new ScriptBuilder()
+    
+                sig.toScript(sb)
+                sig.key.body.pub.toScript(sb)
+    
+                /* <sig> <pubkey> */
+                sb.build
+            } else if (output.scriptPubKey.isPayToScriptHash) {
+                
+                val sb = new ScriptBuilder()
+                
+//                stmt.actual.script.toScript(sb);
+//                var realInScript = prependTOALTSTACK(sb.build);
+//               
+//                stmt.actual.exps.forEach[e|e.toScript(sb)]
+//                sb.data(realInScript.program)
+    
+                /* <e1> ... <en> <serialized script> */
+                sb.build
+            } else
+                throw new UnsupportedOperationException
+        }
+        else if (stmt.txRef.tx.body instanceof DummyTxBody){
+            new ScriptBuilder().number(1).build
+        }
     }
 
     def dispatch Script toScript(Output output) {

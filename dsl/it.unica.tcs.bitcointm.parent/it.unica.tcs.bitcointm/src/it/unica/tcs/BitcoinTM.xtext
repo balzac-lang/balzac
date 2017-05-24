@@ -58,7 +58,7 @@ Tlock:
 	value=INT;
 
 ActualParameters:
-	exps+=Atomic ( exps+=Atomic)*;
+	exps+=Atomic ( exps+=Atomic)* ("[" script=Script "]")?;
 
 
 TransactionReference:

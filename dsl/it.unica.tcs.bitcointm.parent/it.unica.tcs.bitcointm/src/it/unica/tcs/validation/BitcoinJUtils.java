@@ -114,26 +114,6 @@ public class BitcoinJUtils {
 		}
 	}
 	
-	public static int getNumberOfOutputs(String txString, NetworkParameters params) {
-		try {
-			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
-			return tx.getOutputs().size();
-		}
-		catch (Exception e) {
-			return -1;
-		}
-	}
-	
-	public static Script getOutput(String txString, NetworkParameters params, int index) {
-		try {
-			Transaction tx = new Transaction(params, Utils.HEX.decode(txString));
-			return tx.getOutputs().get(index).getScriptPubKey();
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-	
 	public static ValidationResult isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {
 		ECKey keyPair = DumpedPrivateKey.fromBase58(params, pvtKey).getKey();
 		Address pubkeyAddr = Address.fromBase58(params, pubKey);

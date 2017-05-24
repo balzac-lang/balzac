@@ -24,6 +24,7 @@ import org.eclipse.xtext.validation.Check
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 import static org.bitcoinj.script.Script.*
 import org.bitcoinj.core.ScriptException
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -339,10 +340,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
             var inputTx = input.txRef.tx.body as SerialTxBody
-            numOfOutputs = inputTx.bytes.getNumberOfOutputs(input.networkParams)
+            numOfOutputs = inputTx.toTransaction.outputs.size
         }
         else {
-            return true
+            numOfOutputs = 1
         }
         
         if (outIndex>=numOfOutputs) {
@@ -358,24 +359,41 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     def boolean checkInputExpressions(Input input) {
         
-        if (!(input.txRef.tx.body instanceof UserDefinedTxBody))
-            return true
-        
-        var inputTx = input.txRef.tx.body as UserDefinedTxBody
         var outputIdx = input.txRef.idx
-        var outputScript = inputTx.outputs.get(outputIdx).script;
-        
-        var numOfExps = input.actual.exps.size
-        
-        var numOfParams = outputScript.params.size
-        if (numOfExps!=numOfParams) {
-            error(
-                "The number of expressions does not match the number of parameters.",
-                input,
-                BitcoinTMPackage.Literals.INPUT__ACTUAL
-            );
-            return false
+
+        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+            var inputTx = input.txRef.tx.body as UserDefinedTxBody
+            var outputScript = inputTx.outputs.get(outputIdx).script;
+            
+            var numOfExps = input.actual.exps.size
+            
+            var numOfParams = outputScript.params.size
+            if (numOfExps!=numOfParams) {
+                error(
+                    "The number of expressions does not match the number of parameters.",
+                    input,
+                    BitcoinTMPackage.Literals.INPUT__ACTUAL
+                );
+                return false
+            }
+            return true
         }
+        else if (input.txRef.tx.body instanceof SerialTxBody) {
+            
+            var refTx = input.txRef.tx.body.toTransaction
+            
+            if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
+                input.actual.script===null
+            ) {
+                error(
+                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
+                    input,
+                    BitcoinTMPackage.Literals.INPUT__TX_REF
+                );
+                return false
+            }
+        }
+        
         return true
     }
     
@@ -449,21 +467,22 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     
     def boolean correctlySpendsOutput(UserDefinedTxBody tbody) {
         
+        println("tx: "+(tbody.eContainer as TransactionDeclaration).name)
+        println("inSize: "+tbody.inputs.size)
+        
         for (var i=0; i<tbody.inputs.size; i++) {
+            println("input: "+i)
             var input = tbody.inputs.get(i)
-            
             var outIndex = input.txRef.idx
-            var org.bitcoinj.script.Script outScript = input.txRef.tx.body.toOutputScript(outIndex)
+            
             var org.bitcoinj.script.Script inScript = input.toScript
             
-            if (outScript===null) return true   // skip the test
-            
-            var Transaction tx = (input.eContainer as UserDefinedTxBody).toTransaction
+            var Transaction tx = tbody.toTransaction
             
             try {
-                inScript.correctlySpends(tx, i, outScript, ALL_VERIFY_FLAGS)
+                inScript.correctlySpends(tx, i, tx.getOutput(outIndex).scriptPubKey, ALL_VERIFY_FLAGS)
                 
-                println("input "+inScript+" correctly redeem output "+outScript)
+                println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
                 
             } catch(ScriptException e) {
 
