@@ -4,27 +4,32 @@
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.ActualParameters
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.Declaration
+import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
+import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
+import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
+import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 
-import static extension it.unica.tcs.validation.BitcoinJUtils.*
 import static org.bitcoinj.script.Script.*
-import org.bitcoinj.core.ScriptException
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
+
+import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
  * This class contains custom validation rules. 
@@ -106,11 +111,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	@Check
 	def void checkEmptyLambda(Script script) {
-		if (script.params.size==0)
-			warning("This output could be redeemed without providing any arguments.",
-				script.eContainer,
-				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
-			);
+		if (script.params.size==0) {
+		    
+		    if (script.eContainer instanceof Output)
+    			warning("This output could be redeemed without providing any arguments.",
+    				script.eContainer,
+    				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
+    			);
+    		
+    		if (script.eContainer instanceof ActualParameters)
+                warning("This output could be redeemed without providing any arguments.",
+                    script.eContainer,
+                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
+                );
+		}
 	}
 	
 	/*
@@ -298,6 +312,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 */
 		var hasError = false;
 		
+		for (input: tbody.inputs) {
+		    var valid = input.checkInputIndex && input.checkInputExpressions
+		    hasError = hasError || !valid
+		}
+		
+		if(hasError) return;  // interrupt the check
+		
+		/*
+		 * pairwise verify that inputs are unique
+		 */
 		for (var i=0; i<tbody.inputs.size-1; i++) {
 			for (var j=i+1; j<tbody.inputs.size; j++) {
 				
@@ -305,10 +329,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				var inputB = tbody.inputs.get(j)
 				
 				// these checks need to be executed in this order
-				var AisValid = inputA.checkInputIndex && inputA.checkInputExpressions 
-                var BisValid = inputB.checkInputIndex && inputB.checkInputExpressions
-				
-				var areValid = AisValid && BisValid && checkInputsAreUnique(inputA, inputB)
+				var areValid = checkInputsAreUnique(inputA, inputB)
 				
 				hasError = hasError || !areValid
 			}
@@ -342,9 +363,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var inputTx = input.txRef.tx.body as SerialTxBody
             numOfOutputs = inputTx.toTransaction.outputs.size
         }
-        else {
+        else if (input.txRef.tx.body instanceof DummyTxBody){
             numOfOutputs = 1
         }
+        else throw new IllegalStateException
         
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
@@ -366,8 +388,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var outputScript = inputTx.outputs.get(outputIdx).script;
             
             var numOfExps = input.actual.exps.size
-            
             var numOfParams = outputScript.params.size
+            
+            println("-- input --")
+            println("numOfExps: "+numOfExps)
+            println("numOfParams: "+numOfParams)
+
             if (numOfExps!=numOfParams) {
                 error(
                     "The number of expressions does not match the number of parameters.",
@@ -388,7 +414,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
                     input,
-                    BitcoinTMPackage.Literals.INPUT__TX_REF
+                    BitcoinTMPackage.Literals.INPUT__ACTUAL
                 );
                 return false
             }
@@ -466,7 +492,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean correctlySpendsOutput(UserDefinedTxBody tbody) {
-        
+        println("------------------------")
         println("tx: "+(tbody.eContainer as TransactionDeclaration).name)
         println("inSize: "+tbody.inputs.size)
         
@@ -476,23 +502,38 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var outIndex = input.txRef.idx
             
             var org.bitcoinj.script.Script inScript = input.toScript
+            var org.bitcoinj.script.Script outScript
             
-            var Transaction tx = tbody.toTransaction
             
             try {
-                inScript.correctlySpends(tx, i, tx.getOutput(outIndex).scriptPubKey, ALL_VERIFY_FLAGS)
+                var Transaction tx = tbody.toTransaction
+
+                outScript = new org.bitcoinj.script.Script(tx.getInput(i).outpoint.connectedPubKeyScript)
+                inScript.correctlySpends(
+                    tx, 
+                    i, 
+                    outScript, 
+                    ALL_VERIFY_FLAGS
+                )
                 
                 println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
                 
             } catch(ScriptException e) {
 
-                warning("This input does not redeem the specified output script.",
+                warning(
+                    '''
+                    This input does not redeem the specified output script. 
+                    
+                    Details: «e.message»
+                    INPUT:   «inScript»
+                    OUTPUT:  «outScript»''',
                     input.eContainer,
                     BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__INPUTS, 
                     i
                 );
+            } catch(CompilationException e) {
+                
             }
-            
         }
         return true
     }

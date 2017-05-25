@@ -44,6 +44,7 @@ import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionInput
+import org.bitcoinj.core.TransactionOutPoint
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
@@ -58,7 +59,6 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import org.bitcoinj.core.TransactionOutPoint
 
 /**
  * Generates code from your model files on save.
@@ -66,6 +66,8 @@ import org.bitcoinj.core.TransactionOutPoint
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class BitcoinTMGenerator extends AbstractGenerator {
+
+    public val COMPILER_VERSION = 0xCAFEBABE;
 
     public static class CompilationException extends RuntimeException {
         
@@ -161,23 +163,34 @@ class BitcoinTMGenerator extends AbstractGenerator {
         return !script.isP2PKH && !script.isOpReturn
     }
 
+
+    /**
+     * Prepend version
+     */
+    def void prependVersion(ScriptBuilder sb) {
+        sb.op(0, OP_DROP).number(COMPILER_VERSION)
+    }
+
     /**
      * Prepend OP_TOALTSTACK to an input script
      */
-    def Script prependTOALTSTACK(it.unica.tcs.bitcoinTM.Script outScript) {
-
-        val sb = new ScriptBuilder()
+    def void prependTOALTSTACK(it.unica.tcs.bitcoinTM.Script outScript, ScriptBuilder sb) {
 
         altstackSize = 0
 
         for (var i = 0; i < outScript.params.size; i++) {
             var Parameter p = outScript.params.get(i)
             altstackPositions.put(p, altstackSize++)
-            sb.op(OP_TOALTSTACK);
+            sb.op(0, OP_TOALTSTACK)
         }
-
         outScript.exp.toScript(sb)
-        sb.build
+    }
+    
+    def void prependTOALTSTACK(ScriptBuilder sb, int n) {
+
+        for (var i = 0; i < n; i++) {
+            sb.op(0, OP_TOALTSTACK)
+        }
     }
 
     /*
@@ -249,26 +262,36 @@ class BitcoinTMGenerator extends AbstractGenerator {
         if (stmt.txRef.tx.body instanceof UserDefinedTxBody){
             
             var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
-            var outScript = inputTx.outputs.get(outIdx).script;
+            var outScript = inputTx.outputs.get(outIdx);
     
-            if (outScript.isP2PKH) {
+            if (outScript.script.isP2PKH) {
                 var sig = stmt.actual.exps.get(0) as Signature
+                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+                
                 val sb = new ScriptBuilder()
     
                 sig.toScript(sb)
-                sig.key.body.pub.toScript(sb)
+                sb.data(pubkey)
     
                 /* <sig> <pubkey> */
                 sb.build
-            } else if (outScript.isP2SH) {
-                var realInScript = prependTOALTSTACK(outScript);
-                val sb = new ScriptBuilder()
-    
-                stmt.actual.exps.forEach[e|e.toScript(sb)]
-                sb.data(realInScript.program)
-    
+            } else if (outScript.script.isP2SH) {
+                
+                var sb = new ScriptBuilder()
+                prependTOALTSTACK(outScript.script, sb)
+                
+                var serializedScript = sb.build.program
+                
+                val sb1 = new ScriptBuilder()
+                stmt.actual.exps.forEach[e|e.toScript(sb1)]
+                sb1.data(serializedScript)
+                
+                println("-- P2SH --")
+                println(sb.build)
+                println(Utils.HEX.encode(Utils.sha256hash160(serializedScript)))
+                
                 /* <e1> ... <en> <serialized script> */
-                sb.build
+                sb1.build
             } else
                 throw new UnsupportedOperationException
         }
@@ -277,24 +300,39 @@ class BitcoinTMGenerator extends AbstractGenerator {
             
             if (output.scriptPubKey.isSentToAddress) {
                 var sig = stmt.actual.exps.get(0) as Signature
+                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+                
                 val sb = new ScriptBuilder()
     
                 sig.toScript(sb)
-                sig.key.body.pub.toScript(sb)
+                sb.data(pubkey)
     
                 /* <sig> <pubkey> */
                 sb.build
             } else if (output.scriptPubKey.isPayToScriptHash) {
                 
-                val sb = new ScriptBuilder()
+                val sb = new ScriptBuilder(output.scriptPubKey)
                 
-//                stmt.actual.script.toScript(sb);
-//                var realInScript = prependTOALTSTACK(sb.build);
-//               
-//                stmt.actual.exps.forEach[e|e.toScript(sb)]
-//                sb.data(realInScript.program)
+                stmt.actual.exps.forEach[e|e.toScript(sb)]
+                sb.data(sb.build.program)   // sbagliato!!!
     
                 /* <e1> ... <en> <serialized script> */
+                
+                val sb1 = new ScriptBuilder()
+                
+                if (stmt.actual.script===null)
+                    throw new CompilationException
+                
+                stmt.actual.script.exp.toScript(sb1)
+
+                if (
+                    output.scriptPubKey.chunks.get(0).data == COMPILER_VERSION
+                ) {
+                    // if the script was compiled using the tool
+                    // prepend OP_TOALTSTACK
+                    prependTOALTSTACK(sb, stmt.actual.exps.size);
+                }
+                
                 sb.build
             } else
                 throw new UnsupportedOperationException
@@ -320,9 +358,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
             script
         } else if (outScript.isP2SH) {
-            var realInScript = prependTOALTSTACK(outScript)
+            
+            var sb = new ScriptBuilder()
+            prependTOALTSTACK(outScript, sb)
 
-            var script = ScriptBuilder.createP2SHOutputScript(realInScript)
+            var script = ScriptBuilder.createP2SHOutputScript(sb.build)
 
             if (script.scriptType != ScriptType.P2SH)
                 throw new CompilationException
@@ -354,7 +394,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     def dispatch void toScript(Expression exp, ScriptBuilder sb) {
         throw new UnsupportedOperationException
     }
-
+    
     def dispatch void toScript(KeyDeclaration stmt, ScriptBuilder sb) {
         /* push the public key */
         val pvtkey = stmt.body.pvt.value

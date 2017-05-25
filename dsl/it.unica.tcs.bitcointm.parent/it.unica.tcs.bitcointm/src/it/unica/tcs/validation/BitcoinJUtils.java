@@ -11,7 +11,6 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.script.Script;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
@@ -42,6 +41,10 @@ public class BitcoinJUtils {
 	public static Address wifToAddress(String wif, NetworkParameters params) {
 		Address pubkeyAddr = Address.fromBase58(params, wif);
 		return pubkeyAddr;
+	}
+	
+	public static byte[] privateKeyToPubkeyBytes(String wif, NetworkParameters params) {
+		return DumpedPrivateKey.fromBase58(params, wif).getKey().getPubKey();
 	}
 
 	public static ValidationResult isBase58WithChecksum(String key) {
