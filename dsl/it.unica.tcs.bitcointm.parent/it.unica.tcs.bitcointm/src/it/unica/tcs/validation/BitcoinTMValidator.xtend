@@ -501,7 +501,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var input = tbody.inputs.get(i)
             var outIndex = input.txRef.idx
             
-            var org.bitcoinj.script.Script inScript = input.toScript
+            var org.bitcoinj.script.Script inScript = input.compileInput
             var org.bitcoinj.script.Script outScript
             
             
