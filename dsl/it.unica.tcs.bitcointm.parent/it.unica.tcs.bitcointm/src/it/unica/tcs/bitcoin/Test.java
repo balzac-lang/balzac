@@ -1,20 +1,17 @@
 package it.unica.tcs.bitcoin;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Base58;
-import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptOpCodes;
 
 public class Test {
 
@@ -22,34 +19,38 @@ public class Test {
 	
 	public static void main(String[] args) {
 		
-		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
+		List<Integer> l = new ArrayList<>();
+		l.add(2);
+		System.out.println(l.subList(0, 1));
 		
-		Transaction tx = new Transaction(params);
-		
-		ScriptBuilder sb = new ScriptBuilder();
-		sb.number(10).op(ScriptOpCodes.OP_EQUAL);
-		
-		TransactionInput input = new TransactionInput(params, tx, new ScriptBuilder().number(42).build().getProgram());
-		TransactionOutput output = new TransactionOutput(params, tx, Coin.valueOf(1000), sb.build().getProgram());		
-		
-		tx.addInput(input);
-		tx.addOutput(output);
-		tx.verify();
-		
-		System.out.println(tx.toString());
-
-		
-		
-		Transaction tx1 = new Transaction(params);
-		tx1.addInput(output);					// redeem the specified output of tx
-		tx1.getInput(0).setScriptSig(new ScriptBuilder().number(10).build());
-		tx1.addOutput(Coin.valueOf(1005), new ScriptBuilder().number(8).build());
-		tx1.verify();
-		
-		System.out.println(tx1);
-		System.out.println(tx1.getFee());
-
-		tx1.getInput(0).verify(tx.getOutput(0));
+//		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
+//		
+//		Transaction tx = new Transaction(params);
+//		
+//		ScriptBuilder sb = new ScriptBuilder();
+//		sb.number(10).op(ScriptOpCodes.OP_EQUAL);
+//		
+//		TransactionInput input = new TransactionInput(params, tx, new ScriptBuilder().number(42).build().getProgram());
+//		TransactionOutput output = new TransactionOutput(params, tx, Coin.valueOf(1000), sb.build().getProgram());		
+//		
+//		tx.addInput(input);
+//		tx.addOutput(output);
+//		tx.verify();
+//		
+//		System.out.println(tx.toString());
+//
+//		
+//		
+//		Transaction tx1 = new Transaction(params);
+//		tx1.addInput(output);					// redeem the specified output of tx
+//		tx1.getInput(0).setScriptSig(new ScriptBuilder().number(10).build());
+//		tx1.addOutput(Coin.valueOf(1005), new ScriptBuilder().number(8).build());
+//		tx1.verify();
+//		
+//		System.out.println(tx1);
+//		System.out.println(tx1.getFee());
+//
+//		tx1.getInput(0).verify(tx.getOutput(0));
 			
 		
 		//keyTest();

@@ -33,16 +33,20 @@ import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
+import java.util.List
+import java.util.Map
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.Transaction.SigHash
 import org.bitcoinj.core.TransactionInput
 import org.bitcoinj.core.TransactionOutPoint
 import org.bitcoinj.core.TransactionOutput
@@ -59,7 +63,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import org.bitcoinj.core.Transaction.SigHash
+import com.ibm.icu.text.ChineseDateFormat.Field
 
 /**
  * Generates code from your model files on save.
@@ -68,8 +72,19 @@ import org.bitcoinj.core.Transaction.SigHash
  */
 class BitcoinTMGenerator extends AbstractGenerator {
 
-    public val COMPILER_VERSION = 0xCAFEBABE;
-
+    val COMPILER_VERSION = 0xCAFEBABE;
+    val CURRENT_INPUT = "current_input"
+    
+    val cache = new HashMap<TxBody, Transaction>()
+    var cacheEnabled = false
+    
+    def void clearCache() {
+    	cache.clear()
+    }
+    
+    /*
+     * TODO: move to another file
+     */
     public static class CompilationException extends RuntimeException {
         
         new() {
@@ -79,6 +94,27 @@ class BitcoinTMGenerator extends AbstractGenerator {
         new(String message) {
             super(message)
         }
+    }
+    
+    private static class Context extends HashMap<Object,Object>{
+        int altstackSize
+        Map<Parameter,Integer> altstackPositions = new HashMap()
+        Map<Input,List<SignatureUtil>> signatures = new HashMap()
+        
+		override String toString() {
+			return "Context [altstackSize=" + altstackSize + ", altstackPositions=" + altstackPositions + ", signatures=" + signatures + ", " +super.toString+ "]";
+		}
+    }
+    
+    private static class SignatureUtil {
+        int index
+        ECKey key
+        SigHash hashType
+        boolean anyoneCanPay
+        
+        override String toString() {
+        return "SignatureUtil [index=" + index + ", key=" + key + ", hashType=" + hashType + ", anyoneCanPay="+ anyoneCanPay + "]";
+    }
     }
 
     @Inject private BitcoinTMTypeSystem typeSystem
@@ -118,31 +154,31 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
     
     def dispatch String compile(UserDefinedTxBody obj) {
+        
+        var tx = obj.toTransaction;
+        
         '''{
 			input  [
-				«FOR i : obj.inputs»
-				«i.compile»
+				«FOR i : tx.inputs»
+				«i.scriptSig.toString»
 				«ENDFOR»
 			]
 			output [
-				«FOR i : obj.outputs»
-				«i.compile»
+				«FOR i : tx.outputs»
+				«i.scriptPubKey.toString»
 				«ENDFOR»
 			]
 		}'''
     }
 
-    def dispatch String compile(Input obj) {
-        obj.compileInput?.toString
-    }
 
-    def dispatch String compile(Output obj) {
-        obj.compileOutput?.toString
-    }
-
-    var altstackSize = 0
-    val altstackPositions = new HashMap<Parameter, Integer>()
-
+    
+    
+    
+    
+    
+    
+    
     /*
      * utility methods
      */
@@ -180,23 +216,67 @@ class BitcoinTMGenerator extends AbstractGenerator {
      */
     def dispatch Transaction toTransaction(UserDefinedTxBody stmt) {
         
+        if (cache.containsKey(stmt) && cacheEnabled)
+        	return cache.get(stmt)
+        
+        println('''--- transaction «(stmt.eContainer as TransactionDeclaration).name»---''')
+        
         var netParams = stmt.networkParams        
         var Transaction tx = new Transaction(netParams)
         
-        for (input : stmt.inputs) {
+        var inputCtx = new Context
+        
+        for (var i=0; i<stmt.inputs.size; i++) {
+        	println('''input «i»''')
+        	var input = stmt.inputs.get(i)
             var outIndex = input.txRef.idx
             var txToRedeem = input.txRef.tx.body.toTransaction
             var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-            var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput.program, outPoint)
+            var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
             tx.addInput(txInput)            
         }
         
         for (output : stmt.outputs) {
             var value = if (output.value.unit=="BTC") Coin.COIN.times(output.value.value) else Coin.SATOSHI.times(output.value.value)
-            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
+            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(new Context).program)
             tx.addOutput(txOutput)
         }
         
+        // set all the signatures within the input scripts (which are never part of the signature)
+        for (var i=0; i<tx.inputs.size; i++) {
+            var txInput = tx.getInput(i)
+            var signatures = inputCtx.signatures.get(stmt.inputs.get(i))
+            
+            if (signatures!==null) {
+            	println('''[«(stmt.eContainer as TransactionDeclaration).name»] input «i» contains «signatures.size» signatures''')
+                var outScript = 
+                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
+                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
+                    else
+                        txInput.outpoint.connectedPubKeyScript
+                
+                for(sign : signatures) {
+                    
+                    var txSignature = tx.calculateSignature(i, sign.key, outScript, sign.hashType, sign.anyoneCanPay)
+                    var sb = new ScriptBuilder
+                    
+                    for (var j=0; j<txInput.scriptSig.chunks.size; j++) {
+                    	var chunk = txInput.scriptSig.chunks.get(j)
+                    	
+                    	if (j<sign.index || j>sign.index) { // copy
+                    		sb.addChunk(chunk)
+                    	}
+                    	else {
+                    		sb.data(txSignature.encodeToBitcoin)
+                    	}
+                    }
+                    
+                    txInput.scriptSig = sb.build
+                }
+            }
+            
+        }
+        cache.put(stmt, tx)
         return tx    
     }
     
@@ -205,7 +285,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * We assume the byte string to be valid.
      */ 
     def dispatch Transaction toTransaction(SerialTxBody stmt) {
-        return new Transaction(stmt.networkParams, Utils.HEX.decode(stmt.bytes))
+        if (cache.containsKey(stmt) && cacheEnabled)
+        	return cache.get(stmt)
+    	
+    	var tx = new Transaction(stmt.networkParams, Utils.HEX.decode(stmt.bytes))
+    	cache.put(stmt, tx)
+    	return tx
     }
     
     /**
@@ -215,6 +300,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * @return a coinbase tx with a lot of money always redeemable
      */
     def dispatch Transaction toTransaction(DummyTxBody stmt) {
+        if (cache.containsKey(stmt) && cacheEnabled)
+        	return cache.get(stmt)
+        
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
         var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
@@ -223,7 +311,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
         tx.addInput(txInput);
         tx.addOutput(txOutput);
         
-        return tx
+        cache.put(stmt, tx)
+    	return tx
     }
     
 
@@ -232,12 +321,20 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * Prepend version
      */
     def ScriptBuilder prependVersion(ScriptBuilder sb) {
-        sb.op(0, OP_DROP).number(COMPILER_VERSION)
+        sb.op(0, OP_DROP).number(0, COMPILER_VERSION)
         return sb
     }
 
-    def Script compileInput(Input stmt) {
+    def Script compileInput(Input stmt, Context ctx) {
         var outIdx = stmt.txRef.idx
+
+        /*
+         * Set the current input within the context.
+         * It will be used to set the signatures in the input script.
+         */
+        ctx.put(CURRENT_INPUT, stmt)
+		
+		println("ctx: "+ctx)
 
         if (stmt.txRef.tx.body instanceof UserDefinedTxBody){
             
@@ -250,36 +347,32 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 
                 val sb = new ScriptBuilder()
     
-                sig.compileExpression(sb)
+                sig.compileExpression(sb, ctx)
                 sb.data(pubkey)
     
                 /* <sig> <pubkey> */
                 sb.build
             } else if (output.script.isP2SH) {
                 
-                // reset
-                altstackSize = 0 
-                altstackPositions.clear
-                   
                 val expSb = new ScriptBuilder()
                 val scriptSb = new ScriptBuilder()
                 
                 // build the list of expression pushes (actual parameters) 
-                stmt.actual.exps.forEach[e|e.compileExpression(expSb)]
+                stmt.actual.exps.forEach[e|e.compileExpression(expSb, ctx)]
                 
                 // build the redeem script to serialize
-                for (var i = 0; i < output.script.params.size; i++) {
+                for (var i=output.script.params.size-1; i>=0; i--) {
                     var Parameter p = output.script.params.get(i)
-                    altstackPositions.put(p, altstackSize++)
+                    ctx.altstackPositions.put(p, ctx.altstackSize++)    // modify the context
                     scriptSb.op(0, OP_TOALTSTACK)
                 }
-                output.script.exp.compileExpression(scriptSb)
+                output.script.exp.compileExpression(scriptSb, ctx)
                 
                 expSb.data(scriptSb.build.program)
                                 
-                println("-- P2SH --")
-                println(expSb.build)
-                println(Utils.HEX.encode(Utils.sha256hash160(scriptSb.build.program)))
+//                println("-- P2SH --")
+//                println(expSb.build)
+//                println(Utils.HEX.encode(Utils.sha256hash160(scriptSb.build.program)))
                 
                 /* <e1> ... <en> <serialized script> */
                 expSb.build
@@ -295,7 +388,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 
                 val sb = new ScriptBuilder()
     
-                sig.compileExpression(sb)
+                sig.compileExpression(sb, ctx)
                 sb.data(pubkey)
     
                 /* <sig> <pubkey> */
@@ -304,7 +397,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 
                 val sb = new ScriptBuilder(output.scriptPubKey)
                 
-                stmt.actual.exps.forEach[e|e.compileExpression(sb)]
+                stmt.actual.exps.forEach[e|e.compileExpression(sb, ctx)]
                 sb.data(sb.build.program)   // sbagliato!!!
     
                 /* <e1> ... <en> <serialized script> */
@@ -314,7 +407,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 if (stmt.actual.script===null)
                     throw new CompilationException
                 
-                stmt.actual.script.exp.compileExpression(sb1)
+                stmt.actual.script.exp.compileExpression(sb1, ctx)
 
                 if (
                     output.scriptPubKey.chunks.get(0).data == COMPILER_VERSION
@@ -334,7 +427,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def Script compileOutput(Output output) {
+    def Script compileOutput(Output output, Context ctx) {
 
         var outScript = output.script
 
@@ -354,12 +447,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
             val scriptSb = new ScriptBuilder()
             
             // build the redeem script to serialize
-            for (var i = 0; i < outScript.params.size; i++) {
+            for (var i=output.script.params.size-1; i>=0; i--) {
                 var Parameter p = outScript.params.get(i)
-                altstackPositions.put(p, altstackSize++)
+                ctx.altstackPositions.put(p, ctx.altstackSize++)    // update the context
                 scriptSb.op(0, OP_TOALTSTACK)
             }
-            outScript.exp.compileExpression(scriptSb)
+            outScript.exp.compileExpression(scriptSb, ctx)
             
             var script = ScriptBuilder.createP2SHOutputScript(scriptSb.build)
 
@@ -392,11 +485,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
      *  <li> if (12==10+2) then "foo" else "bar" ≡ "foo"
      * </ul>
      */
-    def dispatch void compileExpression(Expression exp, ScriptBuilder sb) {
+    def dispatch void compileExpression(Expression exp, ScriptBuilder sb, Context ctx) {
         throw new UnsupportedOperationException
     }
     
-    def dispatch void compileExpression(KeyDeclaration stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(KeyDeclaration stmt, ScriptBuilder sb, Context ctx) {
         /* push the public key */
         val pvtkey = stmt.body.pvt.value
         val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
@@ -404,45 +497,45 @@ class BitcoinTMGenerator extends AbstractGenerator {
         sb.data(key.pubKey)
     }
 
-    def dispatch void compileExpression(Hash hash, ScriptBuilder sb) {
-        hash.value.compileExpression(sb)
+    def dispatch void compileExpression(Hash hash, ScriptBuilder sb, Context ctx) {
+        hash.value.compileExpression(sb, ctx)
         sb.op(OP_HASH160)
     }
 
-    def dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb) {
-        stmt.time.compileExpression(sb)
+    def dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb, Context ctx) {
+        stmt.time.compileExpression(sb, ctx)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
-        stmt.continuation.compileExpression(sb)
+        stmt.continuation.compileExpression(sb, ctx)
     }
 
-    def dispatch void compileExpression(AndExpression stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(AndExpression stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
             
         }
-        stmt.left.compileExpression(sb)
-        stmt.right.compileExpression(sb)
+        stmt.left.compileExpression(sb, ctx)
+        stmt.right.compileExpression(sb, ctx)
         sb.op(OP_BOOLAND)
     }
 
-    def dispatch void compileExpression(OrExpression stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(OrExpression stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
             
         }        
-        stmt.left.compileExpression(sb)
-        stmt.right.compileExpression(sb)
+        stmt.left.compileExpression(sb, ctx)
+        stmt.right.compileExpression(sb, ctx)
         sb.op(OP_BOOLOR)
     }
 
-    def dispatch void compileExpression(Plus stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Plus stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_ADD)
         }
         else {
@@ -456,12 +549,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Minus stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Minus stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_SUB)
         }
         else {
@@ -472,12 +565,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Max stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Max stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_MAX)
         }
         else {
@@ -488,12 +581,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Min stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Min stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_MIN)
         }
         else {
@@ -504,16 +597,16 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Size stmt, ScriptBuilder sb) {
-        stmt.value.compileExpression(sb)
+    def dispatch void compileExpression(Size stmt, ScriptBuilder sb, Context ctx) {
+        stmt.value.compileExpression(sb, ctx)
         sb.op(OP_SIZE)
     }
 
-    def dispatch void compileExpression(BooleanNegation stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(BooleanNegation stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(sb)
+            stmt.exp.compileExpression(sb, ctx)
             sb.op(OP_NOT)            
         }
         else {
@@ -527,11 +620,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(ArithmeticSigned stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(ArithmeticSigned stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(sb)
+            stmt.exp.compileExpression(sb, ctx)
             sb.op(OP_NEGATE)
         }
         else {
@@ -542,13 +635,13 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Between stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Between stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.value.compileExpression(sb)
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.value.compileExpression(sb, ctx)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_WITHIN)
         }
         else {
@@ -559,12 +652,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Comparison stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Comparison stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
     
             switch (stmt.op) {
                 case "<": sb.op(OP_LESSTHAN)
@@ -584,12 +677,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
     
-    def dispatch void compileExpression(Equals stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Equals stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb)
-            stmt.right.compileExpression(sb)
+            stmt.left.compileExpression(sb, ctx)
+            stmt.right.compileExpression(sb, ctx)
             sb.op(OP_EQUAL)
         }
         else {
@@ -603,15 +696,15 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(IfThenElse stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(IfThenElse stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.^if.compileExpression(sb)
+            stmt.^if.compileExpression(sb, ctx)
             sb.op(OP_IF)
-            stmt.then.compileExpression(sb)
+            stmt.then.compileExpression(sb, ctx)
             sb.op(OP_ELSE)
-            stmt.^else.compileExpression(sb)
+            stmt.^else.compileExpression(sb, ctx)
             sb.op(OP_ENDIF)            
         }
         else {
@@ -631,67 +724,73 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def dispatch void compileExpression(Versig stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Versig stmt, ScriptBuilder sb, Context ctx) {
         if (stmt.pubkeys.size == 1) {
-            stmt.signatures.get(0).compileExpression(sb)
-            stmt.pubkeys.get(0).compileExpression(sb)
+            stmt.signatures.get(0).compileExpression(sb, ctx)
+            stmt.pubkeys.get(0).compileExpression(sb, ctx)
             sb.op(OP_CHECKSIG)
         } else {
             sb.number(OP_0)
-            stmt.signatures.forEach[s|s.compileExpression(sb)]
+            stmt.signatures.forEach[s|s.compileExpression(sb, ctx)]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|k.compileExpression(sb)]
+            stmt.pubkeys.forEach[k|k.compileExpression(sb, ctx)]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
     }
 
-    def dispatch void compileExpression(NumberLiteral n, ScriptBuilder sb) {
+    def dispatch void compileExpression(NumberLiteral n, ScriptBuilder sb, Context ctx) {
         sb.number(n.value).build().toString
     }
 
-    def dispatch void compileExpression(BooleanLiteral n, ScriptBuilder sb) {
+    def dispatch void compileExpression(BooleanLiteral n, ScriptBuilder sb, Context ctx) {
         sb.number(if(n.isTrue) OP_TRUE else OP_FALSE).build().toString
     }
 
-    def dispatch void compileExpression(StringLiteral s, ScriptBuilder sb) {
+    def dispatch void compileExpression(StringLiteral s, ScriptBuilder sb, Context ctx) {
         sb.data(s.value.bytes).build().toString
     }
 
-    def dispatch void compileExpression(Signature stmt, ScriptBuilder sb) {
+    def dispatch void compileExpression(Signature stmt, ScriptBuilder sb, Context ctx) {
         
-        var tx = stmt.containingTransaction
-		var pvtKey = stmt.key.body.pvt.value
+		var wif = stmt.key.body.pvt.value
+		var signatureInfo = new SignatureUtil
 		
-        var inputIndex = stmt.containingInputIndex
-		var key = ECKey.fromPrivate(Utils.parseAsHexOrBase58(pvtKey));
-            
-        var sigHash = switch(stmt.modifier) {
-            case AIAO,
-            case SIAO: SigHash.ALL
-            case AISO,
-            case SISO: SigHash.SINGLE
-            case AINO,
-            case SINO: SigHash.NONE
-        }
-        
-        var anyoneCanPay = switch(stmt.modifier) {
-            case SIAO,
-            case SISO,
-            case SINO: true
-            case AIAO,
-            case AISO,
-            case AINO: false
-        }
+        signatureInfo.index = sb.build.chunks.size
+		signatureInfo.key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
+        signatureInfo.hashType = switch(stmt.modifier) {
+                case AIAO,
+                case SIAO: SigHash.ALL
+                case AISO,
+                case SISO: SigHash.SINGLE
+                case AINO,
+                case SINO: SigHash.NONE
+            }
+        signatureInfo.anyoneCanPay = switch(stmt.modifier) {
+                case SIAO,
+                case SISO,
+                case SINO: true
+                case AIAO,
+                case AISO,
+                case AINO: false
+            }
             
         /*
          * store the information to compute the signature later
          */
+		var currentInput = ctx.get(CURRENT_INPUT) as Input
+		
+		
+        ctx.signatures.merge(currentInput, newArrayList(signatureInfo),
+            [oldList, newList | oldList.addAll(newList); oldList] 
+        )
+		println("ctx (signature): "+ctx)
         
-        sb.data(('''<sig «stmt.key.name» «stmt.modifier»>''' + "").bytes)
+        // store an empty value
+        sb.number(OP_0)
     }
 
-    def dispatch void compileExpression(VariableReference varRef, ScriptBuilder sb) {
+    def dispatch void compileExpression(VariableReference varRef, ScriptBuilder sb, Context ctx) {
         /*
          * N: altezza dell'altstack
          * i: posizione della variabile interessata
@@ -705,37 +804,15 @@ class BitcoinTMGenerator extends AbstractGenerator {
          * 
          */
         var param = varRef.ref
-        var pos = altstackPositions.get(param)
+        var pos = ctx.altstackPositions.get(param)
 
         if(pos === null) throw new CompilationException;
 
-        (1 .. altstackSize - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+        (1 .. ctx.altstackSize - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
         sb.op(OP_DUP).op(OP_TOALTSTACK)
 
-        if (altstackSize - pos - 1 > 0)
-            (1 .. altstackSize - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+        if (ctx.altstackSize - pos - 1 > 0)
+            (1 .. ctx.altstackSize - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
     }
     
-    
-    def dispatch Transaction getContainingTransaction(EObject obj) {
-        return obj.eContainer.containingTransaction
-    }
-    
-    def dispatch Transaction getContainingTransaction(TransactionDeclaration tx) {
-        return tx.body.toTransaction
-    }
-    
-    def dispatch int getContainingInputIndex(EObject obj) {
-        return obj.eContainer.getContainingInputIndex
-    }
-    
-    def dispatch int getContainingInputIndex(Input input) {
-        var tx = input.eContainer as UserDefinedTxBody
-        for (var i=0; i<tx.inputs.size; i++) {
-            if (tx.inputs.get(i)==input) {
-                return i
-            }
-        }
-        throw new CompilationException
-    }
 }

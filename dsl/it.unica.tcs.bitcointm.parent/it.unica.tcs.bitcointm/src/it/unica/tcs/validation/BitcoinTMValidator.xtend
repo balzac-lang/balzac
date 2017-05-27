@@ -15,7 +15,6 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
@@ -23,6 +22,7 @@ import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
@@ -390,10 +390,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var numOfExps = input.actual.exps.size
             var numOfParams = outputScript.params.size
             
-            println("-- input --")
-            println("numOfExps: "+numOfExps)
-            println("numOfParams: "+numOfParams)
-
             if (numOfExps!=numOfParams) {
                 error(
                     "The number of expressions does not match the number of parameters.",
@@ -492,23 +488,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean correctlySpendsOutput(UserDefinedTxBody tbody) {
-        println("------------------------")
-        println("tx: "+(tbody.eContainer as TransactionDeclaration).name)
-        println("inSize: "+tbody.inputs.size)
         
         for (var i=0; i<tbody.inputs.size; i++) {
-            println("input: "+i)
+
             var input = tbody.inputs.get(i)
-            var outIndex = input.txRef.idx
-            
-            var org.bitcoinj.script.Script inScript = input.compileInput
-            var org.bitcoinj.script.Script outScript
-            
+            var org.bitcoinj.script.Script inScript
+            var org.bitcoinj.script.Script outScript            
             
             try {
                 var Transaction tx = tbody.toTransaction
 
-                outScript = new org.bitcoinj.script.Script(tx.getInput(i).outpoint.connectedPubKeyScript)
+                inScript = tx.getInput(i).scriptSig
+                outScript = tx.getInput(i).outpoint.connectedOutput.scriptPubKey
                 inScript.correctlySpends(
                     tx, 
                     i, 
@@ -516,7 +507,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     ALL_VERIFY_FLAGS
                 )
                 
-                println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
+//                println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
                 
             } catch(ScriptException e) {
 
@@ -526,7 +517,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     
                     Details: «e.message»
                     INPUT:   «inScript»
-                    OUTPUT:  «outScript»''',
+                    OUTPUT:  «outScript»
+                    «IF outScript.isPayToScriptHash»
+                    REDEEM SCRIPT:  «new org.bitcoinj.script.Script(inScript.chunks.get(inScript.chunks.size-1).data)»
+                    REDEEM SCRIPT HASH:  «Utils.HEX.encode(Utils.sha256hash160(new org.bitcoinj.script.Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
+					«ENDIF»''',
                     input.eContainer,
                     BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__INPUTS, 
                     i
