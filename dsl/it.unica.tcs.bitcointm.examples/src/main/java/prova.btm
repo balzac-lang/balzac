@@ -5,6 +5,10 @@ key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
 	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
 
+key kB = [
+	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
+	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
+
 //key kA = [ 
 //	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
 //	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"] 
@@ -25,7 +29,7 @@ transaction T = {
 		5 BTC:		fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
 		10 satoshi: fun(x:signature, y:string) . y=="abc"; 
-		0 BTC:		fun(y) . versig(kA; y) && true 
+		0 BTC:		fun(y) . versig(kB; y)
 	]
  
 	tlock = 97 

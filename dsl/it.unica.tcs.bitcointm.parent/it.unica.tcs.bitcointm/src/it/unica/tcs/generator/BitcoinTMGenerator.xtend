@@ -63,7 +63,6 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import com.ibm.icu.text.ChineseDateFormat.Field
 
 /**
  * Generates code from your model files on save.
@@ -317,13 +316,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
 
 
-    /**
-     * Prepend version
-     */
-    def ScriptBuilder prependVersion(ScriptBuilder sb) {
-        sb.op(0, OP_DROP).number(0, COMPILER_VERSION)
-        return sb
-    }
+    
 
     def Script compileInput(Input stmt, Context ctx) {
         var outIdx = stmt.txRef.idx
@@ -355,25 +348,15 @@ class BitcoinTMGenerator extends AbstractGenerator {
             } else if (output.script.isP2SH) {
                 
                 val expSb = new ScriptBuilder()
-                val scriptSb = new ScriptBuilder()
                 
                 // build the list of expression pushes (actual parameters) 
                 stmt.actual.exps.forEach[e|e.compileExpression(expSb, ctx)]
                 
-                // build the redeem script to serialize
-                for (var i=output.script.params.size-1; i>=0; i--) {
-                    var Parameter p = output.script.params.get(i)
-                    ctx.altstackPositions.put(p, ctx.altstackSize++)    // modify the context
-                    scriptSb.op(0, OP_TOALTSTACK)
-                }
-                output.script.exp.compileExpression(scriptSb, ctx)
+                // get the redeem script to push
+                var redeemScript = output.getRedeemScript(ctx)
                 
-                expSb.data(scriptSb.build.program)
+                expSb.data(redeemScript.program)
                                 
-//                println("-- P2SH --")
-//                println(expSb.build)
-//                println(Utils.HEX.encode(Utils.sha256hash160(scriptSb.build.program)))
-                
                 /* <e1> ... <en> <serialized script> */
                 expSb.build
             } else
@@ -444,17 +427,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
             script
         } else if (outScript.isP2SH) {
             
-            val scriptSb = new ScriptBuilder()
-            
-            // build the redeem script to serialize
-            for (var i=output.script.params.size-1; i>=0; i--) {
-                var Parameter p = outScript.params.get(i)
-                ctx.altstackPositions.put(p, ctx.altstackSize++)    // update the context
-                scriptSb.op(0, OP_TOALTSTACK)
-            }
-            outScript.exp.compileExpression(scriptSb, ctx)
-            
-            var script = ScriptBuilder.createP2SHOutputScript(scriptSb.build)
+            // get the redeem script to serialize
+            var redeemScript = output.getRedeemScript(ctx)
+            var script = ScriptBuilder.createP2SHOutputScript(redeemScript)
 
             if (script.scriptType != ScriptType.P2SH)
                 throw new CompilationException
@@ -474,6 +449,37 @@ class BitcoinTMGenerator extends AbstractGenerator {
             throw new UnsupportedOperationException
     }
 
+
+	/**
+	 * Return the redeem script (in the P2SH case) from the given output.
+	 * 
+	 * <p>
+	 * This function is invoked to generate both the output (hashing the result) and
+	 * input (pushing the bytes).
+	 * <p>
+	 * It also prepend a magic number and altstack instruction.
+	 */
+	def Script getRedeemScript(Output output, Context ctx) {
+		val sb = new ScriptBuilder()
+            
+        // build the redeem script to serialize
+        for (var i=output.script.params.size-1; i>=0; i--) {
+            var Parameter p = output.script.params.get(i)
+            ctx.altstackPositions.put(p, ctx.altstackSize++)    // update the context
+            sb.op(0, OP_TOALTSTACK)
+        }
+        output.script.exp.compileExpression(sb, ctx)
+        sb.prependVersion
+        sb.build
+	}
+	
+	/**
+     * Prepend version
+     */
+    def ScriptBuilder prependVersion(ScriptBuilder sb) {
+        sb.op(0, OP_DROP).number(0, COMPILER_VERSION)
+        return sb
+    }
 
 
     /*
