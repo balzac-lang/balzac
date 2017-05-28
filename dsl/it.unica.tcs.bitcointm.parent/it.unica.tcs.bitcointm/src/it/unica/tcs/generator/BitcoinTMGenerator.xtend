@@ -183,7 +183,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      */
     def boolean isP2PKH(it.unica.tcs.bitcoinTM.Script script) {
         var onlyOneSignatureParam = script.params.size == 1 && (script.params.get(0).paramType instanceof SignatureType)
-        var onlyOnePubkey = (script.exp instanceof Versig) && (script.exp as Versig).pubkeys.size == 1
+        var onlyOnePubkey = (script.exp.simplify instanceof Versig) && (script.exp.simplify as Versig).pubkeys.size == 1
 
         return onlyOneSignatureParam && onlyOnePubkey
     }
@@ -199,7 +199,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
         return !script.isP2PKH && !script.isOpReturn
     }
 
-
+	
+	def Expression simplify(Expression exp) {
+		var simplifiedExp = typeSystem.simplify(exp)
+        if (simplifiedExp.failed) exp else simplifiedExp.first
+	}
     
 
     /*
@@ -335,7 +339,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var output = inputTx.outputs.get(outIdx);
     
             if (output.script.isP2PKH) {
-                var sig = stmt.actual.exps.get(0) as Signature
+                var sig = stmt.actual.exps.get(0).simplify as Signature
                 var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
                 
                 val sb = new ScriptBuilder()
@@ -350,7 +354,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 val expSb = new ScriptBuilder()
                 
                 // build the list of expression pushes (actual parameters) 
-                stmt.actual.exps.forEach[e|e.compileExpression(expSb, ctx)]
+                stmt.actual.exps.forEach[e|e.simplify.compileExpression(expSb, ctx)]
                 
                 // get the redeem script to push
                 var redeemScript = output.getRedeemScript(ctx)
@@ -411,11 +415,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def Script compileOutput(Output output, Context ctx) {
-
+		
         var outScript = output.script
 
         if (outScript.isP2PKH) {
-            var versig = outScript.exp as Versig
+            var versig = outScript.exp.simplify as Versig
             var pk = versig.pubkeys.get(0).body.pub.value.wifToAddress(output.networkParams)
 
             var script = ScriptBuilder.createOutputScript(pk)
@@ -468,7 +472,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
             ctx.altstackPositions.put(p, ctx.altstackSize++)    // update the context
             sb.op(0, OP_TOALTSTACK)
         }
-        output.script.exp.compileExpression(sb, ctx)
+        
+        output.script.exp.simplify.compileExpression(sb, ctx)
         sb.prependVersion
         sb.build
 	}
@@ -518,22 +523,38 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            
+	        stmt.left.compileExpression(sb, ctx)
+	        stmt.right.compileExpression(sb, ctx)
+	        sb.op(OP_BOOLAND)            
         }
-        stmt.left.compileExpression(sb, ctx)
-        stmt.right.compileExpression(sb, ctx)
-        sb.op(OP_BOOLAND)
+        else {
+        	if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new CompilationException
+        }
     }
 
     def dispatch void compileExpression(OrExpression stmt, ScriptBuilder sb, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            
-        }        
-        stmt.left.compileExpression(sb, ctx)
-        stmt.right.compileExpression(sb, ctx)
-        sb.op(OP_BOOLOR)
+	        stmt.left.compileExpression(sb, ctx)
+	        stmt.right.compileExpression(sb, ctx)
+	        sb.op(OP_BOOLOR)            
+        }
+        else {
+        	if (res.first instanceof Boolean) {
+                if (res.first as Boolean) {
+                    sb.number(OP_TRUE)
+                }
+                else sb.number(OP_FALSE)
+            }
+            else throw new CompilationException
+        }
     }
 
     def dispatch void compileExpression(Plus stmt, ScriptBuilder sb, Context ctx) {

@@ -77,6 +77,8 @@ judgments {
 //		source obj
 	
 	interpret |- Expression expression ~> output Object
+	
+	simplify |= Expression obj ~> output Expression
 }
 
 /*
@@ -510,7 +512,6 @@ rule InterpretAnd
 from {
     G |- and.left ~> var Boolean leftResult
     G |- and.right ~> var Boolean rightResult
-    
     result = leftResult.booleanValue && rightResult.booleanValue
 }
 
@@ -519,7 +520,6 @@ rule InterpretOr
 from {
     G |- orExp.left ~> var Boolean leftResult
     G |- orExp.right ~> var Boolean rightResult
-    
     result = leftResult.booleanValue || rightResult.booleanValue
 }
 
@@ -549,7 +549,6 @@ rule InterpretEquals
 from {
     G |- comparison.left ~> var Object leftResult
     G |- comparison.right ~> var Object rightResult
-    
     result = leftResult.toString == rightResult.toString
 }
 
@@ -598,8 +597,28 @@ from {
     G |- stmt.value ~> var Integer valueRes
     G |- stmt.left ~> var Integer leftRes
     G |- stmt.right ~> var Integer rightRes
-    
     result = leftRes<=valueRes && valueRes<rightRes
+}
+
+
+/*
+ * AST simplifier
+ */
+axiom SimplifyEObject
+	G |= Expression obj ~> obj
+	
+rule SimplifyAnd
+    G |= AndExpression and ~> Expression result
+from {
+	{
+	    G |- and.left ~> var Boolean leftResult
+	    {leftResult == true}	    
+	    result = and.right
+	} or {
+	    G |- and.right ~> var Boolean rightResult
+	    {rightResult == true}	    
+	    result = and.left
+	}
 }
 
 /*

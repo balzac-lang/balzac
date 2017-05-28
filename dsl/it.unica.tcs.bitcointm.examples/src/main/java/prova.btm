@@ -24,12 +24,12 @@ transaction T = {
 		coinbase@0: sig kA AIAO;  
 		fooTx@21: sig kA [1] 
 	]
-	 
+	
 	output = [
 		5 BTC:		fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
 		10 satoshi: fun(x:signature, y:string) . y=="abc"; 
-		0 BTC:		fun(y) . versig(kB; y)
+		0 BTC:		fun(y) . versig(kB; y) && 2==1+1
 	]
  
 	tlock = 97 
@@ -38,7 +38,7 @@ transaction T = {
 transaction T1 = {
 	input = [
 		T@0: 42;
-		T@1: if (12==10+2) then "abc" else "xyz";     
+		T@1: if (12==10+2 && true) then "abc" else "xyz";     
 		T@2: sig kA AIAO "abc";
 		T@3: sig kA AIAO
 	]
