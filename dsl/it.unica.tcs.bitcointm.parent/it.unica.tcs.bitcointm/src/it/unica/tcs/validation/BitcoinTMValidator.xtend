@@ -30,6 +30,7 @@ import org.eclipse.xtext.validation.Check
 import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -508,6 +509,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 )
                 
 //                println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
+				println('''«(tbody.eContainer as TransactionDeclaration).name»: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
                 
             } catch(ScriptException e) {
 

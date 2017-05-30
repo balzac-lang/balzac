@@ -621,6 +621,48 @@ from {
 	}
 }
 
+rule SimplifyOr
+    G |= OrExpression and ~> Expression result
+from {
+	{
+	    G |- and.left ~> var Boolean leftResult
+	    {leftResult == false}	    
+	    result = and.right
+	} or {
+	    G |- and.right ~> var Boolean rightResult
+	    {rightResult == false}	    
+	    result = and.left
+	}
+}
+
+rule SimplifyPlus
+    G |= Plus and ~> Expression result
+from {
+	{
+	    G |- and.left ~> var Integer leftResult
+	    {leftResult == 0}	    
+	    result = and.right
+	} or {
+	    G |- and.right ~> var Integer rightResult
+	    {rightResult == 0}	    
+	    result = and.left
+	}
+}
+
+rule SimplifyMinus
+    G |= Minus and ~> Expression result
+from {
+	{
+	    G |- and.left ~> var Integer leftResult
+	    {leftResult == 0}	    
+	    result = and.right
+	} or {
+	    G |- and.right ~> var Integer rightResult
+	    {rightResult == 0}	    
+	    result = and.left
+	}
+}
+
 /*
  * 
  * rule invocations
