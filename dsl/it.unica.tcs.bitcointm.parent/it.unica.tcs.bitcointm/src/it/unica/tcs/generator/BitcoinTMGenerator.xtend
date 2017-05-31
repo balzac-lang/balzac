@@ -128,11 +128,14 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(Model obj) {
-        obj.declarations.map[x|x.compile].join("\n")
+        obj.declarations.map[x|
+//        	println(x)
+        	x.compile
+        ].join("\n")
     }
 
     def dispatch String compile(KeyDeclaration obj) {
-        ""
+        '''key «obj.name»'''
     }
 
     def dispatch String compile(TransactionDeclaration obj) {
@@ -154,8 +157,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
 				«ENDFOR»
 			]
 			output [
-				«FOR i : tx.outputs»
-				«i.scriptPubKey.toString»
+				«FOR i : 0 ..< tx.outputs.size»
+				«var script = tx.outputs.get(i)»
+				«script.scriptPubKey.toString»
 				«ENDFOR»
 			]
 		}'''
@@ -232,7 +236,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         for (output : stmt.outputs) {
             var value = if (output.value.unit=="BTC") Coin.COIN.times(output.value.value) else Coin.SATOSHI.times(output.value.value)
-            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(new SignaturesTracker).program)
+            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
             tx.addOutput(txOutput)
         }
         
@@ -351,7 +355,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                stmt.actual.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
 	                
 	                // get the redeem script to push
-	                var redeemScript = output.script.getRedeemScript(ctx)
+	                var redeemScript = output.script.getRedeemScript
 	                
 	                expSb.data(redeemScript.program)
 	                                
@@ -390,7 +394,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                    throw new CompilationException("Undefined output script")
 	                
 	                // get the redeem script to push
-	                var redeemScript = stmt.actual.script.getRedeemScript(ctx)
+	                var redeemScript = stmt.actual.script.getRedeemScript
 	                expSb.data(redeemScript.program)
 	                
 	                /* <e1> ... <en> <serialized script> */
@@ -409,7 +413,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		
     }
 
-    def Script compileOutput(Output output, SignaturesTracker ctx) {
+    def Script compileOutput(Output output) {
 		
         var outScript = output.script
 
@@ -427,7 +431,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize
-            var redeemScript = output.script.getRedeemScript(ctx)
+            var redeemScript = output.script.getRedeemScript
             var script = ScriptBuilder.createP2SHOutputScript(redeemScript)
 
             if (script.scriptType != ScriptType.P2SH)
@@ -458,9 +462,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script, SignaturesTracker ctx) {
-		val sb = new ScriptBuilder()
+	def Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script) {
+		val sb = new ScriptBuilder
         val altstack = new AltStack
+        val ctx = new SignaturesTracker
         
         // build the redeem script to serialize
         for (var i=script.params.size-1; i>=0; i--) {
@@ -497,7 +502,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * </ul>
      */
     def private dispatch void compileExpression(Expression exp, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
-        throw new UnsupportedOperationException
+        throw new CompilationException
     }
     
     def private dispatch void compileExpression(KeyDeclaration stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {

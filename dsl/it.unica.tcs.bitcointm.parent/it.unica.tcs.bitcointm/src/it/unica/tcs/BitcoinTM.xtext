@@ -130,7 +130,14 @@ IfThenElse:
 
 Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
 
-enum Modifier: AIAO | AINO | AISO | SIAO | SINO | SISO;
+enum Modifier: 
+	AIAO | 
+	AISO | 
+	AINO | 
+	SIAO | 
+	SISO |
+	SINO 
+;
 	
 Versig:
 	"versig" "(" 

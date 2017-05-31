@@ -11,8 +11,8 @@ import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
+import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
-import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
@@ -20,9 +20,11 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
 import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
+import org.bitcoinj.core.Coin
 import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
+import org.bitcoinj.script.Script
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
@@ -30,7 +32,6 @@ import org.eclipse.xtext.validation.Check
 import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -80,7 +81,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkUnusedParameters(Script script){
+	def void checkUnusedParameters(it.unica.tcs.bitcoinTM.Script script){
 
 		for (param : script.params) {
 			var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
@@ -97,7 +98,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	def void checkVerSigDuplicatedKeys(Versig versig) {
 		
 		for(var i=0; i<versig.pubkeys.size-1; i++) {
-			for(var j=i; j<versig.pubkeys.size; j++) {
+			for(var j=i+1; j<versig.pubkeys.size; j++) {
 				
 				var k1 = versig.pubkeys.get(i)
 				var k2 = versig.pubkeys.get(j)
@@ -111,7 +112,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkEmptyLambda(Script script) {
+	def void checkSignatureModifiers(Signature signature) {
+		
+		var input = EcoreUtil2.getContainerOfType(signature, Input);
+		for (other: EcoreUtil2.getAllContentsOfType(input, Signature)){
+			
+			if (signature!=other && signature.modifier.restrictedBy(other.modifier)) {
+				warning('''This signature modifier is nullified by another one.''',
+					signature,
+					BitcoinTMPackage.Literals.SIGNATURE__MODIFIER
+				);
+				warning('''This signature modifier is nullifying another one.''',
+					other, 
+					BitcoinTMPackage.Literals.SIGNATURE__MODIFIER
+				);
+			}
+		}	
+	}
+	
+	def private boolean restrictedBy(Modifier _this, Modifier other) {
+		false;
+	}
+	
+	@Check
+	def void checkEmptyLambda(it.unica.tcs.bitcoinTM.Script script) {
 		if (script.params.size==0) {
 		    
 		    if (script.eContainer instanceof Output)
@@ -188,8 +212,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
+	@Check
+	def void checkOutputWithoutSignatures(Output output) {
+		var signs = EcoreUtil2.getAllContentsOfType(output, Signature);
+				
+		if (signs.size>0) {
+			error("Signatures are not allowed within output scripts.", 
+				output,
+				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
+			);
+		}
+	}
 	
-		
 	@Check
 	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
 		
@@ -278,10 +312,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	
 	@Check
-	def void checkUniqueLambdaParameters(Script p) {
+	def void checkUniqueLambdaParameters(it.unica.tcs.bitcoinTM.Script p) {
 		
 		for (var i=0; i<p.params.size-1; i++) {
-			for (var j=1; j<p.params.size; j++) {
+			for (var j=i+1; j<p.params.size; j++) {
 				if (p.params.get(i).name == p.params.get(j).name) {
 					error(
 						"Duplicate parameter name '"+p.params.get(j).name+"'.", 
@@ -448,9 +482,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (in.txRef.tx.body instanceof UserDefinedTxBody) {
                 var index = in.txRef.idx
                 var output = (in.txRef.tx.body as UserDefinedTxBody).outputs.get(index) 
-                var value = output.value.value
-                if (output.value.unit=="BTC") value*=Math.pow(value, 8) as int
-                amount+=value                
+                var value = if (output.value.unit=="BTC") Coin.COIN.times(output.value.value) else Coin.SATOSHI.times(output.value.value)
+                
+//                var value = output.value.value
+//                if (output.value.unit=="BTC") value*=Math.pow(value, 8) as int
+                amount+=value.value             
             }
             else if (in.txRef.tx.body instanceof SerialTxBody){
                 var index = in.txRef.idx
@@ -493,11 +529,27 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         for (var i=0; i<tbody.inputs.size; i++) {
 
             var input = tbody.inputs.get(i)
-            var org.bitcoinj.script.Script inScript
-            var org.bitcoinj.script.Script outScript            
+            var Script inScript
+            var Script outScript            
             
             try {
                 var Transaction tx = tbody.toTransaction
+
+				try {
+					tx.verify();
+				}
+				catch (Exception e) {
+					warning(
+						'''
+						The transaction is not valid.
+						
+						Details: «e.message»
+						''',
+						tbody.eContainer,
+						BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BODY						
+					)
+					return false
+				}
 
                 inScript = tx.getInput(i).scriptSig
                 outScript = tx.getInput(i).outpoint.connectedOutput.scriptPubKey
@@ -508,26 +560,28 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     ALL_VERIFY_FLAGS
                 )
                 
-//                println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
-				println('''«(tbody.eContainer as TransactionDeclaration).name»: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+//              println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
+//				println('''«(tbody.eContainer as TransactionDeclaration).name»: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
                 
             } catch(ScriptException e) {
 
-                warning(
+                error(
                     '''
                     This input does not redeem the specified output script. 
                     
                     Details: «e.message»
+                    
                     INPUT:   «inScript»
                     OUTPUT:  «outScript»
                     «IF outScript.isPayToScriptHash»
-                    REDEEM SCRIPT:  «new org.bitcoinj.script.Script(inScript.chunks.get(inScript.chunks.size-1).data)»
-                    REDEEM SCRIPT HASH:  «Utils.HEX.encode(Utils.sha256hash160(new org.bitcoinj.script.Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
+                    REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
+                    REDEEM SCRIPT HASH:  «Utils.HEX.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
 					«ENDIF»''',
                     input.eContainer,
                     BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__INPUTS, 
                     i
                 );
+                return false
             } catch(CompilationException e) {
                 
             }
