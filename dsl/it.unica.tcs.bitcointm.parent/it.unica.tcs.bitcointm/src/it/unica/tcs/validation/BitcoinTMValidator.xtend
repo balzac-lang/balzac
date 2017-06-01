@@ -20,7 +20,7 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
 import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
-import org.bitcoinj.core.Coin
+import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
@@ -40,8 +40,9 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-    @Inject
-    private extension BitcoinTMGenerator generator 
+    @Inject private extension BitcoinTMGenerator generator 
+    
+    @Inject private extension BitcoinTMTypeSystem typeSystem
     
 	/*
 	 * INFO
@@ -482,11 +483,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (in.txRef.tx.body instanceof UserDefinedTxBody) {
                 var index = in.txRef.idx
                 var output = (in.txRef.tx.body as UserDefinedTxBody).outputs.get(index) 
-                var value = if (output.value.unit=="BTC") Coin.COIN.times(output.value.value) else Coin.SATOSHI.times(output.value.value)
-                
-//                var value = output.value.value
-//                if (output.value.unit=="BTC") value*=Math.pow(value, 8) as int
-                amount+=value.value             
+                var value = output.value.exp.interpret.first as Integer
+                amount+=value
             }
             else if (in.txRef.tx.body instanceof SerialTxBody){
                 var index = in.txRef.idx
@@ -500,10 +498,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             }
         }
         
-        for (out : tx.outputs) {
-            var value = out.value.value
-            if (out.value.unit=="BTC") value*=Math.pow(value, 8) as int
-                amount-=value
+        for (output : tx.outputs) {
+            var value = output.value.exp.interpret.first as Integer
+            amount-=value
         }
 
         if (amount==0) {

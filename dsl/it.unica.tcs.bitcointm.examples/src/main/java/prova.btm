@@ -23,7 +23,7 @@ transaction T = {
 	output = [
 		5 BTC:		fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
-		10 satoshi: fun(x:signature, y:string) . y=="abc"; 
+		10: fun(x:signature, y:string) . y=="abc"; 
 		0 BTC:		fun(y) . versig(kB; y) && 2==1+1;
 		0 BTC:		fun(y, n: int) . versig(kB; y) && 2==n
 	]
@@ -41,7 +41,7 @@ transaction T1 = {
 	]
 	 
 	output = [  
-		4 satoshi: 	(12-45) + 2147483647 + 2147483647; 
+		4: 	(12-45) + 2147483647 + 2147483647; 
 		2:			fun (a) . a-45;
 		1:			fun(). if (12==10+2) then 3 else 4 
 	] 

@@ -2,6 +2,8 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
 Model:
 	net=NetworkDeclaration?
 	declarations+=Declaration*;
@@ -52,7 +54,10 @@ Input:
 	txRef=TransactionReference ":" actual=ActualParameters;
 
 Output:
-	value=Value ":" script=Script;
+	value=BitcoinValue ":" script=Script;
+
+BitcoinValue:
+	exp=Expression;
 
 Tlock:
 	value=INT;
@@ -69,10 +74,6 @@ TransactionReference:
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
-
-
-Value:
-	value=INT unit=("BTC"|"satoshi")?;
 
 Parameter:
 	name=ID (":" paramType=ParameterType)?;
@@ -119,10 +120,10 @@ Atomic returns Expression:
 	AfterTimeLock;
 
 VariableReference: ref=[Parameter];
-NumberLiteral: value=INT;
+NumberLiteral: value=INT (unit="BTC")?;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
-
+	
 IfThenElse:
 	'if' if=Expression
 	"then" then=Atomic

@@ -55,9 +55,13 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Output">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Value"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//BitcoinValue"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="script" eType="#//Script"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BitcoinValue">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Tlock">
@@ -80,10 +84,6 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Value">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Parameter">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="paramType" eType="#//Type"
@@ -95,6 +95,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="NumberLiteral" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="StringLiteral" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -116,11 +117,11 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="Modifier">
     <eLiterals name="AIAO" literal="AIAO"/>
-    <eLiterals name="AINO" value="1" literal="AINO"/>
-    <eLiterals name="AISO" value="2" literal="AISO"/>
+    <eLiterals name="AISO" value="1" literal="AISO"/>
+    <eLiterals name="AINO" value="2" literal="AINO"/>
     <eLiterals name="SIAO" value="3" literal="SIAO"/>
-    <eLiterals name="SINO" value="4" literal="SINO"/>
-    <eLiterals name="SISO" value="5" literal="SISO"/>
+    <eLiterals name="SISO" value="4" literal="SISO"/>
+    <eLiterals name="SINO" value="5" literal="SINO"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Versig" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="pubkeys" unique="false"
