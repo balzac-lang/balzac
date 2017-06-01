@@ -217,7 +217,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         if (cache.containsKey(stmt) && cacheEnabled)
         	return cache.get(stmt)
         
-        println('''--- transaction «(stmt.eContainer as TransactionDeclaration).name»---''')
+//        println('''--- transaction «(stmt.eContainer as TransactionDeclaration).name»---''')
         
         var netParams = stmt.networkParams        
         var Transaction tx = new Transaction(netParams)
@@ -235,10 +235,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
         
         for (output : stmt.outputs) {
-        	println('''value: «output.value.exp.interpret.first»''')
-        	println('''value: «output.value.exp.interpret.first.class»''')
             var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-            println('''value: «value»''')
             var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
             tx.addOutput(txOutput)
         }
