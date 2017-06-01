@@ -700,3 +700,9 @@ from {
     empty ||~ script
 }
 
+checkrule CheckBitcoinValue for
+    BitcoinValue v
+from {
+	lambdaUtils.resetCounter
+    empty |= v
+}

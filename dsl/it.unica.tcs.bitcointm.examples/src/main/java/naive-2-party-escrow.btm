@@ -29,7 +29,12 @@ transaction T = {
 	output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
 }
 
-transaction T_finalize = {
+transaction TA_finalize = {
 	input = T: sig kA sig kB 
-	output = 1BTC - 16: true
-} 
+	output = 1BTC - 16: fun(x). versig(kA; x)
+}
+
+transaction TB_finalize = {
+	input = T: sig kA sig kB 
+	output = 1BTC - 16: fun(x). versig(kB; x)
+}

@@ -1,0 +1,30 @@
+/*
+ * A: arbiter
+ * B: businessman
+ * C: customer
+ * 
+ * https://bitcoin.org/en/developer-guide#contracts
+ */
+
+/*
+ * https://www.bitaddress.org/?testnet=true
+ */
+key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+
+transaction fundsA = _
+
+transaction T = { 
+	input = fundsA: sig kA
+	output = 1BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
+}
+
+transaction TA = {
+	input = T: sig kA sig kC 
+	output = [
+		40000000-15: fun(x). versig(kA; x);
+		60000000-15: fun(x). versig(kB; x)
+	]
+}
+

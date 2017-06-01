@@ -3,9 +3,12 @@
  */
 package it.unica.tcs.scoping
 
+import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
@@ -17,6 +20,15 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  * on how and when to use it.
  */
 class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
+
+	/**
+	 * utils: get a scope for the given clazz type within the whole document
+	 */
+	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
+		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
+		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
+		return Scopes.scopeFor(candidates);									// return the scope
+	}
 
 	/*
 	 * free-names resolution
@@ -34,5 +46,14 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	def dispatch IScope getDeclaredVariables(Script obj) {
 //		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(obj.params); // stop recursion
+	}
+	
+	
+	def IScope scope_TransactionDeclaration(EObject ctx, EReference ref) {
+		ctx.getIScopeForAllContentsOfClass(TransactionDeclaration);
+	}
+	
+	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
+		ctx.getIScopeForAllContentsOfClass(KeyDeclaration);
 	}
 }
