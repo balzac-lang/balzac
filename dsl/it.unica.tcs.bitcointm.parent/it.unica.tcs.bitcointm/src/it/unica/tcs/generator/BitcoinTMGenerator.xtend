@@ -25,6 +25,7 @@ import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.SerialTxBody
@@ -40,7 +41,9 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
+import java.util.HashSet
 import java.util.List
+import java.util.Set
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
@@ -59,6 +62,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
@@ -70,6 +74,9 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class BitcoinTMGenerator extends AbstractGenerator {
+
+	@Inject extension IQualifiedNameProvider
+    @Inject extension BitcoinTMTypeSystem typeSystem
 
     val cache = new HashMap<TxBody, Transaction>()
     var cacheEnabled = false
@@ -108,7 +115,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	    }
     }
 
-    @Inject private extension BitcoinTMTypeSystem typeSystem
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
@@ -127,7 +133,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
         throw new CompilationException
     }
 
-    def dispatch String compile(Model obj) {
+    	
+    def dispatch String compile(PackageDeclaration obj) {
         obj.declarations.map[x|
 //        	println(x)
         	x.compile
@@ -135,11 +142,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(KeyDeclaration obj) {
-        '''key «obj.name»'''
+        '''key «obj.fullyQualifiedName»'''
     }
 
     def dispatch String compile(TransactionDeclaration obj) {
-        '''transaction «obj.name» «obj.body.compile»'''
+        '''transaction «obj.fullyQualifiedName» «obj.body.compile»'''
     }
 
     def dispatch String compile(DummyTxBody obj) {"<dummy>"}
@@ -206,14 +213,23 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * compiler: AST --> BitcoinJ
      * 
      */
-     
+    
+    def Transaction toTransaction(TxBody stmt) {
+    	toTransaction(stmt, new HashSet())
+    }
+    
     /**
      * Create a bitcoinj transaction object recursively.
      * Each transaction is bound to another one by its inputs. Recursion
      * stops when either a coinbase transaction or a serialized transaction is reached.
      */
-    def dispatch Transaction toTransaction(UserDefinedTxBody stmt) {
+    def dispatch Transaction toTransaction(UserDefinedTxBody stmt, Set<TxBody> visited) {
         
+        if (visited.contains(stmt))
+			throw new CompilationException("circular dependency")
+        
+        visited.add(stmt)
+
         if (cache.containsKey(stmt) && cacheEnabled)
         	return cache.get(stmt)
         
@@ -221,14 +237,13 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         var netParams = stmt.networkParams        
         var Transaction tx = new Transaction(netParams)
-        
         var inputCtx = new SignaturesTracker
         
         for (var i=0; i<stmt.inputs.size; i++) {
 //        	println('''input «i»''')
         	var input = stmt.inputs.get(i)
             var outIndex = input.txRef.idx
-            var txToRedeem = input.txRef.tx.body.toTransaction
+            var txToRedeem = input.txRef.tx.body.toTransaction(visited)
             var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
             var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
             tx.addInput(txInput)            
@@ -282,7 +297,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * Deserialiaze the transaction bytes into a bitcoinj transaction.
      * We assume the byte string to be valid.
      */ 
-    def dispatch Transaction toTransaction(SerialTxBody stmt) {
+    def dispatch Transaction toTransaction(SerialTxBody stmt, Set<TxBody> visited) {
         if (cache.containsKey(stmt) && cacheEnabled)
         	return cache.get(stmt)
     	
@@ -297,7 +312,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * 
      * @return a coinbase tx with a lot of money always redeemable
      */
-    def dispatch Transaction toTransaction(DummyTxBody stmt) {
+    def dispatch Transaction toTransaction(DummyTxBody stmt, Set<TxBody> visited) {
         if (cache.containsKey(stmt) && cacheEnabled)
         	return cache.get(stmt)
         

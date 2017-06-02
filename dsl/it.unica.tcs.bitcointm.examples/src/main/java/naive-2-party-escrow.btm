@@ -14,6 +14,10 @@
 /*
  * https://www.bitaddress.org/?testnet=true
  */
+package it.unica.btm.naive_2_party_escrow
+
+import it.unica.btm.prova
+
 key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
 key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 

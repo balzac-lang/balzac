@@ -3,9 +3,7 @@
  */
 package it.unica.tcs.scoping
 
-import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
@@ -30,6 +28,11 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		return Scopes.scopeFor(candidates);									// return the scope
 	}
 
+//	override IScope getScope(EObject context, EReference reference) {
+//		println("Hello")
+//		return super.getScope(context, reference);
+//	}
+
 	/*
 	 * free-names resolution
 	 */
@@ -49,11 +52,11 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 	
 	
-	def IScope scope_TransactionDeclaration(EObject ctx, EReference ref) {
-		ctx.getIScopeForAllContentsOfClass(TransactionDeclaration);
-	}
-	
-	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
-		ctx.getIScopeForAllContentsOfClass(KeyDeclaration);
-	}
+//	def IScope scope_TransactionDeclaration(EObject ctx, EReference ref) {
+//		ctx.getIScopeForAllContentsOfClass(TransactionDeclaration);
+//	}
+//	
+//	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
+//		ctx.getIScopeForAllContentsOfClass(KeyDeclaration);
+//	}
 }

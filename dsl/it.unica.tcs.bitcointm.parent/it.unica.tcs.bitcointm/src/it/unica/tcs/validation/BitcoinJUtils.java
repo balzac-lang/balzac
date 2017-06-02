@@ -14,7 +14,7 @@ import org.bitcoinj.core.Utils;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
-import it.unica.tcs.bitcoinTM.NetworkDeclaration;
+import it.unica.tcs.bitcoinTM.Network;
 
 public class BitcoinJUtils {
 
@@ -75,7 +75,7 @@ public class BitcoinJUtils {
 	}
 	
 	public static NetworkParameters networkParams(EObject obj) {
-		List<NetworkDeclaration> list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), NetworkDeclaration.class);
+		List<Network> list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network.class);
 			
 		if (list.size()==0)	// network undeclared, assume testnet
 			return NetworkParameters.fromID(NetworkParameters.ID_TESTNET);	

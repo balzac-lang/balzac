@@ -1,5 +1,7 @@
- 
-network mainnet
+
+package it.unica.btm.prova
+
+network mainnet 
 
 key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
@@ -28,7 +30,7 @@ transaction T = {
 		0 BTC:		fun(y, n: int) . versig(kB; y) && 2==n
 	]
  
-	tlock = 97  
+	tlock = 97
 }
 
 transaction T1 = {

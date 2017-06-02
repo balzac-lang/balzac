@@ -5,14 +5,28 @@ generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 Model:
-	net=NetworkDeclaration?
-	declarations+=Declaration*;
+	PackageDeclaration;
 
-NetworkDeclaration:
-	{NetworkDeclaration} "network" (testnet?="testnet" | "mainnet");
+PackageDeclaration:
+    'package' name=QualifiedName
+    	imports+=Import*
+		net=Network?
+		declarations+=Declaration*
+;
+
+QualifiedName: ID ('.' ID)*;
+
+Import:
+    'import' importedNamespace=QualifiedNameWithWildcard;
+    
+QualifiedNameWithWildcard:
+    QualifiedName '.*'?;
 
 Declaration:
 	KeyDeclaration | TransactionDeclaration; 
+
+Network:
+	{Network} "network" (testnet?="testnet" | "mainnet");
 
 /*
  * keys
@@ -67,7 +81,7 @@ ActualParameters:
 
 
 TransactionReference:
-	tx=[TransactionDeclaration] ("@" idx=INT)?;
+	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;
 
 	
 
@@ -129,7 +143,7 @@ IfThenElse:
 	"then" then=Atomic
 	(=> 'else' else=Atomic)?;
 
-Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
+Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
 
 enum Modifier: 
 	AIAO | 
@@ -142,7 +156,7 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
 		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
