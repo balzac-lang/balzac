@@ -1,7 +1,9 @@
 
 package it.unica.btm.prova
 
-network mainnet 
+import it.unica.btm.prova1
+
+network mainnet  
 
 key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
@@ -15,19 +17,24 @@ key kB = [
 //	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
 //	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"] 
 	 
- 
+  
 
 transaction coinbase = _
 transaction Tserial = "01000000027acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffffe020e380ab37b06010fb2d7ee26a478531e26995446ceaf297222ce5c1739a4b150000004a47304402200d1e123d69a968d61d322c33b1e7d3a11bb603a89e348d390bdeb18cbde67a460220366d6bc3bc4354a6426d4221e9854731dcead624d59bb2303f9560aec88b1c62010151ffffffff050065cd1d0000000017a9144b72af382a4d07269c1379f937b17c0a4f25af4487000000000000000017a914e93cc291b487ac2fe68fbfb956c385fa03cc28e3870a0000000000000017a914053c72c3f9c382a0219b8d590e68eb30c027efb78700000000000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac000000000000000017a9145e69bf21192ae57771b8158eec70eed9dcedceac8700000000"
 
+//transaction loop = {
+//	input = loop@0: 43
+//	output = 1BTC: fun(n:int). n==43
+//}
+
 transaction T = {
-	input = coinbase@0: sig kA AIAO 
+	input = fundsA@0: sig kA AIAO 
 	output = [
 		5 BTC:		fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
 		10: fun(x:signature, y:string) . y=="abc"; 
-		0 BTC:		fun(y) . versig(kB; y) && 2==1+1;
-		0 BTC:		fun(y, n: int) . versig(kB; y) && 2==n
+		0 BTC:		fun(y1) . versig(kB; y1) && 2==1+1;
+		0 BTC:		fun(y2, n2: int) . versig(kB; y2) && 2==n2
 	]
  
 	tlock = 97

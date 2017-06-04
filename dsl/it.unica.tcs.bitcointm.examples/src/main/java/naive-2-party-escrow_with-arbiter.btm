@@ -27,7 +27,7 @@ transaction TA = {
 	input = T: sig kA sig kC 
 	output = [
 		40000000-15: fun(x). versig(kA; x);
-		60000000-15: fun(y). versig(kB; y)
+		60000000-15: fun(y). versig(kB; y) 
 	]
 }
 

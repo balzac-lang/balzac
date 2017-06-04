@@ -13,21 +13,32 @@ import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
 import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import java.util.HashSet
+import java.util.Set
 import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.resource.IContainer
+import org.eclipse.xtext.resource.IEObjectDescription
+import org.eclipse.xtext.resource.IResourceDescription
+import org.eclipse.xtext.resource.IResourceDescriptions
+import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
 
@@ -38,12 +49,16 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
+//@ComposedChecks(
+//	validators=NamesAreUniqueValidator
+//)
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-    @Inject private extension BitcoinTMGenerator generator 
-    
+    @Inject private extension BitcoinTMGenerator generator
     @Inject private extension BitcoinTMTypeSystem typeSystem
-    
+    @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
+	@Inject	private IContainer.Manager containerManager;
+
 	/*
 	 * INFO
 	 */	
@@ -156,6 +171,35 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	/*
      * ERROR
      */
+	
+	@Check(CheckType.NORMAL)
+	def void checkPackageDuplicate(PackageDeclaration pkg) {
+		var Set<QualifiedName> names = new HashSet();
+		var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(pkg.eResource());
+		var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(pkg.eResource().getURI());
+		for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
+			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
+				if (!names.add(od.getQualifiedName())) {
+					error(
+						"duplicated package", 
+						BitcoinTMPackage.Literals.PACKAGE_DECLARATION__NAME
+					);
+				}
+			}
+		}
+	}
+	
+	@Check
+	def void checkPackage(PackageDeclaration pkg) {
+		println("PACKAGE: "+pkg.name)
+		
+		var root = EcoreUtil2.getRootContainer(pkg)
+		var resource = root.eResource
+		var resourceSet = resource.resourceSet
+		
+		println(resource)
+		resourceSet.resources.forEach[r|println(r)]		
+	}
 	
     @Check
 	def void checkDeclarationNameIsUnique(Declaration t) {
@@ -343,14 +387,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
 		
+		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
+		
 		/*
 		 * Verify that inputs are valid
 		 */
 		var hasError = false;
 		
 		for (input: tbody.inputs) {
-		    var valid = input.checkInputIndex && input.checkInputExpressions
+			var valid = input.checkInputIndex && input.checkInputExpressions
 		    hasError = hasError || !valid
+		    println('''input «input»''')
+		    println('''hasError «hasError»''')
 		}
 		
 		if(hasError) return;  // interrupt the check

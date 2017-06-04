@@ -41,9 +41,8 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
-import java.util.HashSet
 import java.util.List
-import java.util.Set
+import java.util.Map
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
@@ -78,13 +77,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	@Inject extension IQualifiedNameProvider
     @Inject extension BitcoinTMTypeSystem typeSystem
 
-    val cache = new HashMap<TxBody, Transaction>()
-    var cacheEnabled = false
-    
-    def void clearCache() {
-    	cache.clear()
-    }
-    
     /*
      * TODO: move to another file
      */
@@ -215,7 +207,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      */
     
     def Transaction toTransaction(TxBody stmt) {
-    	toTransaction(stmt, new HashSet())
+    	toTransaction(stmt, new HashMap())
     }
     
     /**
@@ -223,27 +215,25 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * Each transaction is bound to another one by its inputs. Recursion
      * stops when either a coinbase transaction or a serialized transaction is reached.
      */
-    def dispatch Transaction toTransaction(UserDefinedTxBody stmt, Set<TxBody> visited) {
+    def dispatch Transaction toTransaction(UserDefinedTxBody stmt, Map<TxBody,Transaction> cache) {
         
-        if (visited.contains(stmt))
-			throw new CompilationException("circular dependency")
-        
-        visited.add(stmt)
+		if (cache.containsKey(stmt))
+			return cache.get(stmt)
 
-        if (cache.containsKey(stmt) && cacheEnabled)
-        	return cache.get(stmt)
-        
 //        println('''--- transaction «(stmt.eContainer as TransactionDeclaration).name»---''')
         
         var netParams = stmt.networkParams        
         var Transaction tx = new Transaction(netParams)
         var inputCtx = new SignaturesTracker
         
+        // the tx is not ready yet but it will be at the end of the recursive loop
+        cache.put(stmt, tx)
+        
         for (var i=0; i<stmt.inputs.size; i++) {
 //        	println('''input «i»''')
         	var input = stmt.inputs.get(i)
             var outIndex = input.txRef.idx
-            var txToRedeem = input.txRef.tx.body.toTransaction(visited)
+            var txToRedeem = input.txRef.tx.body.toTransaction(cache)
             var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
             var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
             tx.addInput(txInput)            
@@ -289,7 +279,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
             }
             
         }
-        cache.put(stmt, tx)
         return tx    
     }
     
@@ -297,11 +286,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * Deserialiaze the transaction bytes into a bitcoinj transaction.
      * We assume the byte string to be valid.
      */ 
-    def dispatch Transaction toTransaction(SerialTxBody stmt, Set<TxBody> visited) {
-        if (cache.containsKey(stmt) && cacheEnabled)
-        	return cache.get(stmt)
+    def dispatch Transaction toTransaction(SerialTxBody stmt, Map<TxBody,Transaction> cache) {
+    	if (cache.containsKey(stmt))
+			return cache.get(stmt)
     	
     	var tx = new Transaction(stmt.networkParams, Utils.HEX.decode(stmt.bytes))
+    	
     	cache.put(stmt, tx)
     	return tx
     }
@@ -312,9 +302,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * 
      * @return a coinbase tx with a lot of money always redeemable
      */
-    def dispatch Transaction toTransaction(DummyTxBody stmt, Set<TxBody> visited) {
-        if (cache.containsKey(stmt) && cacheEnabled)
-        	return cache.get(stmt)
+    def dispatch Transaction toTransaction(DummyTxBody stmt, Map<TxBody,Transaction> cache) {
+        if (cache.containsKey(stmt))
+			return cache.get(stmt)
         
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
