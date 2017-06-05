@@ -178,6 +178,7 @@ Type:
 
 BasicType:
 	{IntType} value=IntTypeEnum |
+	{HashType} value=HashTypeEnum |
     {StringType} value=StringTypeEnum |
     {BooleanType} value=BoolTypeEnum |
     {SignatureType} value=SignatureTypeEnum;
@@ -186,6 +187,7 @@ TypeVariable:
 	value=ID;
 
 enum IntTypeEnum: int;
+enum HashTypeEnum: hash;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum SignatureTypeEnum: signature;

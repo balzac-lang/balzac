@@ -178,6 +178,9 @@
   <eClassifiers xsi:type="ecore:EEnum" name="IntTypeEnum">
     <eLiterals name="int" literal="int"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="HashTypeEnum">
+    <eLiterals name="hash" literal="hash"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="StringTypeEnum">
     <eLiterals name="string" literal="string"/>
   </eClassifiers>
@@ -236,6 +239,9 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="IntType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//IntTypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HashType" eSuperTypes="#//BasicType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//HashTypeEnum"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="StringType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//StringTypeEnum"/>

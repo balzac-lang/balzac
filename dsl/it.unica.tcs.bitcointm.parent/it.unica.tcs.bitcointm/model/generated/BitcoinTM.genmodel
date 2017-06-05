@@ -17,6 +17,9 @@
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//IntTypeEnum">
       <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//IntTypeEnum/int"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//HashTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//HashTypeEnum/hash"/>
+    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//StringTypeEnum">
       <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//StringTypeEnum/string"/>
     </genEnums>
@@ -191,6 +194,9 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//IntType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//IntType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//HashType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//HashType/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//StringType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//StringType/value"/>

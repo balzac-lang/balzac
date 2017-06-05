@@ -16,13 +16,15 @@
  */
 package it.unica.btm.prova.naive_2_party_escrow
 
+network testnet
+
 key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
 key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 
 transaction fundsA = _
 
 transaction TA = {
-	input = fundsA: true
+	input = fundsA: true 
 	output = 1BTC: fun(x). versig(kA; x) 
 }
 

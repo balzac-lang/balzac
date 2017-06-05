@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
+import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
@@ -129,6 +130,10 @@ auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType
 }
 
 auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, HashType t1, HashType t2) {
     EcoreUtil::copy(t1)
 }
 
@@ -397,10 +402,16 @@ from {
 }
 
 rule Hash
-	G |- TypeSubstitutions substitutions |> Hash hash: BitcoinTMFactory::eINSTANCE.createIntType
+	G |- TypeSubstitutions substitutions |> Hash hash: BitcoinTMFactory::eINSTANCE.createHashType
 from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
+	
+	if (!(t instanceof BasicType)) {
+		fail
+			error "basic type expected"
+			source hash.value			
+	}
 }
 
 rule Min
@@ -617,6 +628,28 @@ from {
     G |- stmt.right ~> var Integer rightRes
     result = leftRes<=valueRes && valueRes<rightRes
 }
+
+//rule InterpretHash
+//    G |- Hash hash ~> String result
+//from {
+//
+//    G |- hash.value ~> var Object expResult
+//    
+//    if (expResult instanceof Integer) {
+//		var ByteBuffer b = ByteBuffer.allocate(4);		// integer are 32-bit
+//		b.putInt(expResult)
+//	    result = new String(Utils.sha256hash160(b.array))	
+//    }
+//	else if (expResult instanceof String) {
+//	    result = new String(Utils.sha256hash160((expResult).bytes))
+//	}
+//}
+//
+//rule InterpretSize
+//    G |- Size size ~> Integer result
+//from {
+//	//TODO
+//}
 
 
 /*

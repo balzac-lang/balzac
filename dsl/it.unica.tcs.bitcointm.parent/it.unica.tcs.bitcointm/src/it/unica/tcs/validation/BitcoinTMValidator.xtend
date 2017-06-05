@@ -17,7 +17,6 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator

@@ -5,7 +5,6 @@ package it.unica.tcs.ui.contentassist
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
-import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import java.util.HashSet
 import java.util.Set
