@@ -412,7 +412,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
 		
-		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
+//		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
 		
 		/*
 		 * Verify that inputs are valid
@@ -422,8 +422,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		for (input: tbody.inputs) {
 			var valid = input.checkInputIndex && input.checkInputExpressions
 		    hasError = hasError || !valid
-		    println('''input «input»''')
-		    println('''hasError «hasError»''')
+//		    println('''input «input»''')
+//		    println('''hasError «hasError»''')
 		}
 		
 		if(hasError) return;  // interrupt the check
