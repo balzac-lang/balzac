@@ -32,6 +32,7 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.naming.IQualifiedNameConverter
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IEObjectDescription
@@ -58,6 +59,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
+	@Inject private extension IQualifiedNameConverter qualifiedNameConverter
 
 	/*
 	 * INFO
@@ -172,7 +174,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      * ERROR
      */
 	
-	@Check//(CheckType.NORMAL)
+	@Check
 	def void checkPackageDuplicate(PackageDeclaration pkg) {
 		var Set<QualifiedName> names = new HashSet();
 		var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(pkg.eResource());
@@ -191,7 +193,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	@Check
 	def void checkImport(Import imp) {
-		var importedPackage = QualifiedName.create(imp.importedNamespace.split("\\."))
+		
+		var packageName = (imp.eContainer as PackageDeclaration).name.toQualifiedName
+		var importedPackage = imp.importedNamespace.toQualifiedName
+		
+		if (packageName.equals(importedPackage.skipLast(1))) {
+			error(
+				'''The import «importedPackage» refers to this package declaration''', 
+				BitcoinTMPackage.Literals.IMPORT__IMPORTED_NAMESPACE
+			);
+			return
+		}
 		
 		var Set<QualifiedName> names = new HashSet();
 		var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(imp.eResource());
@@ -212,19 +224,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.IMPORT__IMPORTED_NAMESPACE
 			);
 		}
-	}
-	
-	@Check
-	def void checkPackage(PackageDeclaration pkg) {
-		println("PACKAGE: "+pkg.name)
-		
-		var root = EcoreUtil2.getRootContainer(pkg)
-		var resource = root.eResource
-		var resourceSet = resource.resourceSet
-		
-		println('''resource: «resource»''')
-		resourceSet.resources.forEach[r|println(r)]		
-		println()
 	}
 	
     @Check
