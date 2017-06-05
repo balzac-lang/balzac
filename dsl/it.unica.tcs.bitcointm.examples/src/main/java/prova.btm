@@ -1,8 +1,6 @@
 
 package it.unica.btm.prova
 
-import it.unica.btm.prova1
-
 network mainnet  
 
 key kA = [
@@ -28,7 +26,7 @@ transaction Tserial = "01000000027acf6994b653ebddde17aeef1be904fc9bd60e05b8316a9
 //}
 
 transaction T = {
-	input = fundsA@0: sig kA AIAO 
+	input = coinbase@0: sig kA AIAO 
 	output = [
 		5 BTC:		fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";

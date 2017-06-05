@@ -8,6 +8,7 @@ import it.unica.tcs.bitcoinTM.ActualParameters
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DummyTxBody
+import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
@@ -38,7 +39,6 @@ import org.eclipse.xtext.resource.IResourceDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
-import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
 
@@ -50,7 +50,7 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 //@ComposedChecks(
-//	validators=NamesAreUniqueValidator
+//	validators=ImportUriValidator
 //)
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
@@ -172,7 +172,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      * ERROR
      */
 	
-	@Check(CheckType.NORMAL)
+	@Check//(CheckType.NORMAL)
 	def void checkPackageDuplicate(PackageDeclaration pkg) {
 		var Set<QualifiedName> names = new HashSet();
 		var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(pkg.eResource());
@@ -181,11 +181,36 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
 				if (!names.add(od.getQualifiedName())) {
 					error(
-						"duplicated package", 
+						"Duplicated package name", 
 						BitcoinTMPackage.Literals.PACKAGE_DECLARATION__NAME
 					);
 				}
 			}
+		}
+	}
+	
+	@Check
+	def void checkImport(Import imp) {
+		var importedPackage = QualifiedName.create(imp.importedNamespace.split("\\."))
+		
+		var Set<QualifiedName> names = new HashSet();
+		var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(imp.eResource());
+		var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(imp.eResource().getURI());
+		
+		for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
+			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
+				names.add(od.qualifiedName.append("*"))
+			}
+			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.TRANSACTION_DECLARATION)) {
+				names.add(od.qualifiedName)
+			}
+		}
+		
+		if (!names.contains(importedPackage)) {
+			error(
+				'''The import «importedPackage» cannot be resolved''', 
+				BitcoinTMPackage.Literals.IMPORT__IMPORTED_NAMESPACE
+			);
 		}
 	}
 	
@@ -197,8 +222,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		var resource = root.eResource
 		var resourceSet = resource.resourceSet
 		
-		println(resource)
+		println('''resource: «resource»''')
 		resourceSet.resources.forEach[r|println(r)]		
+		println()
 	}
 	
     @Check

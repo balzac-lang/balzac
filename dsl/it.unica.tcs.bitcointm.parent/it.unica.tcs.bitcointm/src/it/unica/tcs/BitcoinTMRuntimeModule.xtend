@@ -3,9 +3,12 @@
  */
 package it.unica.tcs
 
+import com.google.inject.Binder
+import com.google.inject.name.Names
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
+import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.service.SingletonBinding
 
 /**
@@ -22,4 +25,11 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 		return BitcoinTMTypeSystemValidator;
 	}
  
+ 	/*
+ 	 * Configure the feature name containing the imported namespace.
+ 	 * 'importedNamespace' is the name that allows to resolve cross-file references and cannot be changed
+ 	 */
+	def void configureImportUriResolver(Binder binder) {
+		binder.bind(String).annotatedWith(Names.named(ImportUriResolver.IMPORT_URI_FEATURE)).toInstance("importedNamespace");
+	}
 }
