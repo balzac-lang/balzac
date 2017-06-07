@@ -1,0 +1,13 @@
+package it.unica.btm.time_commitment
+
+key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+
+transaction coinbase = _
+
+
+transaction T = { 
+	input = coinbase: sig kA
+	output = 10BTC: fun(h, secret). hash(secret+2)==h
+}
