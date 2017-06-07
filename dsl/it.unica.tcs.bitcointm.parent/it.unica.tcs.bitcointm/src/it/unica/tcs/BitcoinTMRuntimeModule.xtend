@@ -5,9 +5,11 @@ package it.unica.tcs
 
 import com.google.inject.Binder
 import com.google.inject.name.Names
+import it.unica.tcs.conversion.BitcoinTMConverterService
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
+import org.eclipse.xtext.conversion.IValueConverterService
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.service.SingletonBinding
 
@@ -32,4 +34,8 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 	def void configureImportUriResolver(Binder binder) {
 		binder.bind(String).annotatedWith(Names.named(ImportUriResolver.IMPORT_URI_FEATURE)).toInstance("importedNamespace");
 	}
+	
+	override Class<? extends IValueConverterService> bindIValueConverterService() {
+        return BitcoinTMConverterService
+    }
 }

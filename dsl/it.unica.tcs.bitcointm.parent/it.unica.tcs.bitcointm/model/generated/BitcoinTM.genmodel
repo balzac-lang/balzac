@@ -111,7 +111,6 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//NumberLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NumberLiteral/value"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NumberLiteral/unit"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//StringLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//StringLiteral/value"/>

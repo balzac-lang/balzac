@@ -34,7 +34,7 @@ import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.validation.AbstractBitcoinTMValidator
+import it.unica.tcs.validation.AbstractBitcoinTMValidator 
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -487,14 +487,8 @@ from {
  * 
  */
   
-rule InterpretNumberLiteral
-    G |- NumberLiteral number ~> Integer result
-from {
-	result = 
-		if (number.unit=="BTC")
-		number.value*new Double(Math.pow(10, 8)).intValue
-		else number.value
-}
+axiom InterpretNumberLiteral
+    G |- NumberLiteral number ~> number.value
 
 axiom InterpretStringLiteral
     G |- StringLiteral str ~> str.value

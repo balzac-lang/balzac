@@ -10,10 +10,10 @@ key kA = [
 key kB = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
 	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
-
+	
 //key kA = [ 
 //	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
-//	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"] 
+//	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 	 
   
 
@@ -28,7 +28,7 @@ transaction Tserial = "01000000027acf6994b653ebddde17aeef1be904fc9bd60e05b8316a9
 transaction T = {
 	input = coinbase@0: sig kA AIAO 
 	output = [
-		5 BTC:		fun(n) . n==42;
+		0.00000001 BTC:	fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
 		10:			fun(x:signature, y:signature) . y==x; 
 		0 BTC:		fun(y1) . versig(kB; y1) && 2==1+1;
@@ -40,7 +40,7 @@ transaction T = {
 
 transaction T1 = {
 	input = [
-		Tserial@0: 42 [fun(n) . n==42];
+		T@0: (0.00000042 BTC) [fun(n) . n==42 && 1==0.00000002 BTC];
 		T@1: if (12==10+2 && true) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA;
 		T@3: sig kA AIAO;
@@ -48,7 +48,7 @@ transaction T1 = {
 	]
 	 
 	output = [  
-		4: 	(12-45) + 2147483647 + 2147483647; 
+		4: 	(12-45) + 2147483647 + 214748_3647;
 		2:			fun (a) . a-45;
 		1:			fun(). if (12==10+2) then 3 else 4 
 	] 

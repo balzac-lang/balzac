@@ -3,7 +3,7 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
-
+    
 Model:
 	PackageDeclaration;
 
@@ -134,7 +134,7 @@ Atomic returns Expression:
 	AfterTimeLock;
 
 VariableReference: ref=[Parameter];
-NumberLiteral: value=INT (unit="BTC")?;
+NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 	
@@ -191,3 +191,18 @@ enum HashTypeEnum: hash;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum SignatureTypeEnum: signature;
+
+
+
+/*
+ * Terminal rules copied from Xbase
+ */
+Number returns ecore::EInt:
+	INT ('.' INT)? "BTC"?;
+
+terminal HEX returns ecore::EBigInteger:
+	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;	// java-like hexadecimal number
+
+@Override	
+terminal INT returns ecore::EInt:
+	'0'..'9' ('0'..'9'|'_')*; 	// java-like integer

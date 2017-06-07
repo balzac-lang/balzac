@@ -150,18 +150,18 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var tx = obj.toTransaction;
         
         '''{
-			input  [
-				«FOR i : tx.inputs»
-				«i.scriptSig.toString»
-				«ENDFOR»
-			]
-			output [
-				«FOR i : 0 ..< tx.outputs.size»
-				«var script = tx.outputs.get(i)»
-				«script.scriptPubKey.toString»
-				«ENDFOR»
-			]
-		}'''
+	input  [
+		«FOR i : tx.inputs»
+		«i.scriptSig.toString»
+		«ENDFOR»
+	]
+	output [
+		«FOR i : 0 ..< tx.outputs.size»
+		«var out = tx.outputs.get(i)»
+		«out.value.value» : «out.scriptPubKey.toString»
+		«ENDFOR»
+	]
+}'''
     }
 
 
