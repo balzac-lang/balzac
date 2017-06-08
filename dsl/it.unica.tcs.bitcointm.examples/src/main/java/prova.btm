@@ -18,15 +18,22 @@ key kB = [
   
 
 transaction coinbase = _
-transaction Tserial = "01000000027acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffffe020e380ab37b06010fb2d7ee26a478531e26995446ceaf297222ce5c1739a4b150000004a47304402200d1e123d69a968d61d322c33b1e7d3a11bb603a89e348d390bdeb18cbde67a460220366d6bc3bc4354a6426d4221e9854731dcead624d59bb2303f9560aec88b1c62010151ffffffff050065cd1d0000000017a9144b72af382a4d07269c1379f937b17c0a4f25af4487000000000000000017a914e93cc291b487ac2fe68fbfb956c385fa03cc28e3870a0000000000000017a914053c72c3f9c382a0219b8d590e68eb30c027efb78700000000000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac000000000000000017a9145e69bf21192ae57771b8158eec70eed9dcedceac8700000000"
 
-//transaction loop = {
-//	input = loop@0: 43
-//	output = 1BTC: fun(n:int). n==43
-//}
+transaction ALFA = {
+	input = coinbase: true
+	output = [
+		1 BTC: fun(n) . n==42;			// P2SH
+		1 BTC: fun(y) . versig(kB; y);	// P2PKH
+		0 BTC: "DATA"					// OP_RETURN 
+	]
+}
+
+//transaction ALFA_serial = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f5050000000017a914a3f8ae3c775711c597ef7fdcfd5c3bfc2b6c47c4870000000000000000066a044441544100000000"
+transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000"
+
 
 transaction T = {
-	input = coinbase@0: sig kA AIAO 
+	input = coinbase@0: sig kA AIAO
 	output = [
 		0.00000001 BTC:	fun(n) . n==42;
 		0 BTC:		fun(n) . n=="abc";
@@ -40,15 +47,20 @@ transaction T = {
 
 transaction T1 = {
 	input = [
-		T@0: (0.00000042 BTC) [fun(n) . n==42 && 1==0.00000002 BTC];
+		T@0: (0.00000042 BTC);
 		T@1: if (12==10+2 && true) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA;
 		T@3: sig kA AIAO;
-		T@4: sig kA AIAO 2
+		T@4: sig kA AIAO 2; 
+		
+//		ALFA@0:	42 ;
+//		ALFA@1:	sig kB;
+		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH
+		ALFA_serial@1:	sig kB
 	]
 	 
 	output = [  
-		4: 	(12-45) + 2147483647 + 214748_3647;
+		4: 	(12-45) + 2147483647 + 214748_3647; 
 		2:			fun (a) . a-45;
 		1:			fun(). if (12==10+2) then 3 else 4 
 	] 

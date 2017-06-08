@@ -17,6 +17,7 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
@@ -490,7 +491,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def boolean checkInputExpressions(Input input) {
         
         var outputIdx = input.txRef.idx
-
+		
         if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             var outputScript = inputTx.outputs.get(outputIdx).script;
@@ -506,11 +507,25 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 );
                 return false
             }
+            
+            if (input.actual.script!==null) {
+                error(
+                    "You must not specify the redeem script when referring to a user-defined transaction.",
+                    input.actual,
+                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
+                );
+                return false
+            }
+            
             return true
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
             
             var refTx = input.txRef.tx.body.toTransaction
+            
+            println("SERIAL")
+            println('''SCRIPT: «refTx.getOutput(outputIdx).scriptPubKey»''')
+            println('''P2SH:   «refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash»''')
             
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
                 input.actual.script===null
@@ -519,6 +534,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
                     input,
                     BitcoinTMPackage.Literals.INPUT__ACTUAL
+                );
+                return false
+            }
+            
+            if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
+                input.actual.script!==null
+            ) {
+                error(
+                    "The pointed output is not a P2SH output. You must not specify the redeem script.",
+                    input.actual,
+                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
                 );
                 return false
             }
@@ -603,7 +629,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             
             try {
                 var Transaction tx = tbody.toTransaction
-
+				println('''«(tbody.eContainer as TransactionDeclaration).name» [1]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+				
 				try {
 					tx.verify();
 				}
@@ -630,7 +657,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 )
                 
 //              println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
-//				println('''«(tbody.eContainer as TransactionDeclaration).name»: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+				println('''«(tbody.eContainer as TransactionDeclaration).name» [2]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+                
+                tx.outputs.forEach[out|
+                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
+                ]
                 
             } catch(ScriptException e) {
 

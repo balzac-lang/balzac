@@ -50,7 +50,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 				// decimal number
 				
 				if (!isBTC)
-					throw new ValueConverterException("Decimal values are not permitted, except when using the keyword 'BTC'.", node, null);
+					throw new ValueConverterException("Decimal values are not permitted, except when followed by the keyword 'BTC'.", node, null);
 					
 				var integerPart = stringArray.get(0)
 				var decimalPart = stringArray.get(1)

@@ -142,7 +142,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(DummyTxBody obj) {"<dummy>"}
-    def dispatch String compile(SerialTxBody obj) {"<serial>"}
+    def dispatch String compile(SerialTxBody obj) {obj.bytes}
     
     
     def dispatch String compile(UserDefinedTxBody obj) {
@@ -161,7 +161,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		«out.value.value» : «out.scriptPubKey.toString»
 		«ENDFOR»
 	]
-}'''
+} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
+'''
     }
 
 
@@ -396,7 +397,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                stmt.actual.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
 	                
 	                if (stmt.actual.script===null)
-	                    throw new CompilationException("Undefined output script")
+	                    throw new CompilationException("Undefined redeem script")
 	                
 	                // get the redeem script to push
 	                var redeemScript = stmt.actual.script.getRedeemScript
