@@ -178,7 +178,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		if (exp instanceof Literal)
 			return
 		
-		var res = exp.interpret
+		var res = exp.simplifySafe.interpret
 		var container = exp.eContainer
 		var index = 
 			if (container instanceof Input) {

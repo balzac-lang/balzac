@@ -74,8 +74,8 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  */
 class BitcoinTMGenerator extends AbstractGenerator {
 
-	@Inject extension IQualifiedNameProvider
-    @Inject extension BitcoinTMTypeSystem typeSystem
+	@Inject private extension IQualifiedNameProvider
+    @Inject private extension BitcoinTMTypeSystem typeSystem
 
     /*
      * TODO: move to another file
@@ -178,7 +178,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      */
     def boolean isP2PKH(it.unica.tcs.bitcoinTM.Script script) {
         var onlyOneSignatureParam = script.params.size == 1 && (script.params.get(0).paramType instanceof SignatureType)
-        var onlyOnePubkey = (script.exp.simplify instanceof Versig) && (script.exp.simplify as Versig).pubkeys.size == 1
+        var onlyOnePubkey = (script.exp.simplifySafe instanceof Versig) && (script.exp.simplifySafe as Versig).pubkeys.size == 1
 
         return onlyOneSignatureParam && onlyOnePubkey
     }
@@ -195,11 +195,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
 	
-	def Expression simplify(Expression exp) {
-		var simplifiedExp = typeSystem.simplify(exp)
-        if (simplifiedExp.failed) exp else simplifiedExp.first
-	}
-    
 
     /*
      * 
@@ -343,7 +338,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	            var output = inputTx.outputs.get(outIdx);
 	    
 	            if (output.script.isP2PKH) {
-	                var sig = (stmt.exps.get(0) as Expression).simplify as Signature
+	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 	                
 	                val sb = new ScriptBuilder()
@@ -358,7 +353,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                val expSb = new ScriptBuilder()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
+	                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
 	                
 	                // get the redeem script to push
 	                var redeemScript = output.script.getRedeemScript
@@ -379,7 +374,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             	var output = stmt.txRef.tx.body.toTransaction.getOutput(outIdx)
             
 	            if (output.scriptPubKey.isSentToAddress) {
-	                var sig = (stmt.exps.get(0) as Expression).simplify as Signature
+	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 	                
 	                val sb = new ScriptBuilder()
@@ -394,7 +389,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                val expSb = new ScriptBuilder()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
+	                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
 	                
 	                // get the redeem script to push
 	                var redeemScript = stmt.redeemScript.getRedeemScript
@@ -421,7 +416,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var outScript = output.script
 
         if (outScript.isP2PKH) {
-            var versig = outScript.exp.simplify as Versig
+            var versig = outScript.exp.simplifySafe as Versig
             var pk = versig.pubkeys.get(0).body.pub.value.wifToAddress(output.networkParams)
 
             var script = ScriptBuilder.createOutputScript(pk)
@@ -477,7 +472,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             sb.op(0, OP_TOALTSTACK)
         }
         
-        script.exp.simplify.compileExpression(sb, ctx, altstack)
+        script.exp.simplifySafe.compileExpression(sb, ctx, altstack)
         sb.build
 	}
 	
@@ -491,7 +486,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         if (refs.size>0)
         	throw new CompilationException("The given expression must not have free variables.")
         
-        exp.compileExpression(sb, ctx, new AltStack)	// the altstack is used only by VariableReference(s)
+        exp.simplifySafe.compileExpression(sb, ctx, new AltStack)	// the altstack is used only by VariableReference(s)
         sb.build
     }
     

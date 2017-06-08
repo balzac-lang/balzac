@@ -53,6 +53,7 @@ auxiliary {
     unify(TypeSubstitutions substitutions, Type left, Type right) : Type
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
         
+    simplifySafe(Expression exp) : Expression
 }
 
 judgments {
@@ -155,6 +156,10 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     fresh
 }
 
+auxiliary simplifySafe(Expression exp) {
+	var simplifiedExp = simplify(exp)
+    if (simplifiedExp.failed) exp else simplifiedExp.first
+}
 
 
 /*
