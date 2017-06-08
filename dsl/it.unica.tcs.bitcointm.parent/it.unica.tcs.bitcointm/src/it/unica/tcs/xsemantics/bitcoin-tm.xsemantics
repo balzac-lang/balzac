@@ -34,7 +34,7 @@ import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.validation.AbstractBitcoinTMValidator 
+import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -496,7 +496,6 @@ axiom InterpretStringLiteral
 axiom InterpretBooleanLiteral
     G |- BooleanLiteral bool ~> bool.^true
 
-
 rule InterpretMinus
     G |- Minus minus ~> Integer result
 from {
@@ -543,7 +542,7 @@ rule InterpretOr
 from {
     G |- orExp.left ~> var Boolean leftResult
     G |- orExp.right ~> var Boolean rightResult
-    result = leftResult.booleanValue || rightResult.booleanValue
+    result = leftResult.booleanValue || rightResult.booleanValue 
 }
 
 rule InterpretBooleanNegation
@@ -570,9 +569,24 @@ from {
 rule InterpretEquals
     G |- Equals comparison ~> Boolean result
 from {
-    G |- comparison.left ~> var Object leftResult
-    G |- comparison.right ~> var Object rightResult
-    result = leftResult.toString == rightResult.toString
+	{
+	    G |- comparison.left ~> var Object leftResult
+	    G |- comparison.right ~> var Object rightResult
+	    result = leftResult.toString == rightResult.toString
+    } or {
+    	comparison.left instanceof Signature
+    	comparison.right instanceof Signature
+    	// two signs are the same if the key and the modifier are the same
+    	(comparison.left as Signature).key == (comparison.right as Signature).key;
+    	(comparison.left as Signature).modifier == (comparison.right as Signature).modifier
+    	result = true
+	} or {
+    	comparison.left instanceof VariableReference
+    	comparison.right instanceof VariableReference
+		// two refs are the same if they point to the same parameter
+    	(comparison.left as VariableReference).ref== (comparison.right as VariableReference).ref
+    	result = true
+    }
 }
 
 rule InterpretIfThenElse

@@ -17,7 +17,6 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
@@ -285,13 +284,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkOutputWithoutSignatures(Output output) {
 		var signs = EcoreUtil2.getAllContentsOfType(output, Signature);
-				
-		if (signs.size>0) {
+			
+		signs.forEach[s|
 			error("Signatures are not allowed within output scripts.", 
-				output,
-				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
+				s.eContainer,
+				s.eContainmentFeature
 			);
-		}
+		]	
 	}
 	
 	@Check
@@ -523,9 +522,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             
             var refTx = input.txRef.tx.body.toTransaction
             
-            println("SERIAL")
-            println('''SCRIPT: «refTx.getOutput(outputIdx).scriptPubKey»''')
-            println('''P2SH:   «refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash»''')
+//            println("SERIAL")
+//            println('''SCRIPT: «refTx.getOutput(outputIdx).scriptPubKey»''')
+//            println('''P2SH:   «refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash»''')
             
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
                 input.actual.script===null
@@ -629,7 +628,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             
             try {
                 var Transaction tx = tbody.toTransaction
-				println('''«(tbody.eContainer as TransactionDeclaration).name» [1]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+//				println('''«(tbody.eContainer as TransactionDeclaration).name» [1]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
 				
 				try {
 					tx.verify();
@@ -657,11 +656,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 )
                 
 //              println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
-				println('''«(tbody.eContainer as TransactionDeclaration).name» [2]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
-                
-                tx.outputs.forEach[out|
-                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
-                ]
+//				println('''«(tbody.eContainer as TransactionDeclaration).name» [2]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+//                
+//                tx.outputs.forEach[out|
+//                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
+//                ]
                 
             } catch(ScriptException e) {
 
