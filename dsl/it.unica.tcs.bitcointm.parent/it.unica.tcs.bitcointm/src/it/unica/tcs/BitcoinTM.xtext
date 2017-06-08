@@ -65,7 +65,7 @@ UserDefinedTxBody: "{"
 
 
 Input:
-	txRef=TransactionReference ":" actual=ActualParameters;
+	txRef=TransactionReference ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
 
 Output:
 	value=BitcoinValue ":" script=Script;
@@ -75,10 +75,6 @@ BitcoinValue:
 
 Tlock:
 	value=INT;
-
-ActualParameters:
-	exps+=Atomic ( exps+=Atomic)* ("[" script=Script "]")?;
-
 
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;
@@ -109,7 +105,7 @@ Comparison returns Expression:
        Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
 
 Equals returns Expression:
-       Addition (({Equals.left=current} op=("==") ) right=Addition)*;
+       Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
  
 Addition returns Expression:
     Prefixed (({Plus.left=current} '+' | {Minus.left=current} '-') right=Prefixed)*; 
@@ -121,9 +117,7 @@ Prefixed returns Expression:
 
 Atomic returns Expression:
     '(' Expression ')' |
-    NumberLiteral |
-    StringLiteral |
-    BooleanLiteral |
+    Literal |
     VariableReference |
     Signature |
 	Versig |
@@ -134,6 +128,10 @@ Atomic returns Expression:
 	AfterTimeLock;
 
 VariableReference: ref=[Parameter];
+
+Literal:
+	NumberLiteral | StringLiteral | BooleanLiteral;
+
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';

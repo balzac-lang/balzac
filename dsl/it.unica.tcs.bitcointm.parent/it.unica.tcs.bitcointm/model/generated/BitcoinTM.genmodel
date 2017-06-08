@@ -76,7 +76,8 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Input">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txRef"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/actual"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/exps"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/redeemScript"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Output">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Output/value"/>
@@ -87,10 +88,6 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Tlock">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Tlock/value"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//ActualParameters">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ActualParameters/exps"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ActualParameters/script"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionReference">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/tx"/>
@@ -109,6 +106,7 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//VariableReference">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableReference/ref"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Literal"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//NumberLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//NumberLiteral/value"/>
     </genClasses>

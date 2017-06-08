@@ -4,14 +4,15 @@
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.ActualParameters
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DummyTxBody
+import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
+import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
@@ -39,6 +40,7 @@ import org.eclipse.xtext.resource.IResourceDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
 
@@ -161,13 +163,38 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
     			);
     		
-    		if (script.eContainer instanceof ActualParameters)
+    		if (script.eContainer instanceof Input)
                 warning("This output could be redeemed without providing any arguments.",
                     script.eContainer,
-                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
+                    BitcoinTMPackage.Literals.INPUT__REDEEM_SCRIPT
                 );
 		}
 	}
+	
+	
+	@Check
+	def void checkInterpretExp(Expression exp) {
+		
+		if (exp instanceof Literal)
+			return
+		
+		var res = exp.interpret
+		var container = exp.eContainer
+		var index = 
+			if (container instanceof Input) {
+				container.exps.indexOf(exp)
+			}
+			else ValidationMessageAcceptor.INSIGNIFICANT_INDEX
+		
+		if (!res.failed)
+			warning('''This expression can be simplified. It will be compiled as '«res.first»' ''',
+				exp.eContainer,
+				exp.eContainmentFeature,
+				index
+			);
+	}
+
+	
 	
 	/*
      * ERROR
@@ -490,28 +517,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def boolean checkInputExpressions(Input input) {
         
         var outputIdx = input.txRef.idx
+        var lastExp = input.exps.get(input.exps.size-1)
 		
         if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             var outputScript = inputTx.outputs.get(outputIdx).script;
             
-            var numOfExps = input.actual.exps.size
+            var numOfExps = input.exps.size
             var numOfParams = outputScript.params.size
             
             if (numOfExps!=numOfParams) {
                 error(
                     "The number of expressions does not match the number of parameters.",
                     input,
-                    BitcoinTMPackage.Literals.INPUT__ACTUAL
+                    BitcoinTMPackage.Literals.INPUT__EXPS
                 );
                 return false
             }
             
-            if (input.actual.script!==null) {
+            if (lastExp instanceof Script) {
                 error(
                     "You must not specify the redeem script when referring to a user-defined transaction.",
-                    input.actual,
-                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
+                    lastExp,
+                    BitcoinTMPackage.Literals.INPUT__EXPS,
+                    input.exps.size-1
                 );
                 return false
             }
@@ -527,23 +556,25 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //            println('''P2SH:   «refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash»''')
             
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                input.actual.script===null
+                lastExp instanceof Script
             ) {
                 error(
                     "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
                     input,
-                    BitcoinTMPackage.Literals.INPUT__ACTUAL
+                    BitcoinTMPackage.Literals.INPUT__EXPS,
+                    input.exps.size-1
                 );
                 return false
             }
             
             if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                input.actual.script!==null
+                lastExp instanceof Script
             ) {
                 error(
                     "The pointed output is not a P2SH output. You must not specify the redeem script.",
-                    input.actual,
-                    BitcoinTMPackage.Literals.ACTUAL_PARAMETERS__SCRIPT
+                    input,
+                    BitcoinTMPackage.Literals.INPUT__EXPS,
+                    input.exps.size-1
                 );
                 return false
             }
@@ -664,7 +695,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 
             } catch(ScriptException e) {
 
-                error(
+                warning(
                     '''
                     This input does not redeem the specified output script. 
                     

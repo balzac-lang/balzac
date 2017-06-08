@@ -195,13 +195,14 @@ from {
 		G |~ outputScript	// all the params will have a basic type
 	}
 	
-	for (var i=0; i<input.actual.exps.size; i++) {
-		var exp = input.actual.exps.get(i)
+	for (var i=0; i<input.exps.size; i++) {
+		var exp = input.exps.get(i)
+		
 		G |- substitutions |> exp : var BasicType texp
 		
 		// TODO: modify when serialized transactions will be analized (?) 
 		if (inputTx!==null && outputScript!==null && 
-		    outputScript.params.size==input.actual.exps.size
+		    outputScript.params.size==input.exps.size
 		) {
 			var param = outputScript.params.get(i)
 			
@@ -210,7 +211,7 @@ from {
 					error "Invalid type '"+stringRep(texp)+"'. The parameter has type '"+stringRep(param.paramType)+"'."
 					source exp
 			} 
-		}
+		}		
 	}
 }
 
@@ -555,38 +556,82 @@ from {
 rule InterpretComparison
     G |- Comparison comparison ~> Boolean result
 from {
-    G |- comparison.left ~> var Object leftResult
+    G |- comparison.left ~> var Comparable<Object> leftResult
     G |- comparison.right ~> var Object rightResult
     
-    if (leftResult instanceof String && rightResult instanceof String) {
-        result = leftResult.toString < rightResult.toString
-    } else {
-        // both are int if the expression is well-typed
-        result = (leftResult as Integer) < (rightResult as Integer)
-    }
+    result = switch(comparison.op) {
+    		case ">=": leftResult >= rightResult
+    		case "<=": leftResult <= rightResult
+    		case ">": leftResult > rightResult
+    		case "<": leftResult < rightResult
+    		default: null
+    	}
+    	
+	if (result===null) {
+		fail 
+			error "Unexpecter operator "+comparison.op 
+			source comparison
+	}
 }
 
 rule InterpretEquals
     G |- Equals comparison ~> Boolean result
 from {
+	
 	{
 	    G |- comparison.left ~> var Object leftResult
 	    G |- comparison.right ~> var Object rightResult
-	    result = leftResult.toString == rightResult.toString
+	    
+	    result = switch(comparison.op) {
+    		case "==": leftResult == rightResult
+    		case "!=": leftResult != rightResult
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpecter operator "+comparison.op 
+				source comparison
+		}
+	    
     } or {
     	comparison.left instanceof Signature
     	comparison.right instanceof Signature
     	// two signs are the same if the key and the modifier are the same
     	(comparison.left as Signature).key == (comparison.right as Signature).key;
-    	(comparison.left as Signature).modifier == (comparison.right as Signature).modifier
-    	result = true
-	} or {
+    	(comparison.left as Signature).modifier == (comparison.right as Signature).modifier;
+    	
+    	result = switch(comparison.op) {
+    		case "==": true
+    		case "!=": false
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpecter operator "+comparison.op 
+				source comparison
+		}
+    } or {
     	comparison.left instanceof VariableReference
     	comparison.right instanceof VariableReference
 		// two refs are the same if they point to the same parameter
-    	(comparison.left as VariableReference).ref== (comparison.right as VariableReference).ref
-    	result = true
-    }
+    	var leftResult = (comparison.left as VariableReference).ref 
+    	var rightResult = (comparison.right as VariableReference).ref
+    	leftResult == rightResult
+    	
+    	result = switch(comparison.op) {
+    		case "==": true
+    		case "!=": false
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpecter operator "+comparison.op 
+				source comparison
+		}
+    }    
 }
 
 rule InterpretIfThenElse

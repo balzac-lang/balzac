@@ -343,7 +343,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	            var output = inputTx.outputs.get(outIdx);
 	    
 	            if (output.script.isP2PKH) {
-	                var sig = stmt.actual.exps.get(0).simplify as Signature
+	                var sig = (stmt.exps.get(0) as Expression).simplify as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 	                
 	                val sb = new ScriptBuilder()
@@ -358,7 +358,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                val expSb = new ScriptBuilder()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.actual.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
+	                stmt.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
 	                
 	                // get the redeem script to push
 	                var redeemScript = output.script.getRedeemScript
@@ -379,7 +379,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             	var output = stmt.txRef.tx.body.toTransaction.getOutput(outIdx)
             
 	            if (output.scriptPubKey.isSentToAddress) {
-	                var sig = stmt.actual.exps.get(0) as Signature
+	                var sig = (stmt.exps.get(0) as Expression).simplify as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 	                
 	                val sb = new ScriptBuilder()
@@ -394,13 +394,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	                val expSb = new ScriptBuilder()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.actual.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
-	                
-	                if (stmt.actual.script===null)
-	                    throw new CompilationException("Undefined redeem script")
+	                stmt.exps.forEach[e|e.simplify.compileInputExpression(expSb, ctx)]
 	                
 	                // get the redeem script to push
-	                var redeemScript = stmt.actual.script.getRedeemScript
+	                var redeemScript = stmt.redeemScript.getRedeemScript
 	                expSb.data(redeemScript.program)
 	                
 	                /* <e1> ... <en> <serialized script> */
@@ -663,7 +660,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         if (res.failed) {
             stmt.exp.compileExpression(sb, ctx, altstack)
-            sb.op(OP_NEGATE)
+            sb.op(OP_NOT)
         }
         else {
             if (res.first instanceof Integer) {
@@ -721,7 +718,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
         if (res.failed) {
             stmt.left.compileExpression(sb, ctx, altstack)
             stmt.right.compileExpression(sb, ctx, altstack)
-            sb.op(OP_EQUAL)
+            
+            switch (stmt.op) {
+                case "==": sb.op(OP_EQUAL)
+                case "!=": sb.op(OP_EQUAL).op(OP_NOT)
+            }
         }
         else {
             if (res.first instanceof Boolean) {
