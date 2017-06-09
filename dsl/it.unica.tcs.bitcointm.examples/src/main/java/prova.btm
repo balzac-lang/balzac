@@ -38,8 +38,8 @@ transaction T = {
 		0.00000001 BTC:	fun(n) . n!=42 ;
 		0 BTC:		fun(n) . n=="abc";
 		10:			fun(x:signature, y:signature) . y==x; 
-		0 BTC:		fun(y1) . versig(kB; y1) && 2==1+1;
-		0 BTC:		fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && !b 
+		0 BTC:		fun(y1) . versig(kB; y1) && 2==2;
+		0 BTC:		fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
 	]
  
 	tlock = 97
@@ -48,10 +48,10 @@ transaction T = {
 transaction T1 = {
 	input = [
 		T@0: (0.00000043 BTC); 
-		T@1: if (12==10+2 && true) then "abc" else "xyz";
+		T@1: if (10+2==12) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA AIAO;
 		T@3: sig kA AIAO; 
-		T@4: sig kA AIAO 2 (sig kA AIAO !=sig kA);
+		T@4: sig kA AIAO 2 (sig kA AIAO==sig kA);
 		
 //		ALFA@0:	42 ;
 //		ALFA@1:	sig kB;
@@ -60,7 +60,7 @@ transaction T1 = {
 	]
 	 
 	output = [  
-		4: 	2147483647 + 1;
+		4: 	2147483647 + 1; 
 		2:	fun (a) . a-45;
 		1:	if (12==10+2) then 3 else 4
 	] 
@@ -77,6 +77,6 @@ transaction A = {
 }
 
 transaction B = {
-	input = A@0: (42+3)
+	input = A@0: 45
 	output= 1BTC: fun(n:int). n==43
 } 

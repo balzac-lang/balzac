@@ -44,8 +44,6 @@ VerboseKeyBody returns KeyBody:
 PrivateKey: value=STRING | {PrivateKey} "_";
 PublicKey: value=STRING  | {PublicKey}  "_";
 
-//terminal BASE58: 'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
-
 /*
  * transactions
  */
@@ -130,12 +128,16 @@ Atomic returns Expression:
 VariableReference: ref=[Parameter];
 
 Literal:
-	NumberLiteral | StringLiteral | BooleanLiteral;
+	NumberLiteral | 
+	StringLiteral | 
+	BooleanLiteral |
+	HashLiteral;
 
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
-	
+HashLiteral: value=BTC_HASH;
+
 IfThenElse:
 	'if' if=Expression
 	"then" then=Atomic
@@ -158,7 +160,7 @@ Versig:
 		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
-Hash: "hash" "(" value=Expression ")";
+Hash: type=('sha256'|'ripemd160'|'hash256'|'hash160') "(" value=Expression ")";
 
 Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
@@ -196,7 +198,8 @@ enum SignatureTypeEnum: signature;
  * Terminal rules copied from Xbase
  */
 Number returns ecore::EInt:
-	INT ('.' INT)? "BTC"?;
+	INT ('.' INT)? "BTC"?
+	| HEX;
 
 terminal HEX returns ecore::EBigInteger:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;	// java-like hexadecimal number
@@ -204,3 +207,13 @@ terminal HEX returns ecore::EBigInteger:
 @Override	
 terminal INT returns ecore::EInt:
 	'0'..'9' ('0'..'9'|'_')*; 	// java-like integer
+
+terminal BASE58: 
+	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+
+terminal BTC_HASH returns ecore::EByteArray: SHA256 | RIPEMD160 | HASH256 | HASH160;
+terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
+terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
+terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
+terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
+	

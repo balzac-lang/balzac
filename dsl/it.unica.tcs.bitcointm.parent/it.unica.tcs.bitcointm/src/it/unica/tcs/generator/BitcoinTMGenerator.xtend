@@ -15,6 +15,7 @@ import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
+import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyDeclaration
@@ -237,7 +238,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         for (output : stmt.outputs) {
             var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
+            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutputExpression.program)
             tx.addOutput(txOutput)
         }
         
@@ -411,7 +412,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		
     }
 
-    def Script compileOutput(Output output) {
+	/**
+	 * Compile an output based on its "type".
+	 */
+    def private Script compileOutputExpression(Output output) {
 		
         var outScript = output.script
 
@@ -460,7 +464,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script) {
+	def private Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script) {
 		val sb = new ScriptBuilder
         val altstack = new AltStack
         val ctx = new SignaturesTracker
@@ -480,7 +484,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def void compileInputExpression(Expression exp, ScriptBuilder sb, SignaturesTracker ctx) {
+    def private void compileInputExpression(Expression exp, ScriptBuilder sb, SignaturesTracker ctx) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         
         if (refs.size>0)
@@ -512,8 +516,24 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def private dispatch void compileExpression(Hash hash, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
-        hash.value.compileExpression(sb, ctx, altstack)
-        sb.op(OP_HASH160)
+        var res = typeSystem.interpret(hash)
+        
+        if (res.failed) {
+		    hash.value.compileExpression(sb, ctx, altstack)
+	        
+	        switch(hash.type) {
+	        	case "sha256":	 	sb.op(OP_SHA256)
+	        	case "ripemd160":	sb.op(OP_RIPEMD160)
+	        	case "hash256":	 	sb.op(OP_HASH256)
+	        	case "hash160":		sb.op(OP_HASH160)
+	        }
+        }
+        else {
+        	if (res.first instanceof byte[]) {
+                sb.data(res.first as byte[])
+            }
+            else throw new CompilationException('''Unxpected type «res.first.class». byte[] type expected''')
+        }
     }
 
     def private dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
@@ -537,7 +557,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException
+            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
         }
     }
 
@@ -556,7 +576,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException
+            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
         }
     }
 
@@ -575,7 +595,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             else if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException            
+            else throw new CompilationException('''Unxpected type «res.first.class». String or Integer type expected''')      
         }
     }
 
@@ -591,7 +611,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
         }
     }
 
@@ -607,7 +627,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
         }
     }
 
@@ -623,7 +643,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
         }
     }
 
@@ -646,7 +666,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
         }
     }
 
@@ -661,7 +681,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
         }
     }
 
@@ -678,7 +698,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             if (res.first instanceof Integer) {
                 sb.number(res.first as Integer)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
         }
     }
 
@@ -703,7 +723,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
         }
     }
     
@@ -726,7 +746,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException 
+            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
         }
     }
 
@@ -754,7 +774,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 }
                 else sb.number(OP_FALSE)
             }
-            else throw new CompilationException            
+            else throw new CompilationException('''Unxpected type «res.first.class». String or Integer or Boolean type expected''')         
         }
     }
 
@@ -783,6 +803,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 
     def private dispatch void compileExpression(StringLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
         sb.data(s.value.bytes).build().toString
+    }
+    
+    def private dispatch void compileExpression(HashLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+        sb.data(s.value).build().toString
     }
 
     def private dispatch void compileExpression(Signature stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
@@ -847,4 +871,5 @@ class BitcoinTMGenerator extends AbstractGenerator {
             (1 .. altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
     }
     
+
 }

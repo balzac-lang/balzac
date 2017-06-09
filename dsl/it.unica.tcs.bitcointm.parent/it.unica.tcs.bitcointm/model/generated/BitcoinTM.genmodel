@@ -116,6 +116,9 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//BooleanLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//BooleanLiteral/true"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//HashLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//HashLiteral/value"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//IfThenElse">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//IfThenElse/if"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//IfThenElse/then"/>
@@ -130,6 +133,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Versig/signatures"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Hash">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Hash/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Hash/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Min">

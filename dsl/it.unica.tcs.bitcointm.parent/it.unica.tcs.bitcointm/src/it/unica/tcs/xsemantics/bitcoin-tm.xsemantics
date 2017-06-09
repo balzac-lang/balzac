@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
+import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
@@ -35,7 +36,10 @@ import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
+import java.util.Arrays
 import org.eclipse.emf.ecore.util.EcoreUtil
+
+import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -247,8 +251,12 @@ axiom BooleanLiteral
 axiom StringLiteral
 	G |- TypeSubstitutions substitutions |> StringLiteral str : BitcoinTMFactory::eINSTANCE.createStringType
 
+axiom HashLiteral
+	G |- TypeSubstitutions substitutions |> HashLiteral h : BitcoinTMFactory::eINSTANCE.createHashType
+
 axiom Signature
 	G |- TypeSubstitutions substitutions |> Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
+
 
 rule VariableReference
 	G |- TypeSubstitutions substitutions |> VariableReference varRef : Type type
@@ -502,6 +510,9 @@ axiom InterpretStringLiteral
 axiom InterpretBooleanLiteral
     G |- BooleanLiteral bool ~> bool.^true
 
+axiom InterpretHashLiteral
+    G |- HashLiteral hash ~> hash.value
+
 rule InterpretMinus
     G |- Minus minus ~> Integer result
 from {
@@ -587,9 +598,13 @@ from {
 	    G |- comparison.left ~> var Object leftResult
 	    G |- comparison.right ~> var Object rightResult
 	    
+	    leftResult.class == rightResult.class
+	    
+	    var areEqual = leftResult==rightResult || Arrays.equals(leftResult as byte[], rightResult as byte[])
+	    
 	    result = switch(comparison.op) {
-    		case "==": leftResult == rightResult
-    		case "!=": leftResult != rightResult
+    		case "==": areEqual
+    		case "!=": !areEqual
     		default: null
     	}
     	
@@ -687,22 +702,24 @@ from {
     result = leftRes<=valueRes && valueRes<rightRes
 }
 
-//rule InterpretHash
-//    G |- Hash hash ~> String result
-//from {
-//
-//    G |- hash.value ~> var Object expResult
-//    
-//    if (expResult instanceof Integer) {
-//		var ByteBuffer b = ByteBuffer.allocate(4);		// integer are 32-bit
-//		b.putInt(expResult)
-//	    result = new String(Utils.sha256hash160(b.array))	
-//    }
-//	else if (expResult instanceof String) {
-//	    result = new String(Utils.sha256hash160((expResult).bytes))
-//	}
-//}
-//
+rule InterpretHash
+    G |- Hash hash ~> byte[] result
+from {
+
+    G |- hash.value ~> var Object expResult
+    
+    var bytes = expResult.toBytes
+    
+    result = 
+	    switch(hash.type) {
+	    	case "ripemd160": 	ripemd160(bytes) 
+	    	case "sha256": 		sha256(bytes) 
+	    	case "hash160": 	hash160(bytes)
+	    	case "hash256": 	hash256(bytes)
+	    	
+	    } 
+}
+
 //rule InterpretSize
 //    G |- Size size ~> Integer result
 //from {

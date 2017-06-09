@@ -5,9 +5,11 @@ package it.unica.tcs.validation
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
+import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Expression
+import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyBody
@@ -175,10 +177,26 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkInterpretExp(Expression exp) {
 		
-		if (exp instanceof Literal)
-			return
+		println(":::::::::::::::::::::::::::::::::::::::")
+		println('''exp:              «exp»''')
+		println('''context:          «context.keySet.filter(Expression)»''')
+		println('''contains paremt:  «context.containsKey(exp.eContainer)»''')
+		println()		
 		
-		var res = exp.simplifySafe.interpret
+		if (context.containsKey(exp.eContainer) 
+			|| exp instanceof Literal
+//			|| exp.eContainer instanceof Input
+			|| exp.eContainer instanceof BitcoinValue
+		){
+			// your parent can be simplified, so you are too
+			context.put(exp, exp)
+			return
+		}
+		
+		
+		var resSimplify = exp.simplify					// simplify && || + - 
+		var resInterpret = exp.simplifySafe.interpret	// simplify if possible, then interpret
+		
 		var container = exp.eContainer
 		var index = 
 			if (container instanceof Input) {
@@ -186,12 +204,25 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			}
 			else ValidationMessageAcceptor.INSIGNIFICANT_INDEX
 		
-		if (!res.failed)
-			warning('''This expression can be simplified. It will be compiled as '«res.first»' ''',
+		if (!resInterpret.failed || !resSimplify.failed) {
+			
+			// the expression can be simplified. Store it within the context such that sub-expression will skip this check
+			context.put(exp, exp)
+		
+			var compilationResult = 
+				switch (resInterpret.first) {
+					byte[]: (exp as Hash).type+":"+Utils.HEX.encode(resInterpret.first as byte[])
+					String: '''"«resInterpret.first»"''' 
+					default: resInterpret.first.toString
+				} 
+		
+			warning('''This expression can be simplified. It will be compiled as «compilationResult» ''',
 				exp.eContainer,
 				exp.eContainmentFeature,
 				index
 			);
+			
+		}
 	}
 
 	
@@ -718,5 +749,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         return true
     }
+    
     
 }
