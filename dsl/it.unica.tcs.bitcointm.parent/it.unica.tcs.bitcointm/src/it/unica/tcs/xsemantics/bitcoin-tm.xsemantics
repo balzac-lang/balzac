@@ -550,16 +550,28 @@ rule InterpretAnd
     G |- AndExpression and ~> Boolean result
 from {
     G |- and.left ~> var Boolean leftResult
-    G |- and.right ~> var Boolean rightResult
-    result = leftResult.booleanValue && rightResult.booleanValue
+    
+    if (leftResult == false) {
+    	result = false
+    }
+    else {
+	    G |- and.right ~> var Boolean rightResult
+	    result = leftResult.booleanValue && rightResult.booleanValue    	
+    }    
 }
 
 rule InterpretOr
     G |- OrExpression orExp ~> Boolean result
 from {
     G |- orExp.left ~> var Boolean leftResult
-    G |- orExp.right ~> var Boolean rightResult
-    result = leftResult.booleanValue || rightResult.booleanValue 
+    
+    if (leftResult == true) {
+    	result = true
+    }
+    else {
+	    G |- orExp.right ~> var Boolean rightResult
+	    result = leftResult.booleanValue || rightResult.booleanValue 
+    }    
 }
 
 rule InterpretBooleanNegation
