@@ -106,7 +106,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 		for (param : script.params) {
 			var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
-			
+			// var references = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
 			if (references.size==0)
 				warning("Unused variable '"+param.name+"'.", 
 					param,

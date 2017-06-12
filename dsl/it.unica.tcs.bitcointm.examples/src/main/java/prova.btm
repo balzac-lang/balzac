@@ -29,7 +29,7 @@ transaction ALFA = {
 }
 
 //transaction ALFA_serial = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f5050000000017a914a3f8ae3c775711c597ef7fdcfd5c3bfc2b6c47c4870000000000000000066a044441544100000000"
-transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000"
+transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000"
 
 
 transaction T = {
@@ -50,19 +50,20 @@ transaction T1 = {
 		T@0: (0.00000043 BTC); 
 		T@1: if (10+2==12) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA AIAO;
-		T@3: sig kA AIAO; 
+		T@3: sig kA AIAO;  
 		T@4: sig kA AIAO 2 (sig kA AIAO==sig kA);
 		
 //		ALFA@0:	42 ;
 //		ALFA@1:	sig kB;
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH
-		ALFA_serial@1:	sig kB 
+		ALFA_serial@1:	sig kB;
+		T1@0: 2147483647
 	]
 	 
 	output = [  
-		4444: 	2147483647 + 1; 
+		4444: 	fun (n) . 2147483647+1==n+1; 
 		2222:	fun (a) . 45!=45 && a-45==2 ;
-		1111:	if (12==10+2) then 3 else 4
+		1111:	if (12==10+2) then 3 else 4   
 	] 
 }
 
@@ -80,7 +81,7 @@ transaction Th = {
 			hash160(secret)==ripemd160(sha256(secret)) &&
 			hash256("")==sha256(sha256("")) &&
 			hash160("")==ripemd160(sha256(""))&&
-			hash160("")==ripemd160(sha256(""))
+			hash160("")==ripemd160(sha256("")) 
 } 
 
 transaction Th1 = {

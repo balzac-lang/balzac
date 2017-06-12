@@ -62,7 +62,6 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
@@ -75,9 +74,10 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
  */
 class BitcoinTMGenerator extends AbstractGenerator {
 
-	@Inject private extension IQualifiedNameProvider
+//	@Inject private extension IQualifiedNameProvider
     @Inject private extension BitcoinTMTypeSystem typeSystem
-
+	@Inject private extension Optimizer optimizer
+	
     /*
      * TODO: move to another file
      */
@@ -95,6 +95,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
     private static class SignaturesTracker extends HashMap<Input,List<SignatureUtil>>{
     	Input currentInput 
     }
+    
+    private static class VariableCounter extends HashMap<Parameter,Integer>{}
     private static class AltStack extends HashMap<Parameter,Integer>{}
     
     private static class SignatureUtil {
@@ -107,9 +109,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	        return "SignatureUtil [index=" + index + ", key=" + key + ", hashType=" + hashType + ", anyoneCanPay="+ anyoneCanPay + "]";
 	    }
     }
-
-
-    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+	
+	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
         var resourceName = resource.URI.lastSegment.replace(".btm", "")
 
@@ -135,11 +136,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(KeyDeclaration obj) {
-        '''key «obj.fullyQualifiedName»'''
+        '''key «obj.name»'''
     }
 
     def dispatch String compile(TransactionDeclaration obj) {
-        '''transaction «obj.fullyQualifiedName» «obj.body.compile»'''
+        '''transaction «obj.name» «obj.body.compile»'''
     }
 
     def dispatch String compile(DummyTxBody obj) {"<dummy>"}
@@ -155,7 +156,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		«FOR i : tx.inputs»
 		«i.scriptSig.toString»
 		«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
-			redeem script [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
+			redeem script       [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
+			redeem script (opt) [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).optimize.toString»]
 		«ENDIF»
 		
 		«ENDFOR»
@@ -166,9 +168,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		«out.value.value» : «out.scriptPubKey.toString»
 		«ENDFOR»
 	]
-} 
+} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
 
-«««[«Utils.HEX.encode(tx.bitcoinSerialize)»]
 '''
     }
 
@@ -244,7 +245,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         for (output : stmt.outputs) {
             var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutputExpression.program)
+            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
             tx.addOutput(txOutput)
         }
         
@@ -421,7 +422,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def private Script compileOutputExpression(Output output) {
+    def private Script compileOutput(Output output) {
 		
         var outScript = output.script
 
@@ -474,16 +475,21 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		val sb = new ScriptBuilder
         val altstack = new AltStack
         val ctx = new SignaturesTracker
+        val varCount = new VariableCounter
         
         // build the redeem script to serialize
         for (var i=script.params.size-1; i>=0; i--) {
-            var Parameter p = script.params.get(i)
+            val Parameter p = script.params.get(i)
+            var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
+            
             altstack.put(p, altstack.size)    // update the context
+            varCount.put(p, numberOfRefs)
+            
             sb.op(0, OP_TOALTSTACK)
         }
         
-        script.exp.simplifySafe.compileExpression(sb, ctx, altstack)
-        sb.build
+        script.exp.simplifySafe.compileExpression(sb, ctx, altstack, varCount)
+        sb.build.optimize	// post optimization
 	}
 	
 	
@@ -496,8 +502,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
         if (refs.size>0)
         	throw new CompilationException("The given expression must not have free variables.")
         
-        exp.simplifySafe.compileExpression(sb, ctx, new AltStack)	// the altstack is used only by VariableReference(s)
-        sb.build
+        exp.simplifySafe.compileExpression(sb, ctx, new AltStack, new VariableCounter)	// the altstack is used only by VariableReference(s)
+        sb.build.optimize	// post optimization
     }
     
     /*
@@ -509,11 +515,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
      *  <li> if (12==10+2) then "foo" else "bar" ≡ "foo"
      * </ul>
      */
-    def private dispatch void compileExpression(Expression exp, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Expression exp, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         throw new CompilationException
     }
     
-    def private dispatch void compileExpression(KeyDeclaration stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(KeyDeclaration stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         /* push the public key */
         val pvtkey = stmt.body.pvt.value
         val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
@@ -521,11 +527,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
         sb.data(key.pubKey)
     }
 
-    def private dispatch void compileExpression(Hash hash, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Hash hash, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(hash)
         
         if (res.failed) {
-		    hash.value.compileExpression(sb, ctx, altstack)
+		    hash.value.compileExpression(sb, ctx, altstack, varCount)
 	        
 	        switch(hash.type) {
 	        	case "sha256":	 	sb.op(OP_SHA256)
@@ -542,24 +548,24 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
-        stmt.time.compileExpression(sb, ctx, altstack)
+    def private dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
+        stmt.time.compileExpression(sb, ctx, altstack, varCount)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
-        stmt.continuation.compileExpression(sb, ctx, altstack)
+        stmt.continuation.compileExpression(sb, ctx, altstack, varCount)
     }
 
-    def private dispatch void compileExpression(AndExpression stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(AndExpression stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-	        stmt.left.compileExpression(sb, ctx, altstack)
-	        stmt.right.compileExpression(sb, ctx, altstack)
+	        stmt.left.compileExpression(sb, ctx, altstack, varCount)
+	        stmt.right.compileExpression(sb, ctx, altstack, varCount)
 	        sb.op(OP_BOOLAND)            
         }
         else {
         	if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
                 else sb.number(OP_FALSE)
             }
@@ -567,18 +573,18 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(OrExpression stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(OrExpression stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-	        stmt.left.compileExpression(sb, ctx, altstack)
-	        stmt.right.compileExpression(sb, ctx, altstack)
+	        stmt.left.compileExpression(sb, ctx, altstack, varCount)
+	        stmt.right.compileExpression(sb, ctx, altstack, varCount)
 	        sb.op(OP_BOOLOR)            
         }
         else {
         	if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
                 else sb.number(OP_FALSE)
             }
@@ -586,12 +592,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Plus stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Plus stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_ADD)
         }
         else {
@@ -605,12 +611,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Minus stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Minus stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_SUB)
         }
         else {
@@ -621,12 +627,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Max stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Max stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_MAX)
         }
         else {
@@ -637,12 +643,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Min stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Min stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_MIN)
         }
         else {
@@ -653,22 +659,22 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Size stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
-        stmt.value.compileExpression(sb, ctx, altstack)
+    def private dispatch void compileExpression(Size stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
+        stmt.value.compileExpression(sb, ctx, altstack, varCount)
         sb.op(OP_SIZE)
     }
 
-    def private dispatch void compileExpression(BooleanNegation stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(BooleanNegation stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(sb, ctx, altstack)
+            stmt.exp.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_NOT)            
         }
         else {
             if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
                 else sb.number(OP_FALSE)
             }
@@ -676,11 +682,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(ArithmeticSigned stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(ArithmeticSigned stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(sb, ctx, altstack)
+            stmt.exp.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_NOT)
         }
         else {
@@ -691,13 +697,13 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Between stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Between stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.value.compileExpression(sb, ctx, altstack)
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.value.compileExpression(sb, ctx, altstack, varCount)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_WITHIN)
         }
         else {
@@ -708,12 +714,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(Comparison stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Comparison stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
     
             switch (stmt.op) {
                 case "<": sb.op(OP_LESSTHAN)
@@ -725,7 +731,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         else {
             if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
                 else sb.number(OP_FALSE)
             }
@@ -733,12 +739,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
     
-    def private dispatch void compileExpression(Equals stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Equals stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(sb, ctx, altstack)
-            stmt.right.compileExpression(sb, ctx, altstack)
+            stmt.left.compileExpression(sb, ctx, altstack, varCount)
+            stmt.right.compileExpression(sb, ctx, altstack, varCount)
             
             switch (stmt.op) {
                 case "==": sb.op(OP_EQUAL)
@@ -748,7 +754,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         else {
             if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
                 else sb.number(OP_FALSE)
             }
@@ -756,15 +762,15 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
     }
 
-    def private dispatch void compileExpression(IfThenElse stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(IfThenElse stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.^if.compileExpression(sb, ctx, altstack)
+            stmt.^if.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_IF)
-            stmt.then.compileExpression(sb, ctx, altstack)
+            stmt.then.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_ELSE)
-            stmt.^else.compileExpression(sb, ctx, altstack)
+            stmt.^else.compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_ENDIF)            
         }
         else {
@@ -776,46 +782,46 @@ class BitcoinTMGenerator extends AbstractGenerator {
             }
             else if (res.first instanceof Boolean) {
                 if (res.first as Boolean) {
-                    sb.number(OP_TRUE)
+                    sb.op(OP_TRUE)
                 }
-                else sb.number(OP_FALSE)
+                else sb.op(OP_FALSE)
             }
             else throw new CompilationException('''Unxpected type «res.first.class». String or Integer or Boolean type expected''')         
         }
     }
 
-    def private dispatch void compileExpression(Versig stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Versig stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         if (stmt.pubkeys.size == 1) {
-            stmt.signatures.get(0).compileExpression(sb, ctx, altstack)
-            stmt.pubkeys.get(0).compileExpression(sb, ctx, altstack)
+            stmt.signatures.get(0).compileExpression(sb, ctx, altstack, varCount)
+            stmt.pubkeys.get(0).compileExpression(sb, ctx, altstack, varCount)
             sb.op(OP_CHECKSIG)
         } else {
             sb.number(OP_0)
-            stmt.signatures.forEach[s|s.compileExpression(sb, ctx, altstack)]
+            stmt.signatures.forEach[s|s.compileExpression(sb, ctx, altstack, varCount)]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|k.compileExpression(sb, ctx, altstack)]
+            stmt.pubkeys.forEach[k|k.compileExpression(sb, ctx, altstack, varCount)]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
     }
 
-    def private dispatch void compileExpression(NumberLiteral n, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(NumberLiteral n, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         sb.number(n.value).build().toString
     }
 
-    def private dispatch void compileExpression(BooleanLiteral n, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(BooleanLiteral n, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         sb.number(if(n.isTrue) OP_TRUE else OP_FALSE).build().toString
     }
 
-    def private dispatch void compileExpression(StringLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(StringLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         sb.data(s.value.bytes).build().toString
     }
     
-    def private dispatch void compileExpression(HashLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(HashLiteral s, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         sb.data(s.value).build().toString
     }
 
-    def private dispatch void compileExpression(Signature stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(Signature stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
         
 		var wif = stmt.key.body.pvt.value
 		var signatureInfo = new SignatureUtil
@@ -852,7 +858,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
         sb.number(OP_0)
     }
 
-    def private dispatch void compileExpression(VariableReference varRef, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack) {
+    def private dispatch void compileExpression(VariableReference varRef, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
+        
         /*
          * N: altezza dell'altstack
          * i: posizione della variabile interessata
@@ -866,15 +873,41 @@ class BitcoinTMGenerator extends AbstractGenerator {
          * 
          */
         var param = varRef.ref
-        var pos = altstack.get(param)
+        val pos = altstack.get(param)
 
         if(pos === null) throw new CompilationException;
 
         (1 .. altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-        sb.op(OP_DUP).op(OP_TOALTSTACK)
 
-        if (altstack.size - pos - 1 > 0)
-            (1 .. altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+//		println('''varCount [before]: «varCount»''')
+//		println('''altstack [before]: «altstack»''')
+		
+		var count = varCount.get(varRef.ref)
+        
+        if (count==1) {
+        	// this is the last usage of the variable
+        	varCount.remove(varRef.ref)
+        	altstack.remove(varRef.ref)							// remove the reference to its altstack position
+        	for (e : altstack.entrySet.filter[e|e.value>pos]) {	// update all the positions of the remaing elements
+        		altstack.put(e.key, e.value-1)
+        	}
+        	
+	        if (altstack.size - pos> 0)
+	            (1 .. altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+        	
+        }
+        else {
+        	varCount.put(varRef.ref, count-1)
+	        sb.op(OP_DUP).op(OP_TOALTSTACK)
+
+	        if (altstack.size - pos - 1 > 0)
+	            (1 .. altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+        }
+        
+
+//        println('''varCount [after] : «varCount»''')
+//		println('''altstack [after] : «altstack»''')
+//		println()
     }
     
 
