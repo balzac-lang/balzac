@@ -66,34 +66,21 @@ transaction T1 = {
 	] 
 }
 
- 
-/*
- * P2SH
- */ 
 
-transaction A = {
-	input = coinbase: 	true 
-	output= 2BTC:		fun(n:int). n==45
-}
-
-transaction B = {
-	input = A@0: 45
-	output= 1BTC: fun(n:int). n==43
-} 
 
 transaction Th = { 
 	input = coinbase: sig kA
-	output = 10 BTC: 
-		fun(secret:string, h:hash). 
-//			sha256(secret)==sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 && 
-//			hash256(secret)==hash256:5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456 &&
-//			h==sha256(5) &&
-//			h==sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e7 && 
-			h==h &&
-			sha256(sha256(5)) == hash256(5)
+	output = 
+		10 BTC:	fun(secret:string). 
+			sha256(secret)==sha256:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b && 
+			hash256(secret)==hash256:3881219d087dd9c634373fd33dfa33a2cb6bfc6c520b64b8bb60ef2ceb534ae7 &&
+			ripemd160(secret)==ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
+			hash160(secret)==hash160:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
+			hash256(secret)==sha256(sha256(secret)) &&
+			hash160(secret)==ripemd160(sha256(secret))
 } 
 
 transaction Th1 = {
-	input = Th: "" sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e4
+	input = Th: "secret"
 	output = 0: "HELLO WORLD"    
 }

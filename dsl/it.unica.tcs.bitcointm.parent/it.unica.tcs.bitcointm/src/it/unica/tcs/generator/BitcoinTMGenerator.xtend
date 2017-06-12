@@ -154,6 +154,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	input  [
 		«FOR i : tx.inputs»
 		«i.scriptSig.toString»
+		«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
+			redeem script [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
+		«ENDIF»
+		
 		«ENDFOR»
 	]
 	output [
@@ -162,7 +166,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		«out.value.value» : «out.scriptPubKey.toString»
 		«ENDFOR»
 	]
-} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
+} 
+
+«««[«Utils.HEX.encode(tx.bitcoinSerialize)»]
 '''
     }
 

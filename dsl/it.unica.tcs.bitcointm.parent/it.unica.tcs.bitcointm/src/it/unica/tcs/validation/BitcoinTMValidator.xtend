@@ -194,7 +194,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 		
 		
-		var resSimplify = exp.simplify					// simplify && || + - 
+//		var resSimplify = exp.simplify					// simplify && || + - 
 		var resInterpret = exp.simplifySafe.interpret	// simplify if possible, then interpret
 		
 		var container = exp.eContainer
@@ -204,7 +204,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			}
 			else ValidationMessageAcceptor.INSIGNIFICANT_INDEX
 		
-		if (!resInterpret.failed || !resSimplify.failed) {
+		if (!resInterpret.failed /* || !resSimplify.failed*/) {
 			
 			// the expression can be simplified. Store it within the context such that sub-expression will skip this check
 			context.put(exp, exp)
@@ -783,8 +783,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	    	
 		for (var i=0; i<tbody.outputs.size-1; i++) {
 			for (var j=i+1; j<tbody.outputs.size; j++) {
-				
-				println('''i=«i» j=«j»''')
 				
 				var outputA = tbody.outputs.get(i)
 				var outputB = tbody.outputs.get(j)
