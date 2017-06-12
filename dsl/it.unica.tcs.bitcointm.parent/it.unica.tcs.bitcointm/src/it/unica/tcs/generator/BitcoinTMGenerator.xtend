@@ -186,7 +186,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 
     def boolean isOpReturn(it.unica.tcs.bitcoinTM.Script script) {
         var noParam = script.params.size == 0
-        var onlyString = script.exp instanceof StringLiteral
+        var onlyString = script.exp.simplifySafe instanceof StringLiteral
 
         return noParam && onlyString
     }

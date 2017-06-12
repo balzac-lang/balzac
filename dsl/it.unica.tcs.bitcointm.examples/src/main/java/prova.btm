@@ -35,11 +35,11 @@ transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b
 transaction T = {
 	input = coinbase@0: sig kA AIAO
 	output = [
-		0.00000001 BTC:	fun(n) . n!=42 ;
-		0 BTC:		fun(n) . n=="abc";
-		10:			fun(x:signature, y:signature) . y==x; 
-		0 BTC:		fun(y1) . versig(kB; y1) && 2==2;
-		0 BTC:		fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
+		0.00000546 BTC:		fun(n) . n!=42 ;
+		0.00000546 BTC:		fun(n) . n=="abc";
+		546:				fun(x:signature, y:signature) . y==x; 
+		550:				fun(y1) . versig(kB; y1) && 2==2;
+		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
 	]
  
 	tlock = 97
@@ -60,9 +60,9 @@ transaction T1 = {
 	]
 	 
 	output = [  
-		4: 	2147483647 + 1; 
-		2:	fun (a) . a-45;
-		1:	if (12==10+2) then 3 else 4
+		4444: 	2147483647 + 1; 
+		2222:	fun (a) . a-45;
+		1111:	if (12==10+2) then 3 else 4
 	] 
 }
 
@@ -80,3 +80,20 @@ transaction B = {
 	input = A@0: 45
 	output= 1BTC: fun(n:int). n==43
 } 
+
+transaction Th = { 
+	input = coinbase: sig kA
+	output = 10 BTC: 
+		fun(secret:string, h:hash). 
+//			sha256(secret)==sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 && 
+//			hash256(secret)==hash256:5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456 &&
+//			h==sha256(5) &&
+//			h==sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e7 && 
+			h==h &&
+			sha256(sha256(5)) == hash256(5)
+} 
+
+transaction Th1 = {
+	input = Th: "" sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e4
+	output = 0: "HELLO WORLD"    
+}

@@ -22,5 +22,5 @@ transaction T = {
 transaction T1 = {
 	input = T: "" sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e4
 
-	output = 0: true    
+	output = 0: "RIPPLE"
 }

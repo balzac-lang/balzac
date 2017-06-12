@@ -157,7 +157,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	@Check
 	def void checkEmptyLambda(it.unica.tcs.bitcoinTM.Script script) {
-		if (script.params.size==0) {
+		if (script.params.size==0 && !script.isOpReturn) {
 		    
 		    if (script.eContainer instanceof Output)
     			warning("This output could be redeemed without providing any arguments.",
@@ -177,11 +177,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkInterpretExp(Expression exp) {
 		
-		println(":::::::::::::::::::::::::::::::::::::::")
-		println('''exp:              «exp»''')
-		println('''context:          «context.keySet.filter(Expression)»''')
-		println('''contains paremt:  «context.containsKey(exp.eContainer)»''')
-		println()		
+//		println(":::::::::::::::::::::::::::::::::::::::")
+//		println('''exp:              «exp»''')
+//		println('''context:          «context.keySet.filter(Expression)»''')
+//		println('''contains paremt:  «context.containsKey(exp.eContainer)»''')
+//		println()		
 		
 		if (context.containsKey(exp.eContainer) 
 			|| exp instanceof Literal
@@ -750,5 +750,66 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         return true
     }
     
+    @Check
+    def void checkPositiveOutValue(Output output) {
+    	
+    	var value = output.value.exp.interpret.getFirst as Integer
+    	var script = output.script
+    	
+    	if (script.isOpReturn && value>0) {
+    		error("OP_RETURN output scripts must have 0 value.",
+                output,
+                BitcoinTMPackage.Literals.OUTPUT__VALUE
+            );
+    	}
+    	
+    	// https://github.com/bitcoin/bitcoin/commit/6a4c196dd64da2fd33dc7ae77a8cdd3e4cf0eff1
+    	if (!script.isOpReturn && value<546) {
+    		error("Output (except OP_RETURN scripts) must spend at least 546 satoshis.",
+                output,
+                BitcoinTMPackage.Literals.OUTPUT__VALUE
+            );
+    	}
+    }
+    
+    /*
+     * https://en.bitcoin.it/wiki/Script
+     * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
+     */
+    @Check
+    def void checkJustOneOpReturn(UserDefinedTxBody tbody) {
+    	
+    	var boolean[] error = newBooleanArrayOfSize(tbody.outputs.size);
+    	    	
+		for (var i=0; i<tbody.outputs.size-1; i++) {
+			for (var j=i+1; j<tbody.outputs.size; j++) {
+				
+				println('''i=«i» j=«j»''')
+				
+				var outputA = tbody.outputs.get(i)
+				var outputB = tbody.outputs.get(j)
+				
+				// these checks need to be executed in this order
+				if (outputA.script.isOpReturn && outputB.script.isOpReturn
+		        ) {
+					if (!error.get(i) && (error.set(i,true) && true))
+			            error(
+			                "You cannot define more than one OP_RETURN script per transaction.",
+			                outputA.eContainer,
+			                outputA.eContainingFeature,
+			                i
+			            );
+		        
+		            if (!error.get(j) && (error.set(j,true) && true))
+				        error(
+			                "You cannot define more than one OP_RETURN script per transaction.",
+			                outputB.eContainer,
+			                outputB.eContainingFeature,
+			                j
+			            );
+		        }
+			}
+		}
+    }
     
 }
