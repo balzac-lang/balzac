@@ -733,61 +733,74 @@ from {
 axiom SimplifyEObject
 	G |= Expression obj ~> obj
 	
-rule SimplifyAnd
-    G |= AndExpression and ~> Expression result
-from {
-	{
-	    G |- and.left ~> var Boolean leftResult
-	    {leftResult == true}	    
-	    result = and.right
-	} or {
-	    G |- and.right ~> var Boolean rightResult
-	    {rightResult == true}	    
-	    result = and.left
-	}
-}
-
-rule SimplifyOr
-    G |= OrExpression and ~> Expression result
-from {
-	{
-	    G |- and.left ~> var Boolean leftResult
-	    {leftResult == false}	    
-	    result = and.right
-	} or {
-	    G |- and.right ~> var Boolean rightResult
-	    {rightResult == false}	    
-	    result = and.left
-	}
-}
-
-rule SimplifyPlus
-    G |= Plus and ~> Expression result
-from {
-	{
-	    G |- and.left ~> var Integer leftResult
-	    {leftResult == 0}	    
-	    result = and.right
-	} or {
-	    G |- and.right ~> var Integer rightResult
-	    {rightResult == 0}	    
-	    result = and.left
-	}
-}
-
-rule SimplifyMinus
-    G |= Minus and ~> Expression result
-from {
-	{
-	    G |- and.left ~> var Integer leftResult
-	    {leftResult == 0}	    
-	    result = and.right
-	} or {
-	    G |- and.right ~> var Integer rightResult
-	    {rightResult == 0}	    
-	    result = and.left
-	}
-}
+//rule SimplifyAnd
+//    G |= AndExpression exp ~> Expression result
+//from {
+//	{
+//	    G |- exp.left ~> var Boolean leftResult
+//	    {leftResult == true}	    
+//	    G |= exp.right ~> result
+//	} or {
+//	    G |- exp.right ~> var Boolean rightResult
+//	    {rightResult == true}	    
+//	    G |= exp.left ~> result
+//	} or {
+//		var newExp = BitcoinTMFactory::eINSTANCE.createAndExpression
+//		newExp.left = simplifySafe(exp.left)
+//		newExp.right = simplifySafe(exp.right)
+//	}
+//}
+//
+//rule SimplifyOr
+//    G |= OrExpression exp ~> Expression result
+//from {
+//	{
+//	    G |- exp.left ~> var Boolean leftResult
+//	    {leftResult == false}	    
+//	    G |= exp.right ~> result
+//	} or {
+//	    G |- exp.right ~> var Boolean rightResult
+//	    {rightResult == false}	    
+//	    G |= exp.left ~> result
+//	} or {
+//		exp.left = simplifySafe(exp.left)
+//		exp.right = simplifySafe(exp.right)
+//	}
+//}
+//
+//rule SimplifyPlus
+//    G |= Plus exp ~> Expression result
+//from {
+//	{
+//	    G |- exp.left ~> var Integer leftResult
+//	    {leftResult == 0}
+//	    G |= exp.right ~> result    
+//	} or {
+//	    G |- exp.right ~> var Integer rightResult
+//	    {rightResult == 0}	    
+//	    G |= exp.left ~> result
+//	} or {
+//		exp.left = simplifySafe(exp.left)
+//		exp.right = simplifySafe(exp.right)
+//	}
+//}
+//
+//rule SimplifyMinus
+//    G |= Minus exp ~> Expression result
+//from {
+//	{
+//	    G |- exp.left ~> var Integer leftResult
+//	    {leftResult == 0}	    
+//	    G |= exp.right ~> result
+//	} or {
+//	    G |- exp.right ~> var Integer rightResult
+//	    {rightResult == 0}	    
+//	    G |= exp.left ~> result
+//	} or {
+//		exp.left = simplifySafe(exp.left)
+//		exp.right = simplifySafe(exp.right)
+//	}
+//}
 
 /*
  * 

@@ -77,7 +77,10 @@ transaction Th = {
 			ripemd160(secret)==ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
 			hash160(secret)==hash160:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
 			hash256(secret)==sha256(sha256(secret)) &&
-			hash160(secret)==ripemd160(sha256(secret))
+			hash160(secret)==ripemd160(sha256(secret)) &&
+			hash256("")==sha256(sha256("")) &&
+			hash160("")==ripemd160(sha256(""))&&
+			hash160("")==ripemd160(sha256(""))
 } 
 
 transaction Th1 = {
