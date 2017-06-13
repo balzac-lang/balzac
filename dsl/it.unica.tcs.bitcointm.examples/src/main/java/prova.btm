@@ -16,11 +16,10 @@ key kB = [
 //	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 	 
   
-
-transaction coinbase = _
+coinbase kA as coinbaseA
 
 transaction ALFA = {
-	input = coinbase: true
+	input = coinbaseA: sig kA
 	output = [
 		1 BTC: fun(n) . n==42;			// P2SH
 		1 BTC: fun(y) . versig(kB; y);	// P2PKH
@@ -33,7 +32,7 @@ transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b
 
 
 transaction T = {
-	input = coinbase@0: sig kA AIAO
+	input = coinbaseA@0: sig kA AIAO
 	output = [
 		0.00000546 BTC:		fun(n) . n!=42 ;
 		0.00000546 BTC:		fun(n) . n=="abc";
@@ -70,7 +69,7 @@ transaction T1 = {
 
 
 transaction Th = { 
-	input = coinbase: sig kA
+	input = coinbaseA: sig kA
 	output = 
 		10 BTC:	fun(secret:string). 
 			sha256(secret)==sha256:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b && 

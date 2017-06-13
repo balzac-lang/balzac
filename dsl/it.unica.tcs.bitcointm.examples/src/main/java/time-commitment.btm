@@ -4,18 +4,70 @@ key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasy
 key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
-transaction coinbase = _
 
+coinbase kA as fundsA
+coinbase kB as fundsB
 
-transaction T = { 
-	input = coinbase: sig kA
+transaction T_commitA = { 
+	input = fundsA: sig kA
 	output = 10 BTC: 
-		fun(secret:string, h:hash).
-			sha256(sha256(5)) == hash256(5)
-} 
-
-transaction T1 = {
-	input = T: "" sha256:a25513c7e0f6eaa80a3337ee18081b9e2ed09e00af8531c8f7bb2542764027e4
-
-	output = 0: "HELLO!"
+		fun(sigma1, sigma2, x:string).
+			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
+			||
+			versig(kA, kB; sigma1, sigma2)
 }
+
+transaction T_commitB = { 
+	input = fundsB: sig kB
+	output = 10 BTC: 
+		fun(sigma1, sigma2, x:string).
+			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
+			||
+			versig(kA, kB; sigma1, sigma2)
+}
+
+
+
+transaction T_openA = {
+	input = T_commitA: sig kA sig kA "secretA"
+	output = 10 BTC - 10: fun(sigma) .versig(kA; sigma)
+}
+
+transaction T_openB = {
+	input = T_commitB: sig kB sig kB "secretB"
+	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
+}
+
+
+
+transaction T_payDepositA = {
+    input = T_commitA: sig kA sig kB ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
+	tlock = 45
+}  
+
+transaction T_payDepositB = {
+    input = T_commitB: sig kA sig kB ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
+	tlock = 45
+}
+
+
+
+
+transaction T_compute = {
+    input = [
+    	fundsA: sig kA;
+    	fundsB: sig kB
+    	]
+	output =
+		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) . 
+			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
+			hash160(xB) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
+			(size(xA) == 128 || size(xA) == 127) && 
+			(size(xB) == 128 || size(xB) == 127) &&
+			if size(xA) == size(xB) 
+			then versig(kA; sigma1) 
+			else versig(kB; sigma2)
+ 
+} 

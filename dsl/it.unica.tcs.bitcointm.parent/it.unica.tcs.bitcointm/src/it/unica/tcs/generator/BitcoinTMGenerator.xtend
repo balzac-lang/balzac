@@ -11,7 +11,6 @@ import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
 import it.unica.tcs.bitcoinTM.Comparison
-import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
@@ -35,7 +34,6 @@ import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
@@ -140,19 +138,18 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(TransactionDeclaration obj) {
-        '''transaction «obj.name» «obj.body.compile»'''
-    }
 
-    def dispatch String compile(DummyTxBody obj) {"<dummy>"}
-    def dispatch String compile(SerialTxBody obj) {obj.bytes}
-    
-    
-    def dispatch String compile(UserDefinedTxBody obj) {
-        
-        var tx = obj.toTransaction;
-        
-        '''{
-	input  [
+    	var tx = obj.toTransaction
+
+    	if (obj.isCoinbase)
+    		return '''coinbase «obj.name» [«tx.outputs.get(0).scriptPubKey»]'''
+    	
+    	if (obj.body instanceof SerialTxBody)
+    		return '''transaction «obj.name» [«(obj.body as SerialTxBody).bytes»]'''
+    	
+    	
+        '''transaction «obj.name» {
+	input [
 		«FOR i : tx.inputs»
 		«i.scriptSig.toString»
 		«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
@@ -209,96 +206,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * compiler: AST --> BitcoinJ
      * 
      */
-    
-    def Transaction toTransaction(TxBody stmt) {
-    	toTransaction(stmt, new HashMap())
-    }
-    
-    /**
-     * Create a bitcoinj transaction object recursively.
-     * Each transaction is bound to another one by its inputs. Recursion
-     * stops when either a coinbase transaction or a serialized transaction is reached.
-     */
-    def dispatch Transaction toTransaction(UserDefinedTxBody stmt, Map<TxBody,Transaction> cache) {
-        
-		if (cache.containsKey(stmt))
-			return cache.get(stmt)
-
-//        println('''--- transaction «(stmt.eContainer as TransactionDeclaration).name»---''')
-        
-        var netParams = stmt.networkParams        
-        var Transaction tx = new Transaction(netParams)
-        var inputCtx = new SignaturesTracker
-        
-        // the tx is not ready yet but it will be at the end of the recursive loop
-        cache.put(stmt, tx)
-        
-        for (var i=0; i<stmt.inputs.size; i++) {
-//        	println('''input «i»''')
-        	var input = stmt.inputs.get(i)
-            var outIndex = input.txRef.idx
-            var txToRedeem = input.txRef.tx.body.toTransaction(cache)
-            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-            var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
-            tx.addInput(txInput)            
-        }
-        
-        for (output : stmt.outputs) {
-            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
-            tx.addOutput(txOutput)
-        }
-        
-        // set all the signatures within the input scripts (which are never part of the signature)
-        for (var i=0; i<tx.inputs.size; i++) {
-            var txInput = tx.getInput(i)
-            var signatures = inputCtx.get(stmt.inputs.get(i))
-            
-            if (signatures!==null) {
-            	
-                var outScript = 
-                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
-                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
-                    else
-                        txInput.outpoint.connectedPubKeyScript
-                
-                for(sign : signatures) {
-                    // compute the signature
-                    var txSignature = tx.calculateSignature(i, sign.key, outScript, sign.hashType, sign.anyoneCanPay)
-                    
-                    // replace the chunk at index sign.index with the signature
-                    var sb = new ScriptBuilder
-                    
-                    for (var j=0; j<txInput.scriptSig.chunks.size; j++) {
-                    	var chunk = txInput.scriptSig.chunks.get(j)
-                    	
-                    	if (j<sign.index || j>sign.index)
-                    		sb.addChunk(chunk) // copy
-                    	else
-                    		sb.data(txSignature.encodeToBitcoin)
-                    }
-                    
-                    txInput.scriptSig = sb.build
-                }
-            }
-            
-        }
-        return tx    
-    }
-    
-    /**
-     * Deserialiaze the transaction bytes into a bitcoinj transaction.
-     * We assume the byte string to be valid.
-     */ 
-    def dispatch Transaction toTransaction(SerialTxBody stmt, Map<TxBody,Transaction> cache) {
-    	if (cache.containsKey(stmt))
-			return cache.get(stmt)
-    	
-    	var tx = new Transaction(stmt.networkParams, Utils.HEX.decode(stmt.bytes))
-    	
-    	cache.put(stmt, tx)
-    	return tx
-    }
+     
+	def Transaction toTransaction(TransactionDeclaration stmt) {
+		toTransaction(stmt, new HashMap());
+	}
     
     /**
      * Create a bitcoinj coinbase transaction.
@@ -306,24 +217,109 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * 
      * @return a coinbase tx with a lot of money always redeemable
      */
-    def dispatch Transaction toTransaction(DummyTxBody stmt, Map<TxBody,Transaction> cache) {
+    def private Transaction toTransaction(TransactionDeclaration stmt, Map<TransactionDeclaration,Transaction> cache) {
         if (cache.containsKey(stmt))
 			return cache.get(stmt)
         
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
-        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
-        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, new ScriptBuilder().number(1).build().getProgram());      
+
+       	if (stmt.isCoinbase) {
+       		var address = stmt.key.body.pub.value.wifToAddress(netParams)
+	        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
+	        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, ScriptBuilder.createOutputScript(address).program);      
+	    
+	        tx.addInput(txInput);
+	        tx.addOutput(txOutput);
+	        cache.put(stmt, tx)
+       	}
+       	else {
+       		switch(stmt.body) {
+       			UserDefinedTxBody: {
+       				/**
+				     * Create a bitcoinj transaction object recursively.
+				     * Each transaction is bound to another one by its inputs. Recursion
+				     * stops when either a coinbase transaction or a serialized transaction is reached.
+				     */
+		       		var body = stmt.body as UserDefinedTxBody
+		       		
+		       		// the tx is not ready yet but it will be at the end of the recursive loop
+        			cache.put(stmt, tx)
         
-        tx.addInput(txInput);
-        tx.addOutput(txOutput);
+       				var inputCtx = new SignaturesTracker
         
-        cache.put(stmt, tx)
+			        for (var i=0; i<body.inputs.size; i++) {
+			//        	println('''input «i»''')
+			        	var input = body.inputs.get(i)
+			            var outIndex = input.txRef.idx
+			            var txToRedeem = input.txRef.tx.toTransaction(cache)
+			            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
+			            var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
+			            tx.addInput(txInput)            
+			        }
+			        
+			        for (output : body.outputs) {
+			            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
+			            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
+			            tx.addOutput(txOutput)
+			        }
+			        
+			        // set all the signatures within the input scripts (which are never part of the signature)
+			        for (var i=0; i<tx.inputs.size; i++) {
+			            var txInput = tx.getInput(i)
+			            var signatures = inputCtx.get(body.inputs.get(i))
+			            
+			            if (signatures!==null) {
+			            	
+			                var outScript = 
+			                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
+			                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
+			                    else
+			                        txInput.outpoint.connectedPubKeyScript
+			                
+			                for(sign : signatures) {
+			                    // compute the signature
+			                    var txSignature = tx.calculateSignature(i, sign.key, outScript, sign.hashType, sign.anyoneCanPay)
+			                    
+			                    // replace the chunk at index sign.index with the signature
+			                    var sb = new ScriptBuilder
+			                    
+			                    for (var j=0; j<txInput.scriptSig.chunks.size; j++) {
+			                    	var chunk = txInput.scriptSig.chunks.get(j)
+			                    	
+			                    	if (j<sign.index || j>sign.index)
+			                    		sb.addChunk(chunk) // copy
+			                    	else
+			                    		sb.data(txSignature.encodeToBitcoin)
+			                    }
+			                    
+			                    txInput.scriptSig = sb.build
+			                }
+			            }
+			            
+			        }
+       			}
+       			
+       			SerialTxBody: {
+       				/**
+				     * Deserialiaze the transaction bytes into a bitcoinj transaction.
+				     * We assume the byte string to be valid.
+				     */ 
+				    var body = stmt.body as SerialTxBody
+			    	tx = new Transaction(stmt.networkParams, Utils.HEX.decode(body.bytes))
+			    	
+			    	cache.put(stmt, tx)
+			    	return tx
+       			}
+       		}
+       		
+       	}
+        
+        // the tx is not ready yet but it will be at the end of the recursive loop
     	return tx
     }
     
-
-
+        
     
 
     def Script compileInput(Input stmt, SignaturesTracker ctx) {
@@ -335,88 +331,98 @@ class BitcoinTMGenerator extends AbstractGenerator {
          */
         ctx.currentInput=stmt
 		
-		switch stmt.txRef.tx.body {
-			
-			/*
-			 * User defined transaction.
-			 * Return the expected inputs based on the kind of output script
-			 */
-			UserDefinedTxBody: {
-				var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
-	            var output = inputTx.outputs.get(outIdx);
-	    
-	            if (output.script.isP2PKH) {
-	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
-	                
-	                val sb = new ScriptBuilder()
-	    
-	                sig.compileInputExpression(sb, ctx)
-	                sb.data(pubkey)
-	    
-	                /* <sig> <pubkey> */
-	                sb.build
-	            } else if (output.script.isP2SH) {
-	                
-	                val expSb = new ScriptBuilder()
-	                
-	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
-	                
-	                // get the redeem script to push
-	                var redeemScript = output.script.getRedeemScript
-	                
-	                expSb.data(redeemScript.program)
-	                                
-	                /* <e1> ... <en> <serialized script> */
-	                expSb.build
-	            } else
-	                throw new CompilationException
-            }
-            
-			/*
-			 * Serialized transaction.
-			 * Return the expected inputs based on the kind of output script
-			 */
-            SerialTxBody: {
-            	var output = stmt.txRef.tx.body.toTransaction.getOutput(outIdx)
-            
-	            if (output.scriptPubKey.isSentToAddress) {
-	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
-	                
-	                val sb = new ScriptBuilder()
-	    
-	                sig.compileInputExpression(sb, ctx)
-	                sb.data(pubkey)
-	    
-	                /* <sig> <pubkey> */
-	                sb.build
-	            } else if (output.scriptPubKey.isPayToScriptHash) {
-	                
-	                val expSb = new ScriptBuilder()
-	                
-	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
-	                
-	                // get the redeem script to push
-	                var redeemScript = stmt.redeemScript.getRedeemScript
-	                expSb.data(redeemScript.program)
-	                
-	                /* <e1> ... <en> <serialized script> */
-	                expSb.build
-	            } else
-	                throw new CompilationException
-            }
-            
-            /*
+		if (stmt.txRef.tx.isCoinbase) {
+ 			/*
              * Coinbase transaction are always redeemable.
              */
-            DummyTxBody: {
-	            new ScriptBuilder().number(1).build
-	        }
+            var sig = stmt.exps.get(0).simplifySafe as Signature
+            var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+            
+            val sb = new ScriptBuilder()
+
+            sig.compileInputExpression(sb, ctx)
+            sb.data(pubkey)
+
+            /* <sig> <pubkey> */
+            sb.build
 		}
-		
+		else {
+			switch stmt.txRef.tx.body {
+				
+				/*
+				 * User defined transaction.
+				 * Return the expected inputs based on the kind of output script
+				 */
+				UserDefinedTxBody: {
+					var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
+		            var output = inputTx.outputs.get(outIdx);
+		    
+		            if (output.script.isP2PKH) {
+		                var sig = stmt.exps.get(0).simplifySafe as Signature
+		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+		                
+		                val sb = new ScriptBuilder()
+		    
+		                sig.compileInputExpression(sb, ctx)
+		                sb.data(pubkey)
+		    
+		                /* <sig> <pubkey> */
+		                sb.build
+		            } else if (output.script.isP2SH) {
+		                
+		                val expSb = new ScriptBuilder()
+		                
+		                // build the list of expression pushes (actual parameters) 
+		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
+		                
+		                // get the redeem script to push
+		                var redeemScript = output.script.getRedeemScript
+		                
+		                expSb.data(redeemScript.program)
+		                                
+		                /* <e1> ... <en> <serialized script> */
+		                expSb.build
+		            } else
+		                throw new CompilationException
+	            }
+	            
+				/*
+				 * Serialized transaction.
+				 * Return the expected inputs based on the kind of output script
+				 */
+	            SerialTxBody: {
+	            	var output = stmt.txRef.tx.toTransaction.getOutput(outIdx)
+	            
+		            if (output.scriptPubKey.isSentToAddress) {
+		                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
+		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+		                
+		                val sb = new ScriptBuilder()
+		    
+		                sig.compileInputExpression(sb, ctx)
+		                sb.data(pubkey)
+		    
+		                /* <sig> <pubkey> */
+		                sb.build
+		            } else if (output.scriptPubKey.isPayToScriptHash) {
+		                
+		                val expSb = new ScriptBuilder()
+		                
+		                // build the list of expression pushes (actual parameters) 
+		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(expSb, ctx)]
+		                
+		                // get the redeem script to push
+		                var redeemScript = stmt.redeemScript.getRedeemScript
+		                expSb.data(redeemScript.program)
+		                
+		                /* <e1> ... <en> <serialized script> */
+		                expSb.build
+		            } else
+		                throw new CompilationException
+	            }
+	            default: throw new CompilationException("Unexpected class "+stmt.txRef.tx.body.class)
+			}			
+		}
     }
 
 	/**

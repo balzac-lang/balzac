@@ -54,16 +54,6 @@ class Optimizer {
 		return new ScriptBuilder(script).addChunk(0,ch).build
 	}
 
-	def private int find(Script script, int opcode) {
-		var i=0;
-		for (ch : script.chunks) {
-			if (ch.equalsOpCode(opcode))
-				return i
-			i++
-		}
-		return -1
-	}	
-
 	def private Script subscript(Script script, int startIndex) {
 		subscript(script, startIndex, script.chunks.size)
 	}

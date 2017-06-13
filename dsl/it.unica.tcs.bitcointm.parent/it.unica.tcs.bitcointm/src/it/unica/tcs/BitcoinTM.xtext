@@ -23,7 +23,7 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Declaration:
-	KeyDeclaration | TransactionDeclaration; 
+	KeyDeclaration | TransactionDeclaration | CoinbaseDeclaration; 
 
 Network:
 	{Network} "network" (testnet?="testnet" | "mainnet");
@@ -49,10 +49,12 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  */
 TransactionDeclaration:
 	"transaction" name=ID '=' body=TxBody;
+	
+CoinbaseDeclaration returns TransactionDeclaration:
+	coinbase?="coinbase" key=[KeyDeclaration] "as" name=ID;
 
-TxBody: SerialTxBody | DummyTxBody | UserDefinedTxBody;
+TxBody: SerialTxBody | UserDefinedTxBody;
 
-DummyTxBody: {DummyTxBody} "_";
 SerialTxBody: bytes=STRING;
 UserDefinedTxBody: "{"
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )

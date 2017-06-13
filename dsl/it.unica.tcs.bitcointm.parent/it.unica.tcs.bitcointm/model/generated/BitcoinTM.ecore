@@ -39,9 +39,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TxBody"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="coinbase" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TxBody"/>
-  <eClassifiers xsi:type="ecore:EClass" name="DummyTxBody" eSuperTypes="#//TxBody"/>
   <eClassifiers xsi:type="ecore:EClass" name="SerialTxBody" eSuperTypes="#//TxBody">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>

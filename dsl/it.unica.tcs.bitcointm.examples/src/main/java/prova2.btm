@@ -1,23 +1,19 @@
 
 package it.unica.btm.prova2
 
-network mainnet  
+network testnet
+ 
+key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 
-key kA = [
-	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
-	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
-
-transaction coinbase = _
+coinbase kA as coinbaseA
 
 transaction ALFA = {
-	input = coinbase: true
+	input = coinbaseA: sig kA
 	output = 
 		1 BTC: fun(n, m) . n==42 && 2+m==n && m+n==40+n  	// P2SH 
 	
 }
 
-transaction BETA = {
-	input = ALFA: 42 40
-	output = 0 BTC: "pippo"
-}
+ 
 

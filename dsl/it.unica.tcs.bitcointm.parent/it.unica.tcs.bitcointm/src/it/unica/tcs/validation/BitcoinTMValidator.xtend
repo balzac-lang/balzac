@@ -7,7 +7,6 @@ import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.DummyTxBody
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Import
@@ -47,6 +46,7 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -521,16 +521,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var outIndex = input.txRef.idx
         var int numOfOutputs
         
-        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+        if (input.txRef.tx.isCoinbase){
+            numOfOutputs = 1
+        }
+        else if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             numOfOutputs = inputTx.outputs.size
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
-            var inputTx = input.txRef.tx.body as SerialTxBody
+            var inputTx = input.txRef.tx
             numOfOutputs = inputTx.toTransaction.outputs.size
-        }
-        else if (input.txRef.tx.body instanceof DummyTxBody){
-            numOfOutputs = 1
         }
         else throw new IllegalStateException
         
@@ -550,7 +550,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var outputIdx = input.txRef.idx
         var lastExp = input.exps.get(input.exps.size-1)
 		
-        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+		if (input.txRef.tx.isCoinbase) {
+            if (input.exps.size!=1 || !(input.exps.get(0) instanceof Signature)) {
+                error(
+                    "Coinbase transactions have to be redeemed providing a signature.",
+                    input,
+                    BitcoinTMPackage.Literals.INPUT__EXPS,
+                    0
+                );
+                return false
+            }
+		}
+        else if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             var outputScript = inputTx.outputs.get(outputIdx).script;
             
@@ -580,11 +591,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
             
-            var refTx = input.txRef.tx.body.toTransaction
-            
-//            println("SERIAL")
-//            println('''SCRIPT: «refTx.getOutput(outputIdx).scriptPubKey»''')
-//            println('''P2SH:   «refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash»''')
+            var refTx = input.txRef.tx.toTransaction
             
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
                 lastExp instanceof Script
@@ -689,8 +696,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var Script outScript            
             
             try {
-                var Transaction tx = tbody.toTransaction
-//				println('''«(tbody.eContainer as TransactionDeclaration).name» [1]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+                var Transaction tx = (tbody.eContainer as TransactionDeclaration).toTransaction
 				
 				try {
 					tx.verify();
@@ -711,14 +717,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 inScript = tx.getInput(i).scriptSig
                 outScript = tx.getInput(i).outpoint.connectedOutput.scriptPubKey
                 inScript.correctlySpends(
-                    tx, 
-                    i, 
-                    outScript, 
-                    ALL_VERIFY_FLAGS
-                )
+	                    tx, 
+	                    i, 
+	                    outScript, 
+	                    ALL_VERIFY_FLAGS
+	                )
                 
-//              println("input "+inScript+" correctly redeem output "+tx.getOutput(outIndex).scriptPubKey)
-//				println('''«(tbody.eContainer as TransactionDeclaration).name» [2]: «Utils.HEX.encode(tx.bitcoinSerialize)»''')
+//              	println("input "+inScript+" correctly redeem output "+outScript)
 //                
 //                tx.outputs.forEach[out|
 //                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
