@@ -14,9 +14,6 @@ class Optimizer {
 		do {
 			oldScript = newScript			
 			newScript = oldScript.optimizationStep
-			
-			println()
-			println(newScript)			
 		} while( newScript!=oldScript )
 		
 		newScript;
