@@ -318,8 +318,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		for(var i=0; i<versig.pubkeys.size; i++) {
 			var k = versig.pubkeys.get(i).body
 			
-			if (k.pvt.value===null && k.pub.value===null) {
-				error("The referred public key is not declared and cannot be computed by the private one.", 
+			if (k.pvt.value===null) {
+				error("The public key cannot be computed without the private key.", 
 					versig,
 					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
 					i
