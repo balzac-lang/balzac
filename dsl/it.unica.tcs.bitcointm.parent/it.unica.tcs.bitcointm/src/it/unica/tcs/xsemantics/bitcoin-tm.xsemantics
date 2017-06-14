@@ -36,7 +36,9 @@ import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
+import java.math.BigInteger
 import java.util.Arrays
+import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
@@ -732,11 +734,18 @@ from {
 	    } 
 }
 
-//rule InterpretSize
-//    G |- Size size ~> Integer result
-//from {
-//	//TODO
-//}
+rule InterpretSize
+    G |- Size size ~> Integer result
+from {
+	G |- size.value ~> var Integer res
+	
+	if (res==0) 
+		result=0
+	else {
+		// ⌈(log2 |n| / 7)⌉
+		result = Utils.encodeMPI(BigInteger.valueOf(res), false).length
+	}
+}
 
 
 /*

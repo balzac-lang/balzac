@@ -148,26 +148,27 @@ class BitcoinTMGenerator extends AbstractGenerator {
     		return '''transaction «obj.name» [«(obj.body as SerialTxBody).bytes»]'''
     	
     	
-        '''transaction «obj.name» {
-	input [
-		«FOR i : tx.inputs»
-		«i.scriptSig.toString»
-		«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
-			redeem script       [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
-			redeem script (opt) [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).optimize.toString»]
-		«ENDIF»
+		'''
+		transaction «obj.name» {
+			input [
+				«FOR i : tx.inputs»
+				«i.scriptSig.toString»
+				«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
+					redeem script       [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
+					redeem script (opt) [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).optimize.toString»]
+				«ENDIF»
+				
+				«ENDFOR»
+			]
+			output [
+				«FOR i : 0 ..< tx.outputs.size»
+				«var out = tx.outputs.get(i)»
+				«out.value.value» : «out.scriptPubKey.toString»
+				«ENDFOR»
+			]
+		} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
 		
-		«ENDFOR»
-	]
-	output [
-		«FOR i : 0 ..< tx.outputs.size»
-		«var out = tx.outputs.get(i)»
-		«out.value.value» : «out.scriptPubKey.toString»
-		«ENDFOR»
-	]
-} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
-
-'''
+		'''
     }
 
 
@@ -666,8 +667,19 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def private dispatch void compileExpression(Size stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
-        stmt.value.compileExpression(sb, ctx, altstack, varCount)
-        sb.op(OP_SIZE)
+        var res = typeSystem.interpret(stmt)
+        
+        if (res.failed) {
+	        stmt.value.compileExpression(sb, ctx, altstack, varCount)
+	        sb.op(OP_SIZE)
+        }
+        else {
+        	if (res.first instanceof Integer) {
+                sb.number(res.first as Integer)
+            }
+            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        }
+        
     }
 
     def private dispatch void compileExpression(BooleanNegation stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {

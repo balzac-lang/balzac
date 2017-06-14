@@ -47,6 +47,7 @@ import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.ArithmeticSigned
 
 /**
  * This class contains custom validation rules. 
@@ -185,7 +186,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		if (context.containsKey(exp.eContainer) 
 			|| exp instanceof Literal
-//			|| exp.eContainer instanceof Input
+			|| exp instanceof ArithmeticSigned
 			|| exp.eContainer instanceof BitcoinValue
 		){
 			// your parent can be simplified, so you are too

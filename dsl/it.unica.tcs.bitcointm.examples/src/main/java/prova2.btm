@@ -11,9 +11,14 @@ coinbase kA as coinbaseA
 transaction ALFA = {
 	input = coinbaseA: sig kA
 	output = 
-		1 BTC: fun(n, m) . n==42 && 2+m==n && m+n==40+n  	// P2SH 
-	
+		1 BTC: fun(n:int, m) . size(n)==m 
 }
+
+transaction BETA = {
+	input = ALFA: (-50000) size(-50000)
+	output = 0: "test" 
+}
+
 
  
 
