@@ -4,6 +4,8 @@
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AfterTimeLock
+import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.Declaration
@@ -19,6 +21,8 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.Tlock
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
@@ -46,9 +50,6 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.ArithmeticSigned
-import it.unica.tcs.bitcoinTM.Tlock
 
 /**
  * This class contains custom validation rules. 
@@ -820,7 +821,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkTimeLock(Tlock tlock) {
     	
-    	if (tlock.isBlock && tlock.value>=500_000_000) {
+    	if (tlock.value<0) {
+			error(
+                "Negative timelock is not permitted.",
+                tlock,
+                BitcoinTMPackage.Literals.TLOCK__VALUE
+            );
+    	}
+    	
+    	if (tlock.isBlock && tlock.value>=Transaction.LOCKTIME_THRESHOLD) {
 			error(
                 "Block number must be lower than 500_000_000.",
                 tlock,
@@ -828,12 +837,29 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             );
     	}
     	
-    	if (!tlock.isBlock && tlock.value<500_000_000) {
+    	if (!tlock.isBlock && tlock.value<Transaction.LOCKTIME_THRESHOLD) {
     		error(
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
                 tlock,
                 BitcoinTMPackage.Literals.TLOCK__VALUE
             );
     	}
+    }
+    
+    @Check
+    def void checkAfter(AfterTimeLock after) {
+    	
+    	var tx = EcoreUtil2.getContainerOfType(after, UserDefinedTxBody);
+    	
+    	if (tx.tlock!==null && 
+    		(tx.tlock.isBlock && !after.timelock.isBlock || 
+    			!tx.tlock.isBlock && after.timelock.isBlock)) {
+			
+			error(
+                '''Transaction timelock is of type «IF tx.tlock.isBlock»block«ELSE»timestamp«ENDIF».''',
+                after,
+                BitcoinTMPackage.Literals.AFTER_TIME_LOCK__TIMELOCK
+            );
+		} 
     }
 }

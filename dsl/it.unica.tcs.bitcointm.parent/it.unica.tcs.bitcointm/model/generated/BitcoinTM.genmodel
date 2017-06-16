@@ -155,7 +155,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Size/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//AfterTimeLock">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/time"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/timelock"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AfterTimeLock/continuation"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Type"/>

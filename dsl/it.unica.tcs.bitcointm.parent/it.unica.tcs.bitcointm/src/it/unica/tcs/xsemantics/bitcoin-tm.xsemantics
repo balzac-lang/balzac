@@ -486,15 +486,8 @@ from {
 rule AfterTimeLock
 	G |- TypeSubstitutions substitutions |> AfterTimeLock after: Type texpr
 from {
-	var intType = BitcoinTMFactory::eINSTANCE.createIntType
-	
-	G |- substitutions |> after.time: var Type tvalue
 	G |- substitutions |> after.continuation: texpr
-	
-	tvalue = typesubstitution(substitutions, tvalue)
 	texpr = typesubstitution(substitutions, texpr)
-	
-	unify(substitutions, tvalue, intType)
 }
 
 /*

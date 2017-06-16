@@ -167,7 +167,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
 				«ENDFOR»
 			]
 			
-			timelock: «(obj.body as UserDefinedTxBody).tlock?.value»
+			«IF (obj.body as UserDefinedTxBody).tlock!==null»
+			timelock: «(obj.body as UserDefinedTxBody).tlock.value»
+			«ENDIF»
 			
 		} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
 		
@@ -563,8 +565,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def private dispatch void compileExpression(AfterTimeLock stmt, ScriptBuilder sb, SignaturesTracker ctx, AltStack altstack, VariableCounter varCount) {
-        stmt.time.compileExpression(sb, ctx, altstack, varCount)
+        sb.number(stmt.timelock.value)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
+        sb.op(OP_DROP)
         stmt.continuation.compileExpression(sb, ctx, altstack, varCount)
     }
 
