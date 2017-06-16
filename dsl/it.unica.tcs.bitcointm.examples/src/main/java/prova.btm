@@ -40,8 +40,6 @@ transaction T = {
 		550:				fun(y1) . versig(kB; y1) && 2==2;
 		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
 	]
- 
-	tlock = 97
 }
 
 transaction T1 = {

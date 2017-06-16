@@ -48,6 +48,7 @@ import static org.bitcoinj.script.Script.*
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
+import it.unica.tcs.bitcoinTM.Tlock
 
 /**
  * This class contains custom validation rules. 
@@ -816,4 +817,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
     }
     
+    @Check
+    def void checkTimeLock(Tlock tlock) {
+    	
+    	if (tlock.isBlock && tlock.value>=500_000_000) {
+			error(
+                "Block number must be lower than 500_000_000.",
+                tlock,
+                BitcoinTMPackage.Literals.TLOCK__VALUE
+            );
+    	}
+    	
+    	if (!tlock.isBlock && tlock.value<500_000_000) {
+    		error(
+                "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
+                tlock,
+                BitcoinTMPackage.Literals.TLOCK__VALUE
+            );
+    	}
+    }
 }

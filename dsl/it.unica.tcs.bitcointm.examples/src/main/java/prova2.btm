@@ -11,14 +11,20 @@ coinbase kA as coinbaseA
 transaction ALFA = {
 	input = coinbaseA: sig kA
 	output = 
-		1 BTC: fun(n:int, m) . size(n)==m 
+		1 BTC: fun(n:int, m, s: string) . size(n)==m && size(s+"0000")==4 
 }
 
 transaction BETA = {
-	input = ALFA: (-50000) size(-50000)
-	output = 0: "test" 
+	input = ALFA: (-50000) size(-50000) "0000"
+	output = 0: "test"
+	timelock = date 1985-11-05T00:53:20
 }
 
+transaction BETA_1 = {
+	input = ALFA: (-50000) size(-50000) "0000"
+	output = 0: "test"
+	timelock =  date 1985-11-05T00:53:20-00:30
+}
 
  
 

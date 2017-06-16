@@ -166,6 +166,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
 				«out.value.value» : «out.scriptPubKey.toString»
 				«ENDFOR»
 			]
+			
+			timelock: «(obj.body as UserDefinedTxBody).tlock?.value»
+			
 		} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
 		
 		'''
@@ -229,9 +232,13 @@ class BitcoinTMGenerator extends AbstractGenerator {
        		var address = stmt.key.body.pub.value.wifToAddress(netParams)
 	        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
 	        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, ScriptBuilder.createOutputScript(address).program);      
-	    
+	    	
 	        tx.addInput(txInput);
 	        tx.addOutput(txOutput);
+	        
+	        if (!tx.isCoinBase)
+	        	throw new CompilationException('''the compiled transaction of «stmt.name» is not a coinbase transaction''')
+	        
 	        cache.put(stmt, tx)
        	}
        	else {

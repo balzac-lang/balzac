@@ -59,7 +59,7 @@ SerialTxBody: bytes=STRING;
 UserDefinedTxBody: "{"
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
-	("tlock" "=" tlock=Tlock)?
+	("timelock" "=" tlock=Tlock)?
 "}";
 
 
@@ -74,7 +74,23 @@ BitcoinValue:
 	exp=Expression;
 
 Tlock:
-	value=INT;
+	block?="block" value=INT | "date" value=TIMESTAMP;
+
+terminal TIMESTAMP returns ecore::EInt: 
+	('1'..'9')('0'..'9')('0'..'9')('0'..'9') '-' ('0'..'9')('1'..'9') '-' ('0'..'9')('1'..'9')	// YYYY-MM-dd
+	("T" HOUR ":" MINUTE 					// THH:mm
+		(":" SECOND 						// :ss
+			(OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE)?	// +/- HH:mm
+		)?
+	)? 
+;
+
+terminal HOUR: ('0'..'2')('0'..'9');
+terminal MINUTE: ('0'..'5')('0'..'9');
+terminal SECOND: ('0'..'5')('0'..'9');
+terminal OFFSET_SIGN: "+"|"-";
+terminal OFFSET_HOUR: '0'('0'..'9') | '1'('0'..'2');
+terminal OFFSET_MINUTE: '0''0' | '3''0';
 
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;

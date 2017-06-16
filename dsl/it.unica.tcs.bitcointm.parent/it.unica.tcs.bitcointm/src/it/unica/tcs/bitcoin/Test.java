@@ -1,9 +1,14 @@
 package it.unica.tcs.bitcoin;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
-import java.util.List;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Base58;
@@ -13,14 +18,49 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 
-public class Test {
 
+public class Test {
+	
 	
 	
 	public static void main(String[] args) {
-		List<Integer> l = new ArrayList<>();
-		l.add(2);
-		System.out.println(l.subList(0, 1));
+		
+		String[] test = new String[]{"2015-12-25", "2015-12-25T00:00", "2015-12-25T00:00:00", "2015-12-25T00:00:00+01:00:00", "2015-12-25T00:00:00+01:00"};
+		
+		for (String s : test) {
+			
+			OffsetDateTime date = null;
+			
+			try {				
+				date = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+				System.out.println(1);
+			}
+			catch (DateTimeParseException e) {
+//				e.printStackTrace(System.out);
+			}
+			
+			try {				
+				date = LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atOffset(ZoneOffset.UTC);
+				System.out.println(2);
+			}
+			catch (DateTimeParseException e) {
+//				e.printStackTrace(System.out);
+			}
+			
+			try {				
+				date = LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay().atOffset(ZoneOffset.UTC);
+				System.out.println(3);
+			}
+			catch (DateTimeParseException e) {
+//				e.printStackTrace(System.out);
+			}
+			
+			System.out.println(s);
+			System.out.println(date);
+			System.out.println(date.toEpochSecond());
+			System.out.println();
+						
+		}
 		
 //		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
 //		
