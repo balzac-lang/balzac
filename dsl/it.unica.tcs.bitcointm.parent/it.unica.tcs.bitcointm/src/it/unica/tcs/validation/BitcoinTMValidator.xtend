@@ -23,6 +23,7 @@ import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Tlock
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
@@ -849,17 +850,34 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkAfter(AfterTimeLock after) {
     	
-    	var tx = EcoreUtil2.getContainerOfType(after, UserDefinedTxBody);
+    	val tx = EcoreUtil2.getContainerOfType(after, TransactionDeclaration);
+    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), TransactionReference).filter[v|v.tx==tx]
     	
-    	if (tx.tlock!==null && 
-    		(tx.tlock.isBlock && !after.timelock.isBlock || 
-    			!tx.tlock.isBlock && after.timelock.isBlock)) {
-			
-			error(
-                '''Transaction timelock is of type «IF tx.tlock.isBlock»block«ELSE»timestamp«ENDIF».''',
-                after,
-                BitcoinTMPackage.Literals.AFTER_TIME_LOCK__TIMELOCK
-            );
-		} 
+    	for (ref : txReferences) {
+    		
+    		val body = EcoreUtil2.getContainerOfType(ref, UserDefinedTxBody);
+    		
+    		if (body.tlock===null) {
+    			error(
+	                '''Referred output requires to define a timelock.''',
+	                ref.eContainer,
+	                ref.eContainingFeature
+	            );
+    		}
+    		
+    		
+	    	if (body.tlock!==null &&  
+	    		(body.tlock.isBlock && !after.timelock.isBlock || 
+    			!body.tlock.isBlock && after.timelock.isBlock)) {
+				
+				error(
+	                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
+	                body,
+	                BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__TLOCK
+	            );
+			} 
+    	}
+    	
+    	
     }
 }

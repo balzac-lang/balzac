@@ -18,7 +18,7 @@ key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzk
 
 coinbase kA as fundsA
 
-transaction T = { 
+transaction T = {
 	input = fundsA: sig kA
 	output = 10BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
 }

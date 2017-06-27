@@ -10,24 +10,26 @@ key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzk
 coinbase kA as coinbaseA
 
 transaction T = {
-	input = coinbaseA: sig kA
+	input = coinbaseA: sig kA 
 	output = 1 BTC - 10:
 		fun(flag, sig1, sig2) . 
 			if (flag)
 			then after block 50 : (versig(kC; sig2) &&  versig(kA,kB; sig1))
-			else versig(kA,kB; sig1,sig2)  
+			else versig(kA,kB; sig1,sig2)
 }
 
 transaction T_1 = {
 	input = T: true sig kA sig kC
 	output = 0: "test"
-	timelock =  date 1985-11-05T00:53:20-00:30
+//	timelock =  date 1985-11-05T00:53:20-00:30
+	timelock = block 50
 }
 
 transaction T_2 = {
 	input = T: false sig kA sig kB
 	output = 0: "test"
-	timelock =  date 1985-11-05T00:53:20-00:30
+//	timelock =  date 1985-11-05T00:53:20-00:30
+	timelock = block 50
 }
 
  
