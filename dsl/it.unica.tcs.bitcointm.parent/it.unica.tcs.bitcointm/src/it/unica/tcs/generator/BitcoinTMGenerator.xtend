@@ -96,6 +96,12 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		SignaturesTracker signTracker = new SignaturesTracker
 		AltStack altstack = new AltStack
 		VariableCounter varCount = new VariableCounter
+		
+		def clear() {
+			sb = new ScriptBuilder
+			altstack.clear
+			varCount.clear
+		}
     }
     
     private static class SignaturesTracker extends HashMap<Input,List<SignatureUtil>>{
@@ -272,9 +278,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
         			cache.put(stmt, tx)
         
        				var inputCtx = new Context
-        
 			        for (var i=0; i<body.inputs.size; i++) {
 			//        	println('''input «i»''')
+						inputCtx.clear()
 			        	var input = body.inputs.get(i)
 			            var outIndex = input.txRef.idx
 			            var txToRedeem = input.txRef.tx.toTransaction(cache)
@@ -373,7 +379,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
             
             if (!ctx.sb.build.chunks.isEmpty)
-        		throw new CompilationException("ScriptBuilder must be empty.")
+        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
                         
             sig.compileInputExpression(ctx)
             ctx.sb.data(pubkey)
@@ -397,7 +403,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 		                
 			            if (!ctx.sb.build.chunks.isEmpty)
-			        		throw new CompilationException("ScriptBuilder must be empty.")
+			        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
 
 		                sig.compileInputExpression(ctx)
 		                ctx.sb.data(pubkey)
@@ -407,7 +413,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		            } else if (output.script.isP2SH) {
 		                
 			            if (!ctx.sb.build.chunks.isEmpty)
-			        		throw new CompilationException("ScriptBuilder must be empty.")
+			        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
 		                
 		                // build the list of expression pushes (actual parameters) 
 		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(ctx)]
