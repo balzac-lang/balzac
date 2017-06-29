@@ -74,7 +74,8 @@ BitcoinValue:
 	exp=Expression;
 
 Tlock:
-	block?="block" value=INT | "date" value=TIMESTAMP;
+	block?="block" value=INT | date?="date" value=TIMESTAMP | value=Delay;
+
 
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;
@@ -196,19 +197,21 @@ enum SignatureTypeEnum: signature;
 
 
 
-/*
- * Terminal rules copied from Xbase
- */
 Number returns ecore::EInt:
 	INT ('.' INT)? "BTC"?
 	| HEX;
 
+Delay returns ecore::EInt:
+	(INT ("day"|"month"|"year"))+
+;
+
 terminal HEX returns ecore::EBigInteger:
-	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;	// java-like hexadecimal number
+	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
+	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
 @Override	
 terminal INT returns ecore::EInt:
-	'0'..'9' ('0'..'9'|'_')*; 	// java-like integer
+	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
 terminal BASE58: 
 	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
@@ -220,13 +223,16 @@ terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
 terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
 	
 terminal TIMESTAMP returns ecore::EInt: 
-	('1'..'9')('0'..'9')('0'..'9')('0'..'9') '-' ('0'..'9')('1'..'9') '-' ('0'..'9')('1'..'9')	// YYYY-MM-dd
+	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
 	("T" HOUR ":" MINUTE 					// THH:mm
 		(":" SECOND 						// :ss
 			(OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE)?	// +/- HH:mm
 		)?
 	)?;
-	
+
+terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
+terminal MONTH: ('0'..'9')('1'..'9');
+terminal DAY: ('0'..'9')('1'..'9');	
 terminal HOUR: ('0'..'2')('0'..'9');
 terminal MINUTE: ('0'..'5')('0'..'9');
 terminal SECOND: ('0'..'5')('0'..'9');

@@ -1,14 +1,9 @@
 package it.unica.tcs.bitcoin;
 
 import java.math.BigInteger;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Base58;
@@ -21,47 +16,61 @@ import org.bitcoinj.core.Utils;
 
 public class Test {
 	
-	
+	float a = 1.5_000f; 
 	
 	public static void main(String[] args) {
 		
-		String[] test = new String[]{"2015-12-25", "2015-12-25T00:00", "2015-12-25T00:00:00", "2015-12-25T00:00:00+01:00:00", "2015-12-25T00:00:00+01:00"};
+		String[] inputs = new String[]{
+				// valid
+				"5",
+				"10", 
+				"10_000",
+				"10.5",
+				"10_000.5_000",
+				"0.5 BTC", 
+				"0x42", 
+				"0X45",
+				"0x42_000", 
+				"0X45_000",
+				"5 BTC",
+				"5                 BTC",
+				"0.5               BTC",
+				// invalid
+				"",			// empty number
+				"_5",		// preceded by _
+				"5_",		// followed by _
+				"_5_",		// sorrounded by_
+				"_10",
+				"10_",
+				"10 _000",
+				"10 .5_",
+				"_10_000.5_000",
+				};
+		String patternS = 
+				"((?<intpart>\\d([\\d_]*[\\d]+)?)(\\.(?<decpart>\\d([\\d_]*[\\d]+)?))?(\\s*(?<btcpart>BTC)?))"
+				+ "|"
+				+ "(?<hexpart>(0x|0X)[\\dA-Fa-f][\\dA-Fa-f_]*[\\dA-Fa-f]+)";
+
+		Pattern pattern = Pattern.compile(patternS);
 		
-		for (String s : test) {
+		for (String i : inputs) {
 			
-			OffsetDateTime date = null;
+			Matcher matcher = pattern.matcher(i);
 			
-			try {				
-				date = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-				System.out.println(1);
+			System.out.println("input: "+i);
+			if (matcher.matches()) {
+				System.out.println("intpart: "+matcher.group("intpart"));
+				System.out.println("decpart: "+matcher.group("decpart"));
+				System.out.println("hexpart: "+matcher.group("hexpart"));
+				System.out.println("btcpart: "+matcher.group("btcpart"));
 			}
-			catch (DateTimeParseException e) {
-//				e.printStackTrace(System.out);
+			else {
+				System.out.println("no match found");
 			}
-			
-			try {				
-				date = LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atOffset(ZoneOffset.UTC);
-				System.out.println(2);
-			}
-			catch (DateTimeParseException e) {
-//				e.printStackTrace(System.out);
-			}
-			
-			try {				
-				date = LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay().atOffset(ZoneOffset.UTC);
-				System.out.println(3);
-			}
-			catch (DateTimeParseException e) {
-//				e.printStackTrace(System.out);
-			}
-			
-			System.out.println(s);
-			System.out.println(date);
-			System.out.println(date.toEpochSecond());
 			System.out.println();
-						
 		}
 		
+				
 //		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
 //		
 //		Transaction tx = new Transaction(params);

@@ -90,6 +90,7 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Tlock">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Tlock/block"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Tlock/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Tlock/date"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionReference">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/tx"/>
