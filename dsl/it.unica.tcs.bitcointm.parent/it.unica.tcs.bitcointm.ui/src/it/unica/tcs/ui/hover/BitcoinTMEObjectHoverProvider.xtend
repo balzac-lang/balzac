@@ -1,6 +1,5 @@
 package it.unica.tcs.ui.hover
 
-import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Parameter
@@ -8,9 +7,6 @@ import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TypeVariable
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
@@ -29,8 +25,6 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	}
 	
 	override boolean hasHover(EObject eobj) {
-		println("hasHover: "+eobj)
-		
 		if (eobj instanceof RelativeTime)
 			return eobj.isDate;
 		
