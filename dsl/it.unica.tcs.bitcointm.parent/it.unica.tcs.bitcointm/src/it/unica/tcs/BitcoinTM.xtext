@@ -59,7 +59,7 @@ SerialTxBody: bytes=STRING;
 UserDefinedTxBody: "{"
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
-	("timelock" "=" tlock=Tlock)?
+	("after" tlock=Tlock)?
 "}";
 
 
@@ -73,9 +73,15 @@ Output:
 BitcoinValue:
 	exp=Expression;
 
-Tlock:
-	block?="block" value=INT | date?="date" value=TIMESTAMP | value=Delay;
+Tlock: times+=Time ("&&" times+=Time)*;
 
+Time: AbsoluteTime | RelativeTime;
+
+AbsoluteTime:
+	block?="block" value=INT | date?="date" value=TIMESTAMP;
+
+RelativeTime:
+	value=Delay "from" tx=[TransactionDeclaration];
 
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;
@@ -169,7 +175,7 @@ Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
-AfterTimeLock: "after" timelock=Tlock ":" continuation=Atomic;
+AfterTimeLock: "after" timelock=Time ":" continuation=Atomic;
 
 
 ParameterType returns Type:
@@ -202,8 +208,12 @@ Number returns ecore::EInt:
 	| HEX;
 
 Delay returns ecore::EInt:
-	(INT ("day"|"month"|"year"))+
-;
+	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
+
+MinutesDelay returns ecore::EInt: INT "minutes";
+HoursDelay   returns ecore::EInt: INT "hours";
+DayDelay     returns ecore::EInt: INT "days";
+BlockDelay   returns ecore::EInt: INT "blocks";
 
 terminal HEX returns ecore::EBigInteger:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
@@ -217,10 +227,10 @@ terminal BASE58:
 	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
 terminal BTC_HASH returns ecore::EByteArray: SHA256 | RIPEMD160 | HASH256 | HASH160;
-terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
-terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
-terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
-terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F'|'_')+;
+terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::EInt: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
@@ -232,7 +242,7 @@ terminal TIMESTAMP returns ecore::EInt:
 
 terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
 terminal MONTH: ('0'..'9')('1'..'9');
-terminal DAY: ('0'..'9')('1'..'9');	
+terminal DAY: ('0'..'9')('1'..'9');	 
 terminal HOUR: ('0'..'2')('0'..'9');
 terminal MINUTE: ('0'..'5')('0'..'9');
 terminal SECOND: ('0'..'5')('0'..'9');

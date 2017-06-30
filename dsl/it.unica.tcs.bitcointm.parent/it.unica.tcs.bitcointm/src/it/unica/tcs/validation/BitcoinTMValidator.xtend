@@ -4,6 +4,7 @@
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
@@ -19,9 +20,9 @@ import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.Tlock
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
@@ -50,6 +51,7 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
 
+import static extension it.unica.tcs.util.ASTUtils.*
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
@@ -820,13 +822,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     @Check
-    def void checkTimeLock(Tlock tlock) {
+    def void checkAbsoluteTime(AbsoluteTime tlock) {
     	
     	if (tlock.value<0) {
 			error(
                 "Negative timelock is not permitted.",
                 tlock,
-                BitcoinTMPackage.Literals.TLOCK__VALUE
+                BitcoinTMPackage.Literals.TIME__VALUE
             );
     	}
     	
@@ -834,7 +836,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			error(
                 "Block number must be lower than 500_000_000.",
                 tlock,
-                BitcoinTMPackage.Literals.TLOCK__VALUE
+                BitcoinTMPackage.Literals.TIME__VALUE
             );
     	}
     	
@@ -842,42 +844,115 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     		error(
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
                 tlock,
-                BitcoinTMPackage.Literals.TLOCK__VALUE
+                BitcoinTMPackage.Literals.TIME__VALUE
             );
     	}
     }
     
     @Check
+    def void checkRelativeTime(RelativeTime tlock) {
+    	
+    	
+    }
+    
+    @Check
     def void checkAfter(AfterTimeLock after) {
     	
+    	// transaction containing after
     	val tx = EcoreUtil2.getContainerOfType(after, TransactionDeclaration);
+    	
+    	// all the txs pointing to tx
     	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), TransactionReference).filter[v|v.tx==tx]
     	
+    	// all these txs have to define the timelock
     	for (ref : txReferences) {
     		
     		val body = EcoreUtil2.getContainerOfType(ref, UserDefinedTxBody);
     		
+    		// the transaction does not define a timelock
     		if (body.tlock===null) {
     			error(
 	                '''Referred output requires to define a timelock.''',
-	                ref.eContainer,
-	                ref.eContainingFeature
+	                ref.eContainer,			// INPUT
+	                ref.eContainingFeature	// INPUT__TX_REF
 	            );
     		}
-    		
-    		
-	    	if (body.tlock!==null &&  
-	    		(body.tlock.isBlock && !after.timelock.isBlock || 
-    			!body.tlock.isBlock && after.timelock.isBlock)) {
-				
-				error(
-	                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
-	                body,
-	                BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__TLOCK
-	            );
+			// transaction lock is defined
+    		else {	
+	    	
+				// after expression uses an absolute time     	
+	    		if (after.timelock.isAbsolute)  {
+	    			
+	        		var absTimes = body.tlock.times.filter(AbsoluteTime).map(x|x as AbsoluteTime) 
+
+			        if(absTimes.size==0){
+	 					error(
+			                '''Transaction does not define an absolute timelock''',
+			                body,
+			                BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__TLOCK
+			            );
+			        }
+			        else if(absTimes.size==1) {
+			        	// check if they are of the same type (block|date)
+			        	if (after.timelock.isBlock && !absTimes.get(0).isBlock
+							|| after.timelock.isRelative && !absTimes.get(0).isRelative
+						)
+							error(
+				                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
+				                absTimes.get(0).eContainer,
+				                absTimes.get(0).eContainingFeature
+				            );
+			        }
+			        else {
+			        	for (t : absTimes)
+							error(
+				                '''Only one absolute timelock is allowed''',
+				                t.eContainer,
+				                t.eContainingFeature
+				            );
+			        }
+	    		}
+	    		
+	    		// after expression uses a relative time
+	    		if (after.timelock.isRelative) {
+	    			
+		    		var timesPerTx = body.tlock.times
+			    		.filter(RelativeTime)
+			    		.filter(x | (x as RelativeTime).tx == tx)
+			    		
+			    	
+			    	if (timesPerTx.size==0) {
+			    		error(
+			                '''Transaction does not define a relative timelock for transaction «ref.tx.name»''',
+			                body,
+			                BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__TLOCK
+			            );
+			    	}
+			    	else if (timesPerTx.size==1) {
+			    		// check if they are of the same type (block|date)
+						if (after.timelock.isBlock && !timesPerTx.get(0).isBlock
+							|| after.timelock.isRelative && !timesPerTx.get(0).isRelative
+						)
+							error(
+				                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
+				                timesPerTx.get(0).eContainer,
+				                timesPerTx.get(0).eContainingFeature
+				            );
+			    	}
+			    	else {
+			    		for (t : timesPerTx)
+				    		error(
+				                '''Only one relative timelock is allowed per transaction''',
+				                t.eContainer,
+				                t.eContainingFeature
+				            );
+			    	}
+	    		}
+	    		
 			} 
     	}
     	
     	
     }
+    
 }

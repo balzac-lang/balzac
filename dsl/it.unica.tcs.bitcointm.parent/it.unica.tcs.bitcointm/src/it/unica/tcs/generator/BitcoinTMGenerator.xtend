@@ -64,6 +64,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import static extension it.unica.tcs.util.ASTUtils.*
 
 /**
  * Generates code from your model files on save.
@@ -301,8 +302,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 			        }
 			        
 			        // set locktime
-			        if (body.tlock!==null)
-				        tx.lockTime = body.tlock.value
+			        if (body.tlock!==null && body.tlock.containsAbsolute)
+				        tx.lockTime = body.tlock.getAbsolute()
 			        
 			        // set all the signatures within the input scripts (which are never part of the signature)
 			        for (var i=0; i<tx.inputs.size; i++) {

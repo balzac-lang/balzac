@@ -17,8 +17,52 @@ import org.bitcoinj.core.Utils;
 public class Test {
 	
 	float a = 1.5_000f; 
+	int b = 0b0000_0000__0100_0000__0000_0000__0000_0000;
 	
 	public static void main(String[] args) {
+		
+		
+		String[] inputs = new String[]{
+				// valid
+				"1days",   "1 days",   "1              days",
+				"1months", "1 months", "1              months",
+				};
+
+		String patternS = 
+				  "("
+			    + "(?<days>\\d([\\d_]*[\\d]+)?)\\s*days\\s*"
+				+ "(?<months>\\d([\\d_]*[\\d]+)?)\\s*months\\s*"
+				+ ")|"
+				+ "((?<blocks>\\d([\\d_]*[\\d]+)?)\\s*blocks\\s*)";
+
+		Pattern pattern = Pattern.compile(patternS);
+		
+		for (String i : inputs) {
+			
+			Matcher matcher = pattern.matcher(i);
+			
+			System.out.println("input: "+i);
+			if (matcher.matches()) {
+				System.out.println("days: "+matcher.group("days"));
+				System.out.println("months: "+matcher.group("months"));
+				System.out.println("blocks: "+matcher.group("blocks"));
+			}
+			else {
+				System.out.println("no match found");
+			}
+			System.out.println();
+		}
+		
+		
+		//keyTest();
+		//issueWiFRepresentation();
+		//deserializeTx();
+		//hexTest();
+	}
+	
+	
+	@SuppressWarnings("unused")
+	private static void hexTest() {
 		
 		String[] inputs = new String[]{
 				// valid
@@ -69,43 +113,7 @@ public class Test {
 			}
 			System.out.println();
 		}
-		
-				
-//		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
-//		
-//		Transaction tx = new Transaction(params);
-//		
-//		ScriptBuilder sb = new ScriptBuilder();
-//		sb.number(10).op(ScriptOpCodes.OP_EQUAL);
-//		
-//		TransactionInput input = new TransactionInput(params, tx, new ScriptBuilder().number(42).build().getProgram());
-//		TransactionOutput output = new TransactionOutput(params, tx, Coin.valueOf(1000), sb.build().getProgram());		
-//		
-//		tx.addInput(input);
-//		tx.addOutput(output);
-//		tx.verify();
-//		
-//		System.out.println(tx.toString());
-//
-//		
-//		
-//		Transaction tx1 = new Transaction(params);
-//		tx1.addInput(output);					// redeem the specified output of tx
-//		tx1.getInput(0).setScriptSig(new ScriptBuilder().number(10).build());
-//		tx1.addOutput(Coin.valueOf(1005), new ScriptBuilder().number(8).build());
-//		tx1.verify();
-//		
-//		System.out.println(tx1);
-//		System.out.println(tx1.getFee());
-//
-//		tx1.getInput(0).verify(tx.getOutput(0));
-			
-		
-		//keyTest();
-		//issueWiFRepresentation();
-		//deserializeTx
 	}
-	
 	@SuppressWarnings("unused")
 	private static void deserializeTx() {
 		NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);

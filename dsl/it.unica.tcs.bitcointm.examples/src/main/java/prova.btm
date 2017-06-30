@@ -35,7 +35,7 @@ transaction T = {
 	input = coinbaseA@0: sig kA AIAO
 	output = [
 		0.00000546 BTC:		fun(n) . n!=42 ;
-		0.00000546 BTC:		fun(n) . n=="abc";
+		0.00000546 BTC:		fun(n) . n=="screen";
 		546:				fun(x:signature, y:signature) . y==x; 
 		550:				fun(y1) . versig(kB; y1) && 2==2;
 		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
@@ -85,3 +85,34 @@ transaction Th1 = {
 	input = Th: "secret"
 	output = 0: "HELLO WORLD"    
 }
+
+transaction A0 = {
+	input = coinbaseA: sig kA
+	output = 0: ""
+	after 4 blocks from coinbaseA
+}
+
+transaction A1 = {
+	input = coinbaseA: sig kA
+	output = 0: ""
+	after 60 minutes from coinbaseA
+}
+
+transaction A2 = {
+	input = coinbaseA: sig kA
+	output = 0: ""
+	after 60 hours from coinbaseA
+}
+
+transaction A3 = {
+	input = coinbaseA: sig kA
+	output = 0: ""
+	after 380 days from coinbaseA
+}
+
+transaction A4 = {
+	input = coinbaseA: sig kA
+	output = 0: ""
+	after block 499_999_999
+}
+
