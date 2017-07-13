@@ -25,15 +25,15 @@ transaction T = {
 transaction T_1 = {
 	input = T: true sig kAlice sig kLenny
 	output = 0: "test"
-//	timelock =  date 1985-11-05T00:53:20-00:30
-	timelock = block 50
+//	after date 1985-11-05T00:53:20-00:30
+	after block 50
 }
 
 transaction T_2 = {
 	input = T: false sig kAlice sig kBob
 	output = 0: "test"
-//	timelock =  date 1985-11-05T00:53:20-00:30
-	timelock = block 50
+//	after date 1985-11-05T00:53:20-00:30
+	after block 50
 }
 
  

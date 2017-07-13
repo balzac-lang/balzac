@@ -1,9 +1,12 @@
 package it.unica.tcs.bitcoin;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Base58;
@@ -19,39 +22,84 @@ public class Test {
 	float a = 1.5_000f; 
 	int b = 0b0000_0000__0100_0000__0000_0000__0000_0000;
 	
-	public static void main(String[] args) {
-		
-		
-		String[] inputs = new String[]{
-				// valid
-				"1days",   "1 days",   "1              days",
-				"1months", "1 months", "1              months",
-				};
-
-		String patternS = 
-				  "("
-			    + "(?<days>\\d([\\d_]*[\\d]+)?)\\s*days\\s*"
-				+ "(?<months>\\d([\\d_]*[\\d]+)?)\\s*months\\s*"
-				+ ")|"
-				+ "((?<blocks>\\d([\\d_]*[\\d]+)?)\\s*blocks\\s*)";
-
-		Pattern pattern = Pattern.compile(patternS);
-		
-		for (String i : inputs) {
-			
-			Matcher matcher = pattern.matcher(i);
-			
-			System.out.println("input: "+i);
-			if (matcher.matches()) {
-				System.out.println("days: "+matcher.group("days"));
-				System.out.println("months: "+matcher.group("months"));
-				System.out.println("blocks: "+matcher.group("blocks"));
-			}
-			else {
-				System.out.println("no match found");
-			}
-			System.out.println();
+	public static IntStream intStream(byte[] array) {
+	    return IntStream.range(0, array.length).map(idx -> array[idx]);
+	}
+	
+	public static void print(int[] values) {
+		System.out.println("N bitLenght byteArraySize");
+		for (int i : values) {
+			BigInteger b = new BigInteger(i + "");
+			System.out.println(b + " " + b.bitLength() + " " + (b.bitLength()/8+1)+ " "+((b.bitLength()+1)/8));
 		}
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		print(new int []{
+				0b0000_1000,				// 1 byte 
+				0b0100_0000,				// 1 byte 
+				0b0111_1111,				// 1 byte 
+				0b1000_0000, 				// 2 bytes (an extra byte is added)
+				0b1__0000_0000,
+				0b0100_0000__0000_0000,		// 2 bytes 	
+				0b1000_0000__0000_0000,		// 3 bytes
+				-0b1000_0000,				// 1 byte 
+				-0b1__0000_0000, 			// 2 bytes 
+				-0b1000_0000__0000_0000,	// 2 bytes 	
+		});
+		
+        BigInteger a = new BigInteger("127", 10);
+        BigInteger b = new BigInteger("255", 10);
+
+        
+//        for(int i=-128; i<=129; i++) {
+//        	print(new BigInteger(i+"", 10));
+//        }
+        
+        System.out.println("a: (unsigned bits) "+a.bitLength());
+        System.out.println("b: (unsigned bits) "+b.bitLength());
+        System.out.println("a: (bit count) "+a.bitCount());
+        System.out.println("b: (bit count) "+b.bitCount());
+        System.out.println("a: (2 complement bytes) "+a.toByteArray().length);
+        System.out.println("b: (2 complement bytes) "+b.toByteArray().length);
+        
+        System.out.println("a: "+intStream(a.toByteArray()).mapToObj(x -> Integer.toBinaryString(x)).collect(Collectors.joining(" ")));
+        System.out.println("b: "+intStream(b.toByteArray()).mapToObj(x -> Integer.toBinaryString(x)).collect(Collectors.joining(" ")));
+
+        System.out.println("a: "+Arrays.toString(a.toByteArray()));
+        System.out.println("b: "+Arrays.toString(b.toByteArray()));
+
+//		String[] inputs = new String[]{
+//				// valid
+//				"1days",   "1 days",   "1              days",
+//				"1months", "1 months", "1              months",
+//				};
+//
+//		String patternS = 
+//				  "("
+//			    + "(?<days>\\d([\\d_]*[\\d]+)?)\\s*days\\s*"
+//				+ "(?<months>\\d([\\d_]*[\\d]+)?)\\s*months\\s*"
+//				+ ")|"
+//				+ "((?<blocks>\\d([\\d_]*[\\d]+)?)\\s*blocks\\s*)";
+//
+//		Pattern pattern = Pattern.compile(patternS);
+//		
+//		for (String i : inputs) {
+//			
+//			Matcher matcher = pattern.matcher(i);
+//			
+//			System.out.println("input: "+i);
+//			if (matcher.matches()) {
+//				System.out.println("days: "+matcher.group("days"));
+//				System.out.println("months: "+matcher.group("months"));
+//				System.out.println("blocks: "+matcher.group("blocks"));
+//			}
+//			else {
+//				System.out.println("no match found");
+//			}
+//			System.out.println();
+//		}
 		
 		
 		//keyTest();
