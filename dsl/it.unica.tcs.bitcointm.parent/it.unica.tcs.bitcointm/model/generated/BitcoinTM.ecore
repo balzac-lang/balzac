@@ -88,7 +88,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//Message">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="idx" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
@@ -129,7 +129,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="else" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Signature" eSuperTypes="#//Expression">
+  <eClassifiers xsi:type="ecore:EClass" name="Signature" eSuperTypes="#//Expression #//Message">
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="modifier" eType="#//Modifier"/>
   </eClassifiers>
@@ -203,6 +203,42 @@
   <eClassifiers xsi:type="ecore:EEnum" name="SignatureTypeEnum">
     <eLiterals name="signature" literal="signature"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EndpointDeclaration" eSuperTypes="#//Declaration">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contract" eType="#//Contract"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//EndpointDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="body" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParticipantReference" eSuperTypes="#//Send #//Receive">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="part" eType="#//ParticipantDeclaration"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//Message"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="seq" eType="#//Contract"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Message"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Event">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Contract"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Put" eSuperTypes="#//Contract">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
+        eType="#//TransactionReference" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="seq" eType="#//Contract"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Send" eSuperTypes="#//Contract"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Contract"/>
+  <eClassifiers xsi:type="ecore:EClass" name="When" eSuperTypes="#//Contract">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="events" upperBound="-1"
+        eType="#//Event" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="seqs" upperBound="-1" eType="#//Contract"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
         containment="true"/>
@@ -263,5 +299,11 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="SignatureType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//SignatureTypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Parallel" eSuperTypes="#//Contract">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Contract"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//Contract"
+        containment="true"/>
   </eClassifiers>
 </ecore:EPackage>

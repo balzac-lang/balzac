@@ -30,8 +30,6 @@ transaction T_commitB = {
 			versig(kA, kB; sigma1, sigma2)
 }
 
-
-
 transaction T_openA = {
 	input = T_commitA: sig kA sig kA "secretA"
 	output = 10 BTC - 10: fun(sigma) .versig(kA; sigma)
@@ -56,7 +54,20 @@ transaction T_payDepositB = {
 	after block 45
 }
 
+participant PA = "gianni"
+participant PB = "raga"
 
+
+contract CA  {
+	put T_commitA . send to PB: sig kA  . put T_openA
+}
+
+contract CB {
+	when T_commitA: 
+		receive from PA: sig kA . 
+		when after block 45 : 
+			put T_payDepositA
+}
 
 
 transaction T_compute = {

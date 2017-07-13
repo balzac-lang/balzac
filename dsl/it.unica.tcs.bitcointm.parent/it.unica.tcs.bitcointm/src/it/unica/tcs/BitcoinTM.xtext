@@ -23,7 +23,7 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Declaration:
-	KeyDeclaration | TransactionDeclaration | CoinbaseDeclaration; 
+	KeyDeclaration | TransactionDeclaration | CoinbaseDeclaration | EndpointDeclaration; 
 
 Network:
 	{Network} "network" (testnet?="testnet" | "mainnet");
@@ -249,3 +249,54 @@ terminal SECOND: ('0'..'5')('0'..'9');
 terminal OFFSET_SIGN: "+"|"-";
 terminal OFFSET_HOUR: '0'('0'..'9') | '1'('0'..'2');
 terminal OFFSET_MINUTE: '0''0' | '3''0';
+
+
+/*
+ * Endpoints contracts
+ */
+EndpointDeclaration:
+	'contract' name=ID '{' contract=Contract '}'
+	| ParticipantDeclaration;
+	
+ParticipantDeclaration:
+	'participant' name=ID '=' body=STRING;
+	
+ParticipantReference:
+	part=[ParticipantDeclaration|QualifiedName];
+	
+Message:
+	  Signature //NON VA BENE
+	| TransactionReference;
+	
+Event:
+	'after' tlock=Tlock | txRef=TransactionReference;
+	
+Contract: 
+	AtomicContract;
+	
+Put:
+	  'put' (
+	  	txRefs+=TransactionReference ('.' seq=Contract)?
+		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}'  '.' (seq=Contract)?);
+
+Send:
+	'receive' 'from' ParticipantReference ':' message=Message ('.' seq=Contract)?;
+
+Receive:
+		'send' 'to' ParticipantReference ':' message=Message ('.' seq=Contract)?;
+
+When:
+	'when' (events+=Event ':' seqs+=Contract
+		| '{'(events+=Event ':' seqs+=Contract) (',' events+=Event ':' seqs+=Contract)* '}');
+
+Parallel returns Contract:
+	AtomicContract (({Parallel.left=current} => '|' ) right=AtomicContract)*;
+
+
+AtomicContract returns  Contract:
+	    '(' Parallel ')' 
+	    | Send 
+	    | Receive 
+	    | Put 
+	    | When
+;

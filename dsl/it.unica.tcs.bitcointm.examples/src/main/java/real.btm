@@ -15,4 +15,4 @@ transaction T = {
 	]
 	
 	output = 1.95BTC: fun(sigma) . versig(k; sigma)
-}
+} 
