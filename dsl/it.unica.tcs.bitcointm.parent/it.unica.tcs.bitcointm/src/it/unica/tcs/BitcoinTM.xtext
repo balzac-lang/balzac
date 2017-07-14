@@ -271,8 +271,6 @@ Message:
 Event:
 	'after' tlock=Tlock | txRef=TransactionReference;
 	
-Contract: 
-	AtomicContract;
 	
 Put:
 	  'put' (
@@ -283,17 +281,16 @@ Send:
 	'receive' 'from' ParticipantReference ':' message=Message ('.' seq=Contract)?;
 
 Receive:
-		'send' 'to' ParticipantReference ':' message=Message ('.' seq=Contract)?;
+	'send' 'to' ParticipantReference ':' message=Message ('.' seq=Contract)?;
 
 When:
 	'when' (events+=Event ':' seqs+=Contract
 		| '{'(events+=Event ':' seqs+=Contract) (',' events+=Event ':' seqs+=Contract)* '}');
 
 Parallel returns Contract:
-	AtomicContract (({Parallel.left=current} => '|' ) right=AtomicContract)*;
+	Contract (({Parallel.left=current} => '|' ) right=Contract)*;
 
-
-AtomicContract returns  Contract:
+Contract:
 	    '(' Parallel ')' 
 	    | Send 
 	    | Receive 

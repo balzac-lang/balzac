@@ -11,6 +11,7 @@ import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
 import it.unica.tcs.bitcoinTM.Comparison
+import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
@@ -63,8 +64,8 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
-import static extension it.unica.tcs.validation.BitcoinJUtils.*
 import static extension it.unica.tcs.util.ASTUtils.*
+import static extension it.unica.tcs.validation.BitcoinJUtils.*
 
 /**
  * Generates code from your model files on save.
@@ -153,6 +154,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
         '''key «obj.name»'''
     }
 
+	def dispatch String compile(Declaration obj) {
+		// TODO
+    }
+    
     def dispatch String compile(TransactionDeclaration obj) {
 
     	var tx = obj.toTransaction

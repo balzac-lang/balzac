@@ -224,7 +224,6 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Contract"/>
   <eClassifiers xsi:type="ecore:EClass" name="Put" eSuperTypes="#//Contract">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
         eType="#//TransactionReference" containment="true"/>
@@ -239,6 +238,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="seqs" upperBound="-1" eType="#//Contract"
         containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Contract"/>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
         containment="true"/>
