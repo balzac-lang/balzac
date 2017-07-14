@@ -123,24 +123,26 @@ Prefixed returns Expression:
     Atomic;
 
 Atomic returns Expression:
-    '(' Expression ')' |
-    Literal |
-    VariableReference |
-    Signature |
-	Versig |
-	Hash |
-	IfThenElse |
-	Min | Max | Between |
-	Size |
-	AfterTimeLock;
+    '(' Expression ')' 
+|   Literal 
+|   VariableReference
+|   Signature 
+|	Versig 
+|	Hash 
+|	IfThenElse 
+|	Min 
+|   Max
+|   Between
+|   Size
+|	AfterTimeLock;
 
 VariableReference: ref=[Parameter];
 
 Literal:
-	NumberLiteral | 
-	StringLiteral | 
-	BooleanLiteral |
-	HashLiteral;
+	NumberLiteral 
+|	StringLiteral
+|	BooleanLiteral
+|	HashLiteral;
 
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
@@ -155,13 +157,12 @@ IfThenElse:
 Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
 
 enum Modifier: 
-	AIAO | 
-	AISO | 
-	AINO | 
-	SIAO | 
-	SISO |
-	SINO 
-;
+	AIAO 
+|	AISO 
+|	AINO
+|	SIAO 
+|	SISO
+|	SINO;
 	
 Versig:
 	"versig" "(" 
@@ -182,15 +183,15 @@ ParameterType returns Type:
 	BasicType;
 
 Type:
-	BasicType |
-	TypeVariable;
+	BasicType 
+|	TypeVariable;
 
 BasicType:
-	{IntType} value=IntTypeEnum |
-	{HashType} value=HashTypeEnum |
-    {StringType} value=StringTypeEnum |
-    {BooleanType} value=BoolTypeEnum |
-    {SignatureType} value=SignatureTypeEnum;
+	{IntType} value=IntTypeEnum 
+|	{HashType} value=HashTypeEnum
+|   {StringType} value=StringTypeEnum 
+|   {BooleanType} value=BoolTypeEnum
+|   {SignatureType} value=SignatureTypeEnum;
 
 TypeVariable:
 	value=ID;
@@ -205,7 +206,7 @@ enum SignatureTypeEnum: signature;
 
 Number returns ecore::EInt:
 	INT ('.' INT)? "BTC"?
-	| HEX;
+|	HEX;
 
 Delay returns ecore::EInt:
 	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
@@ -265,15 +266,14 @@ ParticipantReference:
 	part=[ParticipantDeclaration|QualifiedName];
 	
 Message:
-	  Signature //NON VA BENE
-	| TransactionReference;
+	Signature //NON VA BENE
+|	TransactionReference;
 	
 Event:
 	'after' tlock=Tlock | txRef=TransactionReference;
 	
-	
 Put:
-	  'put' (
+	'put' (
 	  	txRefs+=TransactionReference ('.' seq=Contract)?
 		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}'  '.' (seq=Contract)?);
 
@@ -291,9 +291,8 @@ Parallel returns Contract:
 	Contract (({Parallel.left=current} => '|' ) right=Contract)*;
 
 Contract:
-	    '(' Parallel ')' 
-	    | Send 
-	    | Receive 
-	    | Put 
-	    | When
-;
+	'(' Parallel ')' 
+|	Send 
+|	Receive 
+|	Put 
+|	When;
