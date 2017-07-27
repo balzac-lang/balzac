@@ -5,7 +5,8 @@ Bundle-Vendor: My Company
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext,
+Require-Bundle: bitcoinj-pde;bundle-version="0.15.0",
+ org.eclipse.xtext,
  org.eclipse.xtext.xbase,
  org.eclipse.equinox.common;bundle-version="3.5.0",
  org.eclipse.emf.ecore,
@@ -14,7 +15,7 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtend.lib,
  org.eclipse.emf.common,
  org.antlr.runtime,
- it.xsemantics.runtime;bundle-version="1.11.1"
+ it.xsemantics.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: it.unica.tcs,
  it.unica.tcs.bitcoinTM,
@@ -30,5 +31,4 @@ Export-Package: it.unica.tcs,
  it.unica.tcs.validation
 Import-Package: org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,
- .,
- lib/bitcoinj-core-0.15-SNAPSHOT-bundled.jar
+ .
