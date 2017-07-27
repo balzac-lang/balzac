@@ -23,23 +23,23 @@ key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtM
 
 coinbase kA as fundsA
 
-transaction TA = {
+transaction TA {
 	input = fundsA: sig kA
 	output = 1BTC: fun(x). versig(kA; x) 
 }
 
-transaction T = {
+transaction T {
 	input = TA: sig kA
 	output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
 }
 
 // finalize A
-transaction TA_finalize = {
+transaction TA_finalize {
 	input = T: sig kA sig kB 
 	output = 1BTC - 16: fun(x). versig(kA; x)
 }
 // or B
-transaction TB_finalize = {
+transaction TB_finalize {
 	input = T: sig kA sig kB 
 	output = 1BTC - 16: fun(x). versig(kB; x)
 }

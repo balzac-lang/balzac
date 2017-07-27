@@ -48,15 +48,15 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-	"transaction" name=ID '=' body=TxBody;
+	"transaction" name=ID body=TxBody;
 	
 CoinbaseDeclaration returns TransactionDeclaration:
 	coinbase?="coinbase" key=[KeyDeclaration] "as" name=ID;
 
 TxBody: SerialTxBody | UserDefinedTxBody;
 
-SerialTxBody: bytes=STRING;
-UserDefinedTxBody: "{"
+SerialTxBody: '=' bytes=STRING;
+UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
 	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
 	("after" tlock=Tlock)?

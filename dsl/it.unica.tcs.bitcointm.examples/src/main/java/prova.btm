@@ -18,7 +18,7 @@ key kB = [
   
 coinbase kA as coinbaseA
 
-transaction ALFA = {
+transaction ALFA {
 	input = coinbaseA: sig kA
 	output = [
 		1 BTC: fun(n) . n==42;			// P2SH
@@ -31,7 +31,7 @@ transaction ALFA = {
 transaction ALFA_serial   = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000"
 
 
-transaction T = {
+transaction T {
 	input = coinbaseA@0: sig kA AIAO
 	output = [
 		0.00000546 BTC:		fun(n) . n!=42 ;
@@ -42,7 +42,7 @@ transaction T = {
 	]
 }
 
-transaction T1 = {
+transaction T1 {
 	input = [
 		T@0: (0.00000043 BTC); 
 		T@1: if (10+2==12) then "abc" else "xyz";
@@ -66,7 +66,7 @@ transaction T1 = {
 
 
 
-transaction Th = { 
+transaction Th { 
 	input = coinbaseA: sig kA
 	output = 
 		10 BTC:	fun(secret:string). 
@@ -81,38 +81,44 @@ transaction Th = {
 			hash160("")==ripemd160(sha256("")) 
 } 
 
-transaction Th1 = {
+transaction Th1 {
 	input = Th: "secret"
 	output = 0: "HELLO WORLD"    
 }
 
-transaction A0 = {
+transaction A0 {
 	input = coinbaseA: sig kA
 	output = 0: ""
 	after 4 blocks from coinbaseA
 }
 
-transaction A1 = {
+transaction A1 {
 	input = coinbaseA: sig kA
 	output = 0: ""
 	after 60 minutes from coinbaseA
 }
 
-transaction A2 = {
+transaction A2 {
 	input = coinbaseA: sig kA
 	output = 0: ""
 	after 60 hours from coinbaseA
 }
 
-transaction A3 = {
+transaction A3 {
 	input = coinbaseA: sig kA
 	output = 0: ""
 	after 380 days from coinbaseA
 }
 
-transaction A4 = {
+transaction A4 {
 	input = coinbaseA: sig kA
 	output = 0: ""
+	after block 499_999_999
+}
+
+transaction test(p) {
+	input = coinbaseA: sig kA
+	output = 1000: fun(secret:string). p==secret 
 	after block 499_999_999
 }
 

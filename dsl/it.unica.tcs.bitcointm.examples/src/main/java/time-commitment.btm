@@ -12,7 +12,7 @@ key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzk
 coinbase kA as fundsA
 coinbase kB as fundsB
 
-transaction T_commitA = { 
+transaction T_commitA { 
 	input = fundsA: sig kA
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
@@ -21,7 +21,7 @@ transaction T_commitA = {
 			versig(kA, kB; sigma1, sigma2)
 }
 
-transaction T_commitB = { 
+transaction T_commitB { 
 	input = fundsB: sig kB
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
@@ -30,25 +30,25 @@ transaction T_commitB = {
 			versig(kA, kB; sigma1, sigma2)
 }
 
-transaction T_openA = {
+transaction T_openA {
 	input = T_commitA: sig kA sig kA "secretA"
 	output = 10 BTC - 10: fun(sigma) .versig(kA; sigma)
 }
 
-transaction T_openB = {
+transaction T_openB {
 	input = T_commitB: sig kB sig kB "secretB"
 	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 }
 
 
 
-transaction T_payDepositA = {
+transaction T_payDepositA {
     input = T_commitA: sig kA sig kB ""
  	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 	after block 45
 }
 
-transaction T_payDepositB = {
+transaction T_payDepositB {
     input = T_commitB: sig kA sig kB ""
  	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
 	after block 45
@@ -70,7 +70,7 @@ contract CB {
 }
 
 
-transaction T_compute = {
+transaction T_compute {
     input = [
     	fundsA: sig kA;
     	fundsB: sig kB

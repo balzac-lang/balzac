@@ -22,9 +22,9 @@ import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.Minus
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
+import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
@@ -39,6 +39,7 @@ import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
 import java.util.Arrays
 import org.bitcoinj.core.Utils
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
@@ -64,17 +65,17 @@ auxiliary {
 
 judgments {
 
-	scriptType |~ Script s
+	eobjType |~ EObject s
 		error "Cannot type " + stringRep(s)
 		source s
-	
-	witscriptType ||~ Input s
-		error "Cannot type " + stringRep(s)
-		source s
-	
-	bitValueType |= BitcoinValue v
-		error "Cannot type " + stringRep(v)
-		source v
+
+	typeInput ||- TypeSubstitutions substitutions |> Input exp
+		error "Cannot type " + stringRep(exp)
+		source exp
+
+	typeOutput ||= TypeSubstitutions substitutions |> Output exp
+		error "Cannot type " + stringRep(exp)
+		source exp
 
 	type |- TypeSubstitutions substitutions |> Expression exp : output Type
 		error "Cannot type " + stringRep(exp)
@@ -169,41 +170,60 @@ auxiliary simplifySafe(Expression exp) {
 
 
 /*
- * expressions
+ * Type system rules
  */
-
-rule Script
-	G |~ Script script
+ 
+/**
+ * Type check a user defined transactions:
+ * - all the inputs are well typed
+ * - all the inputs are well typed
+ * - all the parameters are well typed and the type is basic (not generic)
+ */
+rule UserDefinedTxBody
+	G |~ UserDefinedTxBody tx
 from {
-	for (p : script.params) {
+	for (p : tx.params) {
 		G ||- p : var Type paramType
 		G.add(p, paramType)			// store the type in the environment
 		p.paramType = paramType		// and in the AST
 	}
+	
 	var substitutions = new TypeSubstitutions()
-	G |- substitutions |> script.exp : var Type texp	// shouldn't be boolean?
+	
+	for (in : tx.inputs) {
+		G ||- substitutions |> in
+	}
+	
+	for (out : tx.outputs) {
+		G ||= substitutions |> out
+	}
 	
 	// all the parameters should have a basic type (generic types are not allowed)
-	for (p : script.params) {
+	for (p : tx.params) {
 		p.paramType = typesubstitution(substitutions, p.paramType)
 		{p.paramType instanceof BasicType}
 	}
 	
 }
 
+/**
+ * An input is well typed if:
+ * - all the expressions are well typed and the type is basic (not generic)
+ * - if the redeemed tx is user defined, all the expression type corresponds to the expected type of the parameter
+ */
 rule Input
-	G ||~ Input input
+	G ||- TypeSubstitutions substitutions |> Input input
 from {
-	var substitutions = new TypeSubstitutions()
 
     var inputTx = if (input.txRef.tx.body instanceof UserDefinedTxBody) input.txRef.tx.body as UserDefinedTxBody else null
 	var outputIdx = input.txRef.idx
 	
-	var Script outputScript = null
+	var Output _output = null
 	
+	// type check the output script to determine the type of its parameters
 	if (inputTx!==null && outputIdx<=inputTx.outputs.size) {
-		outputScript = inputTx.outputs.get(outputIdx).script 
-		G |~ outputScript	// all the params will have a basic type
+		_output = inputTx.outputs.get(outputIdx) 
+//		G ||= substitutions |> _output // all the params will have a basic type
 	}
 	
 	for (var i=0; i<input.exps.size; i++) {
@@ -212,10 +232,10 @@ from {
 		G |- substitutions |> exp : var BasicType texp
 		
 		// TODO: modify when serialized transactions will be analized (?) 
-		if (inputTx!==null && outputScript!==null && 
-		    outputScript.params.size==input.exps.size
+		if (inputTx!==null && _output!==null && 
+		    _output.script.params.size==input.exps.size
 		) {
-			var param = outputScript.params.get(i)
+			var param = _output.script.params.get(i)
 			
 			if(param.paramType.class != texp.class) {
 				fail
@@ -226,8 +246,33 @@ from {
 	}
 }
 
+/**
+ * An Output is well typed if:
+ * - all the scripts parameters are well typed and the type is basic (not generic)
+ * - all the scripts expressions are well typed
+ */
+rule Output
+	G ||= TypeSubstitutions substitutions |> Output _output
+from {
+	var script = _output.script
+	for (p : script.params) {
+		G ||- p : var Type paramType
+		G.add(p, paramType)			// store the type in the environment
+		p.paramType = paramType		// and in the AST
+	}
+
+	G |- substitutions |> script.exp : var Type texp	// shouldn't be boolean?
+	
+	// all the parameters should have a basic type (generic types are not allowed)
+	for (p : script.params) {
+		p.paramType = typesubstitution(substitutions, p.paramType)
+		{p.paramType instanceof BasicType}
+	}
+}
+
+
 rule BitcoinValue
-	G |= BitcoinValue v
+	G |~ BitcoinValue v
 from {
 	G |- new TypeSubstitutions() |> v.exp : var IntType intType
 }
@@ -821,23 +866,16 @@ axiom SimplifyEObject
  * rule invocations
  * 
  */
-checkrule CheckScript for
-    Script script
+checkrule CheckUserDefinedTxBody for
+    UserDefinedTxBody tx
 from {
 	lambdaUtils.resetCounter
-    empty |~ script
-}
-
-checkrule CheckInput for
-    Input script
-from {
-	lambdaUtils.resetCounter
-    empty ||~ script
+    empty |~ tx
 }
 
 checkrule CheckBitcoinValue for
     BitcoinValue v
 from {
 	lambdaUtils.resetCounter
-    empty |= v
+    empty |~ v
 }
