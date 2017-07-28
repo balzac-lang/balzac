@@ -484,7 +484,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		for (input: tbody.inputs) {
 			var valid = 
-				input.txRef.isPlaceholder || (
+				input.isPlaceholder || (
 					input.checkInputTransactionParams && 
 					input.checkInputIndex && 
 					input.checkInputExpressions
@@ -705,13 +705,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     
     def boolean correctlySpendsOutput(UserDefinedTxBody tbody) {
         
+        if (tbody.params.size>0) {
+        	info(
+				'''Cannot check if these inputs are correctly spending their outputs''',
+				tbody,
+				BitcoinTMPackage.Literals.USER_DEFINED_TX_BODY__INPUTS						
+			)
+			return true
+        }
+        
         for (var i=0; i<tbody.inputs.size; i++) {
 
             var input = tbody.inputs.get(i)
             var Script inScript
-            var Script outScript            
+            var Script outScript
             
             try {
+
                 var Transaction tx = (tbody.eContainer as TransactionDeclaration).toTransaction
 				
 				try {

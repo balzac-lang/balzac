@@ -54,14 +54,17 @@ TxBody: SerialTxBody | UserDefinedTxBody;
 
 SerialTxBody: '=' bytes=STRING;
 UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
-	"input"  "=" (inputs+=Input  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
+	"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=(Input|InputPlaceholder)   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
 	("after" tlock=Tlock)?
 "}";
 
 
 Input:
-	txRef=(TransactionReference|TransactionReferencePlaceholder) ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+	txRef=TransactionReference ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+
+InputPlaceholder returns Input:
+	placeholder?="_";
 
 Output:
 	value=BitcoinValue ":" script=Script;
@@ -82,8 +85,6 @@ RelativeTime:
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")? ("@" idx=INT)?;
 
-TransactionReferencePlaceholder returns TransactionReference:
-	placeholder?="_";
 	
 
 

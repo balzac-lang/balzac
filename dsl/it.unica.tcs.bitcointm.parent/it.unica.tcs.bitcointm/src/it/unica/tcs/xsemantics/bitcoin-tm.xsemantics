@@ -219,53 +219,55 @@ rule Input
 	G ||- TypeSubstitutions substitutions |> Input input
 from {
 	
-	// the body of the redeemed transaction is well typed
-	var inputTxBody = input.txRef.tx.body
-	G |~ inputTxBody
-
-	// all the input expressions are well typed and the type is basic
-	for (var i=0; i<input.exps.size; i++) {
-		var exp = input.exps.get(i)
-		G |- substitutions |> exp : var BasicType texp
-		
-		if (inputTxBody instanceof UserDefinedTxBody)
-			G.add(exp,texp)		// store the type for further checks (see below)
-	}
-
-	if (inputTxBody instanceof UserDefinedTxBody) {
-		
-		// check the actual parameters type match the formal ones (Transaction)
-		for (var i=0; i<input.txRef.actualParams.size; i++) {
-			var actualParam = input.txRef.actualParams.get(i)
-			var formalParam = inputTxBody.params.get(i)
-			
-			// all the actual parameters are well type and the type is basic
-			G |- substitutions |> actualParam : var BasicType actualParamType
-			
-			if(actualParamType.class != formalParam.paramType.class) {
-				fail
-					error "Invalid type '"+stringRep(actualParamType)+"'. The parameter has type '"+stringRep(formalParam.paramType)+"'."
-					source actualParam
-			} 
-		}
-		
-		// check the actual parameters type match the formal ones (Script)
-		var outputIndex = input.txRef.idx
-		var outputScript = inputTxBody.outputs.get(outputIndex).script
+	if (!input.isPlaceholder) {		
+		// the body of the redeemed transaction is well typed
+		var inputTxBody = input.txRef.tx.body
+		G |~ inputTxBody
+	
+		// all the input expressions are well typed and the type is basic
 		for (var i=0; i<input.exps.size; i++) {
-			var inputExp = input.exps.get(i)
-			var outputParam = outputScript.params.get(i)
+			var exp = input.exps.get(i)
+			G |- substitutions |> exp : var BasicType texp
 			
-			var inputExpType = G.get(inputExp)
-			var outputParamType = outputParam.paramType 
+			if (inputTxBody instanceof UserDefinedTxBody)
+				G.add(exp,texp)		// store the type for further checks (see below)
+		}
+	
+		if (inputTxBody instanceof UserDefinedTxBody) {
 			
-			G.decrement(inputExp)
-									
-			if(outputParamType.class != inputExpType.class) {
-				fail
-					error "Invalid type '"+stringRep(inputExpType)+"'. The parameter has type '"+stringRep(outputParamType)+"'."
-					source inputExp
-			} 
+			// check the actual parameters type match the formal ones (Transaction)
+			for (var i=0; i<input.txRef.actualParams.size; i++) {
+				var actualParam = input.txRef.actualParams.get(i)
+				var formalParam = inputTxBody.params.get(i)
+				
+				// all the actual parameters are well type and the type is basic
+				G |- substitutions |> actualParam : var BasicType actualParamType
+				
+				if(actualParamType.class != formalParam.paramType.class) {
+					fail
+						error "Invalid type '"+stringRep(actualParamType)+"'. The parameter has type '"+stringRep(formalParam.paramType)+"'."
+						source actualParam
+				} 
+			}
+			
+			// check the actual parameters type match the formal ones (Script)
+			var outputIndex = input.txRef.idx
+			var outputScript = inputTxBody.outputs.get(outputIndex).script
+			for (var i=0; i<input.exps.size; i++) {
+				var inputExp = input.exps.get(i)
+				var outputParam = outputScript.params.get(i)
+				
+				var inputExpType = G.get(inputExp)
+				var outputParamType = outputParam.paramType 
+				
+				G.decrement(inputExp)
+										
+				if(outputParamType.class != inputExpType.class) {
+					fail
+						error "Invalid type '"+stringRep(inputExpType)+"'. The parameter has type '"+stringRep(outputParamType)+"'."
+						source inputExp
+				} 
+			}
 		}
 	}
 }

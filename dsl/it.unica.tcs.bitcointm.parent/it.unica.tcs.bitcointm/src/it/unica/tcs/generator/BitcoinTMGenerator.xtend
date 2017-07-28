@@ -55,6 +55,8 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
+import org.eclipse.emf.common.util.BasicEList
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
@@ -66,6 +68,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.util.ASTUtils.*
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import org.apache.commons.lang3.tuple.ImmutablePair
 
 /**
  * Generates code from your model files on save.
@@ -94,15 +97,16 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
     
     private static class Context {
+    	
     	ScriptBuilder sb = new ScriptBuilder
-		SignaturesTracker signTracker = new SignaturesTracker
-		AltStack altstack = new AltStack
-		VariableCounter varCount = new VariableCounter
+		Map<Parameter, ImmutablePair<Integer,Integer>> altstack = new HashMap
 		
+		SignaturesTracker signTracker = new SignaturesTracker
+		Map<Parameter, Expression> transactionParameters = new HashMap
+			
 		def clear() {
 			sb = new ScriptBuilder
 			altstack.clear
-			varCount.clear
 		}
     }
     
@@ -110,9 +114,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     	Input currentInput 
     }
     
-    private static class VariableCounter extends HashMap<Parameter,Integer>{}
-    private static class AltStack extends HashMap<Parameter,Integer>{}
-    
+        
     private static class SignatureUtil {
         int index
         ECKey key
@@ -170,28 +172,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		transaction «obj.name» {
 			
 			«tx.toString»
-«««			input [
-«««				«FOR i : tx.inputs»
-«««				«i.scriptSig.toString»
-«««				«IF i.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash»
-«««					redeem script       [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).toString»]
-«««					redeem script (opt) [«new Script(i.scriptSig.chunks.get(i.scriptSig.chunks.size-1).data).optimize.toString»]
-«««				«ENDIF»
-«««				
-«««				«ENDFOR»
-«««			]
-«««			output [
-«««				«FOR i : 0 ..< tx.outputs.size»
-«««				«var out = tx.outputs.get(i)»
-«««				«out.value.value» : «out.scriptPubKey.toString»
-«««				«ENDFOR»
-«««			]
-«««			
-«««			«IF (obj.body as UserDefinedTxBody).tlock!==null»
-«««			timelock: «(obj.body as UserDefinedTxBody).tlock.value»
-«««			«ENDIF»
-«««			
-		
+			
 		} [«Utils.HEX.encode(tx.bitcoinSerialize)»]
 		
 		'''
@@ -233,18 +214,22 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * compiler: AST --> BitcoinJ
      * 
      */
-     
-	def Transaction toTransaction(TransactionDeclaration stmt) {
-		toTransaction(stmt, new HashMap());
+    
+    def Transaction toTransaction(TransactionDeclaration stmt) {
+		toTransaction(stmt, new BasicEList, new HashMap());
 	}
     
+	def Transaction toTransaction(TransactionDeclaration stmt, EList<Expression> actualParams) {
+		toTransaction(stmt, actualParams, new HashMap());
+	}
+	
     /**
      * Create a bitcoinj coinbase transaction.
      * The amount of money that can be spend is taken from the network parameters.
      * 
      * @return a coinbase tx with a lot of money always redeemable
      */
-    def private Transaction toTransaction(TransactionDeclaration stmt, Map<TransactionDeclaration,Transaction> cache) {
+    def private Transaction toTransaction(TransactionDeclaration stmt, EList<Expression> actualParams, Map<TransactionDeclaration,Transaction> cache) {
         if (cache.containsKey(stmt))
 			return cache.get(stmt)
         
@@ -280,26 +265,42 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		       		// the tx is not ready yet but it will be at the end of the recursive loop
         			cache.put(stmt, tx)
         
-       				var inputCtx = new Context
-			        for (var i=0; i<body.inputs.size; i++) {
+       				var ctx = new Context
+       				
+       				// map the actual parameters to the formal ones
+       				for(var i=0; i<actualParams.size; i++) {
+       					var actual = actualParams.get(i)
+       					var formal = body.params.get(i)
+       					ctx.transactionParameters.put(formal, actual)
+       				}
+       				
+       				for (var i=0; i<body.inputs.size; i++) {
 			//        	println('''input «i»''')
-						inputCtx.clear()
+						ctx.clear()
 			        	var input = body.inputs.get(i)
-			            var outIndex = input.txRef.idx
-			            var txToRedeem = input.txRef.tx.toTransaction(cache)
-			            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-			            var TransactionInput txInput = new TransactionInput(netParams, tx, input.compileInput(inputCtx).program, outPoint)
 			            
-			            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
-			            if (hasCheckTimeLockVerify)
-			            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
+			            var TransactionInput txInput = null
+			            if (!input.isPlaceholder) {			            	
+				            var outIndex = input.txRef.idx
+				            var txToRedeem = toTransaction(input.txRef.tx, input.txRef.actualParams, cache)
+				            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
+				            txInput = new TransactionInput(netParams, tx, input.compileInput(ctx).program, outPoint)
+
+				            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
+				            if (hasCheckTimeLockVerify)
+				            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
+			            }
+			            else {
+			            	txInput = new TransactionInput(netParams, tx, input.compileInput(ctx).program)
+			            }
 
 			            tx.addInput(txInput)
 			        }
 			        
 			        for (output : body.outputs) {
+				        ctx.clear()
 			            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-			            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput.program)
+			            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).program)
 			            tx.addOutput(txOutput)
 			        }
 			        
@@ -310,7 +311,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 			        // set all the signatures within the input scripts (which are never part of the signature)
 			        for (var i=0; i<tx.inputs.size; i++) {
 			            var txInput = tx.getInput(i)
-			            var signatures = inputCtx.signTracker.get(body.inputs.get(i))
+			            var signatures = ctx.signTracker.get(body.inputs.get(i))
 			            
 			            if (signatures!==null) {
 			            	
@@ -366,7 +367,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
 
     def Script compileInput(Input stmt, Context ctx) {
-        var outIdx = stmt.txRef.idx
 
         /*
          * Set the current input within the context.
@@ -374,24 +374,18 @@ class BitcoinTMGenerator extends AbstractGenerator {
          */
         ctx.signTracker.currentInput=stmt
 		
-		if (stmt.txRef.isPlaceholder) {
+		if (stmt.isPlaceholder) {
  			/*
              * This transaction is like a coinbase transaction.
              * You can put the input you want.
              */
-            var sig = stmt.exps.get(0).simplifySafe as Signature
-            var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
-            
             if (!ctx.sb.build.chunks.isEmpty)
         		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
                         
-            sig.compileInputExpression(ctx)
-            ctx.sb.data(pubkey)
-
-            /* <sig> <pubkey> */
-            ctx.sb.build
+            return new ScriptBuilder().number(42).build
 		}
 		else {
+	        var outIdx = stmt.txRef.idx
 			switch stmt.txRef.tx.body {
 				
 				/*
@@ -423,7 +417,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(ctx)]
 		                
 		                // get the redeem script to push
-		                var redeemScript = output.script.getRedeemScript
+		                var redeemScript = output.script.getRedeemScript(ctx)
 		                
 		                ctx.sb.data(redeemScript.program)
 		                                
@@ -458,7 +452,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(ctx)]
 		                
 		                // get the redeem script to push
-		                var redeemScript = stmt.redeemScript.getRedeemScript
+		                var redeemScript = stmt.redeemScript.getRedeemScript(ctx)
 		                ctx.sb.data(redeemScript.program)
 		                
 		                /* <e1> ... <en> <serialized script> */
@@ -474,7 +468,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def private Script compileOutput(Output output) {
+    def private Script compileOutput(Output output, Context ctx) {
 		
         var outScript = output.script
 
@@ -492,7 +486,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize
-            var redeemScript = output.script.getRedeemScript
+            var redeemScript = output.script.getRedeemScript(ctx)
             var script = ScriptBuilder.createP2SHOutputScript(redeemScript)
 
             if (script.scriptType != ScriptType.P2SH)
@@ -523,17 +517,19 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def private Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script) {
+	def private Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script, Context ctx) {
         
-        val ctx = new Context
+        if (!ctx.altstack.isEmpty)
+        	throw new CompilationException("Altstack must be empty.")
+        
         
         // build the redeem script to serialize
         for (var i=script.params.size-1; i>=0; i--) {
             val Parameter p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
             
-            ctx.altstack.put(p, ctx.altstack.size)    // update the context
-            ctx.varCount.put(p, numberOfRefs)
+            var elm = new ImmutablePair<Integer,Integer>(ctx.altstack.size, numberOfRefs)
+            ctx.altstack.put(p, elm)    // update the context
             
             ctx.sb.op(0, OP_TOALTSTACK)
         }
@@ -554,10 +550,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         if (!ctx.altstack.isEmpty)
         	throw new CompilationException("Altstack must be empty.")
-        
-        if (!ctx.varCount.isEmpty)
-        	throw new CompilationException("VarCount must be empty.")
-
         
         exp.simplifySafe.compileExpression(ctx)	// the altstack is used only by VariableReference(s)
         ctx.sb.build.optimize	// post optimization
@@ -942,42 +934,39 @@ class BitcoinTMGenerator extends AbstractGenerator {
          * 
          */
         var param = varRef.ref
-        val pos = ctx.altstack.get(param)
-
-        if(pos === null) throw new CompilationException;
-
-        (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_FROMALTSTACK)]
-
-//		println('''varCount [before]: «varCount»''')
-//		println('''altstack [before]: «altstack»''')
-		
-		var count = ctx.varCount.get(varRef.ref)
         
-        if (count==1) {
-        	// this is the last usage of the variable
-        	ctx.varCount.remove(varRef.ref)
-        	ctx.altstack.remove(varRef.ref)							// remove the reference to its altstack position
-        	for (e : ctx.altstack.entrySet.filter[e|e.value>pos]) {	// update all the positions of the remaing elements
-        		ctx.altstack.put(e.key, e.value-1)
-        	}
-        	
-	        if (ctx.altstack.size - pos> 0)
-	            (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-        	
-        }
-        else {
-        	ctx.varCount.put(varRef.ref, count-1)
-	        ctx.sb.op(OP_DUP).op(OP_TOALTSTACK)
-
-	        if (ctx.altstack.size - pos - 1 > 0)
-	            (1 .. ctx.altstack.size - pos - 1).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
-        }
+        var actualTxParam = ctx.transactionParameters.get(param)
         
-
-//        println('''varCount [after] : «varCount»''')
-//		println('''altstack [after] : «altstack»''')
-//		println()
+        if (actualTxParam!==null) {
+        	actualTxParam.compileExpression(ctx)
+        }
+        else {        	
+	        val pos = ctx.altstack.get(param).left
+			var count = ctx.altstack.get(param).right
+	
+	        if(pos === null) throw new CompilationException;
+	
+	        (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_FROMALTSTACK)]
+	        
+	        if (count==1) {
+	        	// this is the last usage of the variable
+	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+	        	for (e : ctx.altstack.entrySet.filter[e|e.value.left>pos]) {	// update all the positions of the remaing elements
+	        		ctx.altstack.put(e.key, new ImmutablePair(e.value.left-1, e.value.right))
+	        	}
+	        	
+		        if (ctx.altstack.size - pos> 0)
+		            (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+	        	
+	        }
+	        else {
+	        	ctx.altstack.put(param, new ImmutablePair(pos, count-1))
+		        ctx.sb.op(OP_DUP).op(OP_TOALTSTACK)
+	
+		        if (ctx.altstack.size - pos - 1 > 0)
+		            (1 .. ctx.altstack.size - pos - 1).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+	        }
+        }
     }
-    
 
 }
