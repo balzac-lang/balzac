@@ -23,7 +23,7 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Declaration:
-	KeyDeclaration | TransactionDeclaration | CoinbaseDeclaration | EndpointDeclaration; 
+	KeyDeclaration | TransactionDeclaration | EndpointDeclaration; 
 
 Network:
 	{Network} "network" (testnet?="testnet" | "mainnet");
@@ -50,9 +50,6 @@ PublicKey: value=STRING  | {PublicKey}  "_";
 TransactionDeclaration:
 	"transaction" name=ID body=TxBody;
 	
-CoinbaseDeclaration returns TransactionDeclaration:
-	coinbase?="coinbase" key=[KeyDeclaration] "as" name=ID;
-
 TxBody: SerialTxBody | UserDefinedTxBody;
 
 SerialTxBody: '=' bytes=STRING;
@@ -63,9 +60,8 @@ UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
 "}";
 
 
-
 Input:
-	txRef=TransactionReference ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+	txRef=(TransactionReference|TransactionReferencePlaceholder) ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
 
 Output:
 	value=BitcoinValue ":" script=Script;
@@ -84,8 +80,10 @@ RelativeTime:
 	value=Delay "from" tx=[TransactionDeclaration];
 
 TransactionReference:
-	tx=[TransactionDeclaration|QualifiedName] ("@" idx=INT)?;
+	tx=[TransactionDeclaration|QualifiedName] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")? ("@" idx=INT)?;
 
+TransactionReferencePlaceholder returns TransactionReference:
+	placeholder?="_";
 	
 
 

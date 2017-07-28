@@ -25,6 +25,7 @@ import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
@@ -125,6 +126,14 @@ auxiliary unify(TypeSubstitutions substitutions, Type t1, Type t2) {
 	null
 } 
 
+auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, HashType t1, HashType t2) {
+    EcoreUtil::copy(t1)
+}
+
 auxiliary unify(TypeSubstitutions substitutions, StringType t1, StringType t2) {
     EcoreUtil::copy(t1)
 }
@@ -134,14 +143,6 @@ auxiliary unify(TypeSubstitutions substitutions, BooleanType t1, BooleanType t2)
 }
 
 auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(TypeSubstitutions substitutions, HashType t1, HashType t2) {
     EcoreUtil::copy(t1)
 }
 
@@ -172,7 +173,9 @@ auxiliary simplifySafe(Expression exp) {
 /*
  * Type system rules
  */
- 
+axiom SerialTxBody
+	G |~ SerialTxBody body
+
 /**
  * Type check a user defined transactions:
  * - all the inputs are well typed
@@ -191,11 +194,11 @@ from {
 	var substitutions = new TypeSubstitutions()
 	
 	for (in : tx.inputs) {
-		G ||- substitutions |> in
+		G ||- substitutions |> in	// all inputs are well typed
 	}
 	
 	for (out : tx.outputs) {
-		G ||= substitutions |> out
+		G ||= substitutions |> out	// all outputs are well typed
 	}
 	
 	// all the parameters should have a basic type (generic types are not allowed)
@@ -203,46 +206,67 @@ from {
 		p.paramType = typesubstitution(substitutions, p.paramType)
 		{p.paramType instanceof BasicType}
 	}
-	
 }
 
 /**
  * An input is well typed if:
+ * - the body of the redeemed transaction is well typed
  * - all the expressions are well typed and the type is basic (not generic)
+ * - if the redeemed tx has free variables, check that the actual types corresponds to the formal ones 
  * - if the redeemed tx is user defined, all the expression type corresponds to the expected type of the parameter
  */
 rule Input
 	G ||- TypeSubstitutions substitutions |> Input input
 from {
+	
+	// the body of the redeemed transaction is well typed
+	var inputTxBody = input.txRef.tx.body
+	G |~ inputTxBody
 
-    var inputTx = if (input.txRef.tx.body instanceof UserDefinedTxBody) input.txRef.tx.body as UserDefinedTxBody else null
-	var outputIdx = input.txRef.idx
-	
-	var Output _output = null
-	
-	// type check the output script to determine the type of its parameters
-	if (inputTx!==null && outputIdx<=inputTx.outputs.size) {
-		_output = inputTx.outputs.get(outputIdx) 
-//		G ||= substitutions |> _output // all the params will have a basic type
-	}
-	
+	// all the input expressions are well typed and the type is basic
 	for (var i=0; i<input.exps.size; i++) {
 		var exp = input.exps.get(i)
-		
 		G |- substitutions |> exp : var BasicType texp
 		
-		// TODO: modify when serialized transactions will be analized (?) 
-		if (inputTx!==null && _output!==null && 
-		    _output.script.params.size==input.exps.size
-		) {
-			var param = _output.script.params.get(i)
+		if (inputTxBody instanceof UserDefinedTxBody)
+			G.add(exp,texp)		// store the type for further checks (see below)
+	}
+
+	if (inputTxBody instanceof UserDefinedTxBody) {
+		
+		// check the actual parameters type match the formal ones (Transaction)
+		for (var i=0; i<input.txRef.actualParams.size; i++) {
+			var actualParam = input.txRef.actualParams.get(i)
+			var formalParam = inputTxBody.params.get(i)
 			
-			if(param.paramType.class != texp.class) {
+			// all the actual parameters are well type and the type is basic
+			G |- substitutions |> actualParam : var BasicType actualParamType
+			
+			if(actualParamType.class != formalParam.paramType.class) {
 				fail
-					error "Invalid type '"+stringRep(texp)+"'. The parameter has type '"+stringRep(param.paramType)+"'."
-					source exp
+					error "Invalid type '"+stringRep(actualParamType)+"'. The parameter has type '"+stringRep(formalParam.paramType)+"'."
+					source actualParam
 			} 
-		}		
+		}
+		
+		// check the actual parameters type match the formal ones (Script)
+		var outputIndex = input.txRef.idx
+		var outputScript = inputTxBody.outputs.get(outputIndex).script
+		for (var i=0; i<input.exps.size; i++) {
+			var inputExp = input.exps.get(i)
+			var outputParam = outputScript.params.get(i)
+			
+			var inputExpType = G.get(inputExp)
+			var outputParamType = outputParam.paramType 
+			
+			G.decrement(inputExp)
+									
+			if(outputParamType.class != inputExpType.class) {
+				fail
+					error "Invalid type '"+stringRep(inputExpType)+"'. The parameter has type '"+stringRep(outputParamType)+"'."
+					source inputExp
+			} 
+		}
 	}
 }
 

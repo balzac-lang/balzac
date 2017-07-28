@@ -162,9 +162,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
 
     	var tx = obj.toTransaction
 
-    	if (obj.isCoinbase)
-    		return '''coinbase «obj.name» [«tx.outputs.get(0).scriptPubKey»]'''
-    	
     	if (obj.body instanceof SerialTxBody)
     		return '''transaction «obj.name» [«(obj.body as SerialTxBody).bytes»]'''
     	
@@ -254,23 +251,23 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
 
-       	if (stmt.isCoinbase) {
-       		/*
-       		 * coinbase transaction
-       		 */
-       		var address = stmt.key.body.pub.value.wifToAddress(netParams)
-	        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
-	        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, ScriptBuilder.createOutputScript(address).program);      
-	    	
-	        tx.addInput(txInput);
-	        tx.addOutput(txOutput);
-	        
-	        if (!tx.isCoinBase)
-	        	throw new CompilationException('''the compiled transaction of «stmt.name» is not a coinbase transaction''')
-	        
-	        cache.put(stmt, tx)
-       	}
-       	else {
+//       	if (stmt.isCoinbase) {
+//       		/*
+//       		 * coinbase transaction
+//       		 */
+//       		var address = stmt.key.body.pub.value.wifToAddress(netParams)
+//	        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
+//	        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, ScriptBuilder.createOutputScript(address).program);      
+//	    	
+//	        tx.addInput(txInput);
+//	        tx.addOutput(txOutput);
+//	        
+//	        if (!tx.isCoinBase)
+//	        	throw new CompilationException('''the compiled transaction of «stmt.name» is not a coinbase transaction''')
+//	        
+//	        cache.put(stmt, tx)
+//       	}
+//       	else {
        		switch(stmt.body) {
        			UserDefinedTxBody: {
        				/**
@@ -359,7 +356,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
        			}
        		}
        		
-       	}
+//       	}
         
         // the tx is not ready yet but it will be at the end of the recursive loop
     	return tx
@@ -377,9 +374,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
          */
         ctx.signTracker.currentInput=stmt
 		
-		if (stmt.txRef.tx.isCoinbase) {
+		if (stmt.txRef.isPlaceholder) {
  			/*
-             * Coinbase transaction are always redeemable by key.
+             * This transaction is like a coinbase transaction.
+             * You can put the input you want.
              */
             var sig = stmt.exps.get(0).simplifySafe as Signature
             var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)

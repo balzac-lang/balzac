@@ -483,7 +483,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		var hasError = false;
 		
 		for (input: tbody.inputs) {
-			var valid = input.checkInputIndex && input.checkInputExpressions
+			var valid = 
+				input.txRef.isPlaceholder || (
+					input.checkInputTransactionParams && 
+					input.checkInputIndex && 
+					input.checkInputExpressions
+				)
+				
 		    hasError = hasError || !valid
 //		    println('''input «input»''')
 //		    println('''hasError «hasError»''')
@@ -521,16 +527,31 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
          */
         hasError = tbody.correctlySpendsOutput
 	}
+
+    def boolean checkInputTransactionParams(Input input) {
+
+        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+            var inputTx = input.txRef.tx.body as UserDefinedTxBody
+            
+            if (inputTx.params.size!=input.txRef.actualParams.size) {
+	            error(
+                    "The number of expressions does not match the number of parameters.",
+                    input,
+                    BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__ACTUAL_PARAMS
+                );
+                return false
+            }
+        }
+        
+        return true
+    }
 	
 	def boolean checkInputIndex(Input input) {
 
         var outIndex = input.txRef.idx
         var int numOfOutputs
         
-        if (input.txRef.tx.isCoinbase){
-            numOfOutputs = 1
-        }
-        else if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+        if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             numOfOutputs = inputTx.outputs.size
         }
@@ -550,24 +571,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         return true
     }
-
+    
     def boolean checkInputExpressions(Input input) {
         
         var outputIdx = input.txRef.idx
         var lastExp = input.exps.get(input.exps.size-1)
 		
-		if (input.txRef.tx.isCoinbase) {
-            if (input.exps.size!=1 || !(input.exps.get(0) instanceof Signature)) {
-                error(
-                    "Coinbase transactions have to be redeemed providing a signature.",
-                    input,
-                    BitcoinTMPackage.Literals.INPUT__EXPS,
-                    0
-                );
-                return false
-            }
-		}
-        else if (input.txRef.tx.body instanceof UserDefinedTxBody) {
+		if (input.txRef.tx.body instanceof UserDefinedTxBody) {
             var inputTx = input.txRef.tx.body as UserDefinedTxBody
             var outputScript = inputTx.outputs.get(outputIdx).script;
             

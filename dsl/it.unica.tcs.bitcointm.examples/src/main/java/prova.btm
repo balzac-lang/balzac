@@ -53,8 +53,7 @@ transaction T1 {
 //		ALFA@0:	42 ;
 //		ALFA@1:	sig kB;
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH
-		ALFA_serial@1:	sig kB;
-		T1@0: 2147483647
+		ALFA_serial@1:	sig kB
 	]
 	 
 	output = [  
