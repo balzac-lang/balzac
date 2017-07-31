@@ -30,6 +30,7 @@ Export-Package: it.unica.tcs,
  it.unica.tcs.services,
  it.unica.tcs.util,
  it.unica.tcs.validation
-Import-Package: org.apache.log4j
+Import-Package: it.unica.tcs.generator,
+ org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,
  .

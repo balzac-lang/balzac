@@ -7,14 +7,8 @@ key kAlice = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4r
 key kBob = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 key kLenny = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
-coinbase kAlice as fundsAlice
-coinbase kBob as fundsBob
-
 transaction T {
-	input = [
-		fundsAlice: sig kAlice;
-		fundsBob: sig kBob
-	] 
+	input = _
 	output = 1 BTC - 10:
 		fun(flag, sig1, sig2) . 
 			if (flag)

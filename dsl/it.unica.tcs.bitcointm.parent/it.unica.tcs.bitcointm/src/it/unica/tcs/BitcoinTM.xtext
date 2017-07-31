@@ -215,7 +215,7 @@ HoursDelay   returns ecore::EInt: INT "hours";
 DayDelay     returns ecore::EInt: INT "days";
 BlockDelay   returns ecore::EInt: INT "blocks";
 
-terminal HEX returns ecore::EBigInteger:
+terminal HEX returns ecore::EInt:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 

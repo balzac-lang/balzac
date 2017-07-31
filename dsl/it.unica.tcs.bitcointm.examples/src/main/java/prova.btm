@@ -1,7 +1,6 @@
-
 package it.unica.btm.prova
 
-network mainnet  
+network mainnet 
 
 key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
@@ -42,7 +41,7 @@ transaction T {
 
 transaction T1 {
 	input = [
-		T@0: (0.00000043 BTC); 
+		T@0: (0.00000043 BTC);
 		T@1: if (10+2==12) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA AIAO;
 		T@3: sig kA AIAO;  

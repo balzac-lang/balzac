@@ -9,11 +9,8 @@ key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtM
 key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
 
-coinbase kA as fundsA
-coinbase kB as fundsB
-
 transaction T_commitA { 
-	input = fundsA: sig kA
+	input = _
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
@@ -22,7 +19,7 @@ transaction T_commitA {
 }
 
 transaction T_commitB { 
-	input = fundsB: sig kB
+	input = _
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
@@ -71,10 +68,7 @@ contract CB {
 
 
 transaction T_compute {
-    input = [
-    	fundsA: sig kA;
-    	fundsB: sig kB
-    	]
+    input = _
 	output =
 		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) . 
 			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&

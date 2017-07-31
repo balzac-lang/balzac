@@ -50,7 +50,7 @@ class Optimizer {
 	}
 	
 	
-	def Script operator_plus(ScriptChunk ch, Script script) {
+	def private Script operator_plus(ScriptChunk ch, Script script) {
 		return new ScriptBuilder(script).addChunk(0,ch).build
 	}
 

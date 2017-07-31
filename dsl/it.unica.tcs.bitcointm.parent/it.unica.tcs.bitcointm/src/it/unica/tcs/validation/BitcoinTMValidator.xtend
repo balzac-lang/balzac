@@ -28,7 +28,7 @@ import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
-import it.unica.tcs.generator.BitcoinTMGenerator.CompilationException
+import it.unica.tcs.generator.CompileException
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
@@ -472,7 +472,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-	@Check
+//	@Check
 	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
 		
 //		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
@@ -774,7 +774,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     i
                 );
                 return false
-            } catch(CompilationException e) {
+            } catch(CompileException e) {
                 
             }
         }
