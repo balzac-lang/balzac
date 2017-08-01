@@ -1,6 +1,6 @@
 package it.unica.btm.prova
 
-network mainnet 
+network mainnet
 
 key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
@@ -83,31 +83,31 @@ transaction Th1 {
 }
 
 transaction A0 {
-	input = Th : ""
+	input = Th : "secret"
 	output = 0: ""
 	after 4 blocks from Th
 }
 
 transaction A1 {
-	input = Th : ""
+	input = Th : "secret"
 	output = 0: ""
 	after 60 minutes from Th
 }
 
 transaction A2 {
-	input = Th : ""
+	input = Th : "secret"
 	output = 0: ""
 	after 60 hours from Th
 }
 
 transaction A3 {
-	input = Th : ""
+	input = Th : "secret"
 	output = 0: ""
 	after 380 days from Th
 }
 
 transaction A4 {
-	input = Th : ""
+	input = Th : "secret"
 	output = 0: ""
 	after block 499_999_999
 }

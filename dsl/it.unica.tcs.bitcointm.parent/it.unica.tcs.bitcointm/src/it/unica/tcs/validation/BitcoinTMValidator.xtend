@@ -472,7 +472,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-//	@Check
+	@Check
 	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
 		
 //		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')

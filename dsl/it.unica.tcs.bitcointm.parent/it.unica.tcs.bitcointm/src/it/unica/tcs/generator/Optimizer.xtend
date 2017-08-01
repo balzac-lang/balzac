@@ -7,6 +7,10 @@ import org.bitcoinj.script.ScriptOpCodes
 
 class Optimizer {
 
+
+	def ScriptBuilder2 optimize(ScriptBuilder script) {
+		return new ScriptBuilder2().append(script.build.optimize)
+	}
 	
 	def Script optimize(Script script) {
 		var oldScript = script

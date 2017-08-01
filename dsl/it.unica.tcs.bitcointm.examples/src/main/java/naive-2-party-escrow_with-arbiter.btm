@@ -16,14 +16,12 @@ key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasy
 key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
 key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
-coinbase kA as fundsA
-
-transaction T = {
-	input = fundsA: sig kA
+transaction T {
+	input = _
 	output = 10BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
 }
 
-transaction TA = {
+transaction TA {
 	input = T: sig kA sig kC 
 	output = [
 		4BTC-15: fun(x). versig(kA; x);

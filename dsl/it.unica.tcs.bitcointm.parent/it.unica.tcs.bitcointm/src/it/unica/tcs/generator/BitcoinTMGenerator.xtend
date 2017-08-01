@@ -10,14 +10,17 @@ import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
+import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
+import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
@@ -34,18 +37,19 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
+import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
-import java.util.List
 import java.util.Map
+import org.apache.commons.lang3.tuple.ImmutablePair
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Transaction.SigHash
 import org.bitcoinj.core.TransactionInput
@@ -55,8 +59,6 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
-import org.eclipse.emf.common.util.BasicEList
-import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
@@ -68,7 +70,6 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.util.ASTUtils.*
 import static extension it.unica.tcs.validation.BitcoinJUtils.*
-import org.apache.commons.lang3.tuple.ImmutablePair
 
 /**
  * Generates code from your model files on save.
@@ -96,37 +97,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
     
     
-    private static class Context {
-    	
-    	ScriptBuilder sb = new ScriptBuilder
-		Map<Parameter, ImmutablePair<Integer,Integer>> altstack = new HashMap
-		
-		SignaturesTracker signTracker = new SignaturesTracker
-		Map<Parameter, Expression> transactionParameters = new HashMap
-			
-		def clear() {
-			sb = new ScriptBuilder
-			altstack.clear
-		}
-    }
-    
-    private static class SignaturesTracker extends HashMap<Input,List<SignatureUtil>>{
-    	Input currentInput 
-    }
-    
-        
-    private static class SignatureUtil {
-        int index
-        ECKey key
-        SigHash hashType
-        boolean anyoneCanPay
-        
-        override String toString() {
-	        return "SignatureUtil [index=" + index + ", key=" + key + ", hashType=" + hashType + ", anyoneCanPay="+ anyoneCanPay + "]";
-	    }
-    }
-    
-	
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
         var resourceName = resource.URI.lastSegment.replace(".btm", "")
@@ -215,12 +185,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * 
      */
     
-    def Transaction toTransaction(TransactionDeclaration stmt) {
-		toTransaction(stmt, new BasicEList, new HashMap());
-	}
-    
-	def Transaction toTransaction(TransactionDeclaration stmt, EList<Expression> actualParams) {
-		toTransaction(stmt, actualParams, new HashMap());
+	def Transaction toTransaction(TransactionDeclaration stmt) {
+		toTransaction(stmt, new HashMap());
 	}
 	
     /**
@@ -229,7 +195,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * 
      * @return a coinbase tx with a lot of money always redeemable
      */
-    def private Transaction toTransaction(TransactionDeclaration stmt, EList<Expression> actualParams, Map<TransactionDeclaration,Transaction> cache) {
+    def private Transaction toTransaction(TransactionDeclaration stmt, Map<TransactionDeclaration,Transaction> cache) {
         if (cache.containsKey(stmt))
 			return cache.get(stmt)
         
@@ -267,31 +233,30 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
        				var ctx = new Context
        				
-       				// map the actual parameters to the formal ones
-       				for(var i=0; i<actualParams.size; i++) {
-       					var actual = actualParams.get(i)
-       					var formal = body.params.get(i)
-       					ctx.transactionParameters.put(formal, actual)
-       				}
+       				var incompletedInputScripts = new HashMap<Input,ScriptBuilder2>()
        				
        				for (var i=0; i<body.inputs.size; i++) {
 			//        	println('''input «i»''')
 						ctx.clear()
+			        	
 			        	var input = body.inputs.get(i)
+			            var inputScriptBuilder = input.compileInput(ctx)	// maybe to be completed		            
+			            incompletedInputScripts.put(input, inputScriptBuilder)
 			            
 			            var TransactionInput txInput = null
+			            
 			            if (!input.isPlaceholder) {			            	
 				            var outIndex = input.txRef.idx
-				            var txToRedeem = toTransaction(input.txRef.tx, input.txRef.actualParams, cache)
+				            var txToRedeem = toTransaction(input.txRef.tx, cache)
 				            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-				            txInput = new TransactionInput(netParams, tx, input.compileInput(ctx).program, outPoint)
+				            txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program, outPoint)
 
 				            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
 				            if (hasCheckTimeLockVerify)
 				            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
 			            }
 			            else {
-			            	txInput = new TransactionInput(netParams, tx, input.compileInput(ctx).program)
+			            	txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program)
 			            }
 
 			            tx.addInput(txInput)
@@ -310,37 +275,22 @@ class BitcoinTMGenerator extends AbstractGenerator {
 			        
 			        // set all the signatures within the input scripts (which are never part of the signature)
 			        for (var i=0; i<tx.inputs.size; i++) {
-			            var txInput = tx.getInput(i)
-			            var signatures = ctx.signTracker.get(body.inputs.get(i))
 			            
-			            if (signatures!==null) {
-			            	
+			            if (!tx.isCoinBase) {			            	
+				            var txInput = tx.getInput(i)
+				            var inputScriptBuilder = incompletedInputScripts.get(body.inputs.get(i))
+				            
 			                var outScript = 
 			                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
 			                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
 			                    else
 			                        txInput.outpoint.connectedPubKeyScript
 			                
-			                for(sign : signatures) {
-			                    // compute the signature
-			                    var txSignature = tx.calculateSignature(i, sign.key, outScript, sign.hashType, sign.anyoneCanPay)
-			                    
-			                    // replace the chunk at index sign.index with the signature
-			                    var sb = new ScriptBuilder
-			                    
-			                    for (var j=0; j<txInput.scriptSig.chunks.size; j++) {
-			                    	var chunk = txInput.scriptSig.chunks.get(j)
-			                    	
-			                    	if (j<sign.index || j>sign.index)
-			                    		sb.addChunk(chunk) // copy
-			                    	else
-			                    		sb.data(txSignature.encodeToBitcoin)
-			                    }
-			                    
-			                    txInput.scriptSig = sb.build
-			                }
-			            }
-			            
+			                inputScriptBuilder.setSignatures(tx, i, outScript)
+			                
+		                    txInput.scriptSig = inputScriptBuilder.build
+	                    
+	                    }
 			        }
        			}
        			
@@ -366,23 +316,14 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
     
 
-    def Script compileInput(Input stmt, Context ctx) {
+    def ScriptBuilder2 compileInput(Input stmt, Context ctx) {
 
-        /*
-         * Set the current input within the context.
-         * It will be used to set the signatures in the input script.
-         */
-        ctx.signTracker.currentInput=stmt
-		
 		if (stmt.isPlaceholder) {
  			/*
              * This transaction is like a coinbase transaction.
              * You can put the input you want.
              */
-            if (!ctx.sb.build.chunks.isEmpty)
-        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
-                        
-            return new ScriptBuilder().number(42).build
+            return new ScriptBuilder2().number(42)
 		}
 		else {
 	        var outIdx = stmt.txRef.idx
@@ -400,29 +341,27 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                var sig = stmt.exps.get(0).simplifySafe as Signature
 		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 		                
-			            if (!ctx.sb.build.chunks.isEmpty)
-			        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
-
-		                sig.compileInputExpression(ctx)
-		                ctx.sb.data(pubkey)
+		                var sb = sig.compileInputExpression(ctx)
+		                sb.data(pubkey)
 		    
 		                /* <sig> <pubkey> */
-		                ctx.sb.build
+		                sb
 		            } else if (output.script.isP2SH) {
-		                
-			            if (!ctx.sb.build.chunks.isEmpty)
-			        		throw new CompilationException("ScriptBuilder must be empty. It is ["+ctx.sb.build+"]")
+		            	
+		                val sb = new ScriptBuilder2()
 		                
 		                // build the list of expression pushes (actual parameters) 
-		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(ctx)]
+		                stmt.exps.forEach[e|
+		                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+		                ]
 		                
 		                // get the redeem script to push
 		                var redeemScript = output.script.getRedeemScript(ctx)
 		                
-		                ctx.sb.data(redeemScript.program)
+		                sb.data(redeemScript.build.program)
 		                                
 		                /* <e1> ... <en> <serialized script> */
-		                ctx.sb.build
+		                sb
 		            } else
 		                throw new CompilationException
 	            }
@@ -438,25 +377,26 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
 		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 		                
-		                sig.compileInputExpression(ctx)
-		                ctx.sb.data(pubkey)
+		                var sb = sig.compileInputExpression(ctx)
+		                sb.data(pubkey)
 		    
 		                /* <sig> <pubkey> */
-		                ctx.sb.build
+		                sb
 		            } else if (output.scriptPubKey.isPayToScriptHash) {
 		                
-		                if (!ctx.sb.build.chunks.isEmpty)
-			        		throw new CompilationException("ScriptBuilder must be empty.")
+		                val sb = new ScriptBuilder2()
 		                
 		                // build the list of expression pushes (actual parameters) 
-		                stmt.exps.forEach[e|e.simplifySafe.compileInputExpression(ctx)]
+		                stmt.exps.forEach[e|
+		                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+		                ]
 		                
 		                // get the redeem script to push
 		                var redeemScript = stmt.redeemScript.getRedeemScript(ctx)
-		                ctx.sb.data(redeemScript.program)
+		                sb.data(redeemScript.build.program)
 		                
 		                /* <e1> ... <en> <serialized script> */
-		                ctx.sb.build
+		                sb
 		            } else
 		                throw new CompilationException
 	            }
@@ -487,7 +427,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             
             // get the redeem script to serialize
             var redeemScript = output.script.getRedeemScript(ctx)
-            var script = ScriptBuilder.createP2SHOutputScript(redeemScript)
+            var script = ScriptBuilder.createP2SHOutputScript(redeemScript.build)
 
             if (script.scriptType != ScriptType.P2SH)
                 throw new CompilationException
@@ -517,13 +457,14 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def private Script getRedeemScript(it.unica.tcs.bitcoinTM.Script script, Context ctx) {
+	def private ScriptBuilder2 getRedeemScript(it.unica.tcs.bitcoinTM.Script script, Context ctx) {
         
         if (!ctx.altstack.isEmpty)
         	throw new CompilationException("Altstack must be empty.")
         
         
         // build the redeem script to serialize
+        var sb = new ScriptBuilder2()
         for (var i=script.params.size-1; i>=0; i--) {
             val Parameter p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
@@ -531,28 +472,27 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var elm = new ImmutablePair<Integer,Integer>(ctx.altstack.size, numberOfRefs)
             ctx.altstack.put(p, elm)    // update the context
             
-            ctx.sb.op(0, OP_TOALTSTACK)
+            sb.op(OP_TOALTSTACK)
         }
         
-        script.exp.simplifySafe.compileExpression(ctx)
-        ctx.sb.build.optimize	// post optimization
+        sb.append(script.exp.simplifySafe.compileExpression(ctx)).optimize
 	}
 	
 	
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def private void compileInputExpression(Expression exp, Context ctx) {
+    def private ScriptBuilder2 compileInputExpression(Expression exp, Context ctx) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         
+        // the altstack is used only by VariableReference(s)
         if (!refs.empty)
         	throw new CompilationException("The given expression must not have free variables.")
         
         if (!ctx.altstack.isEmpty)
         	throw new CompilationException("Altstack must be empty.")
         
-        exp.simplifySafe.compileExpression(ctx)	// the altstack is used only by VariableReference(s)
-        ctx.sb.build.optimize	// post optimization
+        exp.simplifySafe.compileExpression(ctx).optimize
     }
     
     /*
@@ -564,332 +504,265 @@ class BitcoinTMGenerator extends AbstractGenerator {
      *  <li> if (12==10+2) then "foo" else "bar" ≡ "foo"
      * </ul>
      */
-    def private dispatch void compileExpression(Expression exp, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
         throw new CompilationException
     }
     
-    def private dispatch void compileExpression(KeyDeclaration stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(KeyDeclaration stmt, Context ctx) {
         /* push the public key */
         val pvtkey = stmt.body.pvt.value
         val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
 
-        ctx.sb.data(key.pubKey)
+        new ScriptBuilder2().data(key.pubKey)
     }
 
-    def private dispatch void compileExpression(Hash hash, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Hash hash, Context ctx) {
         var res = typeSystem.interpret(hash)
         
         if (res.failed) {
-		    hash.value.compileExpression(ctx)
+		    var sb = hash.value.compileExpression(ctx)
 	        
 	        switch(hash.type) {
-	        	case "sha256":	 	ctx.sb.op(OP_SHA256)
-	        	case "ripemd160":	ctx.sb.op(OP_RIPEMD160)
-	        	case "hash256":	 	ctx.sb.op(OP_HASH256)
-	        	case "hash160":		ctx.sb.op(OP_HASH160)
+	        	case "sha256":	 	sb.op(OP_SHA256)
+	        	case "ripemd160":	sb.op(OP_RIPEMD160)
+	        	case "hash256":	 	sb.op(OP_HASH256)
+	        	case "hash160":		sb.op(OP_HASH160)
 	        }
         }
         else {
-        	if (res.first instanceof byte[]) {
-                ctx.sb.data(res.first as byte[])
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». byte[] type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(AfterTimeLock stmt, Context ctx) {
-        ctx.sb.number(stmt.timelock.value)
-        ctx.sb.op(OP_CHECKLOCKTIMEVERIFY)
-        ctx.sb.op(OP_DROP)
+    def private dispatch ScriptBuilder2 compileExpression(AfterTimeLock stmt, Context ctx) {
+        var sb = new ScriptBuilder()
+        sb.number(stmt.timelock.value)
+        sb.op(OP_CHECKLOCKTIMEVERIFY)
+        sb.op(OP_DROP)
         stmt.continuation.compileExpression(ctx)
     }
 
-    def private dispatch void compileExpression(AndExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(AndExpression stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-	        stmt.left.compileExpression(ctx)
-	        stmt.right.compileExpression(ctx)
-	        ctx.sb.op(OP_BOOLAND)            
+	        var sb = stmt.left.compileExpression(ctx)
+	        sb.append(stmt.right.compileExpression(ctx))
+	        sb.op(OP_BOOLAND)            
         }
         else {
-        	if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.number(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(OrExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(OrExpression stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-	        stmt.left.compileExpression(ctx)
-	        stmt.right.compileExpression(ctx)
-	        ctx.sb.op(OP_BOOLOR)            
+	        var sb = stmt.left.compileExpression(ctx)
+	        sb.append(stmt.right.compileExpression(ctx))
+	        sb.op(OP_BOOLOR)            
         }
         else {
-        	if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.number(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Plus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Plus stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
-            ctx.sb.op(OP_ADD)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
+            sb.op(OP_ADD)
         }
         else {
-            if (res.first instanceof String){
-                ctx.sb.data((res.first as String).bytes)
-            }
-            else if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». String or Integer type expected''')      
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Minus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Minus stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
-            ctx.sb.op(OP_SUB)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
+            sb.op(OP_SUB)
         }
         else {
-            if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Max stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Max stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
-            ctx.sb.op(OP_MAX)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
+            sb.op(OP_MAX)
         }
         else {
-            if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Min stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Min stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
-            ctx.sb.op(OP_MIN)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
+            sb.op(OP_MIN)
         }
         else {
-            if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Size stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Size stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-	        stmt.value.compileExpression(ctx)
-	        ctx.sb.op(OP_SIZE)
+	        var sb = stmt.value.compileExpression(ctx)
+	        sb.op(OP_SIZE)
         }
         else {
-        	if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
         
     }
 
-    def private dispatch void compileExpression(BooleanNegation stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(BooleanNegation stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(ctx)
-            ctx.sb.op(OP_NOT)            
+            var sb = stmt.exp.compileExpression(ctx)
+            sb.op(OP_NOT)            
         }
         else {
-            if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.number(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(ArithmeticSigned stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(ArithmeticSigned stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.exp.compileExpression(ctx)
-            ctx.sb.op(OP_NOT)
+            var sb = stmt.exp.compileExpression(ctx)
+            sb.op(OP_NOT)
         }
         else {
-            if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Between stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Between stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.value.compileExpression(ctx)
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
-            ctx.sb.op(OP_WITHIN)
+            var sb = stmt.value.compileExpression(ctx)
+            sb.append(stmt.left.compileExpression(ctx))
+            sb.append(stmt.right.compileExpression(ctx))
+            sb.op(OP_WITHIN)
         }
         else {
-            if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Integer type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Comparison stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Comparison stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
     
             switch (stmt.op) {
-                case "<": ctx.sb.op(OP_LESSTHAN)
-                case ">": ctx.sb.op(OP_GREATERTHAN)
-                case "<=": ctx.sb.op(OP_LESSTHANOREQUAL)
-                case ">=": ctx.sb.op(OP_GREATERTHANOREQUAL)
+                case "<": sb.op(OP_LESSTHAN)
+                case ">": sb.op(OP_GREATERTHAN)
+                case "<=": sb.op(OP_LESSTHANOREQUAL)
+                case ">=": sb.op(OP_GREATERTHANOREQUAL)
             }
         }
         else {
-            if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.number(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
     
-    def private dispatch void compileExpression(Equals stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Equals stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.left.compileExpression(ctx)
-            stmt.right.compileExpression(ctx)
+            var sb = stmt.left.compileExpression(ctx)
+            sb.append(stmt.right.compileExpression(ctx))
             
             switch (stmt.op) {
-                case "==": ctx.sb.op(OP_EQUAL)
-                case "!=": ctx.sb.op(OP_EQUAL).op(OP_NOT)
+                case "==": sb.op(OP_EQUAL)
+                case "!=": sb.op(OP_EQUAL).op(OP_NOT)
             }
         }
         else {
-            if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.number(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». Boolean type expected''')
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(IfThenElse stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(IfThenElse stmt, Context ctx) {
         var res = typeSystem.interpret(stmt)
         
         if (res.failed) {
-            stmt.^if.compileExpression(ctx)
-            ctx.sb.op(OP_IF)
-            stmt.then.compileExpression(ctx)
-            ctx.sb.op(OP_ELSE)
-            stmt.^else.compileExpression(ctx)
-            ctx.sb.op(OP_ENDIF)            
+            var sb = stmt.^if.compileExpression(ctx)
+            sb.op(OP_IF)
+            sb.append(stmt.then.compileExpression(ctx))
+            sb.op(OP_ELSE)
+            sb.append(stmt.^else.compileExpression(ctx))
+            sb.op(OP_ENDIF)            
         }
         else {
-            if (res.first instanceof String){
-                ctx.sb.data((res.first as String).bytes)
-            }
-            else if (res.first instanceof Integer) {
-                ctx.sb.number(res.first as Integer)
-            }
-            else if (res.first instanceof Boolean) {
-                if (res.first as Boolean) {
-                    ctx.sb.op(OP_TRUE)
-                }
-                else ctx.sb.op(OP_FALSE)
-            }
-            else throw new CompilationException('''Unxpected type «res.first.class». String or Integer or Boolean type expected''')         
+        	new ScriptBuilder2().append(res)
         }
     }
 
-    def private dispatch void compileExpression(Versig stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
-            stmt.signatures.get(0).compileExpression(ctx)
-            stmt.pubkeys.get(0).compileExpression(ctx)
-            ctx.sb.op(OP_CHECKSIG)
+            var sb = stmt.signatures.get(0).compileExpression(ctx)
+            sb.append(stmt.pubkeys.get(0).compileExpression(ctx))
+            sb.op(OP_CHECKSIG)
         } else {
-            ctx.sb.number(OP_0)
-            stmt.signatures.forEach[s|s.compileExpression(ctx)]
-            ctx.sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|k.compileExpression(ctx)]
-            ctx.sb.number(stmt.pubkeys.size)
-            ctx.sb.op(OP_CHECKMULTISIG)
+            val sb = new ScriptBuilder2().number(OP_0)
+            stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
+            sb.number(stmt.signatures.size)
+            stmt.pubkeys.forEach[k|sb.append(k.compileExpression(ctx))]
+            sb.number(stmt.pubkeys.size)
+            sb.op(OP_CHECKMULTISIG)
         }
     }
 
-    def private dispatch void compileExpression(NumberLiteral n, Context ctx) {
-        ctx.sb.number(n.value).build().toString
+    def private dispatch ScriptBuilder2 compileExpression(NumberLiteral n, Context ctx) {
+        new ScriptBuilder2().number(n.value)
     }
 
-    def private dispatch void compileExpression(BooleanLiteral n, Context ctx) {
-        ctx.sb.number(if(n.isTrue) OP_TRUE else OP_FALSE).build().toString
+    def private dispatch ScriptBuilder2 compileExpression(BooleanLiteral n, Context ctx) {
+        if(n.isTrue)
+        	new ScriptBuilder2().op(OP_TRUE)
+    	else 
+    		new ScriptBuilder2().number(OP_FALSE)
     }
 
-    def private dispatch void compileExpression(StringLiteral s, Context ctx) {
-        ctx.sb.data(s.value.bytes).build().toString
+    def private dispatch ScriptBuilder2 compileExpression(StringLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value.bytes)
     }
     
-    def private dispatch void compileExpression(HashLiteral s, Context ctx) {
-        ctx.sb.data(s.value).build().toString
+    def private dispatch ScriptBuilder2 compileExpression(HashLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value)
     }
 
-    def private dispatch void compileExpression(Signature stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(Signature stmt, Context ctx) {
         
 		var wif = stmt.key.body.pvt.value
-		var signatureInfo = new SignatureUtil
 		
-        signatureInfo.index = ctx.sb.build.chunks.size
-		signatureInfo.key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
-        signatureInfo.hashType = switch(stmt.modifier) {
+		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
+        var hashType = switch(stmt.modifier) {
                 case AIAO,
                 case SIAO: SigHash.ALL
                 case AISO,
@@ -897,7 +770,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 case AINO,
                 case SINO: SigHash.NONE
             }
-        signatureInfo.anyoneCanPay = switch(stmt.modifier) {
+        var anyoneCanPay = switch(stmt.modifier) {
                 case SIAO,
                 case SISO,
                 case SINO: true
@@ -906,20 +779,11 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 case AINO: false
             }
             
-        /*
-         * store the information to compute the signature later
-         */
-		var currentInput = ctx.signTracker.currentInput
-		
-        ctx.signTracker.merge(currentInput, newArrayList(signatureInfo),
-            [oldList, newList | oldList.addAll(newList); oldList] 
-        )
-        
         // store an empty value
-        ctx.sb.number(OP_0)
+        new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
     }
 
-    def private dispatch void compileExpression(VariableReference varRef, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpression(VariableReference varRef, Context ctx) {
         
         /*
          * N: altezza dell'altstack
@@ -935,18 +799,19 @@ class BitcoinTMGenerator extends AbstractGenerator {
          */
         var param = varRef.ref
         
-        var actualTxParam = ctx.transactionParameters.get(param)
+        var isTxParam = param.eContainer instanceof UserDefinedTxBody 
         
-        if (actualTxParam!==null) {
-        	actualTxParam.compileExpression(ctx)
+        if (isTxParam) {
+        	return new ScriptBuilder2().freeVariable(param.name, param.paramType.convertType)
         }
-        else {        	
+        else {
+        	val sb = new ScriptBuilder2()
 	        val pos = ctx.altstack.get(param).left
 			var count = ctx.altstack.get(param).right
 	
 	        if(pos === null) throw new CompilationException;
 	
-	        (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_FROMALTSTACK)]
+	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
 	        
 	        if (count==1) {
 	        	// this is the last usage of the variable
@@ -956,17 +821,38 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	        	}
 	        	
 		        if (ctx.altstack.size - pos> 0)
-		            (1 .. ctx.altstack.size - pos).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
 	        	
 	        }
 	        else {
 	        	ctx.altstack.put(param, new ImmutablePair(pos, count-1))
-		        ctx.sb.op(OP_DUP).op(OP_TOALTSTACK)
+		        sb.op(OP_DUP).op(OP_TOALTSTACK)
 	
 		        if (ctx.altstack.size - pos - 1 > 0)
-		            (1 .. ctx.altstack.size - pos - 1).forEach[x|ctx.sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
 	        }
+	        return sb
         }
     }
-
+    
+    
+    def dispatch String compile(Type type) {
+    	if(type instanceof IntType) return "Integer"
+    	if(type instanceof HashType) return "byte[]"
+    	if(type instanceof StringType) return "String"
+    	if(type instanceof BooleanType) return "Boolean"
+    	if(type instanceof SignatureType) return "byte[]"
+    	
+    	throw new CompileException("Unexpected type "+type.class.simpleName)
+    }
+    
+	def static Class<?> convertType(Type type) {
+    	if(type instanceof IntType) return Integer
+    	if(type instanceof HashType) return typeof(byte[])
+    	if(type instanceof StringType) return String
+    	if(type instanceof BooleanType) return Boolean
+    	if(type instanceof SignatureType) return typeof(byte[])
+    	
+    	throw new CompileException("Unexpected type "+type.class.simpleName)
+    }
 }
