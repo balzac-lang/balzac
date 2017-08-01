@@ -28,7 +28,7 @@ transaction T_commitB {
 }
 
 transaction T_openA {
-	input = T_commitA: sig kA sig kA "secretA"
+	input = T_commitA: sig kA sig kA "sigma1"
 	output = 10 BTC - 10: fun(sigma) .versig(kA; sigma)
 }
 

@@ -82,20 +82,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
     @Inject private extension BitcoinTMTypeSystem typeSystem
 	@Inject private extension Optimizer optimizer
 	
-    /*
-     * TODO: move to another file
-     */
-    public static class CompilationException extends RuntimeException {
-        
-        new() {
-            this("compile error")
-        }
-        
-        new(String message) {
-            super(message)
-        }
-    }
-    
     
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
@@ -111,7 +97,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
 
     def dispatch String compile(EObject obj) {
-        throw new CompilationException
+        throw new CompileException
     }
 
     	
@@ -202,23 +188,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
 
-//       	if (stmt.isCoinbase) {
-//       		/*
-//       		 * coinbase transaction
-//       		 */
-//       		var address = stmt.key.body.pub.value.wifToAddress(netParams)
-//	        var txInput = new TransactionInput(netParams, tx, new ScriptBuilder().number(42).build().getProgram());
-//	        var txOutput = new TransactionOutput(netParams, tx, netParams.maxMoney, ScriptBuilder.createOutputScript(address).program);      
-//	    	
-//	        tx.addInput(txInput);
-//	        tx.addOutput(txOutput);
-//	        
-//	        if (!tx.isCoinBase)
-//	        	throw new CompilationException('''the compiled transaction of «stmt.name» is not a coinbase transaction''')
-//	        
-//	        cache.put(stmt, tx)
-//       	}
-//       	else {
        		switch(stmt.body) {
        			UserDefinedTxBody: {
        				/**
@@ -307,8 +276,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
        			}
        		}
        		
-//       	}
-        
         // the tx is not ready yet but it will be at the end of the recursive loop
     	return tx
     }
@@ -363,7 +330,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                /* <e1> ... <en> <serialized script> */
 		                sb
 		            } else
-		                throw new CompilationException
+		                throw new CompileException
 	            }
 	            
 				/*
@@ -398,9 +365,9 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		                /* <e1> ... <en> <serialized script> */
 		                sb
 		            } else
-		                throw new CompilationException
+		                throw new CompileException
 	            }
-	            default: throw new CompilationException("Unexpected class "+stmt.txRef.tx.body.class)
+	            default: throw new CompileException("Unexpected class "+stmt.txRef.tx.body.class)
 			}			
 		}
     }
@@ -419,7 +386,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var script = ScriptBuilder.createOutputScript(pk)
 
             if (script.scriptType != ScriptType.P2PKH)
-                throw new CompilationException
+                throw new CompileException
 
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
             script
@@ -430,7 +397,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var script = ScriptBuilder.createP2SHOutputScript(redeemScript.build)
 
             if (script.scriptType != ScriptType.P2SH)
-                throw new CompilationException
+                throw new CompileException
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
             script
@@ -439,7 +406,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             var script = ScriptBuilder.createOpReturnScript(c.value.bytes)
 
             if (script.scriptType != ScriptType.NO_TYPE)
-                throw new CompilationException
+                throw new CompileException
 
             /* OP_RETURN <bytes> */
             script
@@ -460,7 +427,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	def private ScriptBuilder2 getRedeemScript(it.unica.tcs.bitcoinTM.Script script, Context ctx) {
         
         if (!ctx.altstack.isEmpty)
-        	throw new CompilationException("Altstack must be empty.")
+        	throw new CompileException("Altstack must be empty.")
         
         
         // build the redeem script to serialize
@@ -487,10 +454,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
         
         // the altstack is used only by VariableReference(s)
         if (!refs.empty)
-        	throw new CompilationException("The given expression must not have free variables.")
+        	throw new CompileException("The given expression must not have free variables.")
         
         if (!ctx.altstack.isEmpty)
-        	throw new CompilationException("Altstack must be empty.")
+        	throw new CompileException("Altstack must be empty.")
         
         exp.simplifySafe.compileExpression(ctx).optimize
     }
@@ -505,7 +472,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
      * </ul>
      */
     def private dispatch ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
-        throw new CompilationException
+        throw new CompileException
     }
     
     def private dispatch ScriptBuilder2 compileExpression(KeyDeclaration stmt, Context ctx) {
@@ -809,7 +776,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	        val pos = ctx.altstack.get(param).left
 			var count = ctx.altstack.get(param).right
 	
-	        if(pos === null) throw new CompilationException;
+	        if(pos === null) throw new CompileException;
 	
 	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
 	        
