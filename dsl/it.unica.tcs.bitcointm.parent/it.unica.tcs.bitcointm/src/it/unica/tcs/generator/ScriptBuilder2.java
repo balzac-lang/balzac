@@ -1,5 +1,7 @@
 package it.unica.tcs.generator;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,17 +9,13 @@ import java.util.Map;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
-import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 import it.xsemantics.runtime.Result;
-
-import static com.google.common.base.Preconditions.*;
 
 public class ScriptBuilder2 extends ScriptBuilder {
 
@@ -70,7 +68,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
-	public int getScriptSize() {
+	public int size() {
 		return super.build().getChunks().size();
 	}
 	
@@ -136,18 +134,11 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	
 	public ScriptBuilder2 append(Script append) {
-		for (ScriptChunk ch : append.getChunks()) {
-			this.addChunk(ch);
-		}
-		return this;
+		return ScriptBuilder2.append(this, append);
 	}
 	
 	public ScriptBuilder2 append(ScriptBuilder2 append) {
-		checkState(this.keys.keySet().containsAll(append.keys.keySet()));
-		checkState(this.hashTypes.keySet().containsAll(append.hashTypes.keySet()));
-		checkState(this.anyoneCanPay.keySet().containsAll(append.anyoneCanPay.keySet()));
-		checkState(this.freeVariables.keySet().containsAll(append.freeVariables.keySet()));
-		return append(append.build());
+		return ScriptBuilder2.append(this, append);
 	}
 	
 	public ScriptBuilder2 append(Result<Object> res) {
@@ -170,14 +161,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	
 	/* ScriptBuilder extensions */
-	public static ScriptBuilder append(ScriptBuilder2 sb, Script append) {
+	public static ScriptBuilder2 append(ScriptBuilder2 sb, Script append) {
 		for (ScriptChunk ch : append.getChunks()) {
 			sb.addChunk(ch);
 		}
 		return sb;
 	}
 
-	public static ScriptBuilder append(ScriptBuilder2 sb, ScriptBuilder2 append) {
+	public static ScriptBuilder2 append(ScriptBuilder2 sb, ScriptBuilder2 append) {
 		checkState(sb.keys.keySet().containsAll(append.keys.keySet()));
 		checkState(sb.hashTypes.keySet().containsAll(append.hashTypes.keySet()));
 		checkState(sb.anyoneCanPay.keySet().containsAll(append.anyoneCanPay.keySet()));
@@ -185,7 +176,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return append(sb, append.build());
 	}
 
-	public static ScriptBuilder append(ScriptBuilder2 sb, Result<Object> res) {
+	public static ScriptBuilder2 append(ScriptBuilder2 sb, Result<Object> res) {
 		
 		if (res.getFirst() instanceof String){
             sb.data(((String) res.getFirst()).getBytes());
@@ -206,38 +197,4 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return sb;
 	}
 	
-	
-	/* TODO: move to test class */
-	public static void main(String[] args) {
-		ScriptBuilder2 sb = new ScriptBuilder2();
-		
-		assert sb.freeVariableSize() == 0;
-		assert sb.signatureSize() == 0;
-		assert sb.getScriptSize() == 0;
-		
-		sb.freeVariable("pippo", Integer.class);
-		sb.signaturePlaceholder(new ECKey(), SigHash.ALL, true);
-		System.out.println(sb.build().toString());
-
-		assert sb.freeVariableSize() == 1;
-		assert sb.signatureSize() == 1;
-		assert sb.getScriptSize() == 2;
-		
-		sb = sb.setFreeVariable("pippo", 5);
-		System.out.println(sb.build().toString());
-
-		assert sb.freeVariableSize() == 0;
-		assert sb.signatureSize() == 1;
-		assert sb.getScriptSize() == 2;
-		
-		Transaction tx = new Transaction(new MainNetParams());
-		tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-		sb = sb.setSignatures(tx, 0, new byte[]{});
-		System.out.println(sb.build().toString());
-
-		assert sb.freeVariableSize() == 0;
-		assert sb.signatureSize() == 0;
-		assert sb.getScriptSize() == 2;
-		
-	}
 }
