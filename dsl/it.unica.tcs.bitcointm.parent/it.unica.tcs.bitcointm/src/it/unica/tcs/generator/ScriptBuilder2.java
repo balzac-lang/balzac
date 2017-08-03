@@ -19,22 +19,27 @@ import it.xsemantics.runtime.Result;
 
 public class ScriptBuilder2 extends ScriptBuilder {
 
-	private Map<ScriptChunk, ECKey> keys = new HashMap<>();
-	private Map<ScriptChunk, SigHash> hashTypes = new HashMap<>();
-	private Map<ScriptChunk, Boolean> anyoneCanPay = new HashMap<>();
-	private Map<ScriptChunk, Class<?>> freeVariables = new HashMap<>();
+	private final Map<ScriptChunk, ECKey> keys;
+	private final Map<ScriptChunk, SigHash> hashTypes;
+	private final Map<ScriptChunk, Boolean> anyoneCanPay;
+	private final Map<String,Class<?>> freeVariables;
 	
-	public ScriptBuilder2() {}
+	public ScriptBuilder2() {
+		this.keys = new HashMap<>();
+		this.hashTypes = new HashMap<>();
+		this.anyoneCanPay = new HashMap<>();
+		this.freeVariables = new HashMap<>();
+	}
 	
 	private ScriptBuilder2(
 			Map<ScriptChunk, ECKey> keys, 
 			Map<ScriptChunk, SigHash> hashTypes,
 			Map<ScriptChunk, Boolean> anyoneCanPay, 
-			Map<ScriptChunk, Class<?>> freeVariables) {
+			Map<String,Class<?>> freeVariablesTypes) {
 		this.keys = keys;
 		this.hashTypes = hashTypes;
 		this.anyoneCanPay = anyoneCanPay;
-		this.freeVariables = freeVariables;
+		this.freeVariables = freeVariablesTypes;
 	}
 
 	public ScriptBuilder2 data(byte[] data) {
@@ -52,10 +57,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
+	public Map<String,Class<?>> getFreeVariables() {
+		return new HashMap<>(freeVariables);
+	}
+	
 	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
 		ScriptChunk chunk = new ScriptBuilder().data(("$"+name).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
-		this.freeVariables.put(chunk, clazz);
+		this.freeVariables.put(name, clazz);
 		return this;
 	}
 	
@@ -85,8 +94,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		
 		for (ScriptChunk chunk : build().getChunks()) {
 			
-			if (Arrays.equals(chunk.data, ("$"+name).getBytes())) {				
-				Class<?> expectedClass = sb.freeVariables.remove(chunk);
+			if (Arrays.equals(chunk.data, ("$"+name).getBytes())) {
+				Class<?> expectedClass = sb.freeVariables.remove(name);
 				if (expectedClass.isInstance(obj)) {
 					if (obj instanceof String){
 			            sb.data(((String) obj).getBytes());
@@ -169,10 +178,10 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 
 	public static ScriptBuilder2 append(ScriptBuilder2 sb, ScriptBuilder2 append) {
-		checkState(sb.keys.keySet().containsAll(append.keys.keySet()));
-		checkState(sb.hashTypes.keySet().containsAll(append.hashTypes.keySet()));
-		checkState(sb.anyoneCanPay.keySet().containsAll(append.anyoneCanPay.keySet()));
-		checkState(sb.freeVariables.keySet().containsAll(append.freeVariables.keySet()));
+		checkState(sb.keys.entrySet().containsAll(append.keys.entrySet()));
+		checkState(sb.hashTypes.entrySet().containsAll(append.hashTypes.entrySet()));
+		checkState(sb.anyoneCanPay.entrySet().containsAll(append.anyoneCanPay.entrySet()));
+		checkState(sb.freeVariables.entrySet().containsAll(append.freeVariables.entrySet()));
 		return append(sb, append.build());
 	}
 

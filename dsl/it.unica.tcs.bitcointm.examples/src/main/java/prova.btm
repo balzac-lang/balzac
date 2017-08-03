@@ -15,7 +15,7 @@ key kB = [
 //	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 	 
   
-transaction ALFA {
+transaction ALFA {   
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;			// P2SH
@@ -56,11 +56,11 @@ transaction T1 {
 	output = [  
 		4444: 	fun (n) . 2147483647+1==n+1; 
 		2222:	fun (a) . 45!=45 && a-45==2 ;
-		1111:	if (12==10+2) then 3 else 4   
+		1111:	if (12==10+2) then 3 else 4
 	] 
 }
 
-
+ 
 
 transaction Th { 
 	input = _

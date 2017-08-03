@@ -43,11 +43,11 @@ import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.generator.Context.AltStackEntry
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.HashMap
 import java.util.Map
-import org.apache.commons.lang3.tuple.ImmutablePair
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction
@@ -188,93 +188,98 @@ class BitcoinTMGenerator extends AbstractGenerator {
         var netParams = stmt.networkParams
         var tx = new Transaction(netParams);
 
-       		switch(stmt.body) {
-       			UserDefinedTxBody: {
-       				/**
-				     * Create a bitcoinj transaction object recursively.
-				     * Each transaction is bound to another one by its inputs. Recursion
-				     * stops when either a coinbase transaction or a serialized transaction is reached.
-				     */
-		       		var body = stmt.body as UserDefinedTxBody
-		       		
-		       		// the tx is not ready yet but it will be at the end of the recursive loop
-        			cache.put(stmt, tx)
-        
-       				var ctx = new Context
-       				
-       				var incompletedInputScripts = new HashMap<Input,ScriptBuilder2>()
-       				
-       				for (var i=0; i<body.inputs.size; i++) {
-			//        	println('''input «i»''')
-						ctx.clear()
-			        	
-			        	var input = body.inputs.get(i)
-			            var inputScriptBuilder = input.compileInput(ctx)	// maybe to be completed		            
-			            incompletedInputScripts.put(input, inputScriptBuilder)
-			            
-			            var TransactionInput txInput = null
-			            
-			            if (!input.isPlaceholder) {			            	
-				            var outIndex = input.txRef.idx
-				            var txToRedeem = toTransaction(input.txRef.tx, cache)
-				            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-				            txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program, outPoint)
+   		switch(stmt.body) {
+   			UserDefinedTxBody: {
 
-				            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
-				            if (hasCheckTimeLockVerify)
-				            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
-			            }
-			            else {
-			            	txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program)
-			            }
+   				/**
+			     * Create a bitcoinj transaction object recursively.
+			     * Each transaction is bound to another one by its inputs. Recursion
+			     * stops when either a coinbase transaction or a serialized transaction is reached.
+			     */
+	       		var body = stmt.body as UserDefinedTxBody
+	       		
+	       		// the tx is not ready yet but it will be at the end of the recursive loop
+    			cache.put(stmt, tx)
+    
+   				var ctx = new Context
+   				
+   				var incompletedInputScripts = new HashMap<Input,ScriptBuilder2>()
+   				
+   				for (var i=0; i<body.inputs.size; i++) {
+		//        	println('''input «i»''')
+					ctx.clear()
+		        	
+		        	var input = body.inputs.get(i)
+		            var inputScriptBuilder = input.compileInput(ctx)	// maybe to be completed		            
+		            incompletedInputScripts.put(input, inputScriptBuilder)
+		            
+		            var TransactionInput txInput = null
+		            
+		            if (!input.isPlaceholder) {			            	
+			            var outIndex = input.txRef.idx
+			            var txToRedeem = input.txRef.tx.toTransaction(cache)
+			            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
+			            txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program, outPoint)
 
-			            tx.addInput(txInput)
-			        }
-			        
-			        for (output : body.outputs) {
-				        ctx.clear()
-			            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-			            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).program)
-			            tx.addOutput(txOutput)
-			        }
-			        
-			        // set locktime
-			        if (body.tlock!==null && body.tlock.containsAbsolute)
-				        tx.lockTime = body.tlock.getAbsolute()
-			        
-			        // set all the signatures within the input scripts (which are never part of the signature)
-			        for (var i=0; i<tx.inputs.size; i++) {
+			            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
+			            if (hasCheckTimeLockVerify)
+			            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
+		            }
+		            else {
+		            	txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program)
+		            }
+
+		            tx.addInput(txInput)
+		        }
+		        
+		        for (output : body.outputs) {
+			        ctx.clear()
+		            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
+		            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).program)
+		            tx.addOutput(txOutput)
+		        }
+		        
+		        // set locktime
+		        if (body.tlock!==null && body.tlock.containsAbsolute)
+			        tx.lockTime = body.tlock.getAbsolute()
+		        
+		        println()
+		        println('''transaction «stmt.name» («incompletedInputScripts.size»)''')
+		        incompletedInputScripts.entrySet.forEach[x|println('''«x.key.txRef.tx?.name» : «x.value.build»''')]
+		        			       
+		        // set all the signatures within the input scripts (which are never part of the signature)
+		        for (var i=0; i<tx.inputs.size; i++) {
+		            
+		            if (!tx.isCoinBase) {			            	
+			            var txInput = tx.getInput(i)
+			            var inputScriptBuilder = incompletedInputScripts.get(body.inputs.get(i))
 			            
-			            if (!tx.isCoinBase) {			            	
-				            var txInput = tx.getInput(i)
-				            var inputScriptBuilder = incompletedInputScripts.get(body.inputs.get(i))
-				            
-			                var outScript = 
-			                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
-			                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
-			                    else
-			                        txInput.outpoint.connectedPubKeyScript
-			                
-			                inputScriptBuilder.setSignatures(tx, i, outScript)
-			                
-		                    txInput.scriptSig = inputScriptBuilder.build
-	                    
-	                    }
-			        }
-       			}
-       			
-       			SerialTxBody: {
-       				/**
-				     * Deserialiaze the transaction bytes into a bitcoinj transaction.
-				     * We assume the byte string to be valid.
-				     */ 
-				    var body = stmt.body as SerialTxBody
-			    	tx = new Transaction(stmt.networkParams, Utils.HEX.decode(body.bytes))
-			    	
-			    	cache.put(stmt, tx)
-			    	return tx
-       			}
-       		}
+		                var outScript = 
+		                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
+		                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
+		                    else
+		                        txInput.outpoint.connectedPubKeyScript
+		                
+		                inputScriptBuilder.setSignatures(tx, i, outScript)
+		                
+	                    txInput.scriptSig = inputScriptBuilder.build
+                    
+                    }
+		        }
+   			}
+   			
+   			SerialTxBody: {
+   				/**
+			     * Deserialiaze the transaction bytes into a bitcoinj transaction.
+			     * We assume the byte string to be valid.
+			     */ 
+			    var body = stmt.body as SerialTxBody
+		    	tx = new Transaction(stmt.networkParams, Utils.HEX.decode(body.bytes))
+		    	
+		    	cache.put(stmt, tx)
+		    	return tx
+   			}
+   		}
        		
         // the tx is not ready yet but it will be at the end of the recursive loop
     	return tx
@@ -436,8 +441,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
             val Parameter p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
             
-            var elm = new ImmutablePair<Integer,Integer>(ctx.altstack.size, numberOfRefs)
-            ctx.altstack.put(p, elm)    // update the context
+            ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size, numberOfRefs))    // update the context
             
             sb.op(OP_TOALTSTACK)
         }
@@ -773,8 +777,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
         }
         else {
         	val sb = new ScriptBuilder2()
-	        val pos = ctx.altstack.get(param).left
-			var count = ctx.altstack.get(param).right
+	        val pos = ctx.altstack.get(param).position
+			var count = ctx.altstack.get(param).occurrences
 	
 	        if(pos === null) throw new CompileException;
 	
@@ -783,8 +787,8 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	        if (count==1) {
 	        	// this is the last usage of the variable
 	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-	        	for (e : ctx.altstack.entrySet.filter[e|e.value.left>pos]) {	// update all the positions of the remaing elements
-	        		ctx.altstack.put(e.key, new ImmutablePair(e.value.left-1, e.value.right))
+	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
 	        	}
 	        	
 		        if (ctx.altstack.size - pos> 0)
@@ -792,7 +796,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	        	
 	        }
 	        else {
-	        	ctx.altstack.put(param, new ImmutablePair(pos, count-1))
+	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
 		        sb.op(OP_DUP).op(OP_TOALTSTACK)
 	
 		        if (ctx.altstack.size - pos - 1 > 0)
