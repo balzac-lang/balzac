@@ -44,19 +44,13 @@ import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.generator.Context.AltStackEntry
+import it.unica.tcs.util.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
-import java.util.HashMap
-import java.util.Map
-import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Transaction.SigHash
-import org.bitcoinj.core.TransactionInput
-import org.bitcoinj.core.TransactionOutPoint
-import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
@@ -80,7 +74,8 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
 class BitcoinTMGenerator extends AbstractGenerator {
 
 //	@Inject private extension IQualifiedNameProvider
-    @Inject private extension BitcoinTMTypeSystem typeSystem
+    @Inject private extension ASTUtils astUtils
+	@Inject private extension BitcoinTMTypeSystem typeSystem
 	@Inject private extension Optimizer optimizer
 	
     
@@ -143,27 +138,6 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
     
     
-    /*
-     * utility methods
-     */
-    def boolean isP2PKH(Script script) {
-        var onlyOneSignatureParam = script.params.size == 1 && (script.params.get(0).paramType instanceof SignatureType)
-        var onlyOnePubkey = (script.exp.simplifySafe instanceof Versig) && (script.exp.simplifySafe as Versig).pubkeys.size == 1
-
-        return onlyOneSignatureParam && onlyOnePubkey
-    }
-
-    def boolean isOpReturn(Script script) {
-        var noParam = script.params.size == 0
-        var onlyString = script.exp.simplifySafe instanceof StringLiteral
-
-        return noParam && onlyString
-    }
-
-    def boolean isP2SH(Script script) {
-        return !script.isP2PKH && !script.isOpReturn
-    }
-
 	
 
     /*
@@ -173,121 +147,13 @@ class BitcoinTMGenerator extends AbstractGenerator {
      */
     
 	def Transaction toTransaction(TransactionDeclaration stmt) {
-		toTransaction(stmt, new HashMap());
+		// TODO
+		null
 	}
-	
-    /**
-     * Create a bitcoinj coinbase transaction.
-     * The amount of money that can be spend is taken from the network parameters.
-     * 
-     * @return a coinbase tx with a lot of money always redeemable
-     */
-    def private Transaction toTransaction(TransactionDeclaration stmt, Map<TransactionDeclaration,Transaction> cache) {
-        if (cache.containsKey(stmt))
-			return cache.get(stmt)
-        
-        var netParams = stmt.networkParams
-        var tx = new Transaction(netParams);
 
-   		switch(stmt.body) {
-   			UserDefinedTxBody: {
 
-   				/**
-			     * Create a bitcoinj transaction object recursively.
-			     * Each transaction is bound to another one by its inputs. Recursion
-			     * stops when either a coinbase transaction or a serialized transaction is reached.
-			     */
-	       		var body = stmt.body as UserDefinedTxBody
-	       		
-	       		// the tx is not ready yet but it will be at the end of the recursive loop
-    			cache.put(stmt, tx)
-    
-   				var ctx = new Context
-   				
-   				var incompletedInputScripts = new HashMap<Input,ScriptBuilder2>()
-   				
-   				for (var i=0; i<body.inputs.size; i++) {
-		//        	println('''input «i»''')
-					ctx.clear()
-		        	
-		        	var input = body.inputs.get(i)
-		            var inputScriptBuilder = input.compileInput(ctx)	// maybe to be completed		            
-		            incompletedInputScripts.put(input, inputScriptBuilder)
-		            
-		            var TransactionInput txInput = null
-		            
-		            if (!input.isPlaceholder) {			            	
-			            var outIndex = input.txRef.idx
-			            var txToRedeem = input.txRef.tx.toTransaction(cache)
-			            var outPoint = new TransactionOutPoint(netParams, outIndex, txToRedeem)
-			            txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program, outPoint)
 
-			            var hasCheckTimeLockVerify = EcoreUtil2.getAllContentsOfType(input.txRef.tx, AfterTimeLock).size>0
-			            if (hasCheckTimeLockVerify)
-			            	txInput.sequenceNumber = TransactionInput.NO_SEQUENCE-1
-		            }
-		            else {
-		            	txInput = new TransactionInput(netParams, tx, inputScriptBuilder.build.program)
-		            }
 
-		            tx.addInput(txInput)
-		        }
-		        
-		        for (output : body.outputs) {
-			        ctx.clear()
-		            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-		            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).build.program)
-		            tx.addOutput(txOutput)
-		        }
-		        
-		        // set locktime
-		        if (body.tlock!==null && body.tlock.containsAbsolute)
-			        tx.lockTime = body.tlock.getAbsolute()
-		        
-		        println()
-		        println('''transaction «stmt.name» («incompletedInputScripts.size»)''')
-		        incompletedInputScripts.entrySet.forEach[x|println('''«x.key.txRef.tx?.name» : «x.value.build»''')]
-		        			       
-		        // set all the signatures within the input scripts (which are never part of the signature)
-		        for (var i=0; i<tx.inputs.size; i++) {
-		            
-		            if (!tx.isCoinBase) {			            	
-			            var txInput = tx.getInput(i)
-			            var inputScriptBuilder = incompletedInputScripts.get(body.inputs.get(i))
-			            
-		                var outScript = 
-		                    if (txInput.outpoint.connectedOutput.scriptPubKey.isPayToScriptHash)
-		                        txInput.scriptSig.chunks.get(txInput.scriptSig.chunks.size-1).data
-		                    else
-		                        txInput.outpoint.connectedPubKeyScript
-		                
-		                inputScriptBuilder.setSignatures(tx, i, outScript)
-		                
-	                    txInput.scriptSig = inputScriptBuilder.build
-                    
-                    }
-		        }
-   			}
-   			
-   			SerialTxBody: {
-   				/**
-			     * Deserialiaze the transaction bytes into a bitcoinj transaction.
-			     * We assume the byte string to be valid.
-			     */ 
-			    var body = stmt.body as SerialTxBody
-		    	tx = new Transaction(stmt.networkParams, Utils.HEX.decode(body.bytes))
-		    	
-		    	cache.put(stmt, tx)
-		    	return tx
-   			}
-   		}
-       		
-        // the tx is not ready yet but it will be at the end of the recursive loop
-    	return tx
-    }
-    
-        
-    
     def ITransactionBuilder compileTransaction(TransactionDeclaration txDecl) {
     	return txDecl.body.compileTransactionBody;
     }

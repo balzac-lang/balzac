@@ -29,6 +29,7 @@ import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.generator.BitcoinTMGenerator
 import it.unica.tcs.generator.CompileException
+import it.unica.tcs.util.ASTUtils
 import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
@@ -66,6 +67,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     @Inject private extension BitcoinTMGenerator generator
     @Inject private extension BitcoinTMTypeSystem typeSystem
+    @Inject private extension ASTUtils astUtils
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
 	@Inject private extension IQualifiedNameConverter qualifiedNameConverter

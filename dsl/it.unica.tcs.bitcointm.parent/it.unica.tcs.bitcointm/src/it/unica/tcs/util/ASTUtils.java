@@ -2,16 +2,23 @@ package it.unica.tcs.util;
 
 import java.util.stream.Collectors;
 
+import com.google.inject.Inject;
+
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.RelativeTime;
+import it.unica.tcs.bitcoinTM.Script;
+import it.unica.tcs.bitcoinTM.SignatureType;
+import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody;
+import it.unica.tcs.bitcoinTM.Versig;
+import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
 
 public class ASTUtils {
 	
-	
+	@Inject private BitcoinTMTypeSystem typeSystem;
 //	public static boolean allAbsoluteAreBlock(Tlock tlock) {
 //    	return tlock.getTimes().stream()
 //    			.filter(x -> x instanceof AbsoluteTime)
@@ -43,7 +50,28 @@ public class ASTUtils {
 	public static boolean isCoinbase(UserDefinedTxBody tx) {
 		return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
 	}
-	    
+
+	public boolean isP2PKH(Script script) {
+        boolean onlyOneSignatureParam = 
+        		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
+        boolean onlyOnePubkey = (typeSystem.simplifySafe(script.getExp()) instanceof Versig) 
+        		&& ((Versig) typeSystem.simplify(script.getExp())).getPubkeys().size() == 1;
+
+        return onlyOneSignatureParam && onlyOnePubkey;
+    }
+
+	public boolean isOpReturn(Script script) {
+        boolean noParam = script.getParams().size() == 0;
+        boolean onlyString = typeSystem.simplifySafe(script.getExp()) instanceof StringLiteral;
+        return noParam && onlyString;
+    }
+
+	public boolean isP2SH(Script script) {
+        return !isP2PKH(script) && !isOpReturn(script);
+    }
+
+	
+	
 	public static boolean containsAbsolute(Tlock tlock) {
     	return tlock.getTimes().stream().filter(x -> x instanceof AbsoluteTime).count()>0;
     }
