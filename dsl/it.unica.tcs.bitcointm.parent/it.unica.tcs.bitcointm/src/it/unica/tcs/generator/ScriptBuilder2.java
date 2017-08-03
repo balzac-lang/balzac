@@ -1,6 +1,6 @@
 package it.unica.tcs.generator;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,6 +62,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
+		checkArgument(!freeVariables.containsKey(name) || clazz.equals(freeVariables.get(name)));
 		ScriptChunk chunk = new ScriptBuilder().data(("$"+name).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
 		this.freeVariables.put(name, clazz);

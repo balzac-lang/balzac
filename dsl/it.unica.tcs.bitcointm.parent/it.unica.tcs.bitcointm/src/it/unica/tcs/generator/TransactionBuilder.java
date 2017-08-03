@@ -25,15 +25,17 @@ public class TransactionBuilder {
 		private final TransactionBuilder tx;
 		private final int outIndex;
 		private final ScriptBuilder2 script;
+		private final long locktime;
 		
-		private Input(TransactionBuilder tx, int outIndex, ScriptBuilder2 script) {
+		private Input(TransactionBuilder tx, int outIndex, ScriptBuilder2 script, long locktime) {
 			this.tx = tx;
 			this.script = script;
 			this.outIndex = outIndex;
+			this.locktime = locktime;
 		}
 		
 		private static Input of(TransactionBuilder tx, int index, ScriptBuilder2 script){
-			return new Input(tx, index, script);
+			return new Input(tx, index, script, LOCKTIME_NOT_SET);
 		}
 	}
 	
@@ -186,9 +188,17 @@ public class TransactionBuilder {
 			Transaction parentTransaction = parentTransaction2.toTransaction(params);
 			TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction); 
 			TransactionInput txInput = new TransactionInput(params, parentTransaction, new byte[]{}, outPoint);
-			
+
 			//set checksequenseverify (relative locktime)
-						
+			if (input.locktime==LOCKTIME_NOT_SET) {
+				// see BIP-0065
+				if (this.locktime!=LOCKTIME_NOT_SET)
+					txInput.setSequenceNumber(TransactionInput.NO_SEQUENCE-1);
+			}
+			else {
+				txInput.setSequenceNumber(input.locktime);
+			}
+			
 			tx.addInput(txInput);
 		}
 				
@@ -212,7 +222,19 @@ public class TransactionBuilder {
 			tx.setLockTime(locktime);
 		}
 		
-		//set signatures within input scripts		
+		// set all the signatures within the input scripts (which are never part of the signature)
+		for (int i=0; i<tx.getInputs().size(); i++) {
+			TransactionInput txInput = tx.getInputs().get(i);
+			ScriptBuilder2 sb = inputs.get(i).script;
+			byte[] outScript;
+			if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash())
+				outScript = txInput.getScriptSig().getChunks().get(txInput.getScriptSig().getChunks().size()-1).data;
+            else
+            	outScript = txInput.getOutpoint().getConnectedPubKeyScript();
+			sb.setSignatures(tx, i, outScript);
+            checkState(sb.signatureSize()==0);
+            checkState(sb.freeVariableSize()==0);
+		}
 		
 		return tx;
 	}
