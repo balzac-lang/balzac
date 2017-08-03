@@ -32,6 +32,7 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -50,13 +51,13 @@ import java.util.HashMap
 import java.util.Map
 import org.bitcoinj.core.Coin
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Transaction.SigHash
 import org.bitcoinj.core.TransactionInput
 import org.bitcoinj.core.TransactionOutPoint
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.core.Utils
-import org.bitcoinj.script.Script
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.emf.ecore.EObject
@@ -145,21 +146,21 @@ class BitcoinTMGenerator extends AbstractGenerator {
     /*
      * utility methods
      */
-    def boolean isP2PKH(it.unica.tcs.bitcoinTM.Script script) {
+    def boolean isP2PKH(Script script) {
         var onlyOneSignatureParam = script.params.size == 1 && (script.params.get(0).paramType instanceof SignatureType)
         var onlyOnePubkey = (script.exp.simplifySafe instanceof Versig) && (script.exp.simplifySafe as Versig).pubkeys.size == 1
 
         return onlyOneSignatureParam && onlyOnePubkey
     }
 
-    def boolean isOpReturn(it.unica.tcs.bitcoinTM.Script script) {
+    def boolean isOpReturn(Script script) {
         var noParam = script.params.size == 0
         var onlyString = script.exp.simplifySafe instanceof StringLiteral
 
         return noParam && onlyString
     }
 
-    def boolean isP2SH(it.unica.tcs.bitcoinTM.Script script) {
+    def boolean isP2SH(Script script) {
         return !script.isP2PKH && !script.isOpReturn
     }
 
@@ -235,7 +236,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 		        for (output : body.outputs) {
 			        ctx.clear()
 		            var value = Coin.valueOf(output.value.exp.interpret.first as Integer)
-		            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).program)
+		            var txOutput = new TransactionOutput(netParams, tx, value, output.compileOutput(ctx).build.program)
 		            tx.addOutput(txOutput)
 		        }
 		        
@@ -287,6 +288,59 @@ class BitcoinTMGenerator extends AbstractGenerator {
     
         
     
+    def ITransactionBuilder compileTransaction(TransactionDeclaration txDecl) {
+    	return txDecl.body.compileTransactionBody;
+    }
+    
+    def dispatch ITransactionBuilder compileTransactionBody(UserDefinedTxBody tx) {
+    	
+    	val tb = 
+    		if (tx.isCoinbase) new CoinbaseTransactionBuilder	    	
+	    	else new TransactionBuilder
+    	
+    	// free variables
+    	for (param : tx.params) {
+    		tb.freeVariable(param.name, param.paramType.convertType)
+    	} 		
+    	
+    	// inputs
+    	for(input : tx.inputs) {
+    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
+    		val outIndex = input.txRef.idx
+    		val inScript = input.compileInput(new Context)
+    		
+    		// relative timelock
+    		if (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration)) {
+				val locktime = tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)
+				tb.addInput(parentTx, outIndex, inScript, locktime)
+    		}
+    		else {
+    			tb.addInput(parentTx, outIndex, inScript)
+    		}
+    	}
+    	
+    	// outputs
+    	for (output : tx.outputs) {
+    		val outScript = output.compileOutput(new Context)
+    		val satoshis = output.value.exp.interpret.first as Integer
+    		tb.addOutput(outScript, satoshis)
+    	}
+    	
+    	// absolute timelock
+    	if (tx.tlock!==null && tx.tlock.containsAbsolute)
+	        tb.locktime = tx.tlock.getAbsolute()
+    	
+    	return tb
+    }
+    
+    def dispatch ITransactionBuilder compileTransactionBody(SerialTxBody tx) {
+    	return new ITransactionBuilder{
+    		override boolean isReady() {true}
+			override Transaction toTransaction(NetworkParameters params) {
+				new Transaction(tx.networkParams, Utils.HEX.decode(tx.bytes))
+			}
+    	}
+    }
 
     def ScriptBuilder2 compileInput(Input stmt, Context ctx) {
 
@@ -380,7 +434,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def private Script compileOutput(Output output, Context ctx) {
+    def private ScriptBuilder2 compileOutput(Output output, Context ctx) {
 		
         var outScript = output.script
 
@@ -394,7 +448,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 throw new CompileException
 
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-            script
+            new ScriptBuilder2().append(script)
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize
@@ -405,7 +459,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 throw new CompileException
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
-            script
+            new ScriptBuilder2().append(script)
         } else if (outScript.isOpReturn) {
             var c = outScript.exp as StringLiteral
             var script = ScriptBuilder.createOpReturnScript(c.value.bytes)
@@ -414,7 +468,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
                 throw new CompileException
 
             /* OP_RETURN <bytes> */
-            script
+            new ScriptBuilder2().append(script)
         } else
             throw new UnsupportedOperationException
     }
@@ -429,11 +483,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def private ScriptBuilder2 getRedeemScript(it.unica.tcs.bitcoinTM.Script script, Context ctx) {
+	def private ScriptBuilder2 getRedeemScript(Script script, Context ctx) {
         
         if (!ctx.altstack.isEmpty)
         	throw new CompileException("Altstack must be empty.")
-        
         
         // build the redeem script to serialize
         var sb = new ScriptBuilder2()
@@ -807,7 +860,7 @@ class BitcoinTMGenerator extends AbstractGenerator {
     }
     
     
-    def dispatch String compile(Type type) {
+    def static String compileType(Type type) {
     	if(type instanceof IntType) return "Integer"
     	if(type instanceof HashType) return "byte[]"
     	if(type instanceof StringType) return "String"

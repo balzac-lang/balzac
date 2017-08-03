@@ -54,7 +54,7 @@ TxBody: SerialTxBody | UserDefinedTxBody;
 
 SerialTxBody: '=' bytes=STRING;
 UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
-	"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=(Input|InputPlaceholder)   (";" inputs+=Input)*   "]") )
+	"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
 	("after" tlock=Tlock)?
 "}";

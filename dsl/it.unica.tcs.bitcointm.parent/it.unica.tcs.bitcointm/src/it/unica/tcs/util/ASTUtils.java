@@ -7,6 +7,7 @@ import it.unica.tcs.bitcoinTM.RelativeTime;
 import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
+import it.unica.tcs.bitcoinTM.UserDefinedTxBody;
 
 public class ASTUtils {
 	
@@ -39,6 +40,10 @@ public class ASTUtils {
 //    			.allMatch(ASTUtils::isRelativeDate);
 //    }
 	
+	public static boolean isCoinbase(UserDefinedTxBody tx) {
+		return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
+	}
+	    
 	public static boolean containsAbsolute(Tlock tlock) {
     	return tlock.getTimes().stream().filter(x -> x instanceof AbsoluteTime).count()>0;
     }

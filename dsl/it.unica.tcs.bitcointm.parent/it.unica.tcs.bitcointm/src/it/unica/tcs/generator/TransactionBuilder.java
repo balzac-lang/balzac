@@ -16,33 +16,41 @@ import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
 
-public class TransactionBuilder {
+import it.unica.tcs.bitcoinTM.UserDefinedTxBody;
+
+/**
+ * Transaction builder, mainly used to convert {@link UserDefinedTxBody}.
+ */
+public class TransactionBuilder implements ITransactionBuilder {
+
+	private static final long LOCKTIME_NOT_SET = -1;
+	private static final int OUTINDEX_NOT_SET = -1;
 
 	/*
 	 * Input internal representation (not visible outside)
 	 */
-	private static class Input {
-		private final TransactionBuilder tx;
+	protected static class Input {
+		private final ITransactionBuilder tx;
 		private final int outIndex;
 		private final ScriptBuilder2 script;
 		private final long locktime;
 		
-		private Input(TransactionBuilder tx, int outIndex, ScriptBuilder2 script, long locktime) {
+		private Input(ITransactionBuilder tx, int outIndex, ScriptBuilder2 script, long locktime) {
 			this.tx = tx;
 			this.script = script;
 			this.outIndex = outIndex;
 			this.locktime = locktime;
 		}
 		
-		private static Input of(TransactionBuilder tx, int index, ScriptBuilder2 script){
-			return new Input(tx, index, script, LOCKTIME_NOT_SET);
+		private static Input of(ITransactionBuilder tx, int index, ScriptBuilder2 script, long locktime){
+			return new Input(tx, index, script, locktime);
 		}
 	}
 	
 	/*
 	 * Output internal representation (not visible outside)
 	 */
-	private static class Output {
+	protected static class Output {
 		private final ScriptBuilder2 script;
 		private final Integer value;
 		
@@ -67,8 +75,6 @@ public class TransactionBuilder {
 	private final Map<String,Object> freeVarBindings = new HashMap<>();
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
-	
-	private static final long LOCKTIME_NOT_SET = -1;
 	private long locktime = LOCKTIME_NOT_SET;
 	
 	/**
@@ -107,6 +113,24 @@ public class TransactionBuilder {
 		return this;
 	}
 	
+	
+	/**
+	 * Add a new transaction input.
+	 * <p>This method is only used by {@link CoinbaseTransactionBuilder} to provide a valid input.
+	 * In this way, we avoid to expose other implementation details, even to subclasses</p>
+	 * @param inputScript the input script that redeem {@code tx} at {@code outIndex}.
+	 * @return this builder.
+	 * @throws IllegalArgumentException
+	 *             if the parent transaction binding does not match its free
+	 *             variables, or the input script free variables are not
+	 *             contained within this tx free variables.
+	 * @see CoinbaseTransactionBuilder
+	 */
+	protected TransactionBuilder addInput(ScriptBuilder2 inputScript) {
+		checkState(this.inputs.size()==0);
+		return addInput(new TransactionBuilder(), OUTINDEX_NOT_SET, inputScript, LOCKTIME_NOT_SET);
+	}
+	
 	/**
 	 * Add a new transaction input.
 	 * @param tx the parent transaction to redeem.
@@ -119,10 +143,27 @@ public class TransactionBuilder {
 	 *             variables, or the input script free variables are not
 	 *             contained within this tx free variables.
 	 */
-	public TransactionBuilder addInput(TransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript) {
+	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript) {
+		return addInput(tx, outIndex, inputScript, LOCKTIME_NOT_SET);
+	}
+	
+	/**
+	 * Add a new transaction input.
+	 * @param tx the parent transaction to redeem.
+	 * @param outIndex the index of the output script to redeem.
+	 * @param freeVarBindingsOfTx the parent transaction bindings.
+	 * @param inputScript the input script that redeem {@code tx} at {@code outIndex}.
+	 * @param locktime relative locktime.
+	 * @return this builder.
+	 * @throws IllegalArgumentException
+	 *             if the parent transaction binding does not match its free
+	 *             variables, or the input script free variables are not
+	 *             contained within this tx free variables.
+	 */
+	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript, long locktime) {
 		checkArgument(tx.isReady());
 		checkArgument(freeVariables.entrySet().containsAll(inputScript.getFreeVariables().entrySet()));
-		inputs.add(Input.of(tx, outIndex, inputScript));
+		inputs.add(Input.of(tx, outIndex, inputScript, locktime));
 		return this;
 	}
 	
@@ -161,7 +202,8 @@ public class TransactionBuilder {
 			Class<?> type = e.getValue();
 			return this.freeVarBindings.containsKey(name) && type.isInstance(freeVarBindings.get(name));
 		});		
-		return allBound && inputs.stream().map(x->x.tx).allMatch(TransactionBuilder::isReady);
+		return allBound && inputs.size()>0 && outputs.size()>0 && 
+				inputs.stream().map(x->x.tx).allMatch(ITransactionBuilder::isReady);
 	}
 	
 	/**
@@ -184,22 +226,32 @@ public class TransactionBuilder {
 			}
 			checkState(sb.freeVariableSize()==0);
 			
-			TransactionBuilder parentTransaction2 = input.tx;
-			Transaction parentTransaction = parentTransaction2.toTransaction(params);
-			TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction); 
-			TransactionInput txInput = new TransactionInput(params, parentTransaction, new byte[]{}, outPoint);
-
-			//set checksequenseverify (relative locktime)
-			if (input.locktime==LOCKTIME_NOT_SET) {
-				// see BIP-0065
-				if (this.locktime!=LOCKTIME_NOT_SET)
-					txInput.setSequenceNumber(TransactionInput.NO_SEQUENCE-1);
+			ITransactionBuilder parentTransaction2 = input.tx;
+			
+			if (input.outIndex == OUTINDEX_NOT_SET) {
+				// coinbase transaction
+				byte[] script = new byte[]{};	// script will be set later
+				TransactionInput txInput = new TransactionInput(params, tx, script);
+				tx.addInput(txInput);
+				checkState(txInput.isCoinBase());
 			}
 			else {
-				txInput.setSequenceNumber(input.locktime);
+				Transaction parentTransaction = parentTransaction2.toTransaction(params);
+				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction);
+				byte[] script = new byte[]{};	// script will be set later
+				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
+				
+				//set checksequenseverify (relative locktime)
+				if (input.locktime==LOCKTIME_NOT_SET) {
+					// see BIP-0065
+					if (this.locktime!=LOCKTIME_NOT_SET)
+						txInput.setSequenceNumber(TransactionInput.NO_SEQUENCE-1);
+				}
+				else {
+					txInput.setSequenceNumber(input.locktime);
+				}
+				tx.addInput(txInput);
 			}
-			
-			tx.addInput(txInput);
 		}
 				
 		// outputs
@@ -238,6 +290,5 @@ public class TransactionBuilder {
 		
 		return tx;
 	}
-	
 	
 }
