@@ -66,6 +66,9 @@ public class TransactionBuilder {
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
 	
+	private static final long LOCKTIME_NOT_SET = -1;
+	private long locktime = LOCKTIME_NOT_SET;
+	
 	/**
 	 * Add a free variable.
 	 * @param name the name of the variable
@@ -135,6 +138,16 @@ public class TransactionBuilder {
 		outputs.add(Output.of(outputScript, satoshis));
 		return this;
 	}
+	
+	/**
+	 * Set the transaction locktime (absolute locktime which could represent a block number or a timestamp).
+	 * @param locktime the value to set.
+	 * @return this builder.
+	 */
+	public TransactionBuilder setLocktime(long locktime) {
+		this.locktime = locktime;
+		return this;
+	}
 
 	/**
 	 * Recursively check that this transaction and all the ancestors don't have free variables.
@@ -172,7 +185,10 @@ public class TransactionBuilder {
 			TransactionBuilder parentTransaction2 = input.tx;
 			Transaction parentTransaction = parentTransaction2.toTransaction(params);
 			TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction); 
-			TransactionInput txInput = new TransactionInput(params, parentTransaction, new byte[]{}, outPoint); 
+			TransactionInput txInput = new TransactionInput(params, parentTransaction, new byte[]{}, outPoint);
+			
+			//set checksequenseverify (relative locktime)
+						
 			tx.addInput(txInput);
 		}
 				
@@ -191,10 +207,12 @@ public class TransactionBuilder {
 			tx.addOutput(value, outScript);
 		}
 		
-		//set checklocktime
+		//set checklocktime (absolute locktime)
+		if (locktime!=LOCKTIME_NOT_SET) {
+			tx.setLockTime(locktime);
+		}
 		
-		//set signatures within input scripts
-		
+		//set signatures within input scripts		
 		
 		return tx;
 	}
