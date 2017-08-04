@@ -1,4 +1,4 @@
-package it.unica.tcs.generator;
+package it.unica.tcs.compiler;
 
 import java.util.HashMap;
 

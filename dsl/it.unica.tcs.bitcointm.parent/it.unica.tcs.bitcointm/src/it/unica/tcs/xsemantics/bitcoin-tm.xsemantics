@@ -43,7 +43,7 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 
-import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import static extension it.unica.tcs.utils.BitcoinJUtils.*
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 

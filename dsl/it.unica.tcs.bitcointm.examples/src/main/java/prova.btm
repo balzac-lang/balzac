@@ -77,7 +77,7 @@ transaction Th {
 			hash160("")==ripemd160(sha256("")) 
 } 
 
-transaction Th1 {
+transaction Th1 {  
 	input = Th: "secret"
 	output = 0: "HELLO WORLD"    
 }

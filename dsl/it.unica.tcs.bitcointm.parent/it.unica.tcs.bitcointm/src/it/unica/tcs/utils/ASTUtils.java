@@ -1,4 +1,4 @@
-package it.unica.tcs.util;
+package it.unica.tcs.utils;
 
 import java.util.stream.Collectors;
 

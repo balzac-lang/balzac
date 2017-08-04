@@ -12,6 +12,7 @@ import org.eclipse.xtext.testing.XtextRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import it.unica.tcs.compiler.ScriptBuilder2;
 import it.unica.tcs.tests.BitcoinTMInjectorProvider;
 
 @RunWith(XtextRunner.class)

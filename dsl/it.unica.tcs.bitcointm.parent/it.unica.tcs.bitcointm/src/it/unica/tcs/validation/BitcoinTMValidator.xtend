@@ -27,10 +27,10 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.generator.BitcoinTMGenerator
-import it.unica.tcs.generator.CompileException
-import it.unica.tcs.util.ASTUtils
-import it.unica.tcs.validation.BitcoinJUtils.ValidationResult
+import it.unica.tcs.compiler.CompileException
+import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.BitcoinJUtils.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
@@ -52,8 +52,8 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
 
-import static extension it.unica.tcs.util.ASTUtils.*
-import static extension it.unica.tcs.validation.BitcoinJUtils.*
+import static extension it.unica.tcs.utils.ASTUtils.*
+import static extension it.unica.tcs.utils.BitcoinJUtils.*
 
 /**
  * This class contains custom validation rules. 
@@ -65,12 +65,12 @@ import static extension it.unica.tcs.validation.BitcoinJUtils.*
 //)
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-    @Inject private extension BitcoinTMGenerator generator
+	@Inject private extension IQualifiedNameConverter qualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject private extension ASTUtils astUtils
+    @Inject private extension TransactionCompiler txCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
-	@Inject private extension IQualifiedNameConverter qualifiedNameConverter
 
 	/*
 	 * INFO
@@ -559,7 +559,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
             var inputTx = input.txRef.tx
-            numOfOutputs = inputTx.toTransaction.outputs.size
+            numOfOutputs = inputTx.compileTransaction.outputsSize
         }
         else throw new IllegalStateException
         
@@ -609,8 +609,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else if (input.txRef.tx.body instanceof SerialTxBody) {
             
-            var refTx = input.txRef.tx.toTransaction
-            
+            var refTx = input.txRef.tx.compileTransaction.toTransaction(input.networkParams)
+                        
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
                 lastExp instanceof Script
             ) {
@@ -707,7 +707,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     
     def boolean correctlySpendsOutput(UserDefinedTxBody tbody) {
         
+        
         if (tbody.params.size>0) {
+        	// TODO: checks where the free variables appear
         	info(
 				'''Cannot check if these inputs are correctly spending their outputs''',
 				tbody,
@@ -723,8 +725,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var Script outScript
             
             try {
-
-                var Transaction tx = (tbody.eContainer as TransactionDeclaration).toTransaction
+				var txBuilder = (tbody.eContainer as TransactionDeclaration).compileTransaction
+				var tx = txBuilder.toTransaction(tbody.networkParams)
 				
 				try {
 					tx.verify();

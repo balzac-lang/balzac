@@ -1,4 +1,4 @@
-package it.unica.tcs.generator;
+package it.unica.tcs.compiler;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {
 

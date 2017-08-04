@@ -1,4 +1,4 @@
-package it.unica.tcs.generator;
+package it.unica.tcs.compiler;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -77,6 +77,16 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private final List<Output> outputs = new ArrayList<>();
 	private long locktime = LOCKTIME_NOT_SET;
 	
+	@Override
+	public int getInputsSize() {
+		return inputs.size();
+	}
+
+	@Override
+	public int getOutputsSize() {
+		return outputs.size();
+	}
+
 	/**
 	 * Add a free variable.
 	 * @param name the name of the variable
@@ -290,5 +300,4 @@ public class TransactionBuilder implements ITransactionBuilder {
 		
 		return tx;
 	}
-	
 }

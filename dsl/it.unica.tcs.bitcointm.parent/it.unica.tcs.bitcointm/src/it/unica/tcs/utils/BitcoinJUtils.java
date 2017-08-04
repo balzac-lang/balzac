@@ -1,4 +1,4 @@
-package it.unica.tcs.validation;
+package it.unica.tcs.utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,8 +26,8 @@ public class BitcoinJUtils {
 	public static ValidationResult VALIDATION_OK = new ValidationResult(true);
 	public static ValidationResult VALIDATION_ERROR = new ValidationResult(false);
 	public static class ValidationResult {
-		boolean ok;
-		String message;
+		public final boolean ok;
+		public final String message;
 		
 		public ValidationResult(boolean ok) {
 			this(ok, null);

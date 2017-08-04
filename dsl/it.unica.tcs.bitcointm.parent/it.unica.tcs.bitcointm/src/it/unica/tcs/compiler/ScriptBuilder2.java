@@ -1,4 +1,4 @@
-package it.unica.tcs.generator;
+package it.unica.tcs.compiler;
 
 import static com.google.common.base.Preconditions.*;
 
