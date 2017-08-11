@@ -8,7 +8,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class ProtocolGenerator extends AbstractGenerator {
 	
 	override doGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
+
 	}
 	
 }
