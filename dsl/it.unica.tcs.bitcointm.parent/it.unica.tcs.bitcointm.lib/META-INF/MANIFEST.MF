@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Lib
+Bundle-SymbolicName: it.unica.tcs.bitcointm.lib
+Bundle-Version: 0.0.1
+Export-Package: it.unica.tcs.bitcointm.lib
