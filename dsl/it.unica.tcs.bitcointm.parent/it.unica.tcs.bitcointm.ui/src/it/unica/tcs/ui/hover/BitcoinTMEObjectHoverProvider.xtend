@@ -11,7 +11,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
 
-import static extension it.unica.tcs.util.ASTUtils.*
+import static extension it.unica.tcs.utils.ASTUtils.*
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
