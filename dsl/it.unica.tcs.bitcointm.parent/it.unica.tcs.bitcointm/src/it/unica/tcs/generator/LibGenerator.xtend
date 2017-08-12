@@ -5,7 +5,7 @@ import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
-import it.unica.tcs.compiler.ITransactionBuilder
+import it.unica.tcs.bitcointm.lib.ITransactionBuilder
 import java.io.File
 import org.apache.commons.io.IOUtils
 import org.eclipse.emf.ecore.resource.Resource

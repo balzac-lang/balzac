@@ -26,6 +26,7 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction.SigHash

@@ -1,5 +1,6 @@
 package it.unica.tcs.compiler
 
+import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.script.ScriptChunk
