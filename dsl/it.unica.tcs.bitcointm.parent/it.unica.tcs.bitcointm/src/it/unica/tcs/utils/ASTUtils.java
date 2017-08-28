@@ -55,7 +55,7 @@ public class ASTUtils {
         boolean onlyOneSignatureParam = 
         		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
         boolean onlyOnePubkey = (typeSystem.simplifySafe(script.getExp()) instanceof Versig) 
-        		&& ((Versig) typeSystem.simplify(script.getExp())).getPubkeys().size() == 1;
+        		&& ((Versig) typeSystem.simplifySafe(script.getExp())).getPubkeys().size() == 1;
 
         return onlyOneSignatureParam && onlyOnePubkey;
     }

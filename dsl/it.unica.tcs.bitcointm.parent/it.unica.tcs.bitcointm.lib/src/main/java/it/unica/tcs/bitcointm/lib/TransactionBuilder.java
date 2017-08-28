@@ -218,7 +218,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return a bitcoinj transaction.
 	 */
 	public Transaction toTransaction(NetworkParameters params) {
-		checkArgument(this.getFreeVariables().equals(freeVarBindings.keySet()));
+		checkArgument(this.getFreeVariables().keySet().equals(freeVarBindings.keySet()));
 		
 		Transaction tx = new Transaction(params);
 		

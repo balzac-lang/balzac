@@ -38,12 +38,13 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 					
 		import org.bitcoinj.core.*;
 		import org.bitcoinj.script.*;
+		import it.unica.tcs.bitcointm.lib.*;
 		
 		public class TransactionFactory {
 			
 			«FOR tx : txs»
 			public static ITransactionBuilder tx_«tx.name»(«tx.body.compileTxParameters») {
-				
+				return null;
 			}
 			
 			«ENDFOR»
