@@ -6,7 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: it.unica.tcs.bitcointm.bitcoinj;bundle-version="0.15.0.commit_49e6af3b",
- it.unica.tcs.bitcointm.lib;bundle-version="2.0.0",
+ it.unica.tcs.bitcointm.lib,
  org.apache.commons.io;bundle-version="2.2.0",
  org.eclipse.xtext,
  org.eclipse.xtext.xbase,
