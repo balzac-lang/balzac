@@ -17,7 +17,6 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
-import it.unica.tcs.bitcoinTM.Declaration
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -82,15 +81,20 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			int relativeLocktime;
 		«ENDIF»
 		«FOR input:tx.inputs»
-			parentTx = null;
-			outIndex = «if (input.txRef!==null) input.txRef.idx else 0»;
-			inScript = null;
-			«IF (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration))»
-				// relative timelock
-				relativeLocktime = «tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)»;
-				tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
+			«IF tx.isCoinbase»
+				inScript = new ScriptBuilder2().number(42);
+				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
-				tb.addInput(parentTx, outIndex, inScript);
+				parentTx = null;
+				outIndex = «input.txRef.idx»;
+				inScript = null;
+				«IF (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration))»
+					// relative timelock
+					relativeLocktime = «tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)»;
+					tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
+				«ELSE»
+					tb.addInput(parentTx, outIndex, inScript);
+				«ENDIF»				
 			«ENDIF»
 		«ENDFOR»
 		«IF !tx.outputs.isEmpty»

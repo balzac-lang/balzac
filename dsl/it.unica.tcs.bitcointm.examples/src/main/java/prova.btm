@@ -15,7 +15,7 @@ key kB = [
 //	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 	 
   
-transaction ALFA {   
+transaction ALFA {
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;			// P2SH

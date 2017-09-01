@@ -21,6 +21,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private static final long LOCKTIME_NOT_SET = -1;
 	private static final int OUTINDEX_NOT_SET = -1;
 
+	private static final ITransactionBuilder nullTransaction = new ITransactionBuilder() {
+		@Override public Transaction toTransaction(NetworkParameters params) { return null; }
+		@Override public boolean isReady() { return true; }		
+		@Override public int getOutputsSize() { return 0; }
+		@Override public int getInputsSize() { return 0; }
+	};
+	
 	/*
 	 * Input internal representation (not visible outside)
 	 */
@@ -133,7 +140,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 */
 	protected TransactionBuilder addInput(ScriptBuilder2 inputScript) {
 		checkState(this.inputs.size()==0);
-		return addInput(new TransactionBuilder(), OUTINDEX_NOT_SET, inputScript, LOCKTIME_NOT_SET);
+		return addInput(nullTransaction, OUTINDEX_NOT_SET, inputScript, LOCKTIME_NOT_SET);
 	}
 	
 	/**

@@ -72,7 +72,7 @@ class CompilerUtils {
             if (res.getFirst() as Boolean) {
                 sb.op(ScriptOpCodes.OP_TRUE);
             }
-            else sb.op(ScriptOpCodes.OP_FALSE);
+            else sb.number(ScriptOpCodes.OP_FALSE);
         }
         else if (res.getFirst() instanceof byte[]) {
             sb.data(res.getFirst() as byte[]);

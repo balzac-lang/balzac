@@ -56,18 +56,25 @@ class TransactionCompiler {
     	
     	// inputs
     	for(input : tx.inputs) {
-    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
-    		val outIndex = input.txRef.idx
-    		val inScript = input.compileInput(new Context)
+    		if (tb instanceof CoinbaseTransactionBuilder) {
+    			val inScript = input.compileInput(new Context)
+    			tb.addInput(inScript)
+    		}
+    		else {    			
+	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
+	    		val outIndex = input.txRef.idx
+	    		val inScript = input.compileInput(new Context)
+	    		
+	    		// relative timelock
+	    		if (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration)) {
+					val locktime = tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)
+					tb.addInput(parentTx, outIndex, inScript, locktime)
+	    		}
+	    		else {
+	    			tb.addInput(parentTx, outIndex, inScript)
+	    		}
+    		}
     		
-    		// relative timelock
-    		if (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration)) {
-				val locktime = tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)
-				tb.addInput(parentTx, outIndex, inScript, locktime)
-    		}
-    		else {
-    			tb.addInput(parentTx, outIndex, inScript)
-    		}
     	}
     	
     	// outputs
