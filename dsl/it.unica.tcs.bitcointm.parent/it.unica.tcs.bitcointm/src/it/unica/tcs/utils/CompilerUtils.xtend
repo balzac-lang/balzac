@@ -3,6 +3,7 @@ package it.unica.tcs.utils
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IntType
+import it.unica.tcs.bitcoinTM.Network
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
@@ -11,6 +12,8 @@ import it.unica.tcs.compiler.CompileException
 import it.xsemantics.runtime.Result
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptOpCodes
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.EcoreUtil2
 
 class CompilerUtils {
 	
@@ -23,6 +26,20 @@ class CompilerUtils {
     	
     	throw new CompileException("Unexpected type "+type.class.simpleName)
     }
+    
+    def static String compileNetworkParams(EObject obj) {
+		val list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network);
+			
+		if (list.size()==0)	// network undeclared, assume testnet
+			return "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)"
+			
+		if (list.size()==1)
+			return if (list.get(0).isTestnet()) 
+				   "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)" 
+				   else "NetworkParameters.fromID(NetworkParameters.ID_MAINNET)"
+			
+		throw new IllegalStateException();
+	}
     
 	def static Class<?> convertType(Type type) {
     	if(type instanceof IntType) return Integer
