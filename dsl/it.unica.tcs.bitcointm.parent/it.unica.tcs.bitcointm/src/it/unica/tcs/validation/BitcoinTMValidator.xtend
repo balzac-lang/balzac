@@ -538,7 +538,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (inputTx.params.size!=input.txRef.actualParams.size) {
 	            error(
                     "The number of expressions does not match the number of parameters.",
-                    input,
+                    input.txRef,
                     BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__ACTUAL_PARAMS
                 );
                 return false

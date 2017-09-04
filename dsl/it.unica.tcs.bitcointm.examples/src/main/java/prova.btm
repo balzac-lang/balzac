@@ -118,7 +118,7 @@ transaction test(p) {
 }
 
 transaction test2(p) {
-	input = test() : ""
+	input = test(p) : ""
 	output = 900: fun(secret:string). p==secret 
 	after block 499_999_999
 }
