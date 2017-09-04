@@ -83,7 +83,9 @@ RelativeTime:
 	value=Delay "from" tx=[TransactionDeclaration];
 
 TransactionReference:
-	tx=[TransactionDeclaration|QualifiedName] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")? ("@" idx=INT)?;
+	tx=[TransactionDeclaration|QualifiedName] 
+	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")? 
+	("@" idx=INT)?;
 
 	
 

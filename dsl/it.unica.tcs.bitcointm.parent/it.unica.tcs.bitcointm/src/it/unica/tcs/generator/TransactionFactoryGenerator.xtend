@@ -1,13 +1,19 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.BooleanLiteral
+import it.unica.tcs.bitcoinTM.Expression
+import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTxBody
+import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
+import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -17,6 +23,7 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
+import it.unica.tcs.bitcoinTM.VariableReference
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -85,7 +92,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 				inScript = new ScriptBuilder2().number(42);
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
-				parentTx = null;
+				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
 				outIndex = «input.txRef.idx»;
 				inScript = null;
 				«IF (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration))»
@@ -125,4 +132,10 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		};
 	'''
 	
+	def private dispatch compileActualParam(Expression s) '''/* error */'''
+	def private dispatch compileActualParam(VariableReference v) '''"«v.ref.name»"'''
+	def private dispatch compileActualParam(StringLiteral s) '''"«s.value»"'''
+	def private dispatch compileActualParam(NumberLiteral n) '''«n.value»'''
+	def private dispatch compileActualParam(BooleanLiteral b) '''«b.isTrue»'''
+	def private dispatch compileActualParam(HashLiteral h) '''Utils.HEX.decode("«Utils.HEX.encode(h.value)»")'''
 }

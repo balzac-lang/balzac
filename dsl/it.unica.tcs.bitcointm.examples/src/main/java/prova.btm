@@ -1,4 +1,4 @@
-package it.unica.btm.prova
+package it.unica.btm.prova 
 
 network mainnet   
 
@@ -112,8 +112,13 @@ transaction A4 {
 }
 
 transaction test(p) {
-	input = Th : ""
+	input = Th : (""+p)
 	output = 1000: fun(secret:string). p==secret 
 	after block 499_999_999
 }
 
+transaction test2(p) {
+	input = test() : ""
+	output = 900: fun(secret:string). p==secret 
+	after block 499_999_999
+}
