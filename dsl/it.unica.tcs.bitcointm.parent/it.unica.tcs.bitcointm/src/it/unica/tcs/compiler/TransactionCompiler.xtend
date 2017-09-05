@@ -93,19 +93,12 @@ class TransactionCompiler {
     
     def dispatch ITransactionBuilder compileTransactionBody(SerialTxBody body) {
     	return new ITransactionBuilder{
-    		
     		val tx = new Transaction(body.networkParams, Utils.HEX.decode(body.bytes))
-    		
     		override boolean isReady() {true}
-			override Transaction toTransaction(NetworkParameters params) {
-				tx
-			}
-			override getInputsSize() {
-				tx.inputs.size
-			}
-			override getOutputsSize() {
-				tx.outputs.size
-			}
+			override Transaction toTransaction(NetworkParameters params) { tx }
+			override getInputsSize() { tx.inputs.size }
+			override getOutputsSize() { tx.outputs.size }
+			override isCoinbase() { tx.isCoinBase }
     	}
     }
 

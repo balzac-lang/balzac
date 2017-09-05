@@ -26,6 +26,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		@Override public boolean isReady() { return true; }		
 		@Override public int getOutputsSize() { return 0; }
 		@Override public int getInputsSize() { return 0; }
+		@Override public boolean isCoinbase() { return false; }
 	};
 	
 	/*
@@ -302,4 +303,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 		
 		return tx;
 	}
+
+	@Override
+	public boolean isCoinbase() {
+		return inputs.size()==1 && inputs.get(0).tx == nullTransaction;
+	}
+	
 }

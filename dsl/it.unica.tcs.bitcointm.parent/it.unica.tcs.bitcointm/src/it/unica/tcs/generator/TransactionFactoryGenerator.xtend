@@ -11,6 +11,9 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
+import it.unica.tcs.bitcoinTM.VariableReference
+import it.unica.tcs.bitcointm.lib.ITransactionBuilder
+import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import org.bitcoinj.core.Utils
@@ -23,12 +26,12 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
-import it.unica.tcs.bitcoinTM.VariableReference
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
-	@Inject private extension BitcoinTMTypeSystem typeSystem
+	@Inject private extension BitcoinTMTypeSystem
+	@Inject private extension TransactionCompiler	
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		
@@ -71,6 +74,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	def private dispatch compileTxBody(TxBody tx) ''''''
 	
 	def private dispatch compileTxBody(UserDefinedTxBody tx) '''
+		«var ITransactionBuilder tb = tx.compileTransactionBody»
 		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»();
 		«IF !tx.params.isEmpty»
 			
@@ -123,13 +127,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch compileTxBody(SerialTxBody tx) '''
-		return new ITransactionBuilder() {
-			private final Transaction tx = new Transaction(«tx.compileNetworkParams», Utils.HEX.decode("«tx.bytes»"));
-			@Override public boolean isReady() { return true; }
-			@Override public Transaction toTransaction(NetworkParameters params) { return tx; }
-			@Override public int getInputsSize() { return tx.getInputs().size(); }
-			@Override public int getOutputsSize() { return tx.getOutputs().size(); }
-		};
+		return ITransactionBuilder.fromSerializedTransaction(«tx.compileNetworkParams», "«tx.bytes»");
 	'''
 	
 	def private dispatch String compileActualParam(Expression s) '''/* error */'''
