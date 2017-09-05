@@ -74,7 +74,6 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	def private dispatch compileTxBody(TxBody tx) ''''''
 	
 	def private dispatch compileTxBody(UserDefinedTxBody tx) '''
-		«var ITransactionBuilder tb = tx.compileTransactionBody»
 		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»();
 		«IF !tx.params.isEmpty»
 			
@@ -136,4 +135,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	def private dispatch String compileActualParam(NumberLiteral n) { n.value.toString }
 	def private dispatch String compileActualParam(BooleanLiteral b) { b.isTrue.toString }
 	def private dispatch String compileActualParam(HashLiteral h) '''Utils.HEX.decode("«Utils.HEX.encode(h.value)»")'''
+	
+	
+	
 }

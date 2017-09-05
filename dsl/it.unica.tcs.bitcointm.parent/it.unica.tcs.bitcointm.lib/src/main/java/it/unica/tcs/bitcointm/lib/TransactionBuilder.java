@@ -232,13 +232,6 @@ public class TransactionBuilder implements ITransactionBuilder {
 		
 		// inputs
 		for (Input input : inputs) {
-			// bind free variables
-			ScriptBuilder2 sb = input.script;
-			for(Entry<String, Object> freeVar : freeVarBindings.entrySet()) {
-				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
-			}
-			checkState(sb.freeVariableSize()==0);
-			
 			ITransactionBuilder parentTransaction2 = input.tx;
 			
 			if (input.outIndex == OUTINDEX_NOT_SET) {
@@ -291,6 +284,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 		for (int i=0; i<tx.getInputs().size(); i++) {
 			TransactionInput txInput = tx.getInputs().get(i);
 			ScriptBuilder2 sb = inputs.get(i).script;
+			
+			// bind free variables
+			for(Entry<String, Object> freeVar : freeVarBindings.entrySet()) {
+				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
+			}
+			checkState(sb.freeVariableSize()==0);
+			
 			byte[] outScript;
 			if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash())
 				outScript = txInput.getScriptSig().getChunks().get(txInput.getScriptSig().getChunks().size()-1).data;
@@ -299,6 +299,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 			sb.setSignatures(tx, i, outScript);
             checkState(sb.signatureSize()==0);
             checkState(sb.freeVariableSize()==0);
+            
+            // update scriptSig
+            txInput.setScriptSig(sb.build());
 		}
 		
 		return tx;

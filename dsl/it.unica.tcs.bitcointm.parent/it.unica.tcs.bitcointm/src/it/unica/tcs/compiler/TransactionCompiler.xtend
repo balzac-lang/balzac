@@ -19,9 +19,6 @@ import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.bitcointm.lib.TransactionBuilder
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
-import org.bitcoinj.core.NetworkParameters
-import org.bitcoinj.core.Transaction
-import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.xtext.EcoreUtil2
@@ -57,13 +54,13 @@ class TransactionCompiler {
     	// inputs
     	for(input : tx.inputs) {
     		if (tb instanceof CoinbaseTransactionBuilder) {
-    			val inScript = input.compileInput(new Context)
+    			val inScript = input.compileInput
     			tb.addInput(inScript)
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
 	    		val outIndex = input.txRef.idx
-	    		val inScript = input.compileInput(new Context)
+	    		val inScript = input.compileInput
 	    		
 	    		// relative timelock
 	    		if (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration)) {
@@ -79,7 +76,7 @@ class TransactionCompiler {
     	
     	// outputs
     	for (output : tx.outputs) {
-    		val outScript = output.compileOutput(new Context)
+    		val outScript = output.compileOutput
     		val satoshis = output.value.exp.interpret.first as Integer
     		tb.addOutput(outScript, satoshis)
     	}
@@ -95,7 +92,9 @@ class TransactionCompiler {
     	return ITransactionBuilder.fromSerializedTransaction(body.networkParams, body.bytes);
     }
 
-    def ScriptBuilder2 compileInput(Input stmt, Context ctx) {
+    def ScriptBuilder2 compileInput(Input stmt) {
+
+		val Context ctx = new Context
 
 		if (stmt.isPlaceholder) {
  			/*
@@ -187,8 +186,9 @@ class TransactionCompiler {
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def private ScriptBuilder2 compileOutput(Output output, Context ctx) {
+    def private ScriptBuilder2 compileOutput(Output output) {
 		
+		val Context ctx = new Context
         var outScript = output.script
 
         if (outScript.isP2PKH) {
