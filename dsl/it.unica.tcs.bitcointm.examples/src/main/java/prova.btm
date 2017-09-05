@@ -119,6 +119,6 @@ transaction test(p) {
 
 transaction test2(p) {
 	input = test(p) : ""
-	output = 900: fun(secret:string). p==secret 
+	output = 900: fun(secret:string, a:hash). p==secret 
 	after block 499_999_999
 }

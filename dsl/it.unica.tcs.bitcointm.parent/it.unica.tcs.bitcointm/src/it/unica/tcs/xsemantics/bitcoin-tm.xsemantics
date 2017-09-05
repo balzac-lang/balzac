@@ -241,13 +241,10 @@ from {
 				var formalParam = inputTxBody.params.get(i)
 				
 				// all the actual parameters are well type and the type is basic
-				G |- substitutions |> actualParam : var BasicType actualParamType
+				G |- substitutions |> actualParam : var Type actualParamType
 				
-				if(actualParamType.class != formalParam.paramType.class) {
-					fail
-						error "Invalid type '"+stringRep(actualParamType)+"'. The parameter has type '"+stringRep(formalParam.paramType)+"'."
-						source actualParam
-				} 
+				// the actual param type must be unifiable with the formal param type
+				unify(substitutions, actualParamType, formalParam.paramType)
 			}
 			
 			// check the actual parameters type match the formal ones (Script)
