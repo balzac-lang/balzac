@@ -132,10 +132,10 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		};
 	'''
 	
-	def private dispatch compileActualParam(Expression s) '''/* error */'''
-	def private dispatch compileActualParam(VariableReference v) '''"«v.ref.name»"'''
-	def private dispatch compileActualParam(StringLiteral s) '''"«s.value»"'''
-	def private dispatch compileActualParam(NumberLiteral n) '''«n.value»'''
-	def private dispatch compileActualParam(BooleanLiteral b) '''«b.isTrue»'''
-	def private dispatch compileActualParam(HashLiteral h) '''Utils.HEX.decode("«Utils.HEX.encode(h.value)»")'''
+	def private dispatch String compileActualParam(Expression s) '''/* error */'''
+	def private dispatch String compileActualParam(VariableReference v) { v.ref.name }
+	def private dispatch String compileActualParam(StringLiteral s) { '"'+s.value+'"' }
+	def private dispatch String compileActualParam(NumberLiteral n) { n.value.toString }
+	def private dispatch String compileActualParam(BooleanLiteral b) { b.isTrue.toString }
+	def private dispatch String compileActualParam(HashLiteral h) '''Utils.HEX.decode("«Utils.HEX.encode(h.value)»")'''
 }
