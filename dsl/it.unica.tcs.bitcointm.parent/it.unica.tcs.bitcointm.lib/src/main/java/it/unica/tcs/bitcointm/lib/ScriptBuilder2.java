@@ -26,6 +26,8 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
+import com.google.common.collect.Lists;
+
 public class ScriptBuilder2 extends ScriptBuilder {
 
 	private static final String SIGNATURE_PLACEHOLDER = "\u03C3"; 		// σ
@@ -36,22 +38,33 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private final Map<ScriptChunk, Boolean> anyoneCanPay;
 	private final Map<String,Class<?>> freeVariables;
 	
-	public ScriptBuilder2() {
-		this.keys = new HashMap<>();
-		this.hashTypes = new HashMap<>();
-		this.anyoneCanPay = new HashMap<>();
-		this.freeVariables = new HashMap<>();
+	private ScriptBuilder2(
+			Script script,
+			Map<ScriptChunk, ECKey> keys, 
+			Map<ScriptChunk, SigHash> hashTypes,
+			Map<ScriptChunk, Boolean> anyoneCanPay, 
+			Map<String,Class<?>> freeVariablesTypes) {
+		super(script);
+		this.keys = keys;
+		this.hashTypes = hashTypes;
+		this.anyoneCanPay = anyoneCanPay;
+		this.freeVariables = freeVariablesTypes;
 	}
-	
+
 	private ScriptBuilder2(
 			Map<ScriptChunk, ECKey> keys, 
 			Map<ScriptChunk, SigHash> hashTypes,
 			Map<ScriptChunk, Boolean> anyoneCanPay, 
 			Map<String,Class<?>> freeVariablesTypes) {
-		this.keys = keys;
-		this.hashTypes = hashTypes;
-		this.anyoneCanPay = anyoneCanPay;
-		this.freeVariables = freeVariablesTypes;
+		this(new Script(new byte[]{}), keys, hashTypes, anyoneCanPay, freeVariablesTypes);
+	}
+	
+	public ScriptBuilder2() {
+		this(new Script(new byte[]{}));
+	}
+
+	public ScriptBuilder2(Script script) {
+		this(script,new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 	}
 
 	public ScriptBuilder2 data(byte[] data) {
@@ -162,10 +175,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	
 	public ScriptBuilder2 append(Script append) {
-		for (ScriptChunk ch : append.getChunks()) {
-			this.addChunk(ch);
-		}
-		return this;
+		ScriptBuilder2 sb = new ScriptBuilder2(append);
+		return this.append(sb);
 	}
 	
 	public ScriptBuilder2 append(ScriptBuilder2 append) {
@@ -288,6 +299,54 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return sb;
 	}
 	
+	private static boolean isSignature(ScriptChunk ch) {
+		return ch.data != null && new String(ch.data).equals(SIGNATURE_PLACEHOLDER);
+	}
+	
+	private static boolean isFreeVariable(ScriptChunk ch) {
+		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX_PLACEHOLDER);
+	}
+	
+	private static String getFreeVariableName(ScriptChunk ch) {
+		return new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
+	}
+	
+	private static String encodeKey(ECKey key) {
+		return key.getPrivateKeyAsHex();
+	}
+	
+	private static ECKey decodeKey(String key) {
+		return ECKey.fromPrivate(Utils.HEX.decode(key));
+	}
+	
+	@SuppressWarnings("incomplete-switch")
+	private static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
+		switch (sigHash) {
+		case ALL: return (anyoneCanPay?"1":"*")+"*";
+		case NONE: return (anyoneCanPay?"1":"*")+"0";
+		case SINGLE: return (anyoneCanPay?"1":"*")+"1";
+		}
+		throw new IllegalStateException();
+	}
+	
+	private static Object[] decodeModifier(String modifier) {
+		switch (modifier) {
+		case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
+		case "1*": return new Object[]{SigHash.ALL, Boolean.TRUE};
+		case "*0": return new Object[]{SigHash.NONE, Boolean.FALSE};
+		case "10": return new Object[]{SigHash.NONE, Boolean.TRUE};
+		case "*1": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
+		case "11": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
+		}
+		throw new IllegalStateException(modifier);
+	}
+
+	
+	/* ---------------------------------------------------------------------------------------------- */
+	/*
+	 * below there are some methods customized from bitcoinJ
+	 */
+	
 	private static String serializeChunk(ScriptChunk ch) {
 		StringBuilder buf = new StringBuilder();
         if (ch.isOpCode()) {
@@ -345,47 +404,4 @@ public class ScriptBuilder2 extends ScriptBuilder {
         else
             return value - 1 + OP_1;
     }
-	
-	private static boolean isSignature(ScriptChunk ch) {
-		return ch.data != null && new String(ch.data).equals(SIGNATURE_PLACEHOLDER);
-	}
-	
-	private static boolean isFreeVariable(ScriptChunk ch) {
-		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX_PLACEHOLDER);
-	}
-	
-	private static String getFreeVariableName(ScriptChunk ch) {
-		return new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
-	}
-	
-	private static String encodeKey(ECKey key) {
-		return key.getPrivateKeyAsHex();
-	}
-	
-	private static ECKey decodeKey(String key) {
-		return ECKey.fromPrivate(Utils.HEX.decode(key));
-	}
-	
-	@SuppressWarnings("incomplete-switch")
-	private static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
-		switch (sigHash) {
-		case ALL: return (anyoneCanPay?"1":"*")+"*";
-		case NONE: return (anyoneCanPay?"1":"*")+"0";
-		case SINGLE: return (anyoneCanPay?"1":"*")+"1";
-		}
-		throw new IllegalStateException();
-	}
-	
-	private static Object[] decodeModifier(String modifier) {
-		switch (modifier) {
-		case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
-		case "1*": return new Object[]{SigHash.ALL, Boolean.TRUE};
-		case "*0": return new Object[]{SigHash.NONE, Boolean.FALSE};
-		case "10": return new Object[]{SigHash.NONE, Boolean.TRUE};
-		case "*1": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
-		case "11": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
-		}
-		throw new IllegalStateException(modifier);
-		
-	}
 }
