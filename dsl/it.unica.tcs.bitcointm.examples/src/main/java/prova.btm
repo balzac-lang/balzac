@@ -38,7 +38,7 @@ transaction T {
 	]
 }
 
-transaction T1 {
+transaction T1 { 
 	input = [
 		T@0: (0.00000043 BTC);
 		T@1: if (10+2==12) then "abc" else "xyz";
@@ -53,9 +53,9 @@ transaction T1 {
 	]
 	 
 	output = [  
-		4444: 	fun (n) . 2147483647+1==n+1; 
-		2222:	fun (a) . 45!=45 && a-45==2 ;
-		1111:	if (12==10+2) then 3 else 4
+		4444: 	fun (n) . 2147483647+1==n+1;  
+		2222:	fun (a) . 45!=45 && a-45==2 ; 
+		1111:	if (12==10+2) then 3 else 4 
 	] 
 }
 
@@ -106,7 +106,7 @@ transaction A3 {
 }
 
 transaction A4 {
-	input = Th : "secret"
+	input = Th : "secret" 
 	output = 0: ""
 	after block 499_999_999
 }
@@ -119,6 +119,6 @@ transaction test(p) {
 
 transaction test2(p) {
 	input = test(p) : ""
-	output = 900: fun(secret:string, a:hash). p==secret 
+	output = 900: fun(secret:string). p==secret  
 	after block 499_999_999
 }

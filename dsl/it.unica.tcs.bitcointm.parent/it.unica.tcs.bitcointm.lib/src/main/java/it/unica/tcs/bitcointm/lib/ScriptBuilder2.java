@@ -1,27 +1,24 @@
 package it.unica.tcs.bitcointm.lib;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.bitcoinj.core.Utils.HEX;
 import static org.bitcoinj.script.ScriptOpCodes.OP_0;
 import static org.bitcoinj.script.ScriptOpCodes.OP_1;
 import static org.bitcoinj.script.ScriptOpCodes.OP_16;
 import static org.bitcoinj.script.ScriptOpCodes.OP_1NEGATE;
 import static org.bitcoinj.script.ScriptOpCodes.OP_INVALIDOPCODE;
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
-import static org.bitcoinj.script.ScriptOpCodes.getPushDataName;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
@@ -77,6 +74,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
+		checkNotNull(name);
+		checkNotNull(clazz);
 		checkArgument(!freeVariables.containsKey(name) || clazz.equals(freeVariables.get(name)));
 		ScriptChunk chunk = new ScriptBuilder().data((FREEVAR_PREFIX_PLACEHOLDER+name).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
@@ -85,6 +84,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+		checkNotNull(key);
+		checkNotNull(hashType);
 		ScriptChunk chunk = new ScriptBuilder().data(SIGNATURE_PLACEHOLDER.getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
 		this.keys.put(chunk, key);
@@ -102,6 +103,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public int signatureSize() {
+		checkState(keys.size() == hashTypes.size());
+		checkState(keys.size() == anyoneCanPay.size());
 		return keys.size();
 	}
 	
@@ -166,13 +169,52 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 append(ScriptBuilder2 append) {
-		checkState(this.keys.entrySet().containsAll(append.keys.entrySet()));
-		checkState(this.hashTypes.entrySet().containsAll(append.hashTypes.entrySet()));
-		checkState(this.anyoneCanPay.entrySet().containsAll(append.anyoneCanPay.entrySet()));
-		checkState(this.freeVariables.entrySet().containsAll(append.freeVariables.entrySet()));
 		for (ScriptChunk ch : append.build().getChunks()) {
 			this.addChunk(ch);
+			
+			// merge free variables
+			if (isFreeVariable(ch)) {
+				String name = getFreeVariableName(ch);
+				if (this.freeVariables.containsKey(name)) {
+					// check they are consistent
+					checkState(this.freeVariables.get(name).equals(append.freeVariables.get(name)), 
+							"Inconsitent state: free variable '%s' is bound to '%s' (this) and '%s' (append)",
+							name, this.freeVariables.get(name), append.freeVariables.get(name));
+				}
+				else {
+					this.freeVariables.put(name, append.freeVariables.get(name));
+				}
+			}
+			// merge signatures
+			if (isSignature(ch)) {
+				ECKey key = append.keys.get(ch);
+				SigHash hashType = append.hashTypes.get(ch);
+				Boolean anyoneCanPay = append.anyoneCanPay.get(ch);
+				checkNotNull(key);
+				checkNotNull(hashType);
+				checkNotNull(anyoneCanPay);
+				if (this.keys.containsKey(ch)) {
+					checkState(this.hashTypes.containsKey(ch));
+					checkState(this.anyoneCanPay.containsKey(ch));
+					// check they are consistent
+					checkState(this.keys.get(ch).equals(append.keys.get(ch)), 
+							"Inconsitent state: chunk '%s' is bound to '%s' (this) and '%s' (append)",
+							ch, this.keys.get(ch), append.keys.get(ch));
+					checkState(this.hashTypes.get(ch).equals(append.hashTypes.get(ch)), 
+							"Inconsitent state: chunk '%s' is bound to '%s' (this) and '%s' (append)",
+							ch, this.hashTypes.get(ch), append.hashTypes.get(ch));
+					checkState(this.anyoneCanPay.get(ch).equals(append.anyoneCanPay.get(ch)), 
+							"Inconsitent state: chunk '%s' is bound to '%s' (this) and '%s' (append)",
+							ch, this.anyoneCanPay.get(ch), append.anyoneCanPay.get(ch));
+				}
+				else {
+					this.keys.put(ch, append.keys.get(ch));
+					this.hashTypes.put(ch, append.hashTypes.get(ch));
+					this.anyoneCanPay.put(ch, append.anyoneCanPay.get(ch));
+				}
+			}
 		}
+		
 		return this;
 	}
 	
@@ -195,7 +237,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				str.append(" ");
 			}
 			else if (isFreeVariable(ch)) {
-				String name = new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
+				String name = getFreeVariableName(ch);
 				str.append("[");
 				str.append("var");
 				str.append(",");
@@ -252,7 +294,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
             buf.append(getOpCodeName(ch.opcode));
         } else if (ch.data != null) {
             // Data chunk
-            buf.append(getPushDataName(ch.opcode)).append("[").append(Utils.HEX.encode(ch.data)).append("]");
+            buf.append("PUSHDATA").append("[").append(Utils.HEX.encode(ch.data)).append("]");
         } else {
             // Small num
             buf.append(decodeFromOpN(ch.opcode));
@@ -263,26 +305,18 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private static ScriptChunk deserializeChunk(String w) {
         try(UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream()) {
 	        if (w.matches("^-?[0-9]*$")) {
-	            // Number
+	            // Small Number
 	            long val = Long.parseLong(w);
-	            if (val >= -1 && val <= 16)
-	                out.write(encodeToOpN((int)val));
-	            else
-	                Script.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
-	        } else if (w.matches("^0x[0-9a-fA-F]*$")) {
-	            // Raw hex data, inserted NOT pushed onto stack:
-	            out.write(HEX.decode(w.substring(2).toLowerCase()));
-	        } else if (w.length() >= 2 && w.startsWith("'") && w.endsWith("'")) {
-	            // Single-quoted string, pushed as data. NOTE: this is poor-man's
-	            // parsing, spaces/tabs/newlines in single-quoted strings won't work.
-	            Script.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
+                out.write(encodeToOpN((int)val));
 	        } else if (ScriptOpCodes.getOpCode(w) != OP_INVALIDOPCODE) {
 	            // opcode, e.g. OP_ADD or OP_1:
 	            out.write(ScriptOpCodes.getOpCode(w));
-	        } else if (w.startsWith("OP_") && ScriptOpCodes.getOpCode(w.substring(3)) != OP_INVALIDOPCODE) {
-	            // opcode, e.g. OP_ADD or OP_1:
-	            out.write(ScriptOpCodes.getOpCode(w.substring(3)));
-	        } else {
+	        } 
+	        else if (w.startsWith("PUSHDATA")) {
+	        	String data = w.substring("PUSHDATA".length()+1, w.length()-1);
+	        	Script.writeBytes(out, Utils.HEX.decode(data));
+	        }
+	        else {
 	            throw new RuntimeException("Invalid word: '" + w + "'");
 	        }                        
 	        
@@ -318,6 +352,10 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	private static boolean isFreeVariable(ScriptChunk ch) {
 		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX_PLACEHOLDER);
+	}
+	
+	private static String getFreeVariableName(ScriptChunk ch) {
+		return new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
 	}
 	
 	private static String encodeKey(ECKey key) {

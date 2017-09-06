@@ -326,7 +326,8 @@ class ExpressionCompiler {
             }
             
         // store an empty value
-        new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
+        var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
+        sb
     }
 
     def dispatch ScriptBuilder2 compileExpression(VariableReference varRef, Context ctx) {

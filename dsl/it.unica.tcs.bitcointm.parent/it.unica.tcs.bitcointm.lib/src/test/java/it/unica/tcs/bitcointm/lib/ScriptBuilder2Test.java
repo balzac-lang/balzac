@@ -57,13 +57,6 @@ public class ScriptBuilder2Test {
         assertEquals(0, sb.signatureSize());
     }
     
-    @Test(expected=IllegalStateException.class)
-    public void test_appendFail() {
-        ScriptBuilder2 sb = new ScriptBuilder2();
-        sb.freeVariable("pippo", Integer.class);
-        new ScriptBuilder2().append(sb);
-    }
-
     @Test
     public void test_serialize_freeVariable() {
     	ScriptBuilder2 sb = new ScriptBuilder2();
@@ -205,5 +198,18 @@ public class ScriptBuilder2Test {
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
+    }
+    
+    @Test
+    public void test_serialize_deserialize() {
+    	String[] scripts = {
+    			"HASH160 PUSHDATA[8174e27d08a37d26e81bbb99c39d20426b782645] EQUAL",
+    			"DUP HASH160 PUSHDATA[a9776115106b0599bf5f6f82c22e83429babad4d] EQUALVERIFY CHECKSIG",
+    			"RETURN PUSHDATA[44415441]"
+    	};
+    	
+		for (String s : scripts) {
+			assertEquals(s, ScriptBuilder2.serialize(ScriptBuilder2.deserialize(s)));
+		}
     }
 }

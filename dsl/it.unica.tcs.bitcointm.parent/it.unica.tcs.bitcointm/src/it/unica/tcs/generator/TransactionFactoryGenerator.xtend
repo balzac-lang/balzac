@@ -12,7 +12,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TxBody
 import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
-import it.unica.tcs.bitcointm.lib.ITransactionBuilder
+import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
@@ -97,7 +97,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			«ELSE»
 				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
 				outIndex = «input.txRef.idx»;
-				inScript = null;
+				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
 				«IF (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration))»
 					// relative timelock
 					relativeLocktime = «tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)»;
@@ -114,7 +114,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			int satoshis;
 		«ENDIF»
 		«FOR output:tx.outputs»
-			outScript = null;
+			outScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(output.compileOutput)»");
 			satoshis = «output.value.exp.interpret.first as Integer»;
 			tb.addOutput(outScript, satoshis);
 		«ENDFOR»

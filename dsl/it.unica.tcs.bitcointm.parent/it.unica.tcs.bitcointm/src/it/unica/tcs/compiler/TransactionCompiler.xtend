@@ -34,7 +34,7 @@ class TransactionCompiler {
 	@Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject private extension ASTUtils astUtils
 	@Inject private extension ExpressionCompiler expGenerator
-	@Inject private extension Optimizer optimizer
+//	@Inject private extension Optimizer optimizer
 	
 	def ITransactionBuilder compileTransaction(TransactionDeclaration txDecl) {
     	return txDecl.body.compileTransactionBody;
@@ -186,7 +186,7 @@ class TransactionCompiler {
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def private ScriptBuilder2 compileOutput(Output output) {
+    def ScriptBuilder2 compileOutput(Output output) {
 		
 		val Context ctx = new Context
         var outScript = output.script
@@ -252,7 +252,7 @@ class TransactionCompiler {
             sb.op(OP_TOALTSTACK)
         }
         
-        sb.append(script.exp.simplifySafe.compileExpression(ctx)).optimize
+        sb.append(script.exp.simplifySafe.compileExpression(ctx))//.optimize TODO: optimization is broken
 	}
 	
 	
@@ -261,6 +261,7 @@ class TransactionCompiler {
 	 */
     def private ScriptBuilder2 compileInputExpression(Expression exp, Context ctx) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
+        			.filter[ref|ref.eContainer instanceof UserDefinedTxBody]
         
         // the altstack is used only by VariableReference(s)
         if (!refs.empty)
@@ -269,6 +270,6 @@ class TransactionCompiler {
         if (!ctx.altstack.isEmpty)
         	throw new CompileException("Altstack must be empty.")
         
-        exp.simplifySafe.compileExpression(ctx).optimize
+        exp.simplifySafe.compileExpression(ctx)//.optimize TODO: optimization is broken
     }
 }
