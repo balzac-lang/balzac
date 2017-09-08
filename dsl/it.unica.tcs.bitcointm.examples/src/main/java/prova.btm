@@ -1,6 +1,6 @@
 package it.unica.btm.prova 
 
-network mainnet   
+network mainnet
 
 key kA = [
 	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
