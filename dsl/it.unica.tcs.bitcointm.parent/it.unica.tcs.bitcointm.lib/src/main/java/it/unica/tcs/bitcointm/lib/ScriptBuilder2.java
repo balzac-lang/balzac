@@ -26,8 +26,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
-import com.google.common.collect.Lists;
-
 public class ScriptBuilder2 extends ScriptBuilder {
 
 	private static final String SIGNATURE_PLACEHOLDER = "\u03C3"; 		// σ
@@ -153,6 +151,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return sb;
 	}
 	
+	/**
+	 * Replace all the signatures placeholder with the actual signatures.
+	 * Each placeholder is already associated with the key and the modifiers.
+	 * @param tx the transaction to be signed
+	 * @param inputIndex the index of the input that will contain this script
+	 * @param outScript the redeemed output script 
+	 * @return a <b>copy</b> of this builder
+	 */
 	public ScriptBuilder2 setSignatures(Transaction tx, int inputIndex, byte[] outScript) {
 		ScriptBuilder2 sb = new ScriptBuilder2(keys,hashTypes,anyoneCanPay,freeVariables);
 		
@@ -173,12 +179,22 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return sb;
 	}
 	
-	
+	/**
+	 * Append the given script to this builder.
+	 * @param append the script to append
+	 * @return this builder
+	 */
 	public ScriptBuilder2 append(Script append) {
 		ScriptBuilder2 sb = new ScriptBuilder2(append);
 		return this.append(sb);
 	}
 	
+	/**
+	 * Append the given script builder to this one.
+	 * If it contains some free variables or signatures placeholder, they are merged ensuring consistency.
+	 * @param append the script builder to append
+	 * @return this builder
+	 */
 	public ScriptBuilder2 append(ScriptBuilder2 append) {
 		for (ScriptChunk ch : append.build().getChunks()) {
 			this.addChunk(ch);
