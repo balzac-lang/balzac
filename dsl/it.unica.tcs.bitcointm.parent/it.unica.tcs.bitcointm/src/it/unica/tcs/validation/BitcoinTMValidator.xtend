@@ -569,7 +569,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	def boolean checkInputIndex(Input input) {
 
-        var outIndex = input.txRef.idx
+        var outIndex = input.outpoint
         var int numOfOutputs
         
         if (input.txRef.tx.body instanceof UserDefinedTxBody) {
@@ -585,7 +585,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
                 input.txRef,
-                BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__IDX
+                BitcoinTMPackage.Literals.INPUT__OUTPOINT
             );
             return false
         }
@@ -595,7 +595,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     
     def boolean checkInputExpressions(Input input) {
         
-        var outputIdx = input.txRef.idx
+        var outputIdx = input.outpoint
         var lastExp = input.exps.get(input.exps.size-1)
 		
 		if (input.txRef.tx.body instanceof UserDefinedTxBody) {
@@ -660,7 +660,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     
     def boolean checkInputsAreUnique(Input inputA, Input inputB) {
         if (inputA.txRef.tx==inputB.txRef.tx && 
-            inputA.txRef.idx==inputB.txRef.idx
+            inputA.outpoint==inputB.outpoint
         ) {
             error(
                 "You cannot redeem the output twice.",
@@ -684,13 +684,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         for (in : tx.inputs) {
             if (in.txRef.tx.body instanceof UserDefinedTxBody) {
-                var index = in.txRef.idx
+                var index = in.outpoint
                 var output = (in.txRef.tx.body as UserDefinedTxBody).outputs.get(index) 
                 var value = output.value.exp.interpret.first as Integer
                 amount+=value
             }
             else if (in.txRef.tx.body instanceof SerialTxBody){
-                var index = in.txRef.idx
+                var index = in.outpoint
                 var txbody = (in.txRef.tx.body as SerialTxBody).bytes
                 var value = txbody.getOutputAmount(tx.networkParams, index)
                 amount+=value

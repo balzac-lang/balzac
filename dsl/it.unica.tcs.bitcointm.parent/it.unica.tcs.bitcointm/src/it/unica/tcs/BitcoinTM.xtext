@@ -23,7 +23,7 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Declaration:
-	KeyDeclaration | TransactionDeclaration | EndpointDeclaration; 
+	KeyDeclaration | TransactionDeclaration | ParticipantDeclaration; 
 
 Network:
 	{Network} "network" (testnet?="testnet" | "mainnet");
@@ -61,7 +61,7 @@ UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
 
 
 Input:
-	txRef=TransactionReference ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+	txRef=TransactionReference ("@" outpoint=INT)? ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -84,10 +84,7 @@ RelativeTime:
 
 TransactionReference:
 	tx=[TransactionDeclaration|QualifiedName] 
-	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")? 
-	("@" idx=INT)?;
-
-	
+	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
 
 
 Script:
@@ -256,18 +253,12 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 /*
  * Endpoints contracts
  */
-EndpointDeclaration:
-	ContractDeclaration	| ParticipantDeclaration;
-	
-ContractDeclaration:
-	'contract' name=ID '{' contract=Contract '}';
-
 ParticipantDeclaration:
-	'participant' name=ID '=' body=STRING;
-	
+	'participant' name=ID '{' contract=Contract '}';
+
 ParticipantReference:
 	ref=[ParticipantDeclaration|QualifiedName];
-	
+
 Event:
 	'after' tlock=Tlock | txRef=TransactionReference;
 
@@ -310,3 +301,6 @@ ProtocolExpression:
 
 //SignOp:	Signature;			// same syntax, different semantic (maybe confusing)
 //VersigOp: Versig;			// same syntax, different semantic (maybe confusing)
+
+ProtTransactionReference:
+	TransactionReference;

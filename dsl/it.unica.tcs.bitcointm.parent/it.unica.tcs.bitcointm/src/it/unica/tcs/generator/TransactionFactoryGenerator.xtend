@@ -96,7 +96,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
 				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
-				outIndex = «input.txRef.idx»;
+				outIndex = «input.outpoint»;
 				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
 				«IF (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration))»
 					// relative timelock

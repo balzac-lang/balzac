@@ -59,6 +59,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="Input">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="outpoint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="exps" upperBound="-1" eType="#//Expression"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="redeemScript" eType="#//Script"
@@ -89,11 +90,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//ProtTransactionReference">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idx" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Script">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="lambda" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
@@ -206,13 +206,9 @@
   <eClassifiers xsi:type="ecore:EEnum" name="SignatureTypeEnum">
     <eLiterals name="signature" literal="signature"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="EndpointDeclaration" eSuperTypes="#//Declaration"/>
-  <eClassifiers xsi:type="ecore:EClass" name="ContractDeclaration" eSuperTypes="#//EndpointDeclaration">
+  <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//Declaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="contract" eType="#//Contract"
         containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//EndpointDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="body" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ParticipantReference" eSuperTypes="#//Send #//Receive">
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//ParticipantDeclaration"/>
@@ -249,6 +245,7 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ProtTransactionReference"/>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
         containment="true"/>

@@ -248,7 +248,7 @@ from {
 			}
 			
 			// check the actual parameters type match the formal ones (Script)
-			var outputIndex = input.txRef.idx
+			var outputIndex = input.outpoint
 			var outputScript = inputTxBody.outputs.get(outputIndex).script
 			for (var i=0; i<input.exps.size; i++) {
 				var inputExp = input.exps.get(i)

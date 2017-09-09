@@ -59,7 +59,7 @@ class TransactionCompiler {
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
-	    		val outIndex = input.txRef.idx
+	    		val outIndex = input.outpoint
 	    		val inScript = input.compileInput
 	    		
 	    		// relative timelock
@@ -104,7 +104,7 @@ class TransactionCompiler {
             return new ScriptBuilder2().number(42)
 		}
 		else {
-	        var outIdx = stmt.txRef.idx
+	        var outIdx = stmt.outpoint
 			switch stmt.txRef.tx.body {
 				
 				/*
