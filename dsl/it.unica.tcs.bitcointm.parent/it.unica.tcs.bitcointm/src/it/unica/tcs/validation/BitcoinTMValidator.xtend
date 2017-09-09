@@ -54,6 +54,7 @@ import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.BitcoinJUtils.*
+import it.unica.tcs.bitcoinTM.SignatureType
 
 /**
  * This class contains custom validation rules. 
@@ -477,12 +478,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkUserDefinedTx(UserDefinedTxBody tbody) {
 		
+		var hasError = false;
 //		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
+		
+		/*
+		 * Check transaction parameters
+		 */
+		for (param: tbody.params) {
+//			var param = tbody.params.get(i)
+			if (param.paramType instanceof SignatureType) {
+				error(
+                    "Signature parameters are not allowed yet.",
+                    param,
+                    BitcoinTMPackage.Literals.PARAMETER__NAME
+                );
+			    hasError = hasError || true
+			}
+		}
+		
+		
+		if(hasError) return;  // interrupt the check
 		
 		/*
 		 * Verify that inputs are valid
 		 */
-		var hasError = false;
 		
 		for (input: tbody.inputs) {
 			var valid = 

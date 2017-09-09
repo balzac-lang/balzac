@@ -303,10 +303,10 @@ Parallel returns Contract:
 
 ProtocolExpression:
    Expression			// normal expression					
- | SignOp 				// signature operation, returns bytes or string
- | VersigOp 			// versig operation, returns boolean
- | TransactionReference	// transaction reference
+// | SignOp 				// signature operation, returns bytes or string
+// | VersigOp 			// versig operation, returns boolean
+// | TransactionReference	// transaction reference
 ;
 
-SignOp:	Signature;			// same syntax, different semantic (maybe confusing)
-VersigOp: Versig;			// same syntax, different semantic (maybe confusing)
+//SignOp:	Signature;			// same syntax, different semantic (maybe confusing)
+//VersigOp: Versig;			// same syntax, different semantic (maybe confusing)
