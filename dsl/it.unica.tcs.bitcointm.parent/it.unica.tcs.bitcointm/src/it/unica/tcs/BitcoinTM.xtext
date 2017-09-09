@@ -257,43 +257,56 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
  * Endpoints contracts
  */
 EndpointDeclaration:
-	'contract' name=ID '{' contract=Contract '}'
-	| ParticipantDeclaration;
+	ContractDeclaration	| ParticipantDeclaration;
 	
+ContractDeclaration:
+	'contract' name=ID '{' contract=Contract '}';
+
 ParticipantDeclaration:
 	'participant' name=ID '=' body=STRING;
 	
 ParticipantReference:
-	part=[ParticipantDeclaration|QualifiedName];
-	
-Message:
-	Signature //NON VA BENE
-|	TransactionReference;
+	ref=[ParticipantDeclaration|QualifiedName];
 	
 Event:
 	'after' tlock=Tlock | txRef=TransactionReference;
-	
-Put:
-	'put' (
-	  	txRefs+=TransactionReference ('.' seq=Contract)?
-		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}'  '.' (seq=Contract)?);
-
-Send:
-	'receive' 'from' ParticipantReference ':' message=Message ('.' seq=Contract)?;
-
-Receive:
-	'send' 'to' ParticipantReference ':' message=Message ('.' seq=Contract)?;
-
-When:
-	'when' (events+=Event ':' seqs+=Contract
-		| '{'(events+=Event ':' seqs+=Contract) (',' events+=Event ':' seqs+=Contract)* '}');
-
-Parallel returns Contract:
-	Contract (({Parallel.left=current} => '|' ) right=Contract)*;
 
 Contract:
 	'(' Parallel ')' 
 |	Send 
 |	Receive 
 |	Put 
-|	When;
+|	When
+|	Assert;
+	
+Put:
+	'put' (
+	  	txRefs+=TransactionReference ('.' seq=Contract)?
+		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}' ('.' seq=Contract)?);
+
+Send:
+	'receive' 'from' ParticipantReference ':' var=Parameter ('.' seq=Contract)?;
+
+Receive:
+	'send' 'to' ParticipantReference ':' message=ProtocolExpression ('.' seq=Contract)?;
+
+When:
+	'when' (events+=Event ':' seqs+=Contract
+		| '{'(events+=Event ':' seqs+=Contract) (',' events+=Event ':' seqs+=Contract)* '}');
+
+Assert:
+	'assert' exp=Expression;
+
+Parallel returns Contract:
+	Contract (({Parallel.left=current} => '|' ) right=Contract)*;
+
+
+ProtocolExpression:
+   Expression			// normal expression					
+ | SignOp 				// signature operation, returns bytes or string
+ | VersigOp 			// versig operation, returns boolean
+ | TransactionReference	// transaction reference
+;
+
+SignOp:	Signature;			// same syntax, different semantic (maybe confusing)
+VersigOp: Versig;			// same syntax, different semantic (maybe confusing)

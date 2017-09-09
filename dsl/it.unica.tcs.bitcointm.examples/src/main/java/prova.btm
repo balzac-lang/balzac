@@ -122,3 +122,14 @@ transaction test2(p) {
 	output = 900: fun(secret:string). p==secret  
 	after block 499_999_999
 }
+
+
+transaction bar {
+	input = _
+	output = 1000: fun(sigma) . versig(kA; sigma) 
+}
+
+transaction foo(sigma) {
+	input = bar : sigma
+	output = 0: "magic"
+}
