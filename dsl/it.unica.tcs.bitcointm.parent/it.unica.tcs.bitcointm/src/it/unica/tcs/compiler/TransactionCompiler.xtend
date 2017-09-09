@@ -116,6 +116,7 @@ class TransactionCompiler {
 		            var output = inputTx.outputs.get(outIdx);
 		    
 		            if (output.script.isP2PKH) {
+		            	
 		                var sig = stmt.exps.get(0).simplifySafe as Signature
 		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
 		                

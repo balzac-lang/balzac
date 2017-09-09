@@ -227,7 +227,7 @@ from {
 		// all the input expressions are well typed and the type is basic
 		for (var i=0; i<input.exps.size; i++) {
 			var exp = input.exps.get(i)
-			G |- substitutions |> exp : var BasicType texp
+			G |- substitutions |> exp : var Type texp
 			
 			if (inputTxBody instanceof UserDefinedTxBody)
 				G.add(exp,texp)		// store the type for further checks (see below)
@@ -254,16 +254,13 @@ from {
 				var inputExp = input.exps.get(i)
 				var outputParam = outputScript.params.get(i)
 				
-				var inputExpType = G.get(inputExp)
+				var inputExpType = G.get(inputExp) as Type		// retrieve the type from G
 				var outputParamType = outputParam.paramType 
 				
-				G.decrement(inputExp)
-										
-				if(outputParamType.class != inputExpType.class) {
-					fail
-						error "Invalid type '"+stringRep(inputExpType)+"'. The parameter has type '"+stringRep(outputParamType)+"'."
-						source inputExp
-				} 
+				G.decrement(inputExp)					// remove the type from G
+				
+				// the actual param type must be unifiable with the formal param type
+				unify(substitutions, inputExpType, outputParamType)
 			}
 		}
 	}

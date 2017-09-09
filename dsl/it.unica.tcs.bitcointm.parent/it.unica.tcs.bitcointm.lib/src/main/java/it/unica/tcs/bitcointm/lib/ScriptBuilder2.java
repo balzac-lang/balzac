@@ -31,30 +31,66 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 		// σ
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 	// ϰ;
 	
-	private final Map<String, ECKey> keys;
-	private final Map<String, SigHash> hashTypes;
-	private final Map<String, Boolean> anyoneCanPay;
+	private final Map<String, SignatureUtil> signatures;
 	private final Map<String,Class<?>> freeVariables;
+	
+	private static class SignatureUtil {
+		private ECKey key;
+		private SigHash hashType;
+		private boolean anyoneCanPay;
+		public SignatureUtil(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+			this.key = key;
+			this.hashType = hashType;
+			this.anyoneCanPay = anyoneCanPay;
+		}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + (anyoneCanPay ? 1231 : 1237);
+			result = prime * result + ((hashType == null) ? 0 : hashType.hashCode());
+			result = prime * result + ((key == null) ? 0 : key.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SignatureUtil other = (SignatureUtil) obj;
+			if (anyoneCanPay != other.anyoneCanPay)
+				return false;
+			if (hashType != other.hashType)
+				return false;
+			if (key == null) {
+				if (other.key != null)
+					return false;
+			} else if (!key.equals(other.key))
+				return false;
+			return true;
+		}
+		@Override
+		public String toString() {
+			return "SignatureUtil [key=" + key + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay + "]";
+		}
+	}
 	
 	private ScriptBuilder2(
 			Script script,
-			Map<String, ECKey> keys, 
-			Map<String, SigHash> hashTypes,
-			Map<String, Boolean> anyoneCanPay, 
+			Map<String, SignatureUtil> signatures, 
 			Map<String,Class<?>> freeVariablesTypes) {
 		super(script);
-		this.keys = keys;
-		this.hashTypes = hashTypes;
-		this.anyoneCanPay = anyoneCanPay;
+		this.signatures = signatures;
 		this.freeVariables = freeVariablesTypes;
 	}
 
 	private ScriptBuilder2(
-			Map<String, ECKey> keys, 
-			Map<String, SigHash> hashTypes,
-			Map<String, Boolean> anyoneCanPay, 
+			Map<String, SignatureUtil> signatures, 
 			Map<String,Class<?>> freeVariablesTypes) {
-		this(new Script(new byte[]{}), keys, hashTypes, anyoneCanPay, freeVariablesTypes);
+		this(new Script(new byte[]{}), signatures, freeVariablesTypes);
 	}
 	
 	public ScriptBuilder2() {
@@ -62,7 +98,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 
 	public ScriptBuilder2(Script script) {
-		this(script,new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+		this(script, new HashMap<>(), new HashMap<>());
 	}
 
 	public ScriptBuilder2 data(byte[] data) {
@@ -104,9 +140,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		String mapKey = getUniqueKey(key, hashType, anyoneCanPay);
 		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
-		this.keys.put(mapKey, key);
-		this.hashTypes.put(mapKey, hashType);
-		this.anyoneCanPay.put(mapKey, anyoneCanPay);
+		this.signatures.put(mapKey, new SignatureUtil(key, hashType, anyoneCanPay));
 		return this;
 	}
 	
@@ -119,13 +153,11 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public int signatureSize() {
-		checkState(keys.size() == hashTypes.size());
-		checkState(keys.size() == anyoneCanPay.size());
-		return keys.size();
+		return signatures.size();
 	}
 	
 	public ScriptBuilder2 setFreeVariable(String name, Object obj) {
-		ScriptBuilder2 sb = new ScriptBuilder2(keys,hashTypes,anyoneCanPay,freeVariables);
+		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
 		
 		for (ScriptChunk chunk : build().getChunks()) {
 			
@@ -165,15 +197,16 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @return a <b>copy</b> of this builder
 	 */
 	public ScriptBuilder2 setSignatures(Transaction tx, int inputIndex, byte[] outScript) {
-		ScriptBuilder2 sb = new ScriptBuilder2(keys,hashTypes,anyoneCanPay,freeVariables);
+		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
 		
 		for (ScriptChunk chunk : build().getChunks()) {
 			
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
-				ECKey key = sb.keys.remove(mapKey);
-				SigHash hashType = sb.hashTypes.remove(mapKey);
-				boolean anyoneCanPay = sb.anyoneCanPay.remove(mapKey);
+				SignatureUtil sign = sb.signatures.remove(mapKey);
+				ECKey key = sign.key;
+				SigHash hashType = sign.hashType;
+				boolean anyoneCanPay = sign.anyoneCanPay;
 				
 				TransactionSignature sig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
 				sb.data(sig.encodeToBitcoin());
@@ -221,32 +254,17 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			// merge signatures
 			if (isSignature(ch)) {
 				String mapKey = getMapKey(ch);
-				ECKey key = append.keys.get(mapKey);
-				SigHash hashType = append.hashTypes.get(mapKey);
-				Boolean anyoneCanPay = append.anyoneCanPay.get(mapKey);
-				checkNotNull(key);
-				checkNotNull(hashType);
-				checkNotNull(anyoneCanPay);
+				checkNotNull(append.signatures.containsKey(mapKey));
 				// TODO: probabilmente questi check non servono nel caso delle signature.
 				// Data una mappa, non possono esistere due chiavi uguali che mappano a valori differenti.
-				if (this.keys.containsKey(ch)) {
-					checkState(this.hashTypes.containsKey(mapKey));
-					checkState(this.anyoneCanPay.containsKey(mapKey));
+				if (this.signatures.containsKey(mapKey)) {
 					// check they are consistent
-					checkState(this.keys.get(mapKey).equals(append.keys.get(mapKey)), 
+					checkState(this.signatures.get(mapKey).equals(append.signatures.get(mapKey)), 
 							"Inconsitent state: sig placeholder '%s' is bound to '%s' (this) and '%s' (append)",
-							mapKey, this.keys.get(mapKey), append.keys.get(mapKey));
-					checkState(this.hashTypes.get(mapKey).equals(append.hashTypes.get(mapKey)), 
-							"Inconsitent state: sig placeholder '%s' is bound to '%s' (this) and '%s' (append)",
-							mapKey, this.hashTypes.get(mapKey), append.hashTypes.get(mapKey));
-					checkState(this.anyoneCanPay.get(mapKey).equals(append.anyoneCanPay.get(mapKey)), 
-							"Inconsitent state: sig placeholder '%s' is bound to '%s' (this) and '%s' (append)",
-							mapKey, this.anyoneCanPay.get(mapKey), append.anyoneCanPay.get(mapKey));
+							mapKey, this.signatures.get(mapKey), append.signatures.get(mapKey));
 				}
 				else {
-					this.keys.put(mapKey, append.keys.get(mapKey));
-					this.hashTypes.put(mapKey, append.hashTypes.get(mapKey));
-					this.anyoneCanPay.put(mapKey, append.anyoneCanPay.get(mapKey));
+					this.signatures.put(mapKey, append.signatures.get(mapKey));
 				}
 			}
 		}
@@ -267,9 +285,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				str.append("[");
 				str.append("sig");
 				str.append(",");
-				str.append(encodeKey(sb.keys.get(mapKey)));
+				str.append(encodeKey(sb.signatures.get(mapKey).key));
 				str.append(",");
-				str.append(encodeModifier(sb.hashTypes.get(mapKey), sb.anyoneCanPay.get(mapKey)));
+				str.append(encodeModifier(sb.signatures.get(mapKey).hashType, sb.signatures.get(mapKey).anyoneCanPay));
 				str.append("]");
 				str.append(" ");
 			}
