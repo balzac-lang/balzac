@@ -308,7 +308,7 @@ class ExpressionCompiler {
 		var wif = stmt.key.body.pvt.value
 		
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
-        var hashType = switch(stmt.modifier) {
+        var hashType = switch(stmt.modifier) {	// TODO: move to ASTUtils
                 case AIAO,
                 case SIAO: SigHash.ALL
                 case AISO,
@@ -316,7 +316,7 @@ class ExpressionCompiler {
                 case AINO,
                 case SINO: SigHash.NONE
             }
-        var anyoneCanPay = switch(stmt.modifier) {
+        var anyoneCanPay = switch(stmt.modifier) {	// TODO: move to ASTUtils
                 case SIAO,
                 case SISO,
                 case SINO: true

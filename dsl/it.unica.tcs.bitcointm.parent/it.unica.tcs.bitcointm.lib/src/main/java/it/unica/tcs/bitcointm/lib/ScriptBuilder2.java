@@ -35,13 +35,15 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private final Map<String,Class<?>> freeVariables;
 	
 	private static class SignatureUtil {
-		private ECKey key;
-		private SigHash hashType;
-		private boolean anyoneCanPay;
-		public SignatureUtil(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+		private final ECKey key;
+		private final SigHash hashType;
+		private final Boolean anyoneCanPay;
+		private final Boolean pubkeyNeeded;
+		public SignatureUtil(ECKey key, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
 			this.key = key;
 			this.hashType = hashType;
 			this.anyoneCanPay = anyoneCanPay;
+			this.pubkeyNeeded = pubkeyNeeded;
 		}
 		@Override
 		public int hashCode() {
@@ -50,6 +52,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			result = prime * result + (anyoneCanPay ? 1231 : 1237);
 			result = prime * result + ((hashType == null) ? 0 : hashType.hashCode());
 			result = prime * result + ((key == null) ? 0 : key.hashCode());
+			result = prime * result + (pubkeyNeeded ? 1231 : 1237);
 			return result;
 		}
 		@Override
@@ -70,11 +73,17 @@ public class ScriptBuilder2 extends ScriptBuilder {
 					return false;
 			} else if (!key.equals(other.key))
 				return false;
+			if (pubkeyNeeded != other.pubkeyNeeded)
+				return false;
 			return true;
 		}
 		@Override
 		public String toString() {
-			return "SignatureUtil [key=" + key + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay + "]";
+			return "SignatureUtil [key=" + key + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay
+					+ ", pubkeyNeeded=" + pubkeyNeeded + "]";
+		}
+		public String getUniqueKey() {
+			return Utils.HEX.encode(this.key.getPrivateKeyAsHex().concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).concat(this.pubkeyNeeded.toString()).getBytes());
 		}
 	}
 	
@@ -130,17 +139,18 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
-	private String getUniqueKey(ECKey key, SigHash hashType, Boolean anyoneCanPay) {
-		return Utils.HEX.encode(key.getPrivateKeyAsHex().concat(hashType.toString()).concat(anyoneCanPay.toString()).getBytes());
+	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+		return signaturePlaceholder(key, hashType, anyoneCanPay, false);
 	}
 	
-	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
 		checkNotNull(key);
 		checkNotNull(hashType);
-		String mapKey = getUniqueKey(key, hashType, anyoneCanPay);
+		SignatureUtil sig = new SignatureUtil(key, hashType, anyoneCanPay,pubkeyNeeded);
+		String mapKey = sig.getUniqueKey();
 		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
-		this.signatures.put(mapKey, new SignatureUtil(key, hashType, anyoneCanPay));
+		this.signatures.put(mapKey, sig);
 		return this;
 	}
 	
@@ -203,13 +213,17 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
-				SignatureUtil sign = sb.signatures.remove(mapKey);
-				ECKey key = sign.key;
-				SigHash hashType = sign.hashType;
-				boolean anyoneCanPay = sign.anyoneCanPay;
+				SignatureUtil sig = sb.signatures.remove(mapKey);
+				ECKey key = sig.key;
+				SigHash hashType = sig.hashType;
+				boolean anyoneCanPay = sig.anyoneCanPay;
 				
-				TransactionSignature sig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
-				sb.data(sig.encodeToBitcoin());
+				TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
+				sb.data(txSig.encodeToBitcoin());
+				
+				if (sig.pubkeyNeeded) {		// only P2PKH will use this functionality
+					sb.data(key.getPubKey());
+				}
 			}
 			else {
 				sb.addChunk(chunk);
