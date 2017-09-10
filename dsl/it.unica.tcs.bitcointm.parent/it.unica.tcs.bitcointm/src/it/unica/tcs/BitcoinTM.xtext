@@ -23,7 +23,10 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Declaration:
-	KeyDeclaration | TransactionDeclaration | ParticipantDeclaration; 
+	KeyDeclaration 
+| TransactionDeclaration
+| SerialTransactionDeclaration 
+| ParticipantDeclaration; 
 
 Network:
 	{Network} "network" (testnet?="testnet" | "mainnet");
@@ -48,16 +51,14 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-	"transaction" name=ID body=TxBody;
-	
-TxBody: SerialTxBody | UserDefinedTxBody;
-
-SerialTxBody: '=' bytes=STRING;
-UserDefinedTxBody: ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
+"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
 	"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
 	"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
 	("after" tlock=Tlock)?
 "}";
+
+SerialTransactionDeclaration returns TransactionDeclaration:
+	isSerial?='serial' 'transaction' name=ID bytes=STRING;
 
 
 Input:
@@ -302,5 +303,12 @@ ProtocolExpression:
 //SignOp:	Signature;			// same syntax, different semantic (maybe confusing)
 //VersigOp: Versig;			// same syntax, different semantic (maybe confusing)
 
-ProtTransactionReference:
-	TransactionReference;
+ProtTransaction:
+	TransactionReference substitution=Substitution;
+	
+Substitution: {TxBody} "{"
+	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
+	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
+	("after" tlock=Tlock)?
+"}";
+

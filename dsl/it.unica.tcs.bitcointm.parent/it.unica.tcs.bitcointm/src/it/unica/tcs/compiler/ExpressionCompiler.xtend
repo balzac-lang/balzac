@@ -23,7 +23,6 @@ import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
@@ -36,6 +35,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.utils.BitcoinJUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /*
  * EXPRESSIONS
@@ -346,7 +346,7 @@ class ExpressionCompiler {
          */
         var param = varRef.ref
         
-        var isTxParam = param.eContainer instanceof UserDefinedTxBody 
+        var isTxParam = param.eContainer instanceof TransactionDeclaration 
         
         if (isTxParam) {
         	return new ScriptBuilder2().freeVariable(param.name, param.paramType.convertType)

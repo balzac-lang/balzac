@@ -25,15 +25,14 @@ import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
-import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
@@ -173,8 +172,6 @@ auxiliary simplifySafe(Expression exp) {
 /*
  * Type system rules
  */
-axiom SerialTxBody
-	G |~ SerialTxBody body
 
 /**
  * Type check a user defined transactions:
@@ -182,30 +179,35 @@ axiom SerialTxBody
  * - all the inputs are well typed
  * - all the parameters are well typed and the type is basic (not generic)
  */
-rule UserDefinedTxBody
-	G |~ UserDefinedTxBody tx
+rule TransactionDeclaration
+	G |~ TransactionDeclaration tx
 from {
-	for (p : tx.params) {
-		G ||- p : var Type paramType
-		G.add(p, paramType)			// store the type in the environment
-		p.paramType = paramType		// and in the AST
+	
+	if (!tx.isSerial) {
+		for (p : tx.params) {
+			G ||- p : var Type paramType
+			G.add(p, paramType)			// store the type in the environment
+			p.paramType = paramType		// and in the AST
+		}
+		
+		var substitutions = new TypeSubstitutions()
+		
+		for (in : tx.inputs) {
+			G ||- substitutions |> in	// all inputs are well typed
+		}
+		
+		for (out : tx.outputs) {
+			G ||= substitutions |> out	// all outputs are well typed
+		}
+		
+		// all the parameters should have a basic type (generic types are not allowed)
+		for (p : tx.params) {
+			p.paramType = typesubstitution(substitutions, p.paramType)
+			{p.paramType instanceof BasicType}
+		}
+		
 	}
 	
-	var substitutions = new TypeSubstitutions()
-	
-	for (in : tx.inputs) {
-		G ||- substitutions |> in	// all inputs are well typed
-	}
-	
-	for (out : tx.outputs) {
-		G ||= substitutions |> out	// all outputs are well typed
-	}
-	
-	// all the parameters should have a basic type (generic types are not allowed)
-	for (p : tx.params) {
-		p.paramType = typesubstitution(substitutions, p.paramType)
-		{p.paramType instanceof BasicType}
-	}
 }
 
 /**
@@ -221,24 +223,24 @@ from {
 	
 	if (!input.isPlaceholder) {		
 		// the body of the redeemed transaction is well typed
-		var inputTxBody = input.txRef.tx.body
-		G |~ inputTxBody
+		var inputTx = input.txRef.tx
+		G |~ inputTx
 	
 		// all the input expressions are well typed and the type is basic
 		for (var i=0; i<input.exps.size; i++) {
 			var exp = input.exps.get(i)
 			G |- substitutions |> exp : var Type texp
 			
-			if (inputTxBody instanceof UserDefinedTxBody)
+			if (!inputTx.isSerial)
 				G.add(exp,texp)		// store the type for further checks (see below)
 		}
 	
-		if (inputTxBody instanceof UserDefinedTxBody) {
+		if (!inputTx.isSerial) {
 			
 			// check the actual parameters type match the formal ones (Transaction)
 			for (var i=0; i<input.txRef.actualParams.size; i++) {
 				var actualParam = input.txRef.actualParams.get(i)
-				var formalParam = inputTxBody.params.get(i)
+				var formalParam = inputTx.params.get(i)
 				
 				// all the actual parameters are well type and the type is basic
 				G |- substitutions |> actualParam : var Type actualParamType
@@ -249,7 +251,7 @@ from {
 			
 			// check the actual parameters type match the formal ones (Script)
 			var outputIndex = input.outpoint
-			var outputScript = inputTxBody.outputs.get(outputIndex).script
+			var outputScript = inputTx.outputs.get(outputIndex).script
 			for (var i=0; i<input.exps.size; i++) {
 				var inputExp = input.exps.get(i)
 				var outputParam = outputScript.params.get(i)
@@ -887,7 +889,7 @@ axiom SimplifyEObject
  * 
  */
 checkrule CheckUserDefinedTxBody for
-    UserDefinedTxBody tx
+    TransactionDeclaration tx
 from {
 	lambdaUtils.resetCounter
     empty |~ tx

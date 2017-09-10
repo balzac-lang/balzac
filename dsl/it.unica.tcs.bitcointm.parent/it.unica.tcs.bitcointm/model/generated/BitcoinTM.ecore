@@ -37,14 +37,6 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TxBody"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TxBody"/>
-  <eClassifiers xsi:type="ecore:EClass" name="SerialTxBody" eSuperTypes="#//TxBody">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="UserDefinedTxBody" eSuperTypes="#//TxBody">
     <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
         eType="#//Parameter" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
@@ -55,6 +47,8 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSerial" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Input">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
@@ -90,10 +84,12 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//ProtTransactionReference">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//ProtTransaction">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//Substitution"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Script">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="lambda" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
@@ -245,7 +241,8 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression"/>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtTransactionReference"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ProtTransaction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Substitution"/>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
         containment="true"/>
@@ -311,6 +308,16 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Contract"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//Contract"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TxBody" eSuperTypes="#//Substitution">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
+        eType="#//Input" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="outputs" upperBound="-1"
+        eType="#//Output" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
         containment="true"/>
   </eClassifiers>
 </ecore:EPackage>

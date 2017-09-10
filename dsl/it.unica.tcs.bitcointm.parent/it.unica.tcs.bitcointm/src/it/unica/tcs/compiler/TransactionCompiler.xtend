@@ -6,11 +6,9 @@ import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.SerialTxBody
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.UserDefinedTxBody
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcointm.lib.CoinbaseTransactionBuilder
@@ -25,9 +23,10 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
-import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.BitcoinJUtils.*
+import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
+
 
 class TransactionCompiler {
 	
@@ -36,11 +35,12 @@ class TransactionCompiler {
 	@Inject private extension ExpressionCompiler expGenerator
 //	@Inject private extension Optimizer optimizer
 	
-	def ITransactionBuilder compileTransaction(TransactionDeclaration txDecl) {
-    	return txDecl.body.compileTransactionBody;
-    }
     
-    def dispatch ITransactionBuilder compileTransactionBody(UserDefinedTxBody tx) {
+    def ITransactionBuilder compileTransaction(TransactionDeclaration tx) {
+    	
+    	if (tx.isSerial) {
+    		return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
+    	}
     	
     	val tb =  
     		if (tx.isCoinbase) new CoinbaseTransactionBuilder	    	
@@ -63,8 +63,8 @@ class TransactionCompiler {
 	    		val inScript = input.compileInput
 	    		
 	    		// relative timelock
-	    		if (tx.tlock!==null && tx.tlock.containsRelative(tx.eContainer as TransactionDeclaration)) {
-					val locktime = tx.tlock.getRelative(tx.eContainer as TransactionDeclaration)
+	    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
+					val locktime = tx.tlock.getRelative(tx)
 					tb.addInput(parentTx, outIndex, inScript, locktime)
 	    		}
 	    		else {
@@ -88,9 +88,6 @@ class TransactionCompiler {
     	return tb
     }
     
-    def dispatch ITransactionBuilder compileTransactionBody(SerialTxBody body) {
-    	return ITransactionBuilder.fromSerializedTransaction(body.networkParams, body.bytes);
-    }
 
     def ScriptBuilder2 compileInput(Input stmt) {
 
@@ -105,82 +102,77 @@ class TransactionCompiler {
 		}
 		else {
 	        var outIdx = stmt.outpoint
-			switch stmt.txRef.tx.body {
-				
-				/*
+	        
+	        if (stmt.txRef.tx.isSerial) {
+	        	/*
+	        	 * Serial transaction
+	        	 */
+	        	var output = stmt.txRef.tx.compileTransaction.toTransaction(stmt.networkParams).getOutput(outIdx)
+	            
+	            if (output.scriptPubKey.isSentToAddress) {
+	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
+	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+	                
+	                var sb = sig.compileInputExpression(ctx)
+	                sb.data(pubkey)
+	    
+	                /* <sig> <pubkey> */
+	                return sb
+	            } else if (output.scriptPubKey.isPayToScriptHash) {
+	                
+	                val sb = new ScriptBuilder2()
+	                
+	                // build the list of expression pushes (actual parameters) 
+	                stmt.exps.forEach[e|
+	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+	                ]
+	                
+	                // get the redeem script to push
+	                var redeemScript = stmt.redeemScript.getRedeemScript(ctx)
+	                sb.data(redeemScript.build.program)
+	                
+	                /* <e1> ... <en> <serialized script> */
+	                return sb
+	            } else
+	                throw new CompileException
+	        }
+	        else {
+	        	/*
 				 * User defined transaction.
 				 * Return the expected inputs based on the kind of output script
 				 */
-				UserDefinedTxBody: {
-					var inputTx = stmt.txRef.tx.body as UserDefinedTxBody       
-		            var output = inputTx.outputs.get(outIdx);
-		    
-		            if (output.script.isP2PKH) {
-		            	
-		                var sig = stmt.exps.get(0).simplifySafe as Signature
-		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
-		                
-		                var sb = sig.compileInputExpression(ctx)
-		                sb.data(pubkey)
-		    
-		                /* <sig> <pubkey> */
-		                sb
-		            } else if (output.script.isP2SH) {
-		            	
-		                val sb = new ScriptBuilder2()
-		                
-		                // build the list of expression pushes (actual parameters) 
-		                stmt.exps.forEach[e|
-		                	sb.append(e.simplifySafe.compileInputExpression(ctx))
-		                ]
-		                
-		                // get the redeem script to push
-		                var redeemScript = output.script.getRedeemScript(ctx)
-		                
-		                sb.data(redeemScript.build.program)
-		                                
-		                /* <e1> ... <en> <serialized script> */
-		                sb
-		            } else
-		                throw new CompileException
-	            }
-	            
-				/*
-				 * Serialized transaction.
-				 * Return the expected inputs based on the kind of output script
-				 */
-	            SerialTxBody: {
-	            	var output = stmt.txRef.tx.compileTransaction.toTransaction(stmt.networkParams).getOutput(outIdx)
-	            
-		            if (output.scriptPubKey.isSentToAddress) {
-		                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
-		                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
-		                
-		                var sb = sig.compileInputExpression(ctx)
-		                sb.data(pubkey)
-		    
-		                /* <sig> <pubkey> */
-		                sb
-		            } else if (output.scriptPubKey.isPayToScriptHash) {
-		                
-		                val sb = new ScriptBuilder2()
-		                
-		                // build the list of expression pushes (actual parameters) 
-		                stmt.exps.forEach[e|
-		                	sb.append(e.simplifySafe.compileInputExpression(ctx))
-		                ]
-		                
-		                // get the redeem script to push
-		                var redeemScript = stmt.redeemScript.getRedeemScript(ctx)
-		                sb.data(redeemScript.build.program)
-		                
-		                /* <e1> ... <en> <serialized script> */
-		                sb
-		            } else
-		                throw new CompileException
-	            }
-	            default: throw new CompileException("Unexpected class "+stmt.txRef.tx.body.class)
-			}			
+				var inputTx = stmt.txRef.tx       
+	            var output = inputTx.outputs.get(outIdx);
+	    
+	            if (output.script.isP2PKH) {
+	            	
+	                var sig = stmt.exps.get(0).simplifySafe as Signature
+	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+	                
+	                var sb = sig.compileInputExpression(ctx)
+	                sb.data(pubkey)
+	    
+	                /* <sig> <pubkey> */
+	                return sb
+	            } else if (output.script.isP2SH) {
+	            	
+	                val sb = new ScriptBuilder2()
+	                
+	                // build the list of expression pushes (actual parameters) 
+	                stmt.exps.forEach[e|
+	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+	                ]
+	                
+	                // get the redeem script to push
+	                var redeemScript = output.script.getRedeemScript(ctx)
+	                
+	                sb.data(redeemScript.build.program)
+	                                
+	                /* <e1> ... <en> <serialized script> */
+	                return sb
+	            } else
+	                throw new CompileException
+	        }
 		}
     }
 
@@ -262,7 +254,7 @@ class TransactionCompiler {
 	 */
     def private ScriptBuilder2 compileInputExpression(Expression exp, Context ctx) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
-        			.filter[ref|ref.eContainer instanceof UserDefinedTxBody]
+        			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
         
         // the altstack is used only by VariableReference(s)
         if (!refs.empty)
