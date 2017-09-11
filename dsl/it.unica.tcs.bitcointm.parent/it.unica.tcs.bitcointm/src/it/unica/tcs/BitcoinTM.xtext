@@ -84,7 +84,7 @@ RelativeTime:
 	value=Delay "from" tx=[TransactionDeclaration];
 
 TransactionReference:
-	tx=[TransactionDeclaration|QualifiedName] 
+	tx=[TransactionDeclaration] 
 	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
 
 
@@ -151,9 +151,9 @@ HashLiteral: value=BTC_HASH;
 IfThenElse:
 	'if' if=Expression
 	"then" then=Atomic
-	(=> 'else' else=Atomic)?;
+	'else' else=Atomic;
 
-Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
+Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
 
 enum Modifier: 
 	AIAO 
@@ -165,7 +165,7 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
 		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
@@ -254,18 +254,23 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 /*
  * Endpoints contracts
  */
-ParticipantDeclaration:
-	'participant' name=ID '{' contract=Contract '}';
+ParticipantDeclaration: 'participant' name=ID '{' 
+	process=Process
+	(defs+=ProcessDeclaration)*
+'}';
 
-ParticipantReference:
-	ref=[ParticipantDeclaration|QualifiedName];
+ProcessDeclaration: 'process' name=ID '=' process=Process;
+ProcessReference: ref=[ProcessDeclaration];
 
-Contract:
- '(' Parallel ')'
-| Choice;
+Process:
+  Choice 
+| ProtIfThenElse
+| ProcessReference
+| '(' Parallel ')'
+;
 
-Parallel returns Contract:
-	Contract ({Parallel.left=current} => '|' ) right=Contract;
+Parallel returns Process:
+	Process ({Parallel.left=current} => '|' ) right=Process;
 
 Choice:
 	actions+=Prefix ('+' actions+=Prefix)*;
@@ -273,42 +278,44 @@ Choice:
 SingleChoice returns Choice:
 	actions+=Prefix;
 
-NextContract returns Contract:
-	SingleChoice|('(' Contract')');
+NextProcess returns Process:
+  SingleChoice
+| ProtIfThenElse
+| ProcessReference
+| '(' Process')'
+;
 
-Prefix:	
-	(Ask|Put|Send|Receive|Assert) ('.' next=NextContract)?;
+Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('.' next=NextProcess)?;
 
-Ask:
-	"ask" (txRefs+=TransactionReference
+Tau: {Tau} 't';
+
+Ask: "ask" (txRefs+=TransactionReference
 		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}') ;
 	
-Put:
-	'put' (
+Put: 'put' (
 	  	txRefs+=TransactionReference
 		|'{'(txRefs+=TransactionReference ) (',' txRefs+=TransactionReference)* '}');
 
-Send:
-	'receive' 'from' ParticipantReference ':' var=Parameter;
+Send: 'receive' 'from' p=[ParticipantDeclaration] ':' var=Parameter;
+Receive: 'send' 'to' p=[ParticipantDeclaration] ':' message=ProtocolExpression;
+Assert:	'assert' exp=Expression;
 
-Receive:
-	'send' 'to' ParticipantReference ':' message=ProtocolExpression;
-
-Assert:
-	'assert' exp=Expression;
+ProtIfThenElse: 
+'if' exp=ProtocolExpression 
+'then' then=NextProcess 
+(=> 'else' else=NextProcess)?;
 
 ProtocolExpression:
-   Expression			// normal expression					
+   Expression		// normal expression (remove if-then-else during validation)
  | ("do" 
  	  SignOp		// signature operation, returns bytes or string 
  	| VersigOp		// versig operation, returns boolean
  );
 
-SignOp:	"sig" tx=ProtTransaction key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
+SignOp:	"sig" tx=ProtTransaction key=[KeyDeclaration] (modifier=Modifier)?;
 VersigOp: "versig" tx=ProtTransaction "(" 
-		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-		signatures+=Expression ("," signatures+=Expression)* 
-	")";
+		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
+		signatures+=Expression ("," signatures+=Expression)* ")";
 
 ProtTransaction:
 	TransactionReference substitution=TxSubstitution;
