@@ -23,6 +23,8 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -64,62 +66,63 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		'''
 	}
 	
-	def private compileTxParameters(TransactionDeclaration tx) '''«tx.params.map[p|p.paramType.compileType+" "+p.name].join(", ")»'''
+	def private dispatch compileTxParameters(SerialTransactionDeclaration tx) ''''''
+	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.params.map[p|p.paramType.compileType+" "+p.name].join(", ")»'''
 	
-	def private compileTxBody(TransactionDeclaration tx) '''
-		«IF tx.isIsSerial»
-			return ITransactionBuilder.fromSerializedTransaction(«tx.compileNetworkParams», "«tx.bytes»");
-		«ELSE»
-			TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»();
-			«IF !tx.params.isEmpty»
-				
-				// free variables
-			«ENDIF»
-			«FOR param:tx.params»
-				tb.freeVariable(«param.name», «param.paramType.compileType».class);
-			«ENDFOR»
-			«IF !tx.inputs.isEmpty»
-				
-				// inputs
-				ITransactionBuilder parentTx;
-				int outIndex;
-				ScriptBuilder2 inScript;
-				int relativeLocktime;
-			«ENDIF»
-			«FOR input:tx.inputs»
-				«IF tx.isCoinbase»
-					inScript = new ScriptBuilder2().number(42);
-					((CoinbaseTransactionBuilder)tb).addInput(inScript);
-				«ELSE»
-					parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
-					outIndex = «input.outpoint»;
-					inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
-					«IF (tx.tlock!==null && tx.tlock.containsRelative(tx))»
-						// relative timelock
-						relativeLocktime = «tx.tlock.getRelative(tx)»;
-						tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
-					«ELSE»
-						tb.addInput(parentTx, outIndex, inScript);
-					«ENDIF»				
-				«ENDIF»
-			«ENDFOR»
-			«IF !tx.outputs.isEmpty»
-						
-				// outputs
-				ScriptBuilder2 outScript;
-				int satoshis;
-			«ENDIF»
-			«FOR output:tx.outputs»
-				outScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(output.compileOutput)»");
-				satoshis = «output.value.exp.interpret.first as Integer»;
-				tb.addOutput(outScript, satoshis);
-			«ENDFOR»
-			«IF (tx.tlock!==null && tx.tlock.containsAbsolute)»
-				// absolute timelock
-				tb.setLocktime(«tx.tlock.getAbsolute()»);
-			«ENDIF»		    	
-			return tb;
+	def private dispatch compileTxBody(SerialTransactionDeclaration tx) '''
+		return ITransactionBuilder.fromSerializedTransaction(«tx.compileNetworkParams», "«tx.bytes»");
+	'''
+	
+	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
+		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»();
+		«IF !tx.params.isEmpty»
+			
+			// free variables
 		«ENDIF»
+		«FOR param:tx.params»
+			tb.freeVariable(«param.name», «param.paramType.compileType».class);
+		«ENDFOR»
+		«IF !tx.body.inputs.isEmpty»
+			
+			// inputs
+			ITransactionBuilder parentTx;
+			int outIndex;
+			ScriptBuilder2 inScript;
+			int relativeLocktime;
+		«ENDIF»
+		«FOR input:tx.body.inputs»
+			«IF tx.isCoinbase»
+				inScript = new ScriptBuilder2().number(42);
+				((CoinbaseTransactionBuilder)tb).addInput(inScript);
+			«ELSE»
+				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
+				outIndex = «input.outpoint»;
+				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
+				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
+					// relative timelock
+					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
+					tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
+				«ELSE»
+					tb.addInput(parentTx, outIndex, inScript);
+				«ENDIF»				
+			«ENDIF»
+		«ENDFOR»
+		«IF !tx.body.outputs.isEmpty»
+					
+			// outputs
+			ScriptBuilder2 outScript;
+			int satoshis;
+		«ENDIF»
+		«FOR output:tx.body.outputs»
+			outScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(output.compileOutput)»");
+			satoshis = «output.value.exp.interpret.first as Integer»;
+			tb.addOutput(outScript, satoshis);
+		«ENDFOR»
+		«IF (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)»
+			// absolute timelock
+			tb.setLocktime(«tx.body.tlock.getAbsolute()»);
+		«ENDIF»		    	
+		return tb;
 	'''
 	
 	def private dispatch String compileActualParam(Expression s) '''/* error */'''

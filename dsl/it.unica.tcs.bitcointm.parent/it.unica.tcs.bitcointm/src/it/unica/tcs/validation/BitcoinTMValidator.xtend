@@ -53,6 +53,9 @@ import static org.bitcoinj.script.Script.*
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.BitcoinJUtils.*
 import it.unica.tcs.bitcoinTM.SignatureType
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionBody
 
 /**
  * This class contains custom validation rules. 
@@ -75,22 +78,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 * INFO
 	 */	
 	@Check
-	def void checkSingleElementArray(TransactionDeclaration tbody) {
-		if (tbody.isIsSerial)
-			return;
-		
+	def void checkSingleElementArray(UserTransactionDeclaration tx) {
+		var tbody = tx.body
 		var inputs = tbody.inputs
 		var outputs = tbody.outputs
 		
 		if (tbody.isMultiIn && inputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.",
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__INPUTS
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
 			);	
 		}
 		
 		if (tbody.isIsMultiOut && outputs.size==1) {
 			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__OUTPUTS
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
 			);	
 		}
 	}
@@ -465,32 +466,28 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkSerialTransaction(TransactionDeclaration tx) {
-		
-		if (!tx.isSerial)
-			return;
+	def void checkSerialTransaction(SerialTransactionDeclaration tx) {
 		
 		var ValidationResult validationResult;
         if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
 			error(
 				'''The string does not represent a valid transaction. Details: «validationResult.message»''',
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__BYTES
+				BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__BYTES
 			);
 		}
 	}
 	
 	@Check
-	def void checkUserDefinedTx(TransactionDeclaration tbody) {
-		if (tbody.isSerial)
-			return;
-		
+	def void checkUserDefinedTx(UserTransactionDeclaration tx) {
+
+		var tbody = tx.body		
 		var hasError = false;
 //		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
 		
 		/*
 		 * Check transaction parameters
 		 */
-		for (param: tbody.params) {
+		for (param: tx.params) {
 //			var param = tbody.params.get(i)
 			if (param.paramType instanceof SignatureType) {
 				error(
@@ -545,20 +542,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * Verify that the fees are positive
 		 */
-        hasError = !tbody.checkFee
+        hasError = !tx.checkFee
         
         if(hasError) return;  // interrupt the check
         
         /*
          * Verify that the input correctly spends the output
          */
-        hasError = tbody.correctlySpendsOutput
+        hasError = tx.correctlySpendsOutput
 	}
 
     def boolean checkInputTransactionParams(Input input) {
 
-        if (!input.txRef.tx.isSerial) {
-            var inputTx = input.txRef.tx
+        var inputTx = input.txRef.tx
+        if (inputTx instanceof UserTransactionDeclaration) {
             
             if (inputTx.params.size!=input.txRef.actualParams.size) {
 	            error(
@@ -579,11 +576,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var int numOfOutputs
         var inputTx = input.txRef.tx
         
-        if (input.txRef.tx.isSerial) {
+        if (inputTx instanceof SerialTransactionDeclaration) {
             numOfOutputs = inputTx.compileTransaction.outputsSize
         }
-        else {
-            numOfOutputs = inputTx.outputs.size
+        else if (inputTx instanceof UserTransactionDeclaration){
+            numOfOutputs = inputTx.body.outputs.size
         }
         
         if (outIndex>=numOfOutputs) {
@@ -598,13 +595,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean checkInputExpressions(Input input) {
-        
+        var inputTx = input.txRef.tx
         var outputIdx = input.outpoint
         var lastExp = input.exps.get(input.exps.size-1)
 		
-		if (!input.txRef.tx.isSerial) {
-            var inputTx = input.txRef.tx
-            var outputScript = inputTx.outputs.get(outputIdx).script;
+		if (inputTx instanceof UserTransactionDeclaration) {
+            var outputScript = inputTx.body.outputs.get(outputIdx).script;
             
             var numOfExps = input.exps.size
             var numOfParams = outputScript.params.size
@@ -682,44 +678,42 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         return true
     }
 	
-    def boolean checkFee(TransactionDeclaration tx) {
-        
-        if (tx.isSerial) 
-        	return true
+    def boolean checkFee(UserTransactionDeclaration tx) {
         
         var amount = 0L
         
-        for (in : tx.inputs) {
-            if (!in.txRef.tx.isSerial) {
+        for (in : tx.body.inputs) {
+        	var inputTx = in.txRef.tx
+            if (inputTx instanceof UserTransactionDeclaration) {
                 var index = in.outpoint
-                var output = in.txRef.tx.outputs.get(index) 
+                var output = inputTx.body.outputs.get(index) 
                 var value = output.value.exp.interpret.first as Integer
                 amount+=value
             }
-            else {
+            else if (inputTx instanceof SerialTransactionDeclaration){
                 var index = in.outpoint
-                var txbody = in.txRef.tx.bytes
+                var txbody = inputTx.bytes
                 var value = txbody.getOutputAmount(tx.networkParams, index)
                 amount+=value
             }
         }
         
-        for (output : tx.outputs) {
+        for (output : tx.body.outputs) {
             var value = output.value.exp.interpret.first as Integer
             amount-=value
         }
 
         if (amount==0) {
             warning("Fees are zero.",
-                tx.eContainer,
-                tx.eContainingFeature
+                tx,
+                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
             );
         }
         
         if (amount<0) {
             error("The transaction spends more than expected.",
-                tx.eContainer,
-                tx.eContainingFeature
+                tx,
+                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
             );
             return false;
         }
@@ -727,16 +721,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         return true;
     }
     
-    def boolean correctlySpendsOutput(TransactionDeclaration tbody) {
-        if (tbody.isIsSerial) 
-        	return true;
+    def boolean correctlySpendsOutput(UserTransactionDeclaration tx) {
+        var tbody = tx.body
         
-        if (tbody.params.size>0) {
+        if (tx.params.size>0) {
         	// TODO: checks where the free variables appear
         	info(
 				'''Cannot check if these inputs are correctly spending their outputs''',
 				tbody,
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__INPUTS						
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS						
 			)
 			return true
         }
@@ -748,11 +741,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             var Script outScript
             
             try {
-				var txBuilder = tbody.compileTransaction
-				var tx = txBuilder.toTransaction(tbody.networkParams)
+				var txBuilder = tx.compileTransaction
+				var txJ = txBuilder.toTransaction(tbody.networkParams)
 				
 				try {
-					tx.verify();
+					txJ.verify();
 				}
 				catch (Exception e) {
 					warning(
@@ -767,10 +760,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 					return false
 				}
 
-                inScript = tx.getInput(i).scriptSig
-                outScript = tx.getInput(i).outpoint.connectedOutput.scriptPubKey
+                inScript = txJ.getInput(i).scriptSig
+                outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey
                 inScript.correctlySpends(
-	                    tx, 
+	                    txJ, 
 	                    i, 
 	                    outScript, 
 	                    ALL_VERIFY_FLAGS
@@ -778,7 +771,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 
 //              	println("input "+inScript+" correctly redeem output "+outScript)
 //                
-//                tx.outputs.forEach[out|
+//                tx.body.outputs.forEach[out|
 //                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
 //                ]
                 
@@ -797,7 +790,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     REDEEM SCRIPT HASH:  «Utils.HEX.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
 					«ENDIF»''',
                     input.eContainer,
-                    BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__INPUTS, 
+                    BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
                     i
                 );
                 return false
@@ -835,10 +828,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
      */
     @Check
-    def void checkJustOneOpReturn(TransactionDeclaration tbody) {
-    	
-    	if (tbody.isIsSerial)
-    		return;
+    def void checkJustOneOpReturn(UserTransactionDeclaration tx) {
+    	var tbody = tx.body
     	
     	var boolean[] error = newBooleanArrayOfSize(tbody.outputs.size);
     	    	
@@ -917,7 +908,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	// all these txs have to define the timelock
     	for (ref : txReferences) {
     		
-    		val body = EcoreUtil2.getContainerOfType(ref, TransactionDeclaration);
+    		val body = EcoreUtil2.getContainerOfType(ref, TransactionBody);
     		
     		// the transaction does not define a timelock
     		if (body.tlock===null) {
@@ -939,7 +930,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 					error(
 			                '''Transaction does not define an absolute timelock''',
 			                body,
-			                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__TLOCK
+			                BitcoinTMPackage.Literals.TRANSACTION_BODY__TLOCK
 			            );
 			        }
 			        else if(absTimes.size==1) {
@@ -975,7 +966,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			    		error(
 			                '''Transaction does not define a relative timelock for transaction «ref.tx.name»''',
 			                body,
-			                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__TLOCK
+			                BitcoinTMPackage.Literals.TRANSACTION_BODY__TLOCK
 			            );
 			    	}
 			    	else if (timesPerTx.size==1) {

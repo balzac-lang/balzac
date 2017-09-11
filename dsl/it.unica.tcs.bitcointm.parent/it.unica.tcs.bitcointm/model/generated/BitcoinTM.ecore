@@ -36,9 +36,18 @@
   <eClassifiers xsi:type="ecore:EClass" name="PublicKey">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration"/>
+  <eClassifiers xsi:type="ecore:EClass" name="UserTransactionDeclaration" eSuperTypes="#//TransactionDeclaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
         eType="#//Parameter" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//TransactionBody"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SerialTransactionDeclaration" eSuperTypes="#//TransactionDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSerial" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionBody">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
         eType="#//Input" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
@@ -47,8 +56,6 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSerial" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Input">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
@@ -84,12 +91,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//ProtTransaction">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//TxSubstitution"
-        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Script">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="lambda" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
@@ -103,7 +108,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="paramType" eType="#//Type"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Expression" eSuperTypes="#//ProtocolExpression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Expression"/>
   <eClassifiers xsi:type="ecore:EClass" name="VariableReference" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//Parameter"/>
   </eClassifiers>
@@ -202,6 +207,9 @@
   <eClassifiers xsi:type="ecore:EEnum" name="SignatureTypeEnum">
     <eLiterals name="signature" literal="signature"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TransactionTypeEnum">
+    <eLiterals name="transaction" literal="transaction"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//Declaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="process" eType="#//Process"
         containment="true"/>
@@ -241,7 +249,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//ProtocolExpression"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Prefix">
@@ -249,21 +257,20 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtIfThenElse" eSuperTypes="#//Process">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//ProtocolExpression"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="then" eType="#//Process"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="else" eType="#//Process"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression"/>
-  <eClassifiers xsi:type="ecore:EClass" name="SignOp" eSuperTypes="#//ProtocolExpression">
+  <eClassifiers xsi:type="ecore:EClass" name="SignOp" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtTransaction"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="modifier" eType="#//Modifier"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="VersigOp" eSuperTypes="#//ProtocolExpression">
+  <eClassifiers xsi:type="ecore:EClass" name="VersigOp" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtTransaction"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="pubkeys" unique="false"
@@ -271,15 +278,10 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="signatures" upperBound="-1"
         eType="#//Expression" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtTransaction"/>
-  <eClassifiers xsi:type="ecore:EClass" name="TxSubstitution">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
-        eType="#//Input" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="outputs" upperBound="-1"
-        eType="#//Output" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
+  <eClassifiers xsi:type="ecore:EClass" name="ProtTransaction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//TransactionReference"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//TransactionBody"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
@@ -342,6 +344,9 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="SignatureType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//SignatureTypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionType" eSuperTypes="#//BasicType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//TransactionTypeEnum"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Parallel" eSuperTypes="#//Process">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Process"

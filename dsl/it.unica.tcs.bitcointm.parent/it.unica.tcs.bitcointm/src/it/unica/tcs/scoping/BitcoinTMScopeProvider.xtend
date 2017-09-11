@@ -4,7 +4,8 @@
 package it.unica.tcs.scoping
 
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
@@ -54,9 +55,14 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		);
 	}
 
-	def dispatch IScope getDeclaredVariables(TransactionDeclaration obj) {
+	def dispatch IScope getDeclaredVariables(UserTransactionDeclaration obj) {
 //		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(obj.params); 	// stop recursion
+	}	
+
+	def dispatch IScope getDeclaredVariables(SerialTransactionDeclaration obj) {
+//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
+		return Scopes.scopeFor(newArrayList); 	// stop recursion
 	}	
 
 	

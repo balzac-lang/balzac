@@ -25,7 +25,6 @@ QualifiedNameWithWildcard:
 Declaration:
 	KeyDeclaration 
 | TransactionDeclaration
-| SerialTransactionDeclaration 
 | ParticipantDeclaration; 
 
 Network:
@@ -51,14 +50,20 @@ PublicKey: value=STRING  | {PublicKey}  "_";
  * transactions
  */
 TransactionDeclaration:
-"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
+	UserTransactionDeclaration | SerialTransactionDeclaration
+;
+
+UserTransactionDeclaration:
+	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? body=TransactionBody;
+
+SerialTransactionDeclaration:
+	isSerial?='serial' 'transaction' name=ID bytes=STRING;
+	
+TransactionBody: {TransactionBody} "{"
 	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
 	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
 	("after" tlock=Tlock)?
 "}";
-
-SerialTransactionDeclaration returns TransactionDeclaration:
-	isSerial?='serial' 'transaction' name=ID bytes=STRING;
 
 
 Input:
@@ -190,7 +195,8 @@ BasicType:
 |	{HashType} value=HashTypeEnum
 |   {StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
-|   {SignatureType} value=SignatureTypeEnum;
+|   {SignatureType} value=SignatureTypeEnum
+|   {TransactionType} value=TransactionTypeEnum;
 
 TypeVariable:
 	value=ID;
@@ -200,6 +206,7 @@ enum HashTypeEnum: hash;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum SignatureTypeEnum: signature;
+enum TransactionTypeEnum: transaction;
 
 
 
@@ -305,7 +312,7 @@ ProtIfThenElse:
 'then' then=NextProcess 
 (=> 'else' else=NextProcess)?;
 
-ProtocolExpression:
+ProtocolExpression returns Expression:
    Expression		// normal expression (remove if-then-else during validation)
  | ("do" 
  	  SignOp		// signature operation, returns bytes or string 
@@ -318,11 +325,6 @@ VersigOp: "versig" tx=ProtTransaction "("
 		signatures+=Expression ("," signatures+=Expression)* ")";
 
 ProtTransaction:
-	TransactionReference substitution=TxSubstitution;
+	ref=TransactionReference substitution=TransactionBody;
 	
-TxSubstitution: {TxSubstitution} "{"
-	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
-	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
-	("after" tlock=Tlock)?
-"}";
 

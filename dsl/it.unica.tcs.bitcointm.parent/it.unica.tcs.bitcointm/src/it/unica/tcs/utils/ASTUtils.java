@@ -11,7 +11,9 @@ import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
+import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
 
@@ -46,8 +48,12 @@ public class ASTUtils {
 //    			.allMatch(ASTUtils::isRelativeDate);
 //    }
 	
-	public static boolean isCoinbase(TransactionDeclaration tx) {
-		return !tx.isIsSerial() && tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
+	public static boolean isCoinbase(UserTransactionDeclaration tx) {
+		return isCoinbase(tx.getBody());
+	}
+	
+	public static boolean isCoinbase(TransactionBody tx) {
+		return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
 	}
 
 	public boolean isP2PKH(Script script) {

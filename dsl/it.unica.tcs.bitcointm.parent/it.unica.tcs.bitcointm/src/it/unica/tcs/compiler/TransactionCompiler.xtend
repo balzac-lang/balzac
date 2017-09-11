@@ -6,9 +6,11 @@ import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcointm.lib.CoinbaseTransactionBuilder
@@ -27,7 +29,6 @@ import static extension it.unica.tcs.utils.BitcoinJUtils.*
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
 
-
 class TransactionCompiler {
 	
 	@Inject private extension BitcoinTMTypeSystem typeSystem
@@ -36,12 +37,12 @@ class TransactionCompiler {
 //	@Inject private extension Optimizer optimizer
 	
     
-    def ITransactionBuilder compileTransaction(TransactionDeclaration tx) {
-    	
-    	if (tx.isSerial) {
-    		return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
-    	}
-    	
+    def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
+		return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
+	}
+    
+    def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
+   	
     	val tb =  
     		if (tx.isCoinbase) new CoinbaseTransactionBuilder	    	
 	    	else new TransactionBuilder
@@ -52,7 +53,7 @@ class TransactionCompiler {
     	} 		
     	
     	// inputs
-    	for(input : tx.inputs) {
+    	for(input : tx.body.inputs) {
     		if (tb instanceof CoinbaseTransactionBuilder) {
     			val inScript = input.compileInput
     			tb.addInput(inScript)
@@ -63,8 +64,8 @@ class TransactionCompiler {
 	    		val inScript = input.compileInput
 	    		
 	    		// relative timelock
-	    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
-					val locktime = tx.tlock.getRelative(tx)
+	    		if (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx)) {
+					val locktime = tx.body.tlock.getRelative(tx)
 					tb.addInput(parentTx, outIndex, inScript, locktime)
 	    		}
 	    		else {
@@ -75,25 +76,25 @@ class TransactionCompiler {
     	}
     	
     	// outputs
-    	for (output : tx.outputs) {
+    	for (output : tx.body.outputs) {
     		val outScript = output.compileOutput
     		val satoshis = output.value.exp.interpret.first as Integer
     		tb.addOutput(outScript, satoshis)
     	}
     	
     	// absolute timelock
-    	if (tx.tlock!==null && tx.tlock.containsAbsolute)
-	        tb.locktime = tx.tlock.getAbsolute()
+    	if (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)
+	        tb.locktime = tx.body.tlock.getAbsolute()
     	
     	return tb
     }
     
 
-    def ScriptBuilder2 compileInput(Input stmt) {
+    def ScriptBuilder2 compileInput(Input input) {
 
 		val Context ctx = new Context
 
-		if (stmt.isPlaceholder) {
+		if (input.isPlaceholder) {
  			/*
              * This transaction is like a coinbase transaction.
              * You can put the input you want.
@@ -101,17 +102,19 @@ class TransactionCompiler {
             return new ScriptBuilder2().number(42)
 		}
 		else {
-	        var outIdx = stmt.outpoint
 	        
-	        if (stmt.txRef.tx.isSerial) {
+	        var outIdx = input.outpoint
+	        var inputTx = input.txRef.tx
+	        
+	        if (inputTx instanceof SerialTransactionDeclaration) {
 	        	/*
 	        	 * Serial transaction
 	        	 */
-	        	var output = stmt.txRef.tx.compileTransaction.toTransaction(stmt.networkParams).getOutput(outIdx)
+	        	var output = input.txRef.tx.compileTransaction.toTransaction(input.networkParams).getOutput(outIdx)
 	            
 	            if (output.scriptPubKey.isSentToAddress) {
-	                var sig = (stmt.exps.get(0) as Expression).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+	                var sig = (input.exps.get(0) as Expression).simplifySafe as Signature
+	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
 	                var sb = sig.compileInputExpression(ctx)
 	                sb.data(pubkey)
@@ -123,12 +126,12 @@ class TransactionCompiler {
 	                val sb = new ScriptBuilder2()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|
+	                input.exps.forEach[e|
 	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
 	                ]
 	                
 	                // get the redeem script to push
-	                var redeemScript = stmt.redeemScript.getRedeemScript(ctx)
+	                var redeemScript = input.redeemScript.getRedeemScript(ctx)
 	                sb.data(redeemScript.build.program)
 	                
 	                /* <e1> ... <en> <serialized script> */
@@ -136,18 +139,17 @@ class TransactionCompiler {
 	            } else
 	                throw new CompileException
 	        }
-	        else {
+	        else if (inputTx instanceof UserTransactionDeclaration) {
 	        	/*
 				 * User defined transaction.
 				 * Return the expected inputs based on the kind of output script
 				 */
-				var inputTx = stmt.txRef.tx       
-	            var output = inputTx.outputs.get(outIdx);
+	            var output = inputTx.body.outputs.get(outIdx);
 	    
 	            if (output.script.isP2PKH) {
 	            	
-	                var sig = stmt.exps.get(0).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams)
+	                var sig = input.exps.get(0).simplifySafe as Signature
+	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
 	                var sb = sig.compileInputExpression(ctx)
 	                sb.data(pubkey)
@@ -159,7 +161,7 @@ class TransactionCompiler {
 	                val sb = new ScriptBuilder2()
 	                
 	                // build the list of expression pushes (actual parameters) 
-	                stmt.exps.forEach[e|
+	                input.exps.forEach[e|
 	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
 	                ]
 	                
