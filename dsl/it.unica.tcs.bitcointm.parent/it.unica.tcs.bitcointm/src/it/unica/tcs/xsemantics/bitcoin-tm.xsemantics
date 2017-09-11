@@ -23,7 +23,11 @@ import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.ProcessDeclaration
+import it.unica.tcs.bitcoinTM.ProtocolTransaction
+import it.unica.tcs.bitcoinTM.SignOp
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
@@ -33,6 +37,8 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
+import it.unica.tcs.bitcoinTM.Typeable
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcoinTM.VersigOp
@@ -44,7 +50,8 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension it.unica.tcs.utils.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -67,23 +74,11 @@ auxiliary {
 
 judgments {
 
-	eobjType |~ EObject s
-		error "Cannot type " + stringRep(s)
-		source s
-
-	typeInput ||- TypeSubstitutions substitutions |> Input exp
-		error "Cannot type " + stringRep(exp)
-		source exp
-
-	typeOutput ||= TypeSubstitutions substitutions |> Output exp
-		error "Cannot type " + stringRep(exp)
-		source exp
-
-	type |- TypeSubstitutions substitutions |> Expression exp : output Type
+	typeS |- TypeSubstitutions substitutions |> Typeable exp : output Type
 		error "Cannot type " + stringRep(exp)
 		source exp
 		
-	vartype ||- Parameter p : output Type
+	type ||- Typeable p : output Type
 		error "Cannot type " + stringRep(p)
 		source p
 	
@@ -179,6 +174,9 @@ auxiliary simplifySafe(Expression exp) {
  * Type system rules
  */
 
+axiom SerialTransactionDeclaration
+	G ||- SerialTransactionDeclaration d : Type t
+
 /**
  * Type check a user defined transactions:
  * - all the inputs are well typed
@@ -186,7 +184,7 @@ auxiliary simplifySafe(Expression exp) {
  * - all the parameters are well typed and the type is basic (not generic)
  */
 rule UserTransactionDeclaration
-	G |~ UserTransactionDeclaration tx
+	G ||- UserTransactionDeclaration tx : Type t
 from {
 	
 	for (p : tx.params) {
@@ -198,11 +196,11 @@ from {
 	var substitutions = new TypeSubstitutions()
 	
 	for (in : tx.body.inputs) {
-		G ||- substitutions |> in	// all inputs are well typed
+		G |- substitutions |> in : var Type t1	// all inputs are well typed
 	}
 	
 	for (out : tx.body.outputs) {
-		G ||= substitutions |> out	// all outputs are well typed
+		G |- substitutions |> out : var Type t2	// all outputs are well typed
 	}
 	
 	// all the parameters should have a basic type (generic types are not allowed)
@@ -212,6 +210,13 @@ from {
 	}
 }
 
+rule TransactionBody
+	G |- TypeSubstitutions substitutions |> TransactionBody minus : Type t
+from {
+	
+}
+
+
 /**
  * An input is well typed if:
  * - the body of the redeemed transaction is well typed
@@ -220,13 +225,13 @@ from {
  * - if the redeemed tx is user defined, all the expression type corresponds to the expected type of the parameter
  */
 rule Input
-	G ||- TypeSubstitutions substitutions |> Input input
+	G |- TypeSubstitutions substitutions |> Input input : Type t
 from {
 	
 	if (!input.isPlaceholder) {		
 		// the body of the redeemed transaction is well typed
 		var inputTx = input.txRef.tx
-		G |~ inputTx
+		G ||- inputTx : var Type t1
 	
 		// all the input expressions are well typed and the type is basic
 		for (var i=0; i<input.exps.size; i++) {
@@ -276,7 +281,7 @@ from {
  * - all the scripts expressions are well typed
  */
 rule Output
-	G ||= TypeSubstitutions substitutions |> Output _output
+	G |- TypeSubstitutions substitutions |> Output _output : Type t
 from {
 	var satoshis = _output.value.exp
 	G |- new TypeSubstitutions() |> satoshis : var IntType intType
@@ -337,7 +342,6 @@ from {
 	type = typesubstitution(substitutions, EcoreUtil.copy(env(G, varRef.ref, Type)))
 	varRef.ref.paramType = type	// set the param type, useful just for the ui
 }
-
 
 rule Minus
 	G |- TypeSubstitutions substitutions |> Minus minus : IntType t
@@ -467,11 +471,9 @@ from {
 	
 	unify(substitutions, tIf, boolType)
 
-	if (stmt.^else!==null) {
-		G |- substitutions |> stmt.^else: var Type tElse
-		tElse = typesubstitution(substitutions, tElse)
-		unify(substitutions, tThen, tElse)
-	}
+	G |- substitutions |> stmt.^else: var Type tElse
+	tElse = typesubstitution(substitutions, tElse)
+	unify(substitutions, tThen, tElse)
 	
 	type=tThen
 }
@@ -561,6 +563,46 @@ from {
 	texpr = typesubstitution(substitutions, texpr)
 }
 
+/*
+ * Protocols/Processes
+ */
+rule ParticipantDeclaration
+	G ||- ParticipantDeclaration p : Type t
+from {
+	G ||- p.process : var Type t1
+	for (d : p.defs) {
+		 G ||- d : var Type t2
+	}
+}
+
+rule ProcessDeclaration
+	G ||- ProcessDeclaration p : Type t
+from {
+	for (param : p.params) {
+		G ||- param : var Type paramType
+		G.add(param, paramType)			// store the type in the environment 
+		param.paramType = paramType		// and in the AST
+	}
+	
+	var substitutions = new TypeSubstitutions()
+	
+}
+
+
+
+
+rule SignOp
+    G |- TypeSubstitutions substitutions |> SignOp plus : Type type
+from {
+
+}
+
+rule ProtocolTransaction
+    G |- TypeSubstitutions substitutions |> ProtocolTransaction tx : Type type
+from {
+
+}
+
 rule VersigOp	// same as before, but check for transaction to be well-typed
 	G |- TypeSubstitutions substitutions |> VersigOp versig : SignatureType sigType
 from {
@@ -572,7 +614,6 @@ from {
 		unify(substitutions, t, sigType)
 	}
 	
-	var tx = versig.tx
 }
 
 /*
@@ -906,9 +947,9 @@ axiom SimplifyEObject
  * rule invocations
  * 
  */
-checkrule CheckUserDefinedTxBody for
-    TransactionDeclaration tx
+checkrule CheckTransactionDeclaration for
+    TransactionDeclaration stmt
 from {
 	lambdaUtils.resetCounter
-    empty |~ tx
+    empty ||- stmt: var Type t
 }

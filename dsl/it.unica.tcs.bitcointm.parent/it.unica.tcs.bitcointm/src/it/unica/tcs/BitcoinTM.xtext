@@ -208,7 +208,17 @@ enum BoolTypeEnum: bool | boolean;
 enum SignatureTypeEnum: signature;
 enum TransactionTypeEnum: transaction;
 
-
+Typeable:
+  TransactionDeclaration
+| ParticipantDeclaration
+| ProcessDeclaration
+| Process  
+| TransactionBody
+| Parameter
+| Input
+| Output 
+| Expression 
+| ProtocolTransaction;
 
 Number returns ecore::EInt:
 	INT ('.' INT)? "BTC"?
@@ -266,8 +276,8 @@ ParticipantDeclaration: 'participant' name=ID '{'
 	(defs+=ProcessDeclaration)*
 '}';
 
-ProcessDeclaration: 'process' name=ID '=' process=Process;
-ProcessReference: ref=[ProcessDeclaration];
+ProcessDeclaration: 'process' name=ID '=' ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? process=Process;
+ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
 
 Process:
   Choice 
@@ -277,7 +287,7 @@ Process:
 ;
 
 Parallel returns Process:
-	Process ({Parallel.left=current} => '|' ) right=Process;
+	Process (({Parallel.left=current} => '|' ) right=Process)*;
 
 Choice:
 	actions+=Prefix ('+' actions+=Prefix)*;
@@ -313,18 +323,18 @@ ProtIfThenElse:
 (=> 'else' else=NextProcess)?;
 
 ProtocolExpression returns Expression:
-   Expression		// normal expression (remove if-then-else during validation)
+   Expression		// normal expression (remove if-then-else/sigliteral/versig during validation)
  | ("do" 
  	  SignOp		// signature operation, returns bytes or string 
  	| VersigOp		// versig operation, returns boolean
  );
 
-SignOp:	"sig" tx=ProtTransaction key=[KeyDeclaration] (modifier=Modifier)?;
-VersigOp: "versig" tx=ProtTransaction "(" 
+SignOp:	"sig" tx=ProtocolTransaction key=[KeyDeclaration] (modifier=Modifier)?;
+VersigOp: "versig" tx=ProtocolTransaction "(" 
 		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
 		signatures+=Expression ("," signatures+=Expression)* ")";
 
-ProtTransaction:
+ProtocolTransaction:
 	ref=TransactionReference substitution=TransactionBody;
 	
 
