@@ -88,7 +88,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//Substitution"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//TxSubstitution"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Script">
@@ -210,39 +210,58 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//ParticipantDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="var" eType="#//Parameter"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="seq" eType="#//Contract"
-        containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//ProtocolExpression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Event">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
+  <eClassifiers xsi:type="ecore:EClass" name="Contract"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Choice" eSuperTypes="#//Contract">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="actions" upperBound="-1"
+        eType="#//Prefix" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Prefix">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="next" eType="#//Contract"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Contract"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Put" eSuperTypes="#//Contract">
+  <eClassifiers xsi:type="ecore:EClass" name="Ask" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
         eType="#//TransactionReference" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="seq" eType="#//Contract"
-        containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Send" eSuperTypes="#//Contract"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Contract"/>
-  <eClassifiers xsi:type="ecore:EClass" name="When" eSuperTypes="#//Contract">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="events" upperBound="-1"
-        eType="#//Event" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="seqs" upperBound="-1" eType="#//Contract"
-        containment="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Put" eSuperTypes="#//Prefix">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
+        eType="#//TransactionReference" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Contract">
+  <eClassifiers xsi:type="ecore:EClass" name="Send" eSuperTypes="#//Prefix"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Prefix"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="SignOp" eSuperTypes="#//ProtocolExpression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtTransaction"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="modifier" eType="#//Modifier"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VersigOp" eSuperTypes="#//ProtocolExpression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtTransaction"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pubkeys" unique="false"
+        upperBound="-1" eType="#//KeyDeclaration"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="signatures" upperBound="-1"
+        eType="#//Expression" containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtTransaction"/>
-  <eClassifiers xsi:type="ecore:EClass" name="Substitution"/>
+  <eClassifiers xsi:type="ecore:EClass" name="TxSubstitution">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
+        eType="#//Input" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="outputs" upperBound="-1"
+        eType="#//Output" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OrExpression" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
         containment="true"/>
@@ -308,16 +327,6 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Contract"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//Contract"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TxBody" eSuperTypes="#//Substitution">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
-        eType="#//Input" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiIn" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="outputs" upperBound="-1"
-        eType="#//Output" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
         containment="true"/>
   </eClassifiers>
 </ecore:EPackage>
