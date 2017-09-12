@@ -133,3 +133,9 @@ transaction bar {
 //	input = bar : sigma
 //	output = 0: "magic"
 //}
+
+participant Alice {
+	P
+	process P(b) = ask A0 
+}
+

@@ -51,6 +51,21 @@ transaction T_payDepositB {
 	after block 45
 }
 
+transaction T_compute {
+    input = _
+	output =
+		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) . 
+			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
+			hash160(xB) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
+			(size(xA) == 128 || size(xA) == 127) && 
+			(size(xB) == 128 || size(xB) == 127) &&
+			if size(xA) == size(xB) 
+			then versig(kA; sigma1) 
+			else versig(kB; sigma2)
+ 
+} 
+
+
 //participant PA = "gianni"
 //participant PB = "raga"
 //
@@ -65,17 +80,3 @@ transaction T_payDepositB {
 //		when after block 45 : 
 //			put T_payDepositA
 //}
-
-transaction T_compute {
-    input = _
-	output =
-		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) . 
-			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
-			hash160(xB) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
-			(size(xA) == 128 || size(xA) == 127) && 
-			(size(xB) == 128 || size(xB) == 127) &&
-			if size(xA) == size(xB) 
-			then versig(kA; sigma1) 
-			else versig(kB; sigma2)
- 
-} 

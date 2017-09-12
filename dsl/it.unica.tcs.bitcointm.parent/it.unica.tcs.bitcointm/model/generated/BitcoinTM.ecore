@@ -91,7 +91,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//Typeable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
@@ -211,7 +211,7 @@
     <eLiterals name="transaction" literal="transaction"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Typeable"/>
-  <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//Declaration #//Typeable">
+  <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//Declaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="process" eType="#//Process"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="defs" upperBound="-1" eType="#//ProcessDeclaration"
@@ -234,34 +234,34 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="actions" upperBound="-1"
         eType="#//Prefix" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Prefix">
+  <eClassifiers xsi:type="ecore:EClass" name="Prefix" eSuperTypes="#//Typeable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="next" eType="#//Process"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Tau" eSuperTypes="#//Prefix"/>
   <eClassifiers xsi:type="ecore:EClass" name="Ask" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
-        eType="#//TransactionReference" containment="true"/>
+        eType="#//ProtocolTransactionReference" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Put" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRefs" upperBound="-1"
-        eType="#//TransactionReference" containment="true"/>
+        eType="#//ProtocolTransactionReference" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Send" eSuperTypes="#//Prefix">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="var" eType="#//Parameter"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Prefix">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="message" eType="#//Expression"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Receive" eSuperTypes="#//Prefix">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="var" eType="#//Parameter"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Prefix">
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtIfThenElse" eSuperTypes="#//Process">
+  <eClassifiers xsi:type="ecore:EClass" name="ProtocolIfThenElse" eSuperTypes="#//Process">
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="then" eType="#//Process"
@@ -270,21 +270,21 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="SignOp" eSuperTypes="#//Expression">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtocolTransaction"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtocolTransactionReference"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="modifier" eType="#//Modifier"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="VersigOp" eSuperTypes="#//Expression">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtocolTransaction"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//ProtocolTransactionReference"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="pubkeys" unique="false"
         upperBound="-1" eType="#//KeyDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="signatures" upperBound="-1"
         eType="#//Expression" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtocolTransaction" eSuperTypes="#//Typeable">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//TransactionReference"
+  <eClassifiers xsi:type="ecore:EClass" name="ProtocolTransactionReference" eSuperTypes="#//Typeable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//TransactionReference"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//TransactionBody"
         containment="true"/>
