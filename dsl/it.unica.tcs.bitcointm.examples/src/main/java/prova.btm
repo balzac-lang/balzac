@@ -136,6 +136,12 @@ transaction bar {
 
 participant Alice {
 	P
-	process P(b) = ask A0 
+	process P(b) = ask A0 + assert b==4 . P(789+12)
+	process P1(b) = ask A0 + assert b==4 . P(789+12)
+}
+
+participant Bob {
+	P
+	process P(b) = ask A0 + assert b==4 . P(789+12)
 }
 

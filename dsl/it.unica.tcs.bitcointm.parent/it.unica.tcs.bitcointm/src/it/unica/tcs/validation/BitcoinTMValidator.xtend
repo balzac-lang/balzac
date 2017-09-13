@@ -56,6 +56,8 @@ import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.ProcessDeclaration
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 
 /**
  * This class contains custom validation rules. 
@@ -306,7 +308,21 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				);
 			}
 		}
-	} 
+	}
+	
+    @Check
+	def void checkProcessDeclarationNameIsUnique(ProcessDeclaration t) {
+		
+		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);
+		for (other: EcoreUtil2.getAllContentsOfType(container, ProcessDeclaration)){
+			
+			if (t!=other && t.getName.equals(other.name)) {
+				error("Duplicated name '"+other.name+"'.", 
+					BitcoinTMPackage.Literals.PROCESS_DECLARATION__NAME
+				);
+			}
+		}
+	}
     	
 	
 	@Check

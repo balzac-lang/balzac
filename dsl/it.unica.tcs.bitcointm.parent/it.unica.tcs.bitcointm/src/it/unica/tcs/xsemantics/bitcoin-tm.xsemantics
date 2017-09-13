@@ -575,20 +575,24 @@ from {
 		G.add(param, paramType)			// store the type in the environment 
 		param.paramType = paramType		// and in the AST
 	}
+
+	// process is well typed
 	G |- substitutions |> p.process : t
+	
+	// all the parameters should have a basic type (generic types are not allowed)
+	for (param : p.params) {
+		param.paramType = typesubstitution(substitutions, param.paramType)
+		{param.paramType instanceof BasicType}
+	}
 }
  
 rule Choice
 	G |- TypeSubstitutions substitutions |> Choice choice : Type type
 from {
 	for (a : choice.actions) {
-		println("============================================================ 1")
 		G |- substitutions |> a : var Type t
-		println("============================================================ 2")
 		if (a.next!==null) {
-			println("============================================================ 3")
 			G |- substitutions |> a.next : var Type t1
-			println("============================================================ 4")
 		}
 	}
 }
@@ -602,7 +606,19 @@ from {
 
 rule ProcessReference
 	G |- TypeSubstitutions substitutions |> ProcessReference pRef : Type type
-from {}
+from {
+	// check the actual parameters type match the formal ones (Transaction)
+	for (var i=0; i<pRef.actualParams.size; i++) {
+		var actualParam = pRef.actualParams.get(i)
+		var formalParam = pRef.ref.params.get(i)
+		
+		// all the actual parameters are well type and the type is basic
+		G |- substitutions |> actualParam : var Type actualParamType
+		
+		// the actual param type must be unifiable with the formal param type
+		unify(substitutions, actualParamType, formalParam.paramType)
+	}
+}
 
 rule ProtocolIfThenElse
 	G |- TypeSubstitutions substitutions |> ProtocolIfThenElse ifThenElse : Type type
@@ -688,8 +704,9 @@ from {
 rule ProtocolTransactionReference
     G |- TypeSubstitutions substitutions |> ProtocolTransactionReference txRef : BitcoinTMFactory::eINSTANCE.createTransactionType
 from {
-	G |- substitutions |> txRef.txRef: var Type t
-	G |- substitutions |> txRef.substitution: var Type t1
+	if (txRef.substitution!==null) {
+		G |- substitutions |> txRef.substitution: var Type t1
+	}
 }
 
 

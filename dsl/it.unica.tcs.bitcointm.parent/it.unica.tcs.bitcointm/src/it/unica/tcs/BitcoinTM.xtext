@@ -210,13 +210,13 @@ enum TransactionTypeEnum: transaction;
 
 Typeable:
   TransactionDeclaration
-| TransactionReference
 | TransactionBody
 | Parameter
 | Input
 | Output 
 | Expression 
 | ProcessDeclaration
+| ProcessReference
 | Process
 | Prefix
 | ProtocolTransactionReference
@@ -279,7 +279,7 @@ ParticipantDeclaration: 'participant' name=ID '{'
 '}';
 
 ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
-ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
+ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Process:
   Choice 

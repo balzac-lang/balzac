@@ -91,7 +91,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="RelativeTime" eSuperTypes="#//Time">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference" eSuperTypes="#//Typeable">
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
@@ -224,7 +224,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="process" eType="#//Process"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProcessReference" eSuperTypes="#//Process">
+  <eClassifiers xsi:type="ecore:EClass" name="ProcessReference" eSuperTypes="#//Typeable #//Process">
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//ProcessDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
         eType="#//Expression" containment="true"/>
