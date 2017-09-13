@@ -7,10 +7,20 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ScriptBuilder2Test {
 
+	/*
+	 * TODO: la classe KeyStore dovrebbe essere mockata
+	 */
+	
+	@Before
+	public void before() {
+		KeyStore.getInstance().clear();
+	}
+	
 	@Test
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();
@@ -85,7 +95,7 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",**]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",**]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
@@ -98,7 +108,7 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",1*]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",1*]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
@@ -111,7 +121,7 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",*1]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",*1]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
@@ -124,7 +134,7 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",11]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",11]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
@@ -137,7 +147,7 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",*0]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",*0]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
@@ -150,49 +160,50 @@ public class ScriptBuilder2Test {
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+key.getPrivateKeyAsHex()+",10]"; 
+    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",10]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
     @Test
     public void test_derialize_signature() {
     	ECKey key = new ECKey();
-    	String serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",**]"; 
+    	String keyID = KeyStore.getInstance().addKey(key);
+    	String serialScript = "15 [sig,"+keyID+",**]"; 
     	ScriptBuilder2 res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
     	
-    	serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",1*]"; 
+    	serialScript = "15 [sig,"+keyID+",1*]"; 
     	res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
     	
-    	serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",*0]"; 
+    	serialScript = "15 [sig,"+keyID+",*0]"; 
     	res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
     	
-    	serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",10]"; 
+    	serialScript = "15 [sig,"+keyID+",10]"; 
     	res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
     	
-    	serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",*1]"; 
+    	serialScript = "15 [sig,"+keyID+",*1]"; 
     	res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
     	assertEquals(serialScript, ScriptBuilder2.serialize(res));
     	
-    	serialScript = "15 [sig,"+key.getPrivateKeyAsHex()+",11]"; 
+    	serialScript = "15 [sig,"+keyID+",11]"; 
     	res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());

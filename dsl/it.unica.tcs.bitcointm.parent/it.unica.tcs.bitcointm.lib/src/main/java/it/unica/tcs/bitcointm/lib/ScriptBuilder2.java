@@ -28,19 +28,20 @@ import org.bitcoinj.script.ScriptOpCodes;
 
 public class ScriptBuilder2 extends ScriptBuilder {
 
-	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 		// σ
-	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 	// ϰ;
+	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
+	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
 	
 	private final Map<String, SignatureUtil> signatures;
 	private final Map<String,Class<?>> freeVariables;
 	
 	private static class SignatureUtil {
-		private final ECKey key;
+		private final String keyID;
 		private final SigHash hashType;
 		private final Boolean anyoneCanPay;
 		private final Boolean pubkeyNeeded;
-		public SignatureUtil(ECKey key, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
-			this.key = key;
+		public SignatureUtil(String keyID, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
+			checkNotNull(keyID);
+			this.keyID = keyID;
 			this.hashType = hashType;
 			this.anyoneCanPay = anyoneCanPay;
 			this.pubkeyNeeded = pubkeyNeeded;
@@ -51,7 +52,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			int result = 1;
 			result = prime * result + (anyoneCanPay ? 1231 : 1237);
 			result = prime * result + ((hashType == null) ? 0 : hashType.hashCode());
-			result = prime * result + ((key == null) ? 0 : key.hashCode());
+			result = prime * result + ((keyID == null) ? 0 : keyID.hashCode());
 			result = prime * result + (pubkeyNeeded ? 1231 : 1237);
 			return result;
 		}
@@ -68,10 +69,10 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				return false;
 			if (hashType != other.hashType)
 				return false;
-			if (key == null) {
-				if (other.key != null)
+			if (keyID == null) {
+				if (other.keyID != null)
 					return false;
-			} else if (!key.equals(other.key))
+			} else if (!keyID.equals(other.keyID))
 				return false;
 			if (pubkeyNeeded != other.pubkeyNeeded)
 				return false;
@@ -79,11 +80,12 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		}
 		@Override
 		public String toString() {
-			return "SignatureUtil [key=" + key + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay
+			return "SignatureUtil [key=" + keyID + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay
 					+ ", pubkeyNeeded=" + pubkeyNeeded + "]";
 		}
+		
 		public String getUniqueKey() {
-			return Utils.HEX.encode(this.key.getPrivateKeyAsHex().concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).concat(this.pubkeyNeeded.toString()).getBytes());
+			return Utils.HEX.encode(this.keyID.concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).concat(this.pubkeyNeeded.toString()).getBytes());
 		}
 	}
 	
@@ -139,6 +141,11 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
+	public ScriptBuilder2 signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
+		ECKey key = KeyStore.getInstance().getKey(keyID);
+		return signaturePlaceholder(key, hashType, anyoneCanPay, false);
+	}
+	
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
 		return signaturePlaceholder(key, hashType, anyoneCanPay, false);
 	}
@@ -146,7 +153,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
 		checkNotNull(key);
 		checkNotNull(hashType);
-		SignatureUtil sig = new SignatureUtil(key, hashType, anyoneCanPay,pubkeyNeeded);
+		String keyID = KeyStore.getInstance().addKey(key);
+		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay,pubkeyNeeded);
 		String mapKey = sig.getUniqueKey();
 		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
@@ -214,7 +222,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
 				SignatureUtil sig = sb.signatures.remove(mapKey);
-				ECKey key = sig.key;
+				ECKey key = KeyStore.getInstance().getKey(sig.keyID);
 				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				
@@ -299,7 +307,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				str.append("[");
 				str.append("sig");
 				str.append(",");
-				str.append(encodeKey(sb.signatures.get(mapKey).key));
+				str.append(sb.signatures.get(mapKey).keyID);
 				str.append(",");
 				str.append(encodeModifier(sb.signatures.get(mapKey).hashType, sb.signatures.get(mapKey).anyoneCanPay));
 				str.append("]");
@@ -335,9 +343,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			if (ch.startsWith("[")) {
 				String[] vals = ch.substring(1, ch.length()-1).split(",");
 				if (vals[0].equals("sig")) {
-					ECKey key = decodeKey(vals[1]);
+					String keyID = vals[1];
 					Object[] modifier = decodeModifier(vals[2]);
-					sb.signaturePlaceholder(key, (SigHash) modifier[0], (Boolean) modifier[1]);
+					sb.signaturePlaceholder(keyID, (SigHash) modifier[0], (Boolean) modifier[1]);
 				}
 				else if (vals[0].equals("var")){
 					try {
@@ -371,14 +379,6 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	private static String getMapKey(ScriptChunk ch) {
 		return new String(ch.data).substring(PREFIX_SIGNATURE_PLACEHOLDER.length());
-	}
-	
-	private static String encodeKey(ECKey key) {
-		return key.getPrivateKeyAsHex();
-	}
-	
-	private static ECKey decodeKey(String key) {
-		return ECKey.fromPrivate(Utils.HEX.decode(key));
 	}
 	
 	@SuppressWarnings("incomplete-switch")
