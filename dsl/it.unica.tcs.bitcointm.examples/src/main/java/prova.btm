@@ -2,24 +2,14 @@ package it.unica.btm.prova
 
 network mainnet
 
-key kA = [
-	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
-	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
 
-key kB = [
-	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
-	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
-	
-//key kA = [ 
-//	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
-//	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 	 
   
 transaction ALFA {
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;			// P2SH
-		1 BTC: fun(y) . versig(kB; y);	// P2PKH
+		1 BTC: fun(y) . versig(kA; y);	// P2PKH
 		0 BTC: "DATA"					// OP_RETURN 
 	]
 }
@@ -33,7 +23,7 @@ transaction T {
 		0.00000546 BTC:		fun(n) . n!=42 ;
 		0.00000546 BTC:		fun(n) . n=="screen";
 		546:				fun(x:signature, y:signature) . y==x; 
-		550:				fun(y1) . versig(kB; y1) && 2==2;
+		550:				fun(y1) . versig(kA; y1) && 2==2;
 		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
 	]
 }
@@ -126,7 +116,7 @@ transaction test2(p) {
 
 transaction bar {
 	input = _
-	output = 1000: fun(sigma) . versig(kA; sigma) 
+	output = 1000: fun(sigma) . versig(kA ; sigma) 
 }
 
 //transaction foo(sigma) {
@@ -136,12 +126,21 @@ transaction bar {
 
 participant Alice {
 	P
-	process P(b) = ask A0 + assert b==4 . P(789+12)
-	process P1(b) = ask A0 + assert b==4 . P(789+12)
+	process P(b) = ask A0 + assert b==4 -> P(789+12)
+	process P1(b) = ask A0 + assert b==4 -> P(789+12)
+	key kA = [
+	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
+	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
+	//key kA = [ 
+	//	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
+	//	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
 }
-
+ 
 participant Bob {
 	P
-	process P(b) = ask A0 + assert b==4 . P(789+12)
+	process P = ask A0 + receive x:int from Bob + send 5 to Alice
+	key kB = [
+	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
+	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
 }
 

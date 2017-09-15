@@ -57,9 +57,9 @@ import java.util.Arrays
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 
-import static extension it.unica.tcs.utils.BitcoinJUtils.*
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.Parallel
+import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -666,13 +666,13 @@ from {
 rule Send
 	G |- TypeSubstitutions substitutions |> Send send : Type type
 from {
-	G |- substitutions |> send.message : var Type t
+	G |- substitutions |> send.message : var BasicType t
 }
 
 rule Receive
 	G |- TypeSubstitutions substitutions |> Receive receive : Type type
 from {
-	G |- substitutions |> receive.^var : var Type t
+	G |- substitutions |> receive.^var : var BasicType t
 }
 
 

@@ -6,14 +6,16 @@ import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
+import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
-import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -23,8 +25,6 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -130,7 +130,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	def private dispatch String compileActualParam(StringLiteral s) { '"'+s.value+'"' }
 	def private dispatch String compileActualParam(NumberLiteral n) { n.value.toString }
 	def private dispatch String compileActualParam(BooleanLiteral b) { b.isTrue.toString }
-	def private dispatch String compileActualParam(HashLiteral h) '''Utils.HEX.decode("«Utils.HEX.encode(h.value)»")'''
+	def private dispatch String compileActualParam(HashLiteral h) '''Utils.HEX.decode("«BitcoinJUtils.encode(h.value)»")'''
 	
 	
 	

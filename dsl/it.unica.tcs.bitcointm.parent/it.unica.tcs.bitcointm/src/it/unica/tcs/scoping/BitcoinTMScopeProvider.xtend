@@ -3,12 +3,16 @@
  */
 package it.unica.tcs.scoping
 
+import it.unica.tcs.bitcoinTM.KeyDeclaration
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
@@ -21,6 +25,8 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  */
 class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 
+//	@Inject private extension IQualifiedNameProvider	
+
 	/**
 	 * utils: get a scope for the given clazz type within the whole document
 	 */
@@ -30,10 +36,6 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		return Scopes.scopeFor(candidates);									// return the scope
 	}
 
-//	override IScope getScope(EObject context, EReference reference) {
-//		println("Hello")
-//		return super.getScope(context, reference);
-//	}
 
 	/*
 	 * free-names resolution
@@ -66,11 +68,30 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}	
 
 	
-//	def IScope scope_TransactionDeclaration(EObject ctx, EReference ref) {
-//		ctx.getIScopeForAllContentsOfClass(TransactionDeclaration);
-//	}
-//	
-//	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
-//		ctx.getIScopeForAllContentsOfClass(KeyDeclaration);
-//	}
+
+	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
+		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
+		var participants = EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration);
+		val keysOccurrences = 
+			EcoreUtil2.getAllContentsOfType(root, KeyDeclaration)		// all the keys declarations
+			.groupBy[k|k.name]											// group by name within a map String -> List<Key>
+			.entrySet													// to set
+			.map[e|e.key->e.value.size]									// convert to String -> N
+			.toMap([e|e.key],[e|e.value]);								// convert to a Map 
+		
+		val List<KeyDeclaration> candidates = newArrayList 
+		for (p : participants) {
+			candidates.addAll(p.keys)
+		}
+		
+		Scopes.scopeFor(candidates, [KeyDeclaration k|
+			if (keysOccurrences.get(k.name)>1) {
+				val participantName = (k.eContainer as ParticipantDeclaration).name
+				QualifiedName.create(participantName, k.name)				
+			}
+			else {
+				QualifiedName.create(k.name)
+			}			
+		], Scopes.scopeFor(newArrayList))
+	}
 }

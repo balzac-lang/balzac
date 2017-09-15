@@ -20,7 +20,8 @@
   <eClassifiers xsi:type="ecore:EClass" name="Network">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="testnet" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="KeyDeclaration" eSuperTypes="#//Declaration">
+  <eClassifiers xsi:type="ecore:EClass" name="KeyDeclaration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="body" eType="#//KeyBody"
         containment="true"/>
   </eClassifiers>
@@ -213,6 +214,8 @@
   <eClassifiers xsi:type="ecore:EClass" name="Typeable"/>
   <eClassifiers xsi:type="ecore:EClass" name="ParticipantDeclaration" eSuperTypes="#//Declaration">
     <eStructuralFeatures xsi:type="ecore:EReference" name="process" eType="#//Process"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="keys" upperBound="-1" eType="#//KeyDeclaration"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="defs" upperBound="-1" eType="#//ProcessDeclaration"
         containment="true"/>

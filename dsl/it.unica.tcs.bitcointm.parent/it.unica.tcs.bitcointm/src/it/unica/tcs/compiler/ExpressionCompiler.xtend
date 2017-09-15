@@ -33,7 +33,7 @@ import org.bitcoinj.script.ScriptBuilder
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
-import static extension it.unica.tcs.utils.BitcoinJUtils.*
+import static extension it.unica.tcs.utils.Utils2.*
 import static extension it.unica.tcs.utils.CompilerUtils.*
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 

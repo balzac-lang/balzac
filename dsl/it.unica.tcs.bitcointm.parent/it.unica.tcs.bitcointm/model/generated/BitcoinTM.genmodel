@@ -50,6 +50,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/testnet"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyDeclaration/name"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//KeyDeclaration/body"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyBody">
@@ -180,6 +181,7 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Typeable"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//ParticipantDeclaration">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/process"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/keys"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/defs"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ProcessDeclaration">

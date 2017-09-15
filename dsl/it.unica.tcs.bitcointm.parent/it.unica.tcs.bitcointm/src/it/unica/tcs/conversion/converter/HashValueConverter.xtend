@@ -1,7 +1,6 @@
 package it.unica.tcs.conversion.converter
 
-import com.google.common.io.BaseEncoding.DecodingException
-import org.bitcoinj.core.Utils
+import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
@@ -23,12 +22,9 @@ class HashValueConverter extends AbstractLexerBasedConverter<byte[]> {
 		}
 		
 		try {
-			return Utils.HEX.decode(value.toLowerCase)
+			return BitcoinJUtils.decode(value.toLowerCase)
 		}
-		catch (IllegalArgumentException e) {
-			throw new ValueConverterException("Couldn't convert input '" + value + "' to an int value. \n\nDetails: "+e.cause.message, node, e);
-		}
-		catch (DecodingException e) {
+		catch (Exception e) {
 			throw new ValueConverterException("Couldn't convert input '" + value + "' to an int value. \n\nDetails: "+e.message, node, e);
 		}
 	}

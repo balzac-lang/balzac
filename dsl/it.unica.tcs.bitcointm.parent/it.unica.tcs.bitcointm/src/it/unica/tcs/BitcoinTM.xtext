@@ -22,9 +22,8 @@ Import:
 QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
-Declaration:
-	KeyDeclaration 
-| TransactionDeclaration
+Declaration: 
+  TransactionDeclaration
 | ParticipantDeclaration; 
 
 Network:
@@ -158,7 +157,7 @@ IfThenElse:
 	"then" then=Atomic
 	'else' else=Atomic;
 
-Signature: "sig" key=[KeyDeclaration] (modifier=Modifier)?;
+Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
 
 enum Modifier: 
 	AIAO 
@@ -170,7 +169,7 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
 		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
@@ -274,9 +273,9 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
  * Endpoints contracts
  */
 ParticipantDeclaration: 'participant' name=ID '{' 
-	process=Process
-	(defs+=ProcessDeclaration)*
+	process=Process & (keys+=KeyDeclaration | defs+=ProcessDeclaration)*
 '}';
+
 
 ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
 ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
@@ -301,10 +300,10 @@ NextProcess returns Process:
   SingleChoice
 | ProtocolIfThenElse
 | ProcessReference
-| '(' Process')'
+| '(' Process ')'
 ;
 
-Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('.' next=NextProcess)?;
+Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('->' next=NextProcess)?;
 
 Tau: {Tau} 't';
 
@@ -331,9 +330,9 @@ ProtocolExpression returns Expression:
  	| VersigOp		// versig operation, returns boolean
  );
 
-SignOp:	"sig" tx=ProtocolTransactionReference key=[KeyDeclaration] (modifier=Modifier)?;
+SignOp:	"sig" tx=ProtocolTransactionReference key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
 VersigOp: "versig" tx=ProtocolTransactionReference "(" 
-		pubkeys+=[KeyDeclaration] ("," pubkeys+=[KeyDeclaration])* ";"
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
 		signatures+=Expression ("," signatures+=Expression)* ")";
 
 ProtocolTransactionReference:

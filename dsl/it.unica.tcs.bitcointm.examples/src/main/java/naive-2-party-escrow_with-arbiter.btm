@@ -12,9 +12,6 @@
 
 package it.unica.btm.naive_2_party_escrow_arbiter
 
-key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
-key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
-key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
 transaction T {
 	input = _
@@ -30,3 +27,10 @@ transaction TA {
 }
 
 // finalization omitted
+
+participant Alice {
+	t	
+	key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+	key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+	key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+}

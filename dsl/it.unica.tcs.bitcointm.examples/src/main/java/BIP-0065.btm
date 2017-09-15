@@ -2,9 +2,6 @@ package it.unica.btm.bip_0062
 
 network testnet
  
-key kAlice = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
-key kBob = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
-key kLenny = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
 
 transaction T {
 	input = _
@@ -29,5 +26,10 @@ transaction T_2 {
 	after block 50
 }
 
- 
+participant Alice {
+	t
+	key kAlice = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+	key kBob = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+	key kLenny = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+}
 

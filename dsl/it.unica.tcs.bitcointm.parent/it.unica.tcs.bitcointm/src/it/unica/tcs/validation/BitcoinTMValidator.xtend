@@ -20,15 +20,21 @@ import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.RelativeTime
+import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.SignatureType
+import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
+import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.utils.ASTUtils
-import it.unica.tcs.utils.BitcoinJUtils.ValidationResult
+import it.unica.tcs.utils.Utils2.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
@@ -51,13 +57,8 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.utils.ASTUtils.*
-import static extension it.unica.tcs.utils.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.SignatureType
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
-import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.ProcessDeclaration
-import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import static extension it.unica.tcs.utils.Utils2.*
+import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 
 /**
  * This class contains custom validation rules. 
@@ -224,7 +225,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 			var compilationResult = 
 				switch (resInterpret.first) {
-					byte[]: (exp as Hash).type+":"+Utils.HEX.encode(resInterpret.first as byte[])
+					byte[]: (exp as Hash).type+":"+BitcoinJUtils.encode(resInterpret.first as byte[])
 					String: '''"«resInterpret.first»"''' 
 					default: resInterpret.first.toString
 				} 
@@ -319,6 +320,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.", 
 					BitcoinTMPackage.Literals.PROCESS_DECLARATION__NAME
+				);
+			}
+		}
+	}
+	
+	@Check
+	def void checkProcessDeclarationNameIsUnique(KeyDeclaration t) {
+		
+		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);
+		for (other: EcoreUtil2.getAllContentsOfType(container, KeyDeclaration)){
+			
+			if (t!=other && t.getName.equals(other.name)) {
+				error("Duplicated name '"+other.name+"'.", 
+					BitcoinTMPackage.Literals.KEY_DECLARATION__NAME
 				);
 			}
 		}
@@ -803,7 +818,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     OUTPUT:  «outScript»
                     «IF outScript.isPayToScriptHash»
                     REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
-                    REDEEM SCRIPT HASH:  «Utils.HEX.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
+                    REDEEM SCRIPT HASH:  «BitcoinJUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
 					«ENDIF»''',
                     input.eContainer,
                     BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
