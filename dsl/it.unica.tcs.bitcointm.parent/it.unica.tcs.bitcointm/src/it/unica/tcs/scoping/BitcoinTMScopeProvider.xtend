@@ -68,11 +68,19 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}	
 
 	
-
+	
+	/**
+	 * Key declarations are resolved within the same resource (file).
+	 * <p>Keys are declared within a participant. If two participants
+	 * use the same name for a key, the qualified name should be used
+	 * (e.g. <code>Alice.k</code>)</p>
+	 */
 	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var participants = EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration);
-		val keysOccurrences = 
+		
+		val keysOccurrences = 	// a map for storing the number of occurrences of a key name 
+								// (if > 1, more than one participant is using that name)
 			EcoreUtil2.getAllContentsOfType(root, KeyDeclaration)		// all the keys declarations
 			.groupBy[k|k.name]											// group by name within a map String -> List<Key>
 			.entrySet													// to set
@@ -84,14 +92,17 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 			candidates.addAll(p.keys)
 		}
 		
-		Scopes.scopeFor(candidates, [KeyDeclaration k|
-			if (keysOccurrences.get(k.name)>1) {
-				val participantName = (k.eContainer as ParticipantDeclaration).name
-				QualifiedName.create(participantName, k.name)				
-			}
-			else {
-				QualifiedName.create(k.name)
-			}			
-		], Scopes.scopeFor(newArrayList))
+		Scopes.scopeFor(
+			candidates, 
+			[KeyDeclaration k|
+				if (keysOccurrences.get(k.name)>1) {
+					val participantName = (k.eContainer as ParticipantDeclaration).name
+					QualifiedName.create(participantName, k.name)				
+				}
+				else {
+					QualifiedName.create(k.name)
+				}			
+			], 
+			Scopes.scopeFor(newArrayList))
 	}
 }
