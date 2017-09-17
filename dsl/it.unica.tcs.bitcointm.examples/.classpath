@@ -23,7 +23,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/nicola/repositories/bitcoinj/core/target/bitcoinj-core-0.15-SNAPSHOT-bundled.jar"/>
-	<classpathentry kind="lib" path="/media/ENC-DATA/repositories/bitcoin-tm/dsl/it.unica.tcs.bitcointm.parent/it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
