@@ -1,18 +1,11 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.BooleanLiteral
-import it.unica.tcs.bitcoinTM.Expression
-import it.unica.tcs.bitcoinTM.HashLiteral
-import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
-import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
-import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
@@ -24,22 +17,21 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 import static extension it.unica.tcs.utils.ASTUtils.*
-import static extension it.unica.tcs.utils.CompilerUtils.*
+import it.unica.tcs.utils.CompilerUtils
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
 	@Inject private extension BitcoinTMTypeSystem
 	@Inject private extension TransactionCompiler	
+	@Inject private extension CompilerUtils
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		
-		for (package : resource.allContents.toIterable.filter(PackageDeclaration)) {
-
-			var subpackage = "factory"
-			var packagePath = package.fullyQualifiedName.append(subpackage).toString(File.separator) ;
-            fsa.generateFile(packagePath + File.separator + "TransactionFactory.java", package.compileTransactionFactory(subpackage))
-        }
+		var package = resource.allContents.toIterable.filter(PackageDeclaration).get(0)
+		var subpackage = "factory"
+		var packagePath = package.fullyQualifiedName.append(subpackage).toString(File.separator) ;
+        fsa.generateFile(packagePath + File.separator + "TransactionFactory.java", package.compileTransactionFactory(subpackage))
 	}
 	
 	
@@ -67,7 +59,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	}
 	
 	def private dispatch compileTxParameters(SerialTransactionDeclaration tx) ''''''
-	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.params.map[p|p.paramType.compileType+" "+p.name].join(", ")»'''
+	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.params.compileFormalParams»'''
 	
 	def private dispatch compileTxBody(SerialTransactionDeclaration tx) '''
 		return ITransactionBuilder.fromSerializedTransaction(«tx.compileNetworkParams», "«tx.bytes»");
@@ -95,7 +87,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 				inScript = new ScriptBuilder2().number(42);
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
-				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.map[e|e.compileActualParam].join(",")»);
+				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.compileActualParams»);
 				outIndex = «input.outpoint»;
 				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
 				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
@@ -124,14 +116,5 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«ENDIF»		    	
 		return tb;
 	'''
-	
-	def private dispatch String compileActualParam(Expression s) '''/* error */'''
-	def private dispatch String compileActualParam(VariableReference v) { v.ref.name }
-	def private dispatch String compileActualParam(StringLiteral s) { '"'+s.value+'"' }
-	def private dispatch String compileActualParam(NumberLiteral n) { n.value.toString }
-	def private dispatch String compileActualParam(BooleanLiteral b) { b.isTrue.toString }
-	def private dispatch String compileActualParam(HashLiteral h) '''Utils.HEX.decode("«BitcoinJUtils.encode(h.value)»")'''
-	
-	
 	
 }

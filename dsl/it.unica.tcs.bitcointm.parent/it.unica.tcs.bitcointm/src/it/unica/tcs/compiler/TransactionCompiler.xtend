@@ -18,6 +18,7 @@ import it.unica.tcs.bitcointm.lib.ITransactionBuilder
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.bitcointm.lib.TransactionBuilder
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.bitcoinj.script.Script.ScriptType
 import org.bitcoinj.script.ScriptBuilder
@@ -25,9 +26,8 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
-import static extension it.unica.tcs.utils.Utils2.*
 import static extension it.unica.tcs.utils.ASTUtils.*
-import static extension it.unica.tcs.utils.CompilerUtils.*
+import static extension it.unica.tcs.utils.Utils2.*
 
 class TransactionCompiler {
 	
@@ -35,7 +35,7 @@ class TransactionCompiler {
     @Inject private extension ASTUtils astUtils
 	@Inject private extension ExpressionCompiler expGenerator
 //	@Inject private extension Optimizer optimizer
-	
+    @Inject private extension CompilerUtils
     
     def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
 		return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);

@@ -78,6 +78,7 @@ auxiliary {
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
         
     simplifySafe(Expression exp) : Expression
+    interpretSafe(Expression exp) : Expression
 }
 
 judgments {
@@ -166,6 +167,38 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
 auxiliary simplifySafe(Expression exp) {
 	var simplifiedExp = simplify(exp)
     if (simplifiedExp.failed) exp else simplifiedExp.first
+}
+
+auxiliary interpretSafe(Expression exp) {
+	var simplifiedExp = interpret(exp)
+    if (simplifiedExp.failed) exp 
+    else {
+    	val value = simplifiedExp.first
+    	
+    	if (value instanceof Integer) {
+    		val res = BitcoinTMFactory::eINSTANCE.createNumberLiteral
+    		res.value = value
+    		return res
+    	}
+    	else if (value instanceof String) {
+    		val res = BitcoinTMFactory::eINSTANCE.createStringLiteral
+    		res.value = value
+    		return res
+    	}	
+    	else if (value instanceof Boolean) {
+    		val res = BitcoinTMFactory::eINSTANCE.createBooleanLiteral
+    		res.^true = value
+    		return res	
+    	}	
+    	else if (value instanceof byte[]) {
+			val res = BitcoinTMFactory::eINSTANCE.createHashLiteral
+    		res.value = value
+    		return res    		
+    	}	
+    	else {
+    		fail null
+    	}	
+    }
 }
 
 

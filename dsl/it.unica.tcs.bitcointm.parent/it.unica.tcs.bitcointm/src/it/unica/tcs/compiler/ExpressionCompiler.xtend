@@ -23,9 +23,11 @@ import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
+import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction.SigHash
@@ -34,8 +36,6 @@ import org.bitcoinj.script.ScriptBuilder
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.utils.Utils2.*
-import static extension it.unica.tcs.utils.CompilerUtils.*
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 /*
  * EXPRESSIONS
@@ -49,6 +49,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 class ExpressionCompiler {
 	
 	@Inject private extension BitcoinTMTypeSystem typeSystem
+	@Inject private extension CompilerUtils
 	
     def dispatch ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
         throw new CompileException

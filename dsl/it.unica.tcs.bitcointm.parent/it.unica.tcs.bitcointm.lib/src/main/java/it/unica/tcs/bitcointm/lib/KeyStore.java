@@ -2,8 +2,8 @@ package it.unica.tcs.bitcointm.lib;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Utils;
@@ -13,7 +13,7 @@ public class KeyStore {
 	private static final KeyStore instance = new KeyStore();
 	private KeyStore() {}
 
-	private final Map<String, ECKey> store = new HashMap<>();
+	private final Map<String, ECKey> store = new ConcurrentHashMap<>();
 	
 	public static KeyStore getInstance() {
 		return instance;

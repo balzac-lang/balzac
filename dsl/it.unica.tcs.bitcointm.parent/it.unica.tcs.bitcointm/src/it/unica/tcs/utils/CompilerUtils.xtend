@@ -1,23 +1,40 @@
 package it.unica.tcs.utils
 
+import com.google.inject.Inject
+import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
+import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Network
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.compiler.CompileException
+import it.unica.tcs.generator.ExpressionGenerator
 import it.xsemantics.runtime.Result
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptOpCodes
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 
+@Singleton
 class CompilerUtils {
 	
-	def static String compileType(Type type) {
+	@Inject private extension ExpressionGenerator
+	
+	def String compileActualParams(EList<Expression> actualParams) {
+		actualParams.map[e|e.compileExpression].join(",")
+	}
+		
+	def String compileFormalParams(EList<Parameter> formalParams) {
+		formalParams.map[p|p.paramType.compileType+" "+p.name].join(", ")
+    }
+	
+	def String compileType(Type type) {
     	if(type instanceof IntType) return "Integer"
     	if(type instanceof HashType) return "byte[]"
     	if(type instanceof StringType) return "String"
@@ -27,7 +44,7 @@ class CompilerUtils {
     	throw new CompileException("Unexpected type "+type.class.simpleName)
     }
     
-    def static String compileNetworkParams(EObject obj) {
+    def String compileNetworkParams(EObject obj) {
 		val list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network);
 			
 		if (list.size()==0)	// network undeclared, assume testnet
@@ -41,7 +58,7 @@ class CompilerUtils {
 		throw new IllegalStateException();
 	}
     
-	def static Class<?> convertType(Type type) {
+	def Class<?> convertType(Type type) {
     	if(type instanceof IntType) return Integer
     	if(type instanceof HashType) return typeof(byte[])
     	if(type instanceof StringType) return String
@@ -52,15 +69,15 @@ class CompilerUtils {
     }
     
     /* ScriptBuilder extensions */
-	def static ScriptBuilder2 append(ScriptBuilder2 sb, Script other) {
+	def ScriptBuilder2 append(ScriptBuilder2 sb, Script other) {
 		return sb.append(other)
 	}
 
-	def static ScriptBuilder2 append(ScriptBuilder2 sb, ScriptBuilder2 other) {
+	def ScriptBuilder2 append(ScriptBuilder2 sb, ScriptBuilder2 other) {
 		return sb.append(other);
 	}
 
-	def static ScriptBuilder2 append(ScriptBuilder2 sb, Result<Object> res) {
+	def ScriptBuilder2 append(ScriptBuilder2 sb, Result<Object> res) {
 		
 		if (res.getFirst() instanceof String){
             sb.data((res.getFirst() as String).getBytes());

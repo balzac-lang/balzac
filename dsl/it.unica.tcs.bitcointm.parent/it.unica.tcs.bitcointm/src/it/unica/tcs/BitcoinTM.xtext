@@ -324,7 +324,7 @@ ProtocolIfThenElse:
 (=> 'else' else=NextProcess)?;
 
 ProtocolExpression returns Expression:
-   Expression		// normal expression (remove if-then-else/sigliteral/versig during validation)
+   Expression		// normal expression (TODO: remove if-then-else/sigliteral/versig during validation)
  | ("do" 
  	  SignOp		// signature operation, returns bytes or string 
  	| VersigOp		// versig operation, returns boolean

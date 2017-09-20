@@ -100,7 +100,7 @@ transaction A4 {
 	output = 0: ""
 	after block 499_999_999
 }
-
+ 
 transaction test(p) {
 	input = Th : (""+p)
 	output = 1000: fun(secret:string). p==secret 
@@ -120,12 +120,12 @@ transaction bar {
 }
 
 //transaction foo(sigma) {
-//	input = bar : sigma
+//	input = bar : sigma 
 //	output = 0: "magic"
 //}
 
-participant Alice {
-	P
+participant Alice { 
+	P(5+89)
 	process P(b) = ask A0 + assert b==4 -> P(789+12)
 	process P1(b) = ask A0 + assert b==4 -> P(789+12)
 	key kA = [
