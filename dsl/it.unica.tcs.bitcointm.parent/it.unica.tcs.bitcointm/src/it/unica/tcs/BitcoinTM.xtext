@@ -213,7 +213,8 @@ Typeable:
 | Parameter
 | Input
 | Output 
-| Expression 
+| Expression
+| ParticipantDeclaration
 | ProcessDeclaration
 | ProcessReference
 | Process

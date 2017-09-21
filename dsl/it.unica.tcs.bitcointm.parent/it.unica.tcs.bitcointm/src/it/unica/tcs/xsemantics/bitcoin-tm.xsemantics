@@ -60,6 +60,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.Parallel
 import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -599,6 +600,15 @@ from {
 /*
  * Protocols/Processes
  */
+rule ParticipantDeclaration
+	G |- TypeSubstitutions substitutions |> ParticipantDeclaration p : Type t
+from {
+	for (d : p.defs) {
+		G |- substitutions |> d : t	
+	}
+	
+	G |- substitutions |> p.process : t
+}
 
 rule ProcessDeclaration
 	G |- TypeSubstitutions substitutions |> ProcessDeclaration p : Type t
@@ -644,9 +654,12 @@ from {
 	for (var i=0; i<pRef.actualParams.size; i++) {
 		var actualParam = pRef.actualParams.get(i)
 		var formalParam = pRef.ref.params.get(i)
-		
+
 		// all the actual parameters are well type and the type is basic
 		G |- substitutions |> actualParam : var Type actualParamType
+
+		println(actualParamType)
+		println(formalParam.paramType)
 		
 		// the actual param type must be unifiable with the formal param type
 		unify(substitutions, actualParamType, formalParam.paramType)
@@ -1081,8 +1094,8 @@ from {
     empty |- new TypeSubstitutions |> stmt: var Type t
 }
 
-checkrule CheckProcessDeclaration for
-    ProcessDeclaration stmt
+checkrule CheckParticipantDeclaration for
+    ParticipantDeclaration stmt
 from {
 	lambdaUtils.resetCounter
     empty |- new TypeSubstitutions |> stmt: var Type t

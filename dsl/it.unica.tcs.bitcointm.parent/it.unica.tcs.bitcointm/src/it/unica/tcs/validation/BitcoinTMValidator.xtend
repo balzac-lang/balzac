@@ -9,7 +9,6 @@ import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
-import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Import
@@ -22,6 +21,7 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
+import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
@@ -31,6 +31,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.utils.ASTUtils
@@ -58,7 +59,6 @@ import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.Utils2.*
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 
 /**
  * This class contains custom validation rules. 
@@ -297,15 +297,29 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-    @Check
-	def void checkDeclarationNameIsUnique(Declaration t) {
+	@Check
+	def void checkDeclarationNameIsUnique(TransactionDeclaration t) {
 		
 		var root = EcoreUtil2.getRootContainer(t);
-		for (other: EcoreUtil2.getAllContentsOfType(root, Declaration)){
+		for (other: EcoreUtil2.getAllContentsOfType(root, TransactionDeclaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.DECLARATION__NAME
+					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+				);
+			}
+		}
+	}
+	
+    @Check
+	def void checkDeclarationNameIsUnique(ParticipantDeclaration t) {
+		
+		var root = EcoreUtil2.getRootContainer(t);
+		for (other: EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration)){
+			
+			if (t!=other && t.getName.equals(other.name)) {
+				error("Duplicated name '"+other.name+"'.", 
+					BitcoinTMPackage.Literals.PARTICIPANT_DECLARATION__NAME
 				);
 			}
 		}
@@ -314,7 +328,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
 	def void checkProcessDeclarationNameIsUnique(ProcessDeclaration t) {
 		
-		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);
+		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);		// within a participant
 		for (other: EcoreUtil2.getAllContentsOfType(container, ProcessDeclaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
@@ -1020,11 +1034,21 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				            );
 			    	}
 	    		}
-	    		
 			} 
     	}
-    	
-    	
     }
+    
+	@Check
+	def void checkProcessReference(ProcessReference pRef) {
+        if (pRef.actualParams.size!=pRef.ref.params.size) {
+            error(
+                "The number of expressions does not match the number of parameters.",
+                pRef,
+                BitcoinTMPackage.Literals.PROCESS_REFERENCE__ACTUAL_PARAMS
+            );
+        }
+	}    
+    
+    
     
 }
