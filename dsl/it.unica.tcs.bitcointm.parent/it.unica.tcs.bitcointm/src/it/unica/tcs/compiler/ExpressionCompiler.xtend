@@ -51,11 +51,8 @@ class ExpressionCompiler {
 	@Inject private extension BitcoinTMTypeSystem typeSystem
 	@Inject private extension CompilerUtils
 	
-    def dispatch ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
-        throw new CompileException
-    }
     
-    def dispatch ScriptBuilder2 compileExpression(KeyDeclaration stmt, Context ctx) {
+    def ScriptBuilder2 getPublicKey(KeyDeclaration stmt, Context ctx) {
         /* push the public key */
         val pvtkey = stmt.body.pvt.value
         val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
@@ -63,25 +60,46 @@ class ExpressionCompiler {
         new ScriptBuilder2().data(key.pubKey)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Hash hash, Context ctx) {
-        var res = typeSystem.interpret(hash)
+
+
+	def ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
+        return exp.interpretSafe.compileExpressionInternal(ctx)
+    }
+
+	// default
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Expression exp, Context ctx) {
+        throw new CompileException
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(NumberLiteral n, Context ctx) {
+        new ScriptBuilder2().number(n.value)
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(BooleanLiteral n, Context ctx) {
+        if(n.isTrue) new ScriptBuilder2().op(OP_TRUE)
+    	else         new ScriptBuilder2().number(OP_FALSE)
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(StringLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value.bytes)
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(HashLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value)
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Hash hash, Context ctx) {
+	    var sb = hash.value.compileExpression(ctx)
         
-        if (res.failed) {
-		    var sb = hash.value.compileExpression(ctx)
-	        
-	        switch(hash.type) {
-	        	case "sha256":	 	sb.op(OP_SHA256)
-	        	case "ripemd160":	sb.op(OP_RIPEMD160)
-	        	case "hash256":	 	sb.op(OP_HASH256)
-	        	case "hash160":		sb.op(OP_HASH160)
-	        }
-        }
-        else {
-        	new ScriptBuilder2().append(res)
+        switch(hash.type) {
+        	case "sha256":	 	sb.op(OP_SHA256)
+        	case "ripemd160":	sb.op(OP_RIPEMD160)
+        	case "hash256":	 	sb.op(OP_HASH256)
+        	case "hash160":		sb.op(OP_HASH160)
         }
     }
 
-    def dispatch ScriptBuilder2 compileExpression(AfterTimeLock stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
         var sb = new ScriptBuilder()
         sb.number(stmt.timelock.value)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
@@ -89,225 +107,112 @@ class ExpressionCompiler {
         stmt.continuation.compileExpression(ctx)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(AndExpression stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-	        var sb = stmt.left.compileExpression(ctx)
-	        sb.append(stmt.right.compileExpression(ctx))
-	        sb.op(OP_BOOLAND)            
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AndExpression stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_BOOLAND)            
     }
 
-    def dispatch ScriptBuilder2 compileExpression(OrExpression stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-	        var sb = stmt.left.compileExpression(ctx)
-	        sb.append(stmt.right.compileExpression(ctx))
-	        sb.op(OP_BOOLOR)            
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(OrExpression stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_BOOLOR)            
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Plus stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-            sb.op(OP_ADD)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Plus stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_ADD)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Minus stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-            sb.op(OP_SUB)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Minus stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_SUB)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Max stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-            sb.op(OP_MAX)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Max stmt, Context ctx) {
+	    var sb = stmt.left.compileExpression(ctx)
+	    sb.append(stmt.right.compileExpression(ctx))
+	    sb.op(OP_MAX)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Min stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-            sb.op(OP_MIN)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Min stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_MIN)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Size stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-	        var sb = stmt.value.compileExpression(ctx)
-	        sb.op(OP_SIZE)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
-        
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Size stmt, Context ctx) {
+        var sb = stmt.value.compileExpression(ctx)
+        sb.op(OP_SIZE)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(BooleanNegation stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.exp.compileExpression(ctx)
-            sb.op(OP_NOT)            
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(BooleanNegation stmt, Context ctx) {
+        var sb = stmt.exp.compileExpression(ctx)
+        sb.op(OP_NOT)            
     }
 
-    def dispatch ScriptBuilder2 compileExpression(ArithmeticSigned stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.exp.compileExpression(ctx)
-            sb.op(OP_NOT)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ArithmeticSigned stmt, Context ctx) {
+        var sb = stmt.exp.compileExpression(ctx)
+        sb.op(OP_NOT)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Between stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.value.compileExpression(ctx)
-            sb.append(stmt.left.compileExpression(ctx))
-            sb.append(stmt.right.compileExpression(ctx))
-            sb.op(OP_WITHIN)
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Between stmt, Context ctx) {
+        var sb = stmt.value.compileExpression(ctx)
+        sb.append(stmt.left.compileExpression(ctx))
+        sb.append(stmt.right.compileExpression(ctx))
+        sb.op(OP_WITHIN)
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Comparison stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-    
-            switch (stmt.op) {
-                case "<": sb.op(OP_LESSTHAN)
-                case ">": sb.op(OP_GREATERTHAN)
-                case "<=": sb.op(OP_LESSTHANOREQUAL)
-                case ">=": sb.op(OP_GREATERTHANOREQUAL)
-            }
-        }
-        else {
-        	new ScriptBuilder2().append(res)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Comparison stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
+
+        switch (stmt.op) {
+            case "<": sb.op(OP_LESSTHAN)
+            case ">": sb.op(OP_GREATERTHAN)
+            case "<=": sb.op(OP_LESSTHANOREQUAL)
+            case ">=": sb.op(OP_GREATERTHANOREQUAL)
         }
     }
     
-    def dispatch ScriptBuilder2 compileExpression(Equals stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Equals stmt, Context ctx) {
+        var sb = stmt.left.compileExpression(ctx)
+        sb.append(stmt.right.compileExpression(ctx))
         
-        if (res.failed) {
-            var sb = stmt.left.compileExpression(ctx)
-            sb.append(stmt.right.compileExpression(ctx))
-            
-            switch (stmt.op) {
-                case "==": sb.op(OP_EQUAL)
-                case "!=": sb.op(OP_EQUAL).op(OP_NOT)
-            }
-        }
-        else {
-        	new ScriptBuilder2().append(res)
+        switch (stmt.op) {
+            case "==": sb.op(OP_EQUAL)
+            case "!=": sb.op(OP_EQUAL).op(OP_NOT)
         }
     }
 
-    def dispatch ScriptBuilder2 compileExpression(IfThenElse stmt, Context ctx) {
-        var res = typeSystem.interpret(stmt)
-        
-        if (res.failed) {
-            var sb = stmt.^if.compileExpression(ctx)
-            sb.op(OP_IF)
-            sb.append(stmt.then.compileExpression(ctx))
-            sb.op(OP_ELSE)
-            sb.append(stmt.^else.compileExpression(ctx))
-            sb.op(OP_ENDIF)            
-        }
-        else {
-        	new ScriptBuilder2().append(res)
-        }
+    def private dispatch ScriptBuilder2 compileExpressionInternal(IfThenElse stmt, Context ctx) {
+        var sb = stmt.^if.compileExpression(ctx)
+        sb.op(OP_IF)
+        sb.append(stmt.then.compileExpression(ctx))
+        sb.op(OP_ELSE)
+        sb.append(stmt.^else.compileExpression(ctx))
+        sb.op(OP_ENDIF)            
     }
 
-    def dispatch ScriptBuilder2 compileExpression(Versig stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
-            sb.append(stmt.pubkeys.get(0).compileExpression(ctx))
+            sb.append(stmt.pubkeys.get(0).getPublicKey(ctx))
             sb.op(OP_CHECKSIG)
         } else {
             val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|sb.append(k.compileExpression(ctx))]
+            stmt.pubkeys.forEach[k|sb.append(k.getPublicKey(ctx))]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
     }
 
-    def dispatch ScriptBuilder2 compileExpression(NumberLiteral n, Context ctx) {
-        new ScriptBuilder2().number(n.value)
-    }
-
-    def dispatch ScriptBuilder2 compileExpression(BooleanLiteral n, Context ctx) {
-        if(n.isTrue)
-        	new ScriptBuilder2().op(OP_TRUE)
-    	else 
-    		new ScriptBuilder2().number(OP_FALSE)
-    }
-
-    def dispatch ScriptBuilder2 compileExpression(StringLiteral s, Context ctx) {
-        new ScriptBuilder2().data(s.value.bytes)
-    }
-    
-    def dispatch ScriptBuilder2 compileExpression(HashLiteral s, Context ctx) {
-        new ScriptBuilder2().data(s.value)
-    }
-
-    def dispatch ScriptBuilder2 compileExpression(Signature stmt, Context ctx) {
-        
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
 		var wif = stmt.key.body.pvt.value
-		
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
         var hashType = switch(stmt.modifier) {	// TODO: move to ASTUtils
                 case AIAO,
@@ -325,14 +230,12 @@ class ExpressionCompiler {
                 case AISO,
                 case AINO: false
             }
-            
         // store an empty value
         var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
         sb
     }
 
-    def dispatch ScriptBuilder2 compileExpression(VariableReference varRef, Context ctx) {
-        
+    def private dispatch ScriptBuilder2 compileExpressionInternal(VariableReference varRef, Context ctx) {
         /*
          * N: altezza dell'altstack
          * i: posizione della variabile interessata
@@ -346,7 +249,6 @@ class ExpressionCompiler {
          * 
          */
         var param = varRef.ref
-        
         var isTxParam = param.eContainer instanceof TransactionDeclaration 
         
         if (isTxParam) {

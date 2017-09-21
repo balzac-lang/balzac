@@ -68,7 +68,7 @@ transaction Th {
 
 transaction Th1 {  
 	input = Th: "secret"
-	output = 0: "HELLO WORLD"    
+	output = 0: "HELLO WORLD" 
 }
 
 transaction A0 {
@@ -120,7 +120,7 @@ transaction bar {
 }
 
 //transaction foo(sigma) {
-//	input = bar : sigma 
+//	input = bar : sigma  
 //	output = 0: "magic"
 //}
 
