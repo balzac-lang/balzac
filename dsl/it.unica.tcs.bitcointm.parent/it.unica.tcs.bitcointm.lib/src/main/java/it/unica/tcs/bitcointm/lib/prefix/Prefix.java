@@ -1,10 +1,7 @@
 package it.unica.tcs.bitcointm.lib.prefix;
 
-import it.unica.tcs.bitcointm.lib.process.Process;
-
 public interface Prefix {
 
+	public boolean ready();
 	public void execute();
-	
-	public Process continuation(); 
 }

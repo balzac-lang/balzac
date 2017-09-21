@@ -7,7 +7,7 @@ import it.unica.tcs.bitcointm.lib.process.Process;
 
 public class Ask extends Assert {
 
-	public Ask(List<TransactionBuilder> txs, Process next) {
+	Ask(List<TransactionBuilder> txs, Process next) {
 		super(()->{
 			
 			return false;

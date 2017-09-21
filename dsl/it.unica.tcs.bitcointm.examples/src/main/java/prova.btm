@@ -124,8 +124,8 @@ transaction bar {
 //	output = 0: "magic"
 //}
 
-participant Alice { 
-	P(45)
+participant Alice {
+	P(45) 
 	process P(b) = ask A0 + assert b==4 -> P(b+1)
 	process P1(b) = ask A0 + assert b==4 -> P(789+12)
 	key kA = [

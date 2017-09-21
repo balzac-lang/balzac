@@ -1,5 +1,8 @@
 package it.unica.tcs.bitcointm.lib.utils;
 
+import org.bitcoinj.core.DumpedPrivateKey;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.ScriptBuilder;
@@ -7,6 +10,10 @@ import org.spongycastle.crypto.digests.RIPEMD160Digest;
 
 public class BitcoinJUtils {
 
+	public static ECKey wifToECKey(String wif, NetworkParameters params) {
+		return DumpedPrivateKey.fromBase58(params, wif).getKey();
+	}
+	
 	public static String encode(byte[] bytes) {
 		return Utils.HEX.encode(bytes);
 	}

@@ -17,6 +17,11 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 
 import it.unica.tcs.utils.CompilerUtils
+import it.unica.tcs.bitcoinTM.Tau
+import it.unica.tcs.bitcoinTM.Assert
+import it.unica.tcs.bitcoinTM.Send
+import it.unica.tcs.bitcoinTM.Receive
+import it.unica.tcs.bitcoinTM.Ask
 
 class ParticipantGenerator extends AbstractGenerator {
 	
@@ -47,15 +52,21 @@ class ParticipantGenerator extends AbstractGenerator {
 		import it.unica.tcs.bitcointm.lib.*;
 		import it.unica.tcs.bitcointm.lib.prefix.*;
 		import it.unica.tcs.bitcointm.lib.process.*;
-		import it.unica.tcs.bitcointm.lib.process.Process;		
+		import it.unica.tcs.bitcointm.lib.process.Process;
+		import static it.unica.tcs.bitcointm.lib.prefix.PrefixFactory.*;
+		import static it.unica.tcs.bitcointm.lib.process.ProcessFactory.*;
+		import static it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*;
 		
 		@SuppressWarnings("unused")
 		public class Participant_«participant.name» extends Participant {
 			
 			private static Participant_«participant.name» instance = new Participant_«participant.name»();
+			«FOR k:participant.keys»
+			private static ECKey «k.name» = wifToECKey("«k.body.pvt.value»", «k.compileNetworkParams»); 
+			«ENDFOR»
 			
 			private Participant_«participant.name»() {
-				super(Participant_«participant.name».class.getName());	
+				super(Participant_«participant.name».class.getName());
 			}
 			
 			public static Participant_«participant.name» instance() {
@@ -67,7 +78,7 @@ class ParticipantGenerator extends AbstractGenerator {
 				/*
 				 * «NodeModelUtils.findActualNodeFor(participant.process).text.trim»
 				 */
-				«participant.process.compileProcess»
+				«participant.process.compileProcess».run();
 			}
 			
 			«FOR pdecl : participant.defs»
@@ -82,7 +93,7 @@ class ParticipantGenerator extends AbstractGenerator {
 		/*
 		 * «NodeModelUtils.findActualNodeFor(decl).text.trim»
 		 */
-		private static class Process_«decl.name» extends Process {
+		private static class Process_«decl.name» implements Process {
 			
 			«FOR p:decl.params»
 			private «p.paramType.compileType» «p.name»;
@@ -108,11 +119,18 @@ class ParticipantGenerator extends AbstractGenerator {
 	}
 	
 	def private dispatch String compileProcess(Choice choice) {
-		""
+		if (choice.actions.size==1) {
+			'''choice(«choice.actions.get(0).compilePrefix»)'''
+		}
+		else {
+			'''
+			choice(
+			«choice.actions.map[p|p.compilePrefix].join(",\n")»)'''
+		}
 	}
 	
 	def private dispatch String compileProcess(ProcessReference pref) {
-		'''Process_«pref.ref.name».instance(«pref.actualParams.compileActualParams»).run();'''
+		'''Process_«pref.ref.name».instance(«pref.actualParams.compileActualParams»)'''
 	}
 	
 	def private dispatch String compileProcess(Parallel p) '''
@@ -128,14 +146,75 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
-		if(«p.exp.compileExpression») {
-			«p.^then.compileProcess»
-		}
-		else {
-			«p.^else.compileProcess»
-		}
+		ifThenElse(
+			() -> { return «p.exp.compileExpression» },
+			() -> { «p.^then.compileProcess» }«IF p.^else!==null»,
+			() -> { «p.^else.compileProcess» }
+			«ENDIF»
+		);
 	'''
 	
+	def private dispatch String compilePrefix(Tau tau) {
+		if (tau.next===null){
+			'''createTau()'''	
+		}
+		else {
+			'''createTau(«tau.next.compileProcess»)'''
+		}
+	}
+	
+	def private dispatch String compilePrefix(Ask ask) {
+		if (ask.next===null){
+			'''createAsk()'''	
+		}
+		else {
+			'''createAsk(«ask.next.compileProcess»)'''
+		}
+	}
+
+	def private dispatch String compilePrefix(Assert ass) {
+		if (ass.exp.compileExpression=="true"){
+			if (ass.next===null){
+				'''createAssert()'''	
+			}
+			else {
+				'''createAssert(«ass.next.compileProcess»)'''
+			}
+		}		
+		else
+			if (ass.next===null){
+				'''
+				createAssert(()->{
+					return «ass.exp.compileExpression»;
+				});'''	
+			}
+			else {
+				'''
+				createAssert(()->{
+					return «ass.exp.compileExpression»;
+				},
+				«ass.next.compileProcess»
+				);'''
+			}
+	}
+	
+	def private dispatch String compilePrefix(Send send) {
+		if (send.next===null){
+			'''createSend()'''	
+		}
+		else {
+			'''createSend(«send.next.compileProcess»)'''
+		}
+	}
+	
+	def private dispatch String compilePrefix(Receive receive) {
+		if (receive.next===null){
+			'''createSend()'''	
+		}
+		else {
+			'''createSend(«receive.next.compileProcess»)'''
+		}
+	}
 }
 
 

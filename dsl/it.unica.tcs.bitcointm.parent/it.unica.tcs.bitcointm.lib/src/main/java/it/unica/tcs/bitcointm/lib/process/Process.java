@@ -1,5 +1,6 @@
 package it.unica.tcs.bitcointm.lib.process;
 
-public abstract class Process implements Runnable {
+@FunctionalInterface
+public interface Process extends Runnable {
 
 }
