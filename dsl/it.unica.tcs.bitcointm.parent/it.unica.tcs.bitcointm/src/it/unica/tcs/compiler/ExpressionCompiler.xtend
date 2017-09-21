@@ -52,16 +52,6 @@ class ExpressionCompiler {
 	@Inject private extension CompilerUtils
 	
     
-    def ScriptBuilder2 getPublicKey(KeyDeclaration stmt, Context ctx) {
-        /* push the public key */
-        val pvtkey = stmt.body.pvt.value
-        val key = DumpedPrivateKey.fromBase58(stmt.networkParams, pvtkey).key
-
-        new ScriptBuilder2().data(key.pubKey)
-    }
-
-
-
 	def ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
         return exp.interpretSafe.compileExpressionInternal(ctx)
     }
@@ -199,7 +189,7 @@ class ExpressionCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
-            sb.append(stmt.pubkeys.get(0).getPublicKey(ctx))
+            sb.data(stmt.pubkeys.get(0).body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams))
             sb.op(OP_CHECKSIG)
         } else {
             val sb = new ScriptBuilder2().number(OP_0)
