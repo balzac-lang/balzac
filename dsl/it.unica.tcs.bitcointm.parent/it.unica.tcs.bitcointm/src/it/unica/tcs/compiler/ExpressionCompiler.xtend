@@ -13,7 +13,6 @@ import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
-import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.Minus
@@ -195,7 +194,7 @@ class ExpressionCompiler {
             val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|sb.append(k.getPublicKey(ctx))]
+            stmt.pubkeys.forEach[k|sb.data(k.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams))]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
