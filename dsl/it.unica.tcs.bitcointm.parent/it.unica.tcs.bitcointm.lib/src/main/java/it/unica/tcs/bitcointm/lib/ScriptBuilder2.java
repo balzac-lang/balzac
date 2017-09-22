@@ -403,12 +403,25 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		throw new IllegalStateException(modifier);
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("freeVariables = ").append(freeVariables.keySet()).append("\n");
+		builder.append("signatures = ").append(signatures.keySet()).append("\n");
+		builder.append("script = ").append(serialize(this)).append("\n");
+		builder.append("         isOpReturn : ").append(this.build().isOpReturn()).append("\n");
+		builder.append("         P2SH       : ").append(this.build().isPayToScriptHash()).append("\n");
+		builder.append("         P2PKH      : ").append(this.build().isSentToAddress());
+		return builder.toString();
+	}
+	
 	
 	/* ---------------------------------------------------------------------------------------------- */
 	/*
 	 * below there are some methods customized from bitcoinJ
 	 */
 	
+
 	private static String serializeChunk(ScriptChunk ch) {
 		StringBuilder buf = new StringBuilder();
         if (ch.isOpCode()) {

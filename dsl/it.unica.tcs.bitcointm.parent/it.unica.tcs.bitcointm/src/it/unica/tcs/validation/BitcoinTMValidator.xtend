@@ -630,8 +630,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
-                input.txRef,
-                BitcoinTMPackage.Literals.INPUT__OUTPOINT
+                input.eContainer,
+                input.eContainingFeature
             );
             return false
         }
@@ -802,7 +802,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 						tbody.eContainer,
 						tbody.eContainingFeature						
 					)
-					return false
 				}
 
                 inScript = txJ.getInput(i).scriptSig
@@ -838,7 +837,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
                     i
                 );
-                return false
             } catch(CompileException e) {
                 
             }
