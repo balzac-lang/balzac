@@ -89,11 +89,11 @@ class ExpressionCompiler {
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
-        var sb = new ScriptBuilder()
+        var sb = new ScriptBuilder2()
         sb.number(stmt.timelock.value)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
         sb.op(OP_DROP)
-        stmt.continuation.compileExpression(ctx)
+        sb.append(stmt.continuation.compileExpression(ctx))
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AndExpression stmt, Context ctx) {
