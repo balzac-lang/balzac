@@ -57,7 +57,6 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
 
-import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.Utils2.*
 
 /**

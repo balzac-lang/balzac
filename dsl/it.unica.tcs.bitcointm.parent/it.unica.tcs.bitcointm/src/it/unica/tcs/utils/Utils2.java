@@ -36,7 +36,7 @@ public class Utils2 {
 		}
 	}
 	
-	public static byte[] wifToHash(String wif, NetworkParameters params) {
+	public static byte[] wifToAddressHash(String wif, NetworkParameters params) {
 		return wifToAddress(wif, params).getHash160();
 	}
 	

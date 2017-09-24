@@ -7,6 +7,8 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import org.eclipse.emf.ecore.resource.Resource
@@ -16,15 +18,13 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 
-import static extension it.unica.tcs.utils.ASTUtils.*
-import it.unica.tcs.utils.CompilerUtils
-
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
 	@Inject private extension BitcoinTMTypeSystem
 	@Inject private extension TransactionCompiler	
 	@Inject private extension CompilerUtils
+	@Inject private extension ASTUtils
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		

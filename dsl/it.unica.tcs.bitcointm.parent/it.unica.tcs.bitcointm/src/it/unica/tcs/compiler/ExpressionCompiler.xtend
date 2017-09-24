@@ -33,6 +33,7 @@ import org.bitcoinj.core.DumpedPrivateKey
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.utils.Utils2.*
+import javax.inject.Singleton
 
 /*
  * EXPRESSIONS
@@ -43,6 +44,7 @@ import static extension it.unica.tcs.utils.Utils2.*
  *  <li> if (12==10+2) then "foo" else "bar" ≡ "foo"
  * </ul>
  */
+@Singleton
 class ExpressionCompiler {
 	
 	@Inject private extension BitcoinTMTypeSystem typeSystem

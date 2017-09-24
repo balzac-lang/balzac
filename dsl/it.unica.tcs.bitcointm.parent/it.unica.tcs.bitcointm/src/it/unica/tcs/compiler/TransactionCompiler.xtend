@@ -26,7 +26,6 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
-import static extension it.unica.tcs.utils.ASTUtils.*
 import static extension it.unica.tcs.utils.Utils2.*
 
 class TransactionCompiler {

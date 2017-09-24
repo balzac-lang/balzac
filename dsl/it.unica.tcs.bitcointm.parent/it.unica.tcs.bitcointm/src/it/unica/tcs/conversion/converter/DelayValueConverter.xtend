@@ -8,14 +8,15 @@ import org.eclipse.xtext.nodemodel.INode
 
 class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
 
-	@Inject IntUnderscoreValueConverter intConverter
-
+	@Inject private IntUnderscoreValueConverter intConverter
+	@Inject private ASTUtils astUtils
+	
 	override Integer toValue(String string, INode node) {
 		
 		if (string.contains("minutes")) {
 			try {
 				var min = intConverter.toValue(string.replaceAll("\\s*minutes",""),node)
-				return ASTUtils.setRelativeDate(convertMinutes(min));
+				return astUtils.setRelativeDate(convertMinutes(min));
 			}
 			catch (NumberFormatException e) {
 				throw new ValueConverterException("The given value '"+string+"' is too large.", node, e);
@@ -24,7 +25,7 @@ class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
 		else if (string.contains("hours")) {
 			try {
 				var min = intConverter.toValue(string.replaceAll("\\s*hours",""),node)
-				return ASTUtils.setRelativeDate(convertHours(min));
+				return astUtils.setRelativeDate(convertHours(min));
 			}
 			catch (NumberFormatException e) {
 				throw new ValueConverterException("The given value '"+string+"' is too large.", node, e);
@@ -33,7 +34,7 @@ class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
 		else if (string.contains("days")) {
 			try {
 				var min = intConverter.toValue(string.replaceAll("\\s*days",""),node)
-				return ASTUtils.setRelativeDate(convertDays(min));
+				return astUtils.setRelativeDate(convertDays(min));
 			}
 			catch (NumberFormatException e) {
 				throw new ValueConverterException("The given value '"+string+"' is too large.", node, e);
@@ -55,7 +56,7 @@ class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
 	
 	
 	private def int convertMinutes(int min) {
-		ASTUtils.safeCastUnsignedShort(((min*60) / 512 + (if (min % 512 == 0) 0 else 1))); 
+		astUtils.safeCastUnsignedShort(((min*60) / 512 + (if (min % 512 == 0) 0 else 1))); 
 	}
 	
 	private def int convertHours(int hours) {
