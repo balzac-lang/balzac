@@ -80,6 +80,7 @@ auxiliary {
         
     simplifySafe(Expression exp) : Expression
     interpretSafe(Expression exp) : Expression
+    interpretAndSimplify(Expression exp) : Expression
 }
 
 judgments {
@@ -163,6 +164,10 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     substitutions.add(left.value, fresh)
     substitutions.add(right.value, fresh)
     fresh
+}
+
+auxiliary interpretAndSimplify(Expression exp) {
+	return interpretSafe(simplifySafe(exp))
 }
 
 auxiliary simplifySafe(Expression exp) {

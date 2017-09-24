@@ -61,15 +61,15 @@ public class ASTUtils {
 	public boolean isP2PKH(Script script) {
         boolean onlyOneSignatureParam = 
         		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
-        boolean onlyOnePubkey = (typeSystem.simplifySafe(script.getExp()) instanceof Versig) 
-        		&& ((Versig) typeSystem.simplifySafe(script.getExp())).getPubkeys().size() == 1;
+        boolean onlyOnePubkey = (typeSystem.interpretAndSimplify(script.getExp()) instanceof Versig) 
+        		&& ((Versig) typeSystem.interpretAndSimplify(script.getExp())).getPubkeys().size() == 1;
 
         return onlyOneSignatureParam && onlyOnePubkey;
     }
 
 	public boolean isOpReturn(Script script) {
         boolean noParam = script.getParams().size() == 0;
-        boolean onlyString = typeSystem.simplifySafe(script.getExp()) instanceof StringLiteral;
+        boolean onlyString = typeSystem.interpretAndSimplify(script.getExp()) instanceof StringLiteral;
         return noParam && onlyString;
     }
 
