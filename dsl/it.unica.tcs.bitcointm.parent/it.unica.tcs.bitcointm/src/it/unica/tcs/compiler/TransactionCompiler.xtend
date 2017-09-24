@@ -92,8 +92,6 @@ class TransactionCompiler {
 
     def ScriptBuilder2 compileInput(Input input) {
 
-		val Context ctx = new Context
-
 		if (input.isPlaceholder) {
  			/*
              * This transaction is like a coinbase transaction.
@@ -116,7 +114,7 @@ class TransactionCompiler {
 	                var sig = (input.exps.get(0) as Expression).simplifySafe as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
-	                var sb = sig.compileInputExpression(ctx)
+	                var sb = sig.compileInputExpression
 	                sb.data(pubkey)
 	    
 	                /* <sig> <pubkey> */
@@ -127,11 +125,11 @@ class TransactionCompiler {
 	                
 	                // build the list of expression pushes (actual parameters) 
 	                input.exps.forEach[e|
-	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+	                	sb.append(e.simplifySafe.compileInputExpression)
 	                ]
 	                
 	                // get the redeem script to push
-	                var redeemScript = input.redeemScript.getRedeemScript(ctx)
+	                var redeemScript = input.redeemScript.getRedeemScript
 	                sb.data(redeemScript.build.program)
 	                
 	                /* <e1> ... <en> <serialized script> */
@@ -151,7 +149,7 @@ class TransactionCompiler {
 	                var sig = input.exps.get(0).simplifySafe as Signature
 	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
-	                var sb = sig.compileInputExpression(ctx)
+	                var sb = sig.compileInputExpression
 	                sb.data(pubkey)
 	    
 	                /* <sig> <pubkey> */
@@ -162,11 +160,11 @@ class TransactionCompiler {
 	                
 	                // build the list of expression pushes (actual parameters) 
 	                input.exps.forEach[e|
-	                	sb.append(e.simplifySafe.compileInputExpression(ctx))
+	                	sb.append(e.simplifySafe.compileInputExpression)
 	                ]
 	                
 	                // get the redeem script to push
-	                var redeemScript = output.script.getRedeemScript(ctx)
+	                var redeemScript = output.script.getRedeemScript
 	                
 	                sb.data(redeemScript.build.program)
 	                                
@@ -183,7 +181,6 @@ class TransactionCompiler {
 	 */
     def ScriptBuilder2 compileOutput(Output output) {
 		
-		val Context ctx = new Context
         var outScript = output.script
 
         if (outScript.isP2PKH) {
@@ -200,7 +197,7 @@ class TransactionCompiler {
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize
-            var redeemScript = output.script.getRedeemScript(ctx)
+            var redeemScript = output.script.getRedeemScript
             var script = ScriptBuilder.createP2SHOutputScript(redeemScript.build)
 
             if (script.scriptType != ScriptType.P2SH)
@@ -231,10 +228,9 @@ class TransactionCompiler {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def private ScriptBuilder2 getRedeemScript(Script script, Context ctx) {
+	def private ScriptBuilder2 getRedeemScript(Script script) {
         
-        if (!ctx.altstack.isEmpty)
-        	throw new CompileException("Altstack must be empty.")
+        var ctx = new Context
         
         // build the redeem script to serialize
         var sb = new ScriptBuilder2()
@@ -247,14 +243,14 @@ class TransactionCompiler {
             sb.op(OP_TOALTSTACK)
         }
         
-        sb.append(script.exp.simplifySafe.compileExpression(ctx))//.optimize TODO: optimization is broken
+        sb.append(script.exp.compileExpression(ctx))
 	}
 	
 	
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def private ScriptBuilder2 compileInputExpression(Expression exp, Context ctx) {
+    def private ScriptBuilder2 compileInputExpression(Expression exp) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
         
@@ -262,9 +258,6 @@ class TransactionCompiler {
         if (!refs.empty)
         	throw new CompileException("The given expression must not have free variables.")
         
-        if (!ctx.altstack.isEmpty)
-        	throw new CompileException("Altstack must be empty.")
-        
-        exp.simplifySafe.compileExpression(ctx)//.optimize TODO: optimization is broken
+        exp.compileExpression(new Context)
     }
 }

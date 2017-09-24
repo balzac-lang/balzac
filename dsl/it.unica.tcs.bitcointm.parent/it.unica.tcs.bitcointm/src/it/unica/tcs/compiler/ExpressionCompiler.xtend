@@ -52,7 +52,7 @@ class ExpressionCompiler {
 	
     
 	def ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
-        return exp.interpretSafe.compileExpressionInternal(ctx)
+        return exp.simplifySafe.interpretSafe.compileExpressionInternal(ctx)
     }
 
 	// default
