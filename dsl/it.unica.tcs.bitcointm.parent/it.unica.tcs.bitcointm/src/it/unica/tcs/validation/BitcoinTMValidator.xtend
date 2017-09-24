@@ -31,8 +31,8 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.bitcointm.lib.KeyStore
 import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
-import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.Utils2.ValidationResult
@@ -47,6 +47,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
 import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescription
@@ -778,15 +779,40 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return true
         }
         
+		println(
+		'''
+		############### correctlySpendsOutput ###############
+		«NodeModelUtils.findActualNodeFor(tx).text.trim»''');
+        
         for (var i=0; i<tbody.inputs.size; i++) {
 
             var input = tbody.inputs.get(i)
             var Script inScript
             var Script outScript
-            
+
             try {
+				println(
+				'''
+				current input : «NodeModelUtils.findActualNodeFor(input).text.trim»
+				''')
+	            
 				var txBuilder = tx.compileTransaction
+		
+				println('''
+				key store
+				«KeyStore.instance.toString»''')
+				
+				println('''
+				txBuilder
+				«txBuilder.toString»''')
+				
+				
+				
 				var txJ = txBuilder.toTransaction(tbody.networkParams)
+				
+				println('''
+				txJ
+				«txJ.toString»''')
 				
 				try {
 					txJ.verify();
@@ -836,8 +862,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
                     i
                 );
-            } catch(CompileException e) {
-                
+            } catch(Exception e) {
+                error('''Ops: Something went wrong''',
+						tbody.eContainer,
+						tbody.eContainingFeature)
             }
         }
         return true

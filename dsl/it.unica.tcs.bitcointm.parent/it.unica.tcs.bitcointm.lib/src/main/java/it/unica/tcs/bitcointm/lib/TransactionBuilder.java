@@ -256,6 +256,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				else {
 					txInput.setSequenceNumber(input.locktime);
 				}
+				txInput.setScriptSig(input.script.build());
 				tx.addInput(txInput);
 			}
 		}
@@ -296,7 +297,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				outScript = txInput.getScriptSig().getChunks().get(txInput.getScriptSig().getChunks().size()-1).data;
             else
             	outScript = txInput.getOutpoint().getConnectedPubKeyScript();
-			sb.setSignatures(tx, i, outScript);
+			sb = sb.setSignatures(tx, i, outScript);
             checkState(sb.signatureSize()==0);
             checkState(sb.freeVariableSize()==0);
             
@@ -312,4 +313,33 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return inputs.size()==1 && inputs.get(0).tx == nullTransaction;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("TransactionBuilder\n\n");
+		if (isCoinbase()) 
+			sb.append("        coinbase\n");
+		if (freeVarBindings.size()>0) {
+			sb.append("\n        bindings : \n");
+			for (Entry<String,Object> binding : freeVarBindings.entrySet())
+				sb.append("            ").append(binding.getKey()).append(" -> ").append(binding.getValue()).append("\n");
+		}
+		if (freeVariables.size()>0)
+			sb.append("        freeVariables : "+this.freeVariables.keySet());
+		sb.append("        ready : ").append(isReady()).append("\n");
+		
+		if (inputs.size()>0) {
+			sb.append("\n        inputs : \n");
+			for(Input in : inputs) {
+				sb.append("            [").append(in.outIndex).append("] ").append(in.script.toString()).append("\n");
+			}
+		}
+		if (outputs.size()>0) {
+			sb.append("\n        outputs : \n");
+			for(Output out : outputs) {
+				sb.append("            [").append(out.value).append("] ").append(out.script.toString()).append("\n");
+			}
+		}
+		return sb.toString();
+	}
 }

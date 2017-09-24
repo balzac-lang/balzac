@@ -64,6 +64,7 @@ public interface ITransactionBuilder {
 			@Override public int getInputsSize() { return tx.getInputs().size(); }
 			@Override public int getOutputsSize() { return tx.getOutputs().size(); }
 			@Override public boolean isCoinbase() { return tx.isCoinBase(); }
+			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
 		};
 	}
 }

@@ -14,13 +14,13 @@ participant Alice {
 transaction T {
 	input = [ 
 		utxo1: sig k; 
-		utxo2: sig k
+		utxo2: sig k 
 	]
 	
 	output = 1.95BTC - 0.001BTC: fun(sigma,a) . versig(k; sigma) && a==5
 }
 
-transaction T1 { 
-	input = T: sig k AIAO 5
-	output = 1.95BTC - 0.002BTC: fun(sigma, a) . versig(k1; sigma) && a==5
-} 
+//transaction T1 { 
+//	input = T: sig k AIAO 5
+//	output = 1.95BTC - 0.002BTC: fun(sigma, a) . versig(k1; sigma) && a==5
+//} 

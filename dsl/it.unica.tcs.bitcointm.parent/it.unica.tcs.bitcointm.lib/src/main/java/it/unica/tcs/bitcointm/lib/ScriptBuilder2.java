@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
@@ -32,19 +33,17 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
 	
 	private final Map<String, SignatureUtil> signatures;
-	private final Map<String,Class<?>> freeVariables;
+	private final Map<String, Class<?>> freeVariables;
 	
 	private static class SignatureUtil {
 		private final String keyID;
 		private final SigHash hashType;
 		private final Boolean anyoneCanPay;
-		private final Boolean pubkeyNeeded;
-		public SignatureUtil(String keyID, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
+		public SignatureUtil(String keyID, SigHash hashType, boolean anyoneCanPay) {
 			checkNotNull(keyID);
 			this.keyID = keyID;
 			this.hashType = hashType;
 			this.anyoneCanPay = anyoneCanPay;
-			this.pubkeyNeeded = pubkeyNeeded;
 		}
 		@Override
 		public int hashCode() {
@@ -53,7 +52,6 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			result = prime * result + (anyoneCanPay ? 1231 : 1237);
 			result = prime * result + ((hashType == null) ? 0 : hashType.hashCode());
 			result = prime * result + ((keyID == null) ? 0 : keyID.hashCode());
-			result = prime * result + (pubkeyNeeded ? 1231 : 1237);
 			return result;
 		}
 		@Override
@@ -74,18 +72,15 @@ public class ScriptBuilder2 extends ScriptBuilder {
 					return false;
 			} else if (!keyID.equals(other.keyID))
 				return false;
-			if (pubkeyNeeded != other.pubkeyNeeded)
-				return false;
 			return true;
 		}
 		@Override
 		public String toString() {
-			return "SignatureUtil [key=" + keyID + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay
-					+ ", pubkeyNeeded=" + pubkeyNeeded + "]";
+			return "SignatureUtil [key=" + keyID + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay + "]";
 		}
 		
 		public String getUniqueKey() {
-			return Utils.HEX.encode(this.keyID.concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).concat(this.pubkeyNeeded.toString()).getBytes());
+			return Utils.HEX.encode(this.keyID.concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).getBytes());
 		}
 	}
 	
@@ -94,8 +89,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			Map<String, SignatureUtil> signatures, 
 			Map<String,Class<?>> freeVariablesTypes) {
 		super(script);
-		this.signatures = signatures;
-		this.freeVariables = freeVariablesTypes;
+		this.signatures = new HashMap<>(signatures);
+		this.freeVariables = new HashMap<>(freeVariablesTypes);
 	}
 
 	private ScriptBuilder2(
@@ -143,18 +138,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	
 	public ScriptBuilder2 signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
 		ECKey key = KeyStore.getInstance().getKey(keyID);
-		return signaturePlaceholder(key, hashType, anyoneCanPay, false);
+		return signaturePlaceholder(key, hashType, anyoneCanPay);
 	}
 	
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
-		return signaturePlaceholder(key, hashType, anyoneCanPay, false);
-	}
-	
-	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay, boolean pubkeyNeeded) {
 		checkNotNull(key);
 		checkNotNull(hashType);
 		String keyID = KeyStore.getInstance().addKey(key);
-		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay,pubkeyNeeded);
+		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
 		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
 		super.addChunk(chunk);
@@ -226,12 +217,19 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				
-				TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
-				sb.data(txSig.encodeToBitcoin());
-				
-				if (sig.pubkeyNeeded) {		// only P2PKH will use this functionality
-					sb.data(key.getPubKey());
+				// check the key is correct when P2PKH
+				Script s = new Script(outScript);
+				if (s.isSentToAddress()) {
+					checkState(Arrays.equals(s.getPubKeyHash(), key.getPubKeyHash()));
 				}
+				
+				TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
+				Sha256Hash hash = tx.hashForSignature(inputIndex, outScript, (byte) txSig.sighashFlags);
+	            boolean isValid =  ECKey.verify(hash.getBytes(), txSig, key.getPubKey());
+	            checkState(isValid);
+	            checkState(txSig.isCanonical());
+	            sb.data(txSig.encodeToBitcoin());
+	            System.out.println(txSig.encodeToBitcoin());
 			}
 			else {
 				sb.addChunk(chunk);

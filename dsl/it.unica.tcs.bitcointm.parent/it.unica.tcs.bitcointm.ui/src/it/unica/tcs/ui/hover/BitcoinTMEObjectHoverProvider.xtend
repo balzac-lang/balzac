@@ -1,5 +1,6 @@
 package it.unica.tcs.ui.hover
 
+import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Parameter
@@ -7,14 +8,14 @@ import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TypeVariable
+import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
 
-import static extension it.unica.tcs.utils.ASTUtils.*
-
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
+	@Inject extension ASTUtils
 	
 	override String getLabel(EObject eobj) {
 		return eobj.labelInternal
