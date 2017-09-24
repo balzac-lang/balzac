@@ -10,9 +10,11 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.Transaction.SigHash;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
+import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils;
 
@@ -126,4 +128,27 @@ public class Utils2 {
 		return isValid? VALIDATION_OK: VALIDATION_ERROR;
 	}
 	
+	public static SigHash toHashType(Modifier mod) {
+		switch (mod) {
+		case AIAO:
+        case SIAO: return SigHash.ALL;
+        case AISO:
+        case SISO: return SigHash.SINGLE;
+        case AINO:
+        case SINO: return SigHash.NONE;
+        default: throw new IllegalStateException();
+		}
+    }
+	
+	public static boolean toAnyoneCanPay(Modifier mod) {
+		switch (mod) {
+        case SIAO:
+        case SISO:
+        case SINO: return true;
+        case AIAO:
+        case AISO:
+        case AINO: return false;
+        default: throw new IllegalStateException();
+		}
+	}
 }

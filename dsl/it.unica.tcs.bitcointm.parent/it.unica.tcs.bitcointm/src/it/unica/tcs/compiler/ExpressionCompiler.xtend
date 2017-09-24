@@ -29,8 +29,6 @@ import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.Transaction.SigHash
-import org.bitcoinj.script.ScriptBuilder
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 
@@ -203,23 +201,8 @@ class ExpressionCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
 		var wif = stmt.key.body.pvt.value
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
-        var hashType = switch(stmt.modifier) {	// TODO: move to ASTUtils
-                case AIAO,
-                case SIAO: SigHash.ALL
-                case AISO,
-                case SISO: SigHash.SINGLE
-                case AINO,
-                case SINO: SigHash.NONE
-            }
-        var anyoneCanPay = switch(stmt.modifier) {	// TODO: move to ASTUtils
-                case SIAO,
-                case SISO,
-                case SINO: true
-                case AIAO,
-                case AISO,
-                case AINO: false
-            }
-        // store an empty value
+        var hashType = stmt.modifier.toHashType
+        var anyoneCanPay = stmt.modifier.toAnyoneCanPay
         var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
         sb
     }
