@@ -30,8 +30,8 @@ transaction T_commitB {
 			versig(kA, kB; sigma1, sigma2)
 }
 
-transaction T_openA {
-	input = T_commitA: sig kA sig kA "sigma1"
+transaction T_openA { 
+	input = T_commitA: sig kA sig kA "secretA"
 	output = 10 BTC - 10: fun(sigma) .versig(kA; sigma)
 }
 

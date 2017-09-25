@@ -863,9 +863,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     i
                 );
             } catch(Exception e) {
-                error('''Ops: Something went wrong''',
+                error('''Something went wrong: see error for details''',
 						tbody.eContainer,
 						tbody.eContainingFeature)
+				e.printStackTrace
             }
         }
         return true

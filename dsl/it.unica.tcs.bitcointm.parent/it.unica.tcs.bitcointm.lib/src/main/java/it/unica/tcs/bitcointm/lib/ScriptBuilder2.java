@@ -171,7 +171,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		for (ScriptChunk chunk : build().getChunks()) {
 			
 			if (Arrays.equals(chunk.data, (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes())) {
-				Class<?> expectedClass = sb.freeVariables.remove(name);
+				Class<?> expectedClass = sb.freeVariables.get(name);
 				if (expectedClass.isInstance(obj)) {
 					if (obj instanceof String){
 			            sb.data(((String) obj).getBytes());
@@ -194,6 +194,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				sb.addChunk(chunk);
 			}
 		}
+		sb.freeVariables.remove(name);
 		return sb;
 	}
 	
@@ -212,7 +213,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
-				SignatureUtil sig = sb.signatures.remove(mapKey);
+				SignatureUtil sig = sb.signatures.get(mapKey);
 				ECKey key = KeyStore.getInstance().getKey(sig.keyID);
 				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
@@ -229,12 +230,12 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	            checkState(isValid);
 	            checkState(txSig.isCanonical());
 	            sb.data(txSig.encodeToBitcoin());
-	            System.out.println(txSig.encodeToBitcoin());
 			}
 			else {
 				sb.addChunk(chunk);
 			}
 		}
+		sb.signatures.clear();
 		return sb;
 	}
 	

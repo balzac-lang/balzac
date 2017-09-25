@@ -174,7 +174,6 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             contained within this tx free variables.
 	 */
 	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript, long locktime) {
-		checkArgument(tx.isReady());
 		checkArgument(freeVariables.entrySet().containsAll(inputScript.getFreeVariables().entrySet()));
 		inputs.add(Input.of(tx, outIndex, inputScript, locktime));
 		return this;
@@ -226,7 +225,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return a bitcoinj transaction.
 	 */
 	public Transaction toTransaction(NetworkParameters params) {
-		checkArgument(this.getFreeVariables().keySet().equals(freeVarBindings.keySet()));
+		// TODO: improve this check
+		checkState(this.isReady());
+		checkState(this.getFreeVariables().keySet().equals(freeVarBindings.keySet()));
 		
 		Transaction tx = new Transaction(params);
 		
@@ -266,7 +267,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 			// bind free variables
 			ScriptBuilder2 sb = output.script;
 			for(Entry<String, Object> freeVar : freeVarBindings.entrySet()) {
-				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
+				sb = sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
 			}
 			checkState(sb.freeVariableSize()==0);
 			checkState(sb.signatureSize()==0);
@@ -293,10 +294,15 @@ public class TransactionBuilder implements ITransactionBuilder {
 			checkState(sb.freeVariableSize()==0);
 			
 			byte[] outScript;
-			if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash())
-				outScript = txInput.getScriptSig().getChunks().get(txInput.getScriptSig().getChunks().size()-1).data;
-            else
-            	outScript = txInput.getOutpoint().getConnectedPubKeyScript();
+			if (txInput.isCoinBase()) {
+				outScript = new byte[]{};
+			}
+			else {
+				if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash())
+					outScript = txInput.getScriptSig().getChunks().get(txInput.getScriptSig().getChunks().size()-1).data;
+				else
+					outScript = txInput.getOutpoint().getConnectedPubKeyScript();
+			}
 			sb = sb.setSignatures(tx, i, outScript);
             checkState(sb.signatureSize()==0);
             checkState(sb.freeVariableSize()==0);

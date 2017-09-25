@@ -35,7 +35,10 @@ class RawTransactionGenerator extends AbstractGenerator {
 			«val txBuilder = tx.compileTransaction»
 			«IF txBuilder.isReady»
 				«val txJ = txBuilder.toTransaction(tx.networkParams)»
-				«txJ.bitcoinSerialize.encode»
+				TX «tx.name»
+				serial: «txJ.bitcoinSerialize.encode»
+				«txJ.toString»
+				
 			«ENDIF»
 		«ENDFOR»
 		'''
