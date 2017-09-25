@@ -1,3 +1,7 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
 package it.unica.tcs.bitcointm.lib.process;
 
 import static com.google.common.base.Preconditions.checkState;

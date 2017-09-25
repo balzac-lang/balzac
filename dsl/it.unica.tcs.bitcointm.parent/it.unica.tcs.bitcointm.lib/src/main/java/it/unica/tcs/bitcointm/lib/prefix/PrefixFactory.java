@@ -1,3 +1,7 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
 package it.unica.tcs.bitcointm.lib.prefix;
 
 import static it.unica.tcs.bitcointm.lib.process.ProcessFactory.nil;

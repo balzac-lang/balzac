@@ -1,3 +1,7 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
 grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"

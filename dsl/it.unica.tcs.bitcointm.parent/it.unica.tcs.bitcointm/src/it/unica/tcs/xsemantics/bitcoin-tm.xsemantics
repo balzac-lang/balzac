@@ -1,3 +1,7 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned

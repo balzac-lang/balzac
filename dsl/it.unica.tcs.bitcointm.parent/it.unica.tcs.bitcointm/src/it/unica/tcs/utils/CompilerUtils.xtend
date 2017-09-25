@@ -1,3 +1,7 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
 package it.unica.tcs.utils
 
 import com.google.inject.Inject
