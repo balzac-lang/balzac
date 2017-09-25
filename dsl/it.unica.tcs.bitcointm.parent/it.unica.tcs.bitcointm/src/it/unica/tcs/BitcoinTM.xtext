@@ -1,0 +1,342 @@
+grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
+
+generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+    
+Model:
+	PackageDeclaration;
+
+PackageDeclaration:
+    'package' name=QualifiedName
+    	imports+=Import*
+		net=Network?
+		declarations+=Declaration*
+;
+
+QualifiedName: ID ('.' ID)*;
+
+Import:
+    'import' importedNamespace=QualifiedNameWithWildcard;
+    
+QualifiedNameWithWildcard:
+    QualifiedName '.*'?;
+
+Declaration: 
+  TransactionDeclaration
+| ParticipantDeclaration; 
+
+Network:
+	{Network} "network" (testnet?="testnet" | "mainnet");
+
+/*
+ * keys
+ */
+KeyDeclaration: 
+	{KeyDeclaration} "key" name=ID "=" body=KeyBody;///*|VerboseKeyBody*/);
+
+KeyBody: "[" pvt=PrivateKey "," pub=PublicKey "]";
+VerboseKeyBody returns KeyBody: 
+	"{" 
+		(("private" ":" pvt=PrivateKey "," "public" ":" pub=PublicKey) |
+		("public" ":" pub=PublicKey "," "private" ":" pvt=PrivateKey))	
+	"}";
+	
+PrivateKey: value=STRING | {PrivateKey} "_";
+PublicKey: value=STRING  | {PublicKey}  "_";
+
+/*
+ * transactions
+ */
+TransactionDeclaration:
+	UserTransactionDeclaration | SerialTransactionDeclaration
+;
+
+UserTransactionDeclaration:
+	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? body=TransactionBody;
+
+SerialTransactionDeclaration:
+	isSerial?='serial' 'transaction' name=ID bytes=STRING;
+	
+TransactionBody: {TransactionBody} "{"
+	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
+	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
+	("after" tlock=Tlock)?
+"}";
+
+
+Input:
+	txRef=TransactionReference ("@" outpoint=INT)? ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+
+InputPlaceholder returns Input:
+	placeholder?="_";
+
+Output:
+	value=BitcoinValue ":" script=Script;
+
+BitcoinValue:
+	exp=Expression;
+
+Tlock: times+=Time ("&&" times+=Time)*;
+
+Time: AbsoluteTime | RelativeTime;
+
+AbsoluteTime:
+	block?="block" value=INT | date?="date" value=TIMESTAMP;
+
+RelativeTime:
+	value=Delay "from" tx=[TransactionDeclaration];
+
+TransactionReference:
+	tx=[TransactionDeclaration] 
+	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
+
+
+Script:
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
+
+Parameter:
+	name=ID (":" paramType=ParameterType)?;
+
+
+/*
+ * expressions
+ */
+Expression:
+    OrExpression;
+
+OrExpression returns Expression:
+	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
+
+AndExpression returns Expression:
+	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
+
+Comparison returns Expression:
+       Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
+
+Equals returns Expression:
+       Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
+ 
+Addition returns Expression:
+    Prefixed (({Plus.left=current} '+' | {Minus.left=current} '-') right=Prefixed)*; 
+
+Prefixed returns Expression:
+    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
+    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
+    Atomic;
+
+Atomic returns Expression:
+    '(' Expression ')' 
+|   Literal 
+|   VariableReference
+|   Signature 
+|	Versig 
+|	Hash 
+|	IfThenElse 
+|	Min 
+|   Max
+|   Between
+|   Size
+|	AfterTimeLock;
+
+VariableReference: ref=[Parameter];
+
+Literal:
+	NumberLiteral 
+|	StringLiteral
+|	BooleanLiteral
+|	HashLiteral;
+
+NumberLiteral: value=Number;
+StringLiteral: value=STRING;
+BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
+HashLiteral: value=BTC_HASH;
+
+IfThenElse:
+	'if' if=Expression
+	"then" then=Atomic
+	'else' else=Atomic;
+
+Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
+
+enum Modifier: 
+	AIAO 
+|	AISO 
+|	AINO
+|	SIAO 
+|	SISO
+|	SINO;
+	
+Versig:
+	"versig" "(" 
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+		signatures+=Expression ("," signatures+=Expression)* 
+	")";
+
+Hash: type=('sha256'|'ripemd160'|'hash256'|'hash160') "(" value=Expression ")";
+
+Min: "min" "(" left=Expression "," right=Expression ")";
+Max: "max" "(" left=Expression"," right=Expression ")";
+Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
+Size: "size" "(" value=Expression ")";
+AfterTimeLock: "after" timelock=Time ":" continuation=Atomic;
+
+
+ParameterType returns Type:
+	BasicType;
+
+Type:
+	BasicType 
+|	TypeVariable;
+
+BasicType:
+	{IntType} value=IntTypeEnum 
+|	{HashType} value=HashTypeEnum
+|   {StringType} value=StringTypeEnum 
+|   {BooleanType} value=BoolTypeEnum
+|   {SignatureType} value=SignatureTypeEnum
+|   {TransactionType} value=TransactionTypeEnum;
+
+TypeVariable:
+	value=ID;
+
+enum IntTypeEnum: int;
+enum HashTypeEnum: hash;
+enum StringTypeEnum: string;
+enum BoolTypeEnum: bool | boolean;
+enum SignatureTypeEnum: signature;
+enum TransactionTypeEnum: transaction;
+
+Typeable:
+  TransactionDeclaration
+| TransactionBody
+| Parameter
+| Input
+| Output 
+| Expression
+| ParticipantDeclaration
+| ProcessDeclaration
+| ProcessReference
+| Process
+| Prefix
+| ProtocolTransactionReference
+;
+
+Number returns ecore::EInt:
+	INT ('.' INT)? "BTC"?
+|	HEX;
+
+Delay returns ecore::EInt:
+	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
+
+MinutesDelay returns ecore::EInt: INT "minutes";
+HoursDelay   returns ecore::EInt: INT "hours";
+DayDelay     returns ecore::EInt: INT "days";
+BlockDelay   returns ecore::EInt: INT "blocks";
+
+terminal HEX returns ecore::EInt:
+	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
+	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
+
+@Override	
+terminal INT returns ecore::EInt:
+	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
+
+terminal BASE58: 
+	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+
+terminal BTC_HASH returns ecore::EByteArray: SHA256 | RIPEMD160 | HASH256 | HASH160;
+terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+	
+terminal TIMESTAMP returns ecore::EInt: 
+	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
+	("T" HOUR ":" MINUTE 					// THH:mm
+		(":" SECOND 						// :ss
+			(OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE)?	// +/- HH:mm
+		)?
+	)?;
+
+terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
+terminal MONTH: ('0'..'9')('1'..'9');
+terminal DAY: ('0'..'9')('1'..'9');	 
+terminal HOUR: ('0'..'2')('0'..'9');
+terminal MINUTE: ('0'..'5')('0'..'9');
+terminal SECOND: ('0'..'5')('0'..'9');
+terminal OFFSET_SIGN: "+"|"-";
+terminal OFFSET_HOUR: '0'('0'..'9') | '1'('0'..'2');
+terminal OFFSET_MINUTE: '0''0' | '3''0';
+
+
+/*
+ * Endpoints contracts
+ */
+ParticipantDeclaration: 'participant' name=ID '{' 
+	process=Process & (keys+=KeyDeclaration | defs+=ProcessDeclaration)*
+'}';
+
+
+ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
+ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+
+Process:
+  Choice 
+| ProtocolIfThenElse
+| ProcessReference
+| '(' Parallel ')'
+;
+
+Parallel returns Process:
+	Process (({Parallel.left=current} => '|' ) right=Process)*;
+
+Choice:
+	actions+=Prefix ('+' actions+=Prefix)*;
+
+SingleChoice returns Choice:
+	actions+=Prefix;
+
+NextProcess returns Process:
+  SingleChoice
+| ProtocolIfThenElse
+| ProcessReference
+| '(' Process ')'
+;
+
+Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('->' next=NextProcess)?;
+
+Tau: {Tau} 't';
+
+Ask: "ask" (txRefs+=ProtocolTransactionReference
+		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}') ;
+	
+Put: 'put' (
+	  	txRefs+=ProtocolTransactionReference
+		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}');
+
+Send: 'send' message=ProtocolExpression 'to' p=[ParticipantDeclaration];
+Receive: 'receive' var=Parameter 'from' p=[ParticipantDeclaration];
+Assert:	'assert' exp=Expression;
+
+ProtocolIfThenElse: 
+'if' exp=ProtocolExpression 
+'then' then=NextProcess 
+(=> 'else' else=NextProcess)?;
+
+ProtocolExpression returns Expression:
+   Expression		// normal expression (TODO: remove if-then-else/sigliteral/versig during validation)
+ | ("do" 
+ 	  SignOp		// signature operation, returns bytes or string 
+ 	| VersigOp		// versig operation, returns boolean
+ );
+
+SignOp:	"sig" tx=ProtocolTransactionReference key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
+VersigOp: "versig" tx=ProtocolTransactionReference "(" 
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+		signatures+=Expression ("," signatures+=Expression)* ")";
+
+ProtocolTransactionReference:
+	txRef=TransactionReference (substitution=TransactionBody)?;
+	
+

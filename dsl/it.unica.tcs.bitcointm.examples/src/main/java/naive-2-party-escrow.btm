@@ -1,0 +1,47 @@
+/*
+ * A: buyer
+ * B: seller
+ * 
+ * Alice wants to buy a product from Bob, but neither of them trusts the other person, so they use a contract
+ * to help ensure Alice gets his merchandise and Bob gets his payment.
+ * A simple contract could say that Alice will spend 1BTC to an output which can only be spent if Alice and 
+ * Bob both sign the input spending it. That means Bob won’t get paid unless Alice gets his merchandise, but
+ * Alice can’t get the merchandise and keep his payment.
+ * 
+ * https://bitcoin.org/en/developer-guide#contracts
+ */
+
+/*
+ * https://www.bitaddress.org/?testnet=true
+ */
+package it.unica.btm.naive_2_party_escrow
+
+network testnet
+ 
+participant Alice {
+	t
+	key kA = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+	key kB = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+	key kC = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+}
+
+transaction TA {
+	input = _
+	output = 1BTC: fun(x). versig(kA; x) 
+}
+
+transaction T {
+	input = TA: sig kA
+	output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
+}
+
+// finalize A
+transaction TA_finalize {
+	input = T: sig kA sig kB 
+	output = 1BTC - 16: fun(x). versig(kA; x)
+}
+// or B
+transaction TB_finalize {
+	input = T: sig kA sig kB 
+	output = 1BTC - 16: fun(x). versig(kB; x)
+}

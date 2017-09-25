@@ -1,0 +1,35 @@
+package it.unica.btm.bip_0062
+
+network testnet
+ 
+
+transaction T {
+	input = _
+	output = 1 BTC - 10:
+		fun(flag, sig1, sig2) . 
+			if (flag)
+			then after block 50 : (versig(kLenny; sig2) && versig(kAlice,kBob; sig1))
+			else versig(kAlice,kBob; sig1,sig2)
+}
+
+transaction T_1 {
+	input = T: true sig kAlice sig kLenny
+	output = 0: "test"
+//	after date 1985-11-05T00:53:20-00:30
+	after block 50
+}
+
+transaction T_2 {
+	input = T: false sig kAlice sig kBob
+	output = 0: "test"
+//	after date 1985-11-05T00:53:20-00:30
+	after block 50
+}
+
+participant Alice {
+	t
+	key kAlice = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+	key kBob = ["cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ", "n3s2D2TSroNtMdAFV88YfhExUmNidqesD1"]
+	key kLenny = ["cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66", "mnuytyYxKXXzkcAJq4FfK31NscDUmYNdhw"]
+}
+
