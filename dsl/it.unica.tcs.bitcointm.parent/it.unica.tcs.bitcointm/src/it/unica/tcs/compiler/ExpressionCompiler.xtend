@@ -188,20 +188,20 @@ class ExpressionCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
-            sb.data(stmt.pubkeys.get(0).body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams))
+            sb.data(stmt.pubkeys.get(0).value.privateKeyToPubkeyBytes(stmt.networkParams))
             sb.op(OP_CHECKSIG)
         } else {
             val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|sb.data(k.body.pvt.value.privateKeyToPubkeyBytes(stmt.networkParams))]
+            stmt.pubkeys.forEach[k|sb.data(k.value.privateKeyToPubkeyBytes(stmt.networkParams))]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
-		var wif = stmt.key.body.pvt.value
+		var wif = stmt.key.value
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
         var hashType = stmt.modifier.toHashType
         var anyoneCanPay = stmt.modifier.toAnyoneCanPay

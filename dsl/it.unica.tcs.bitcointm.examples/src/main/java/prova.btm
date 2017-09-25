@@ -129,9 +129,8 @@ participant Alice {
 //	P(45) 
 //	process P(b) = ask A0 + assert b==4 -> P(b+1)
 //	process P1(b) = ask A0 + assert b==4 -> P(789+12)
-	key kA = [
-	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
-	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
+	key kA = "KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW"		// mainnet, compressed, encoded (address)
+	
 	//key kA = [ 
 	//	"cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC",		// testnet, compressed, encoded (address)
 	//	"mvy1W62ekvYw5oPXxCXtzEpZExzfhFxSn2"]
@@ -141,8 +140,6 @@ participant Bob {
 	t
 //	P
 //	process P = ask A0 + receive x:int from Bob + send 5 to Alice
-	key kB = [
-	"KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW",		// mainnet, compressed, encoded (address)
-	"1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz"]
+	key kB = "KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW"		// mainnet, compressed, encoded (address)
 }
 

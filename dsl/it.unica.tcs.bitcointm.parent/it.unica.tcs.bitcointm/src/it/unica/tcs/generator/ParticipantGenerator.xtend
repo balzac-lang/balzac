@@ -62,7 +62,7 @@ class ParticipantGenerator extends AbstractGenerator {
 			
 			private static Participant_«participant.name» instance = new Participant_«participant.name»();
 			«FOR k:participant.keys»
-			private static ECKey «k.name» = wifToECKey("«k.body.pvt.value»", «k.compileNetworkParams»); 
+			private static ECKey «k.name» = wifToECKey("«k.value»", «k.compileNetworkParams»); 
 			«ENDFOR»
 			
 			private Participant_«participant.name»() {

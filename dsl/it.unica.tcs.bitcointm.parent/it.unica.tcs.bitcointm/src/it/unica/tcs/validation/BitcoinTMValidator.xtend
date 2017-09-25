@@ -13,7 +13,6 @@ import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
-import it.unica.tcs.bitcoinTM.KeyBody
 import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
@@ -102,18 +101,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	/*
 	 * WARNING
 	 */
-	@Check
-	def void checkIncompleteKey(KeyBody kbody){
-		var pvt = kbody.pvt.value
-		var pub = kbody.pub.value
-		
-		if (pvt == "_" && pub == "_") {
-			warning("This key cannot be used anywhere.",
-				kbody.eContainer,
-				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
-			);
-		}		
-	}
 	
 	@Check
 	def void checkUnusedParameters(it.unica.tcs.bitcoinTM.Script script){
@@ -371,10 +358,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 		
 		for(var i=0; i<versig.pubkeys.size; i++) {
-			var k = versig.pubkeys.get(i).body
+			var k = versig.pubkeys.get(i)
 			
-			if (k.pvt.value===null) {
-				error("The public key cannot be computed without the private key.", 
+			if (k.isPlaceholder) {
+				error("Cannot compute the public key.", 
 					versig,
 					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
 					i
@@ -385,9 +372,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	@Check
 	def void checkSign(Signature sig) {
-		var k = sig.key.body
+		var k = sig.key
 		
-		if (k.pvt.value===null) {
+		if (k.isPlaceholder) {
 			error("The referred private key is not declared.", 
 				sig,
 				BitcoinTMPackage.Literals.SIGNATURE__KEY
@@ -410,11 +397,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
 		
-		var pvtKey = keyDecl.body.pvt.value;
-		var pubKey = keyDecl.body.pub.value;
+		var pvtKey = keyDecl.value;
 		
 		var pvtErr = false;
-		var pubErr = false;
 		var ValidationResult validationResult;
 		
 		/*
@@ -423,73 +408,31 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 */
 		if (pvtKey!==null && pvtKey.length!=52) {
 			error("Invalid key length.", 
-				keyDecl.body.pvt,
-				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
+				keyDecl,
+				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
 			)
 			pvtErr = true
 		}
-		
-		/*
-		 * WiF format: 	[1 byte version][20 bytes key][4 bytes checksum] 
-		 * Length:		50 bytes
-		 */
-		if (pubKey!==null && pubKey.length!=34) {
-			error("Invalid key length.", 
-				keyDecl.body.pub,
-				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
-			)
-			pubErr = true
-		}
-		
 		
 		/*
 		 * Check if the encoding is valid (like the checksum bytes)
 		 */
 		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isBase58WithChecksum).ok) {
 			error('''Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
-				keyDecl.body.pvt,
-				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
-			)
+				keyDecl,
+				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE			)
 			pvtErr = true
 		}		
 		
-		if (!pubErr && pubKey !== null && !(validationResult=pubKey.isBase58WithChecksum).ok) {
-			error('''Invalid encoding of the public key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
-				keyDecl.body.pub,
-				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
-			)
-			pubErr = true
-		}
-		
-				
 		/*
 		 * Check if the declarations reflect the network declaration
 		 */
 		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isValidPrivateKey(keyDecl.networkParams)).ok) {
 			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
-				keyDecl.body.pvt,
-				BitcoinTMPackage.Literals.PRIVATE_KEY__VALUE
+				keyDecl,
+				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
 			)
 			pvtErr = true
-		}
-		
-		if (!pubErr && pubKey !== null && !(validationResult=pubKey.isValidPublicKey(keyDecl.networkParams)).ok) {
-			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
-				keyDecl.body.pub,
-				BitcoinTMPackage.Literals.PUBLIC_KEY__VALUE
-			)
-			pubErr = true
-		}
-		
-		
-		/*
-		 * Check if the declared keys are a valid pair
-		 */
-		if (!pvtErr && !pubErr && pubKey!==null && pvtKey!==null && !(validationResult=isValidKeyPair(pvtKey,pubKey,keyDecl.networkParams)).ok
-		) {
-			error("The given keys are not a valid pair. You can omit the public part (it will be derived).",
-				BitcoinTMPackage.Literals.KEY_DECLARATION__BODY
-			)
 		}
 	}
 	

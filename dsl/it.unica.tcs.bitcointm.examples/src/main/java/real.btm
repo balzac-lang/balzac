@@ -7,15 +7,20 @@ serial transaction utxo2 "010000000196892738fda7a089e6ca647ebf5bd7c37944cd76d56a
 
 participant Alice {
 	t
-	key k = ["cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC", "mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9"]	// 1.95 BTC
-	key k1 = ["cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4", "mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz"]
+	key k = "cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC"	// 1.95 BTC
+	key k1 = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
 }
 
-transaction T {
+transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468 (UTXO)
 	input = [ 
 		utxo1: sig k; 
 		utxo2: sig k 
 	]
-	
 	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma)
 }
+
+transaction T1 {
+	input = T : sig k
+	output = 1.95BTC - 0.002BTC: fun(sigma, secret:int) . versig(k; sigma) && hash160(secret)==hash160:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
+}
+

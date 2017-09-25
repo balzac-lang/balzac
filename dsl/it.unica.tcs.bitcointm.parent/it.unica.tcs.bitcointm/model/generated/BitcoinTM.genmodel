@@ -49,17 +49,8 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyDeclaration/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//KeyDeclaration/body"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//KeyBody">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//KeyBody/pvt"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//KeyBody/pub"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//PrivateKey">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//PrivateKey/value"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//PublicKey">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//PublicKey/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyDeclaration/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyDeclaration/placeholder"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionDeclaration/name"/>

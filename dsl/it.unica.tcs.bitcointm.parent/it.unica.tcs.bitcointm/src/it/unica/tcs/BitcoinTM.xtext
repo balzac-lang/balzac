@@ -33,18 +33,8 @@ Network:
  * keys
  */
 KeyDeclaration: 
-	{KeyDeclaration} "key" name=ID "=" body=KeyBody;///*|VerboseKeyBody*/);
-
-KeyBody: "[" pvt=PrivateKey "," pub=PublicKey "]";
-VerboseKeyBody returns KeyBody: 
-	"{" 
-		(("private" ":" pvt=PrivateKey "," "public" ":" pub=PublicKey) |
-		("public" ":" pub=PublicKey "," "private" ":" pvt=PrivateKey))	
-	"}";
+	{KeyDeclaration} "key" name=ID "=" (value=STRING | placeholder?="_");
 	
-PrivateKey: value=STRING | {PrivateKey} "_";
-PublicKey: value=STRING  | {PublicKey}  "_";
-
 /*
  * transactions
  */

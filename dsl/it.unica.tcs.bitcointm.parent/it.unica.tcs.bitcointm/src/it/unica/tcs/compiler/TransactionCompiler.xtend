@@ -27,6 +27,7 @@ import org.eclipse.xtext.EcoreUtil2
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 import static extension it.unica.tcs.utils.Utils2.*
+import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
 
 class TransactionCompiler {
 	
@@ -111,7 +112,7 @@ class TransactionCompiler {
 	            
 	            if (output.scriptPubKey.isSentToAddress) {
 	                var sig = (input.exps.get(0) as Expression).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
+	                var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
 	                var sb = sig.compileInputExpression
 	                sb.data(pubkey)
@@ -146,7 +147,7 @@ class TransactionCompiler {
 	            if (output.script.isP2PKH) {
 	            	
 	                var sig = input.exps.get(0).simplifySafe as Signature
-	                var pubkey = sig.key.body.pvt.value.privateKeyToPubkeyBytes(input.networkParams)
+	                var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
 	                
 	                var sb = sig.compileInputExpression
 	                sb.data(pubkey)
@@ -184,7 +185,7 @@ class TransactionCompiler {
 
         if (outScript.isP2PKH) {
             var versig = outScript.exp.simplifySafe as Versig
-            var pk = versig.pubkeys.get(0).body.pub.value.wifToAddress(output.networkParams)
+            var pk = versig.pubkeys.get(0).value.wifToECKey(output.networkParams).toAddress(output.networkParams)
 
             var script = ScriptBuilder.createOutputScript(pk)
 
