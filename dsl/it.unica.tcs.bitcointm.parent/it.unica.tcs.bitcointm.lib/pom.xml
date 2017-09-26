@@ -26,5 +26,10 @@
 			<artifactId>bitcoinj-core</artifactId>
 			<version>0.15-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sulacosoft</groupId>
+			<artifactId>BitcoindConnector4J</artifactId>
+			<version>0.2.0</version>
+		</dependency>
 	</dependencies>
 </project>
