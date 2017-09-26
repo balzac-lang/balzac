@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib;
+package it.unica.tcs.lib;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -15,7 +15,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils;
+import it.unica.tcs.lib.utils.BitcoinJUtils;
 
 public class KeyStore {
 

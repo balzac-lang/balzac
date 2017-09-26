@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Lib
 Bundle-SymbolicName: it.unica.tcs.bitcointm.lib
 Bundle-Version: 1.0.2
-Export-Package: it.unica.tcs.bitcointm.lib,
- it.unica.tcs.bitcointm.lib.utils
+Export-Package: it.unica.tcs.lib,
+ it.unica.tcs.lib.utils
 Require-Bundle: it.unica.tcs.bitcointm.bitcoinj;bundle-version="0.15.0";visibility:=reexport,
  com.google.guava;bundle-version="21.0.0"

@@ -2,13 +2,13 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.process;
+package it.unica.tcs.lib.process;
 
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.function.Supplier;
 
-import it.unica.tcs.bitcointm.lib.prefix.Prefix;
+import it.unica.tcs.lib.prefix.Prefix;
 
 public class ProcessFactory {
 

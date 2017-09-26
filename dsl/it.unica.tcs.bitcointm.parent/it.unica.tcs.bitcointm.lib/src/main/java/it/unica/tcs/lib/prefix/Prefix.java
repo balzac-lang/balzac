@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.prefix;
+package it.unica.tcs.lib.prefix;
 
 public interface Prefix {
 

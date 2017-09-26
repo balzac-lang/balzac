@@ -29,7 +29,7 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcointm.lib.ScriptBuilder2
+import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem

@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.utils;
+package it.unica.tcs.lib.utils;
 
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;

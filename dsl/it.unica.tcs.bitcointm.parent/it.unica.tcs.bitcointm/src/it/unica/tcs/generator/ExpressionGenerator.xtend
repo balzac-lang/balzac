@@ -23,7 +23,7 @@ import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.VariableReference
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
+import it.unica.tcs.lib.utils.BitcoinJUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 

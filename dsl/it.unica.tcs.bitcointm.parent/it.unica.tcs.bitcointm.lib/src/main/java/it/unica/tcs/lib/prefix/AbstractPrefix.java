@@ -2,9 +2,9 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.prefix;
+package it.unica.tcs.lib.prefix;
 
-import it.unica.tcs.bitcointm.lib.process.Process;
+import it.unica.tcs.lib.process.Process;
 
 public abstract class AbstractPrefix implements Prefix {
 

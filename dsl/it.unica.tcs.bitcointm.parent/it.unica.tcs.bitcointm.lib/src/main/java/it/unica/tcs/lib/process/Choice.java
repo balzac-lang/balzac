@@ -2,9 +2,9 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.process;
+package it.unica.tcs.lib.process;
 
-import it.unica.tcs.bitcointm.lib.prefix.Prefix;
+import it.unica.tcs.lib.prefix.Prefix;
 
 public class Choice implements Process {
 

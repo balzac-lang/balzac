@@ -15,9 +15,9 @@ import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
-import it.unica.tcs.bitcointm.lib.ScriptBuilder2
 import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.generator.ExpressionGenerator
+import it.unica.tcs.lib.ScriptBuilder2
 import it.xsemantics.runtime.Result
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptOpCodes

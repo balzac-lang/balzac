@@ -2,13 +2,13 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib.prefix;
+package it.unica.tcs.lib.prefix;
 
-import static it.unica.tcs.bitcointm.lib.process.ProcessFactory.nil;
+import static it.unica.tcs.lib.process.ProcessFactory.nil;
 
 import java.util.function.Supplier;
 
-import it.unica.tcs.bitcointm.lib.process.Process;
+import it.unica.tcs.lib.process.Process;
 
 public class PrefixFactory {
 

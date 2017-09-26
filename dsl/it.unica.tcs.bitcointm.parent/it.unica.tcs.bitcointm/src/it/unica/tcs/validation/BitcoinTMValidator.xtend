@@ -34,9 +34,9 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcointm.lib.KeyStore
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.lib.KeyStore
+import it.unica.tcs.lib.utils.BitcoinJUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet

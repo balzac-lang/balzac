@@ -16,8 +16,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-
-import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
+import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 class RawTransactionGenerator extends AbstractGenerator {
 	

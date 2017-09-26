@@ -24,7 +24,7 @@ import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils;
+import it.unica.tcs.lib.utils.BitcoinJUtils;
 import it.unica.tcs.validation.ValidationResult;
 
 @Singleton

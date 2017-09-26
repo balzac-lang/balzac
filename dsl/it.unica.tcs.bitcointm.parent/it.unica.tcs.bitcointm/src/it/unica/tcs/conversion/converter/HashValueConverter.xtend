@@ -4,7 +4,7 @@
 
 package it.unica.tcs.conversion.converter
 
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
+import it.unica.tcs.lib.utils.BitcoinJUtils
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode

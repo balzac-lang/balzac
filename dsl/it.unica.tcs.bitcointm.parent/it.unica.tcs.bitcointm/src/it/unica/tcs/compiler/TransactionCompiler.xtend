@@ -17,10 +17,10 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcointm.lib.CoinbaseTransactionBuilder
-import it.unica.tcs.bitcointm.lib.ITransactionBuilder
-import it.unica.tcs.bitcointm.lib.ScriptBuilder2
-import it.unica.tcs.bitcointm.lib.TransactionBuilder
+import it.unica.tcs.lib.CoinbaseTransactionBuilder
+import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.ScriptBuilder2
+import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -29,8 +29,7 @@ import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-
-import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
+import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 class TransactionCompiler {
 	

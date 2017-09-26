@@ -2,12 +2,12 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.bitcointm.lib;
+package it.unica.tcs.lib;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 
-import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils;
+import it.unica.tcs.lib.utils.BitcoinJUtils;
 
 public interface ITransactionBuilder {
 

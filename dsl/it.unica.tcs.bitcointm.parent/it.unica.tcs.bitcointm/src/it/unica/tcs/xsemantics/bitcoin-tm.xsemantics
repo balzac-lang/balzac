@@ -29,9 +29,12 @@ import it.unica.tcs.bitcoinTM.Minus
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.Parallel
 import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
+import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
@@ -60,11 +63,7 @@ import java.math.BigInteger
 import java.util.Arrays
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
-
-import it.unica.tcs.bitcoinTM.ProcessReference
-import it.unica.tcs.bitcoinTM.Parallel
-import static extension it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*
-import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 

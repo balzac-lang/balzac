@@ -14,6 +14,9 @@ import org.bitcoinj.params.MainNetParams;
 import org.junit.Before;
 import org.junit.Test;
 
+import it.unica.tcs.lib.KeyStore;
+import it.unica.tcs.lib.ScriptBuilder2;
+
 public class ScriptBuilder2Test {
 
 	/*
