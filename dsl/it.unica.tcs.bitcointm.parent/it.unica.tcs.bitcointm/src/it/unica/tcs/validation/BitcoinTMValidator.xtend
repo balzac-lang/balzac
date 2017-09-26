@@ -38,7 +38,6 @@ import it.unica.tcs.bitcointm.lib.KeyStore
 import it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.utils.ASTUtils
-import it.unica.tcs.utils.Utils2.ValidationResult
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
@@ -60,8 +59,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-
-import static extension it.unica.tcs.utils.Utils2.*
 
 /**
  * This class contains custom validation rules. 

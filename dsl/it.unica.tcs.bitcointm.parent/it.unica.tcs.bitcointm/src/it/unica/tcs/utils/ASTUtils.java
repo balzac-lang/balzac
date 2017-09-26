@@ -23,7 +23,7 @@ import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
 
 @Singleton
-public class ASTUtils {
+public class ASTUtils extends JavaASTUtils {
 	
 	@Inject private BitcoinTMTypeSystem typeSystem;
 //	public boolean allAbsoluteAreBlock(Tlock tlock) {

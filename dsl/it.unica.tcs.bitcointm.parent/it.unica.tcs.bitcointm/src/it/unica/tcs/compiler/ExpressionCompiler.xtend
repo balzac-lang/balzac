@@ -30,14 +30,13 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcointm.lib.ScriptBuilder2
+import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-
-import static extension it.unica.tcs.utils.Utils2.*
-import javax.inject.Singleton
 
 /*
  * EXPRESSIONS
@@ -53,6 +52,7 @@ class ExpressionCompiler {
 	
 	@Inject private extension BitcoinTMTypeSystem typeSystem
 	@Inject private extension CompilerUtils
+    @Inject private extension ASTUtils astUtils
 	
     
 	def ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
