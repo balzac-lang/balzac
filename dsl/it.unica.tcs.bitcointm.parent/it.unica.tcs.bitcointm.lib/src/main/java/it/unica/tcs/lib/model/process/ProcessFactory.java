@@ -2,13 +2,13 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.process;
+package it.unica.tcs.lib.model.process;
 
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.function.Supplier;
 
-import it.unica.tcs.lib.prefix.Prefix;
+import it.unica.tcs.lib.model.prefix.Prefix;
 
 public class ProcessFactory {
 

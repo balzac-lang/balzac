@@ -2,15 +2,15 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.prefix;
+package it.unica.tcs.lib.model.prefix;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import it.unica.tcs.lib.process.Process;
+import it.unica.tcs.lib.model.process.Process;
 
-public class Send extends AbstractPrefix {
+public class Receive extends AbstractPrefix {
 
-	Send(Process next) {
+	Receive(Process next) {
 		super(next);
 	}
 

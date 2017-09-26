@@ -2,13 +2,13 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.prefix;
+package it.unica.tcs.lib.model.prefix;
 
-import static it.unica.tcs.lib.process.ProcessFactory.nil;
+import static it.unica.tcs.lib.model.process.ProcessFactory.nil;
 
 import java.util.function.Supplier;
 
-import it.unica.tcs.lib.process.Process;
+import it.unica.tcs.lib.model.process.Process;
 
 public class PrefixFactory {
 
