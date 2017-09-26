@@ -10,11 +10,11 @@ import java.util.function.Supplier;
 
 import it.unica.tcs.lib.model.process.Process;
 
-public class Assert extends AbstractPrefix {
+public class Check extends AbstractPrefix {
 
 	private final Supplier<Boolean> condition;
 	
-	Assert(Supplier<Boolean> condition, Process next) {
+	Check(Supplier<Boolean> condition, Process next) {
 		super(next);
 		this.condition = condition;
 	}

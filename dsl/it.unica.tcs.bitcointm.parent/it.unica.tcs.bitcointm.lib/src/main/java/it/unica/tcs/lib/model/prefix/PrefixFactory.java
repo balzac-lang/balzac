@@ -29,20 +29,20 @@ public class PrefixFactory {
 	}
 
 	
-	public static Assert createAssert(Supplier<Boolean> condition) {
-		return new Assert(condition, nil());
+	public static Check createAssert(Supplier<Boolean> condition) {
+		return new Check(condition, nil());
 	}
 	
-	public static Assert createAssert(Supplier<Boolean> condition, Process next) {
-		return new Assert(condition, next);
+	public static Check createAssert(Supplier<Boolean> condition, Process next) {
+		return new Check(condition, next);
 	}
 	
-	public static Assert createAssert() {
-		return new Assert(() ->true, nil());
+	public static Check createAssert() {
+		return new Check(() ->true, nil());
 	}
 	
-	public static Assert createAssert(Process next) {
-		return new Assert(() ->true, next);
+	public static Check createAssert(Process next) {
+		return new Check(() ->true, next);
 	}
 	
 	public static Send createSend() {
