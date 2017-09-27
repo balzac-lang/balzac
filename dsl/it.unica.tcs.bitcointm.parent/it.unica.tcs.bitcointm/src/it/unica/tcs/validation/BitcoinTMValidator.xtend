@@ -65,9 +65,6 @@ import static org.bitcoinj.script.Script.*
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
-//@ComposedChecks(
-//	validators=ImportUriValidator
-//)
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 	@Inject private extension IQualifiedNameConverter qualifiedNameConverter

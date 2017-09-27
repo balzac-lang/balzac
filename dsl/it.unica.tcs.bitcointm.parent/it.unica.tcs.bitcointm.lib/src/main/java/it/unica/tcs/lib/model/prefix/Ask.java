@@ -6,7 +6,6 @@ package it.unica.tcs.lib.model.prefix;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.google.inject.Inject;

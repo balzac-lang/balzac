@@ -8,12 +8,43 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.ScriptBuilder;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+import it.unica.tcs.lib.client.BitcoinClientI;
+import it.unica.tcs.lib.client.TransactionNotFoundException;
+
+@Singleton
 public class BitcoinJUtils {
 
+	@Inject private BitcoinClientI bitcoin;
+
+	public Transaction getTransactionByIdOrHex(String txString, NetworkParameters params) {
+		Transaction tx;
+		try {
+			tx = new Transaction(params, BitcoinJUtils.decode(txString));
+		}
+		catch (Exception e) {
+			try {
+				tx = getTransaction(txString, params);
+			}
+			catch (Exception e1) {
+				throw e;	// TODO
+			}
+		}
+		return tx;
+	}
+	
+	public Transaction getTransaction(String txid, NetworkParameters params) throws TransactionNotFoundException {
+		byte[] payloadBytes = decode(bitcoin.getRawTransaction(txid));
+		return new Transaction(params, payloadBytes);
+	}
+	
 	public static ECKey wifToECKey(String wif, NetworkParameters params) {
 		return DumpedPrivateKey.fromBase58(params, wif).getKey();
 	}

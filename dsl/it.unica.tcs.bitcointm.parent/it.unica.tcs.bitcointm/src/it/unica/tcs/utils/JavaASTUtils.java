@@ -24,6 +24,7 @@ import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
+import it.unica.tcs.lib.BitcoinTMUtils;
 import it.unica.tcs.lib.utils.BitcoinJUtils;
 import it.unica.tcs.validation.ValidationResult;
 
@@ -83,22 +84,18 @@ class JavaASTUtils {
 	}
 	
 
+	
 		
 	public ValidationResult isValidTransaction(String txString, NetworkParameters params) {
 		
-		/*
-		 * TODO: perché non consentire anche il recupero della transazione
-		 * tramite il suo hash? Non so ancora quale sia il modo migliore per farlo.
-		 */
 		try {
-			Transaction tx = new Transaction(params, BitcoinJUtils.decode(txString));
+			Transaction tx = BitcoinTMUtils.create().bitcoinLib().getTransactionByIdOrHex(txString, params);
 			tx.verify();
+			return ValidationResult.VALIDATION_OK;
 		}
 		catch (Exception e) {
-			return new ValidationResult(false, e.getMessage());
+			return new ValidationResult(false, e.getMessage());				
 		}
-		
-		return ValidationResult.VALIDATION_OK;
 	}
 	
 	public long getOutputAmount(String txString, NetworkParameters params, int index) {
