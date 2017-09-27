@@ -40,4 +40,9 @@ public class RPCBitcoinClient implements BitcoinClientI {
 			return false;
 		}
 	}
+
+	@Override
+	public String sendTransaction(String transaction) {
+		return api.sendrawtransaction(transaction);
+	}
 }

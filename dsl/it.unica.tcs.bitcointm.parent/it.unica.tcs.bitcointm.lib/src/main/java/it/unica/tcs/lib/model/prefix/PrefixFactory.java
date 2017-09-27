@@ -6,58 +6,68 @@ package it.unica.tcs.lib.model.prefix;
 
 import static it.unica.tcs.lib.model.process.ProcessFactory.nil;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 import it.unica.tcs.lib.model.process.Process;
 
 public class PrefixFactory {
 
-	public static Prefix createTau() {
-		return createAssert();
+	public static Prefix tau() {
+		return check();
 	}
 	
-	public static Prefix createTau(Process next) {
-		return createAssert(next);
+	public static Prefix tau(Process next) {
+		return check(next);
 	}
 
-	public static Prefix createAsk() {
-		return createAssert();
+	public static Prefix ask(String... txsid) {
+		return ask(txsid, nil());
 	}
 	
-	public static Prefix createAsk(Process next) {
-		return createAssert(next);
+	public static Prefix ask(List<String> txsid) {
+		return ask(txsid, nil());
+	}
+	
+	public static Prefix ask(String[] txsid, Process next) {
+		return ask(Arrays.asList(txsid), next);
+	}
+	
+	public static Prefix ask(List<String> txsid, Process next) {
+		return new Ask(txsid, next);
 	}
 
 	
-	public static Check createAssert(Supplier<Boolean> condition) {
-		return new Check(condition, nil());
+	public static Prefix check(Supplier<Boolean> condition) {
+		return check(condition, nil());
 	}
 	
-	public static Check createAssert(Supplier<Boolean> condition, Process next) {
+	public static Prefix check(Supplier<Boolean> condition, Process next) {
 		return new Check(condition, next);
 	}
 	
-	public static Check createAssert() {
-		return new Check(() ->true, nil());
+	public static Prefix check() {
+		return check(() ->true, nil());
 	}
 	
-	public static Check createAssert(Process next) {
-		return new Check(() ->true, next);
+	public static Prefix check(Process next) {
+		return check(() ->true, next);
 	}
 	
-	public static Send createSend() {
-		return new Send(nil());
+	public static Prefix send() {
+		return send(nil());
 	}
 	
-	public static Send createSend(Process next) {
+	public static Prefix send(Process next) {
 		return new Send(next);
 	}
 	
-	public static Receive createReceive() {
-		return new Receive(nil());
+	public static Prefix receive() {
+		return receive(nil());
 	}
 	
-	public static Receive createReceive(Process next) {
+	public static Prefix receive(Process next) {
 		return new Receive(next);
 	}
 }
