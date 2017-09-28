@@ -65,6 +65,7 @@ public class BitcoinTMUtils {
 		System.out.println("Best block count: " + client.getBlockCount());
 		System.out.println("Get raw transaction: " + client.getRawTransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
 		System.out.println("Get raw transaction: " + lib.bitcoindApi().getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
+		System.out.println("Get raw transaction: " + lib.bitcoindApi().getrawtransaction("ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468"));
 		System.out.println("Get raw transaction: " + lib.bitcoindApi().getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", true));
 		System.out.println("Get raw transaction: " + lib.bitcoindApi().getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", false));
 		System.out.println("Is mined: " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66"));

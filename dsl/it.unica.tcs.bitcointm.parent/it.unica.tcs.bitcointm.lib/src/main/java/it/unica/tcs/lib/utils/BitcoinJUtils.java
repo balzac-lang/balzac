@@ -16,6 +16,7 @@ import org.spongycastle.crypto.digests.RIPEMD160Digest;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import it.unica.tcs.lib.client.BitcoinClientException;
 import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
@@ -24,7 +25,7 @@ public class BitcoinJUtils {
 
 	@Inject private BitcoinClientI bitcoin;
 
-	public Transaction getTransactionByIdOrHex(String txString, NetworkParameters params) {
+	public Transaction getTransactionByIdOrHex(String txString, NetworkParameters params) throws BitcoinClientException {
 		Transaction tx;
 		try {
 			tx = new Transaction(params, BitcoinJUtils.decode(txString));
@@ -34,7 +35,7 @@ public class BitcoinJUtils {
 				tx = getTransaction(txString, params);
 			}
 			catch (Exception e1) {
-				throw e;	// TODO
+				throw new BitcoinClientException(e1) ;
 			}
 		}
 		return tx;

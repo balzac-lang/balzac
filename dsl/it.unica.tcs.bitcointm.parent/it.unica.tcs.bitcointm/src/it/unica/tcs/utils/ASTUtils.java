@@ -45,6 +45,14 @@ import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
 @Singleton
 public class ASTUtils {
 	
+	static {
+		System.out.println("Obliooooooooooooo");
+		BitcoinJUtils.encode(new byte[]{});
+		System.out.println("Obliooooooooooooo x2");
+		TestNet3Params.get();
+		System.out.println("Obliooooooooooooo x3");
+	}
+	
 	@Inject private BitcoinTMTypeSystem typeSystem;
 //	public boolean allAbsoluteAreBlock(Tlock tlock) {
 //    	return tlock.getTimes().stream()

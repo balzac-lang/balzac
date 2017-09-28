@@ -18,5 +18,6 @@ Export-Package: it.unica.tcs.lib,
  org.bitcoinj.params,
  org.bitcoinj.script
 Bundle-ClassPath: .,
- lib/BitcoindConnector4J-0.4.0.jar,
- lib/bitcoinj-core-0.15-SNAPSHOT.jar
+ lib/bitcoinj-core-0.15-SNAPSHOT-bundled.jar,
+ lib/BitcoindConnector4J-bundled-0.4.0.jar
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -2,9 +2,6 @@ package it.unica.btm.prova
 
 network mainnet
 
-
-	 
-
 transaction ALFA {
 	input = _
 	output = [
