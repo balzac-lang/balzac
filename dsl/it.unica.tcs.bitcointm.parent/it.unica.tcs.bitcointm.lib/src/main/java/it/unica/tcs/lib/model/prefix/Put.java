@@ -22,7 +22,7 @@ public class Put extends AbstractPrefix {
 
 	@Override
 	public void execute() {
-		String txid = client.sendTransaction(txhex);
+		String txid = client.sendRawTransaction(txhex);
 		Prefix ask = PrefixFactory.ask(txid);
 		ask.execute();
 		next.run();

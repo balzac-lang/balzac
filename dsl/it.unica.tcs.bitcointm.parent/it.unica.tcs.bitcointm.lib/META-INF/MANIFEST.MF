@@ -3,15 +3,20 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Lib
 Bundle-SymbolicName: it.unica.tcs.bitcointm.lib
 Bundle-Version: 1.0.2
-Require-Bundle: it.unica.tcs.bitcointm.bitcoinj;bundle-version="0.15.0";visibility:=reexport,
- com.google.guava;bundle-version="15.0.0",
+Require-Bundle: com.google.guava;bundle-version="21.0.0",
  com.google.inject;bundle-version="3.0.0",
- org.junit;bundle-version="4.12.0"
-Bundle-ClassPath: lib/BitcoindConnector4J-0.2.0.jar
+ org.junit;bundle-version="4.12.0",
+ com.madgag.spongycastle.core;bundle-version="1.51.0"
 Export-Package: it.unica.tcs.lib,
  it.unica.tcs.lib.client,
  it.unica.tcs.lib.client.impl,
  it.unica.tcs.lib.model,
  it.unica.tcs.lib.model.prefix,
  it.unica.tcs.lib.model.process,
- it.unica.tcs.lib.utils
+ it.unica.tcs.lib.utils,
+ org.bitcoinj.core,
+ org.bitcoinj.params,
+ org.bitcoinj.script
+Bundle-ClassPath: .,
+ lib/BitcoindConnector4J-0.4.0.jar,
+ lib/bitcoinj-core-0.15-SNAPSHOT.jar

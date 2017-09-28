@@ -15,6 +15,10 @@ public class Context {
 	public AltStack altstack = new AltStack();
 }
 
+class AltStack extends HashMap<Parameter, AltStackEntry>{
+	private static final long serialVersionUID = 1L;
+}
+
 class AltStackEntry {
 	public final Integer position;
 	public final Integer occurrences;
@@ -28,5 +32,3 @@ class AltStackEntry {
 		return new AltStackEntry(position, occurrences);
 	}
 }
-
-class AltStack extends HashMap<Parameter, AltStackEntry>{}

@@ -29,17 +29,17 @@
 		<dependency>
 			<groupId>com.sulacosoft</groupId>
 			<artifactId>BitcoindConnector4J</artifactId>
-			<version>0.2.0</version>
+			<version>0.4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>23.0</version>
+			<version>21.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.1.0</version>
+			<version>3.0</version>
 		</dependency>
 	</dependencies>
 </project>

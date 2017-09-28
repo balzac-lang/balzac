@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>it.unica.tcs.bitcointm</groupId>
 		<artifactId>it.unica.tcs.bitcointm.parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.1</version>
 	</parent>
 	<artifactId>it.unica.tcs.bitcointm.target</artifactId>
 	<packaging>eclipse-target-definition</packaging>

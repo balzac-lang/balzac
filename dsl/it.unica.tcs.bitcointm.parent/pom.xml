@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.unica.tcs.bitcointm</groupId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<artifactId>it.unica.tcs.bitcointm.parent</artifactId>
 	<packaging>pom</packaging>
 
@@ -12,7 +12,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<xsemantics.version>1.10.0</xsemantics.version>
+		<xsemantics.version>1.12.0</xsemantics.version>
 	</properties>
 
 	<modules>
