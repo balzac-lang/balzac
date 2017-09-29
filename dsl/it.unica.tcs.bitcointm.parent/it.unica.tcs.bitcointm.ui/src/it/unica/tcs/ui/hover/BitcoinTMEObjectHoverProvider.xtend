@@ -13,11 +13,10 @@ import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TypeVariable
+import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-
-import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -66,7 +65,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
 	def dispatch String getDocumentationInternal(KeyDeclaration pvt) '''
 		«IF !pvt.isPlaceholder»
-			«val pvtEC = pvt.value.wifToECKey(pvt.networkParams)»
+			«val pvtEC = BitcoinUtils.wifToECKey(pvt.value, pvt.networkParams)»
 			<pre>
 			Private key
 			    base58 (wif) = «pvt.value»
@@ -74,8 +73,8 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 			    
 			Public key
 				base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
-			    hex          = «pvtEC.pubKey.encode»
-			    hash160      = «pvtEC.pubKeyHash.encode»
+			    hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
+			    hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
 			</pre>
 		«ENDIF»
 		'''

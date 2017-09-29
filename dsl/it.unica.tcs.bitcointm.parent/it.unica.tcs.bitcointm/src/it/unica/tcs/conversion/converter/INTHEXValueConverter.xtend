@@ -9,7 +9,7 @@ import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 import org.eclipse.xtext.util.Strings
 
-class HEXValueConverter extends AbstractLexerBasedConverter<Integer> {
+class INTHEXValueConverter extends AbstractLexerBasedConverter<Integer> {
 
 	override String toEscapedString(Integer value) {
 		return Integer.toString(value, 16);

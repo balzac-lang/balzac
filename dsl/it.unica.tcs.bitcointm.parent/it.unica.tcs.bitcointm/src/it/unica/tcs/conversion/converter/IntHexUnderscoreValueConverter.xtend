@@ -8,7 +8,7 @@ import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.nodemodel.INode
 import org.eclipse.xtext.util.Strings
 
-class HexUnderscoreValueConverter extends HEXValueConverter {
+class IntHexUnderscoreValueConverter extends INTHEXValueConverter {
 
 	override Integer toValue(String string, INode node) {
 		if (Strings.isEmpty(string))

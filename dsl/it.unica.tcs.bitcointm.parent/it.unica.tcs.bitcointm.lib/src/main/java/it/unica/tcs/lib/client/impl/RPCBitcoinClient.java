@@ -2,7 +2,9 @@ package it.unica.tcs.lib.client.impl;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
+import com.sulacosoft.bitcoindconnector4j.BitcoindApiFactory;
 import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
@@ -13,7 +15,18 @@ import it.unica.tcs.lib.client.TransactionNotFoundException;
 @Singleton
 public class RPCBitcoinClient implements BitcoinClientI {
 
-	@Inject private BitcoindApi api;
+	public BitcoindApi api;
+	
+	@Inject
+	public RPCBitcoinClient(
+			@Named("bitcoind.address") String address, 
+			@Named("bitcoind.port") int port, 
+			@Named("bitcoind.protocol") String protocol,
+			@Named("bitcoind.user") String user,
+			@Named("bitcoind.password") String password
+			) {
+		this.api = BitcoindApiFactory.createConnection(address, port, protocol, user, password);
+	}
 	
 	@Override
 	public int getBlockCount() {

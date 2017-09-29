@@ -21,6 +21,8 @@ import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.lib.TransactionBuilder
+import it.unica.tcs.lib.client.BitcoinClientI
+import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -29,10 +31,10 @@ import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 class TransactionCompiler {
 	
+	@Inject private BitcoinClientI bitcoin;
 	@Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject private extension ASTUtils astUtils
 	@Inject private extension ExpressionCompiler expGenerator
@@ -40,7 +42,12 @@ class TransactionCompiler {
     @Inject private extension CompilerUtils
     
     def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
-		return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
+    	if (tx.bytes!==null) {
+			return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
+		}
+		else {
+			return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, bitcoin.getRawTransaction(tx.id));
+		}			
 	}
     
     def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
@@ -187,7 +194,7 @@ class TransactionCompiler {
 
         if (outScript.isP2PKH) {
             var versig = outScript.exp.simplifySafe as Versig
-            var pk = versig.pubkeys.get(0).value.wifToECKey(output.networkParams).toAddress(output.networkParams)
+            var pk = BitcoinUtils.wifToECKey(versig.pubkeys.get(0).value, output.networkParams).toAddress(output.networkParams)
 
             var script = ScriptBuilder.createOutputScript(pk)
 

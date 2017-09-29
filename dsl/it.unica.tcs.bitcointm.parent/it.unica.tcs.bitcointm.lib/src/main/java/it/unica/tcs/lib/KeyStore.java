@@ -15,18 +15,11 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
-import it.unica.tcs.lib.utils.BitcoinJUtils;
+import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public class KeyStore {
 
-	private static final KeyStore instance = new KeyStore();
-	private KeyStore() {}
-
 	private final Map<String, ECKey> store = new ConcurrentHashMap<>();
-	
-	public static KeyStore getInstance() {
-		return instance;
-	}
 	
 	public String addKey(ECKey key) {
 		checkState(!key.isPubKeyOnly(), "Only private key are allowed.");
@@ -56,7 +49,7 @@ public class KeyStore {
 			ECKey key = e.getValue();
 			sb.append(e.getKey()).append(" -> (private) ").append(key.getPrivateKeyAsWiF(TestNet3Params.get()))
 			.append(" or ").append(key.getPrivateKeyAsWiF(MainNetParams.get())).append("\n");
-			sb.append(e.getKey()).append(" -> (public) ").append(key.getPublicKeyAsHex()).append(", (hash) ").append(BitcoinJUtils.encode(key.getPubKeyHash())).append("\n");
+			sb.append(e.getKey()).append(" -> (public) ").append(key.getPublicKeyAsHex()).append(", (hash) ").append(BitcoinUtils.encode(key.getPubKeyHash())).append("\n");
 		}
 		
 		return sb.toString(); 

@@ -21,14 +21,14 @@ import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
 @Singleton
-public class BitcoinJUtils {
+public class BitcoinUtils {
 
 	@Inject private BitcoinClientI bitcoin;
 
 	public Transaction getTransactionByIdOrHex(String txString, NetworkParameters params) throws BitcoinClientException {
 		Transaction tx;
 		try {
-			tx = new Transaction(params, BitcoinJUtils.decode(txString));
+			tx = new Transaction(params, decode(txString));
 		}
 		catch (Exception e) {
 			try {

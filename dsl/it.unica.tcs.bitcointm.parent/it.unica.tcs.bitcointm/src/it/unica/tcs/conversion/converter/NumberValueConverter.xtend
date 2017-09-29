@@ -14,7 +14,7 @@ import org.eclipse.xtext.nodemodel.INode
 class NumberValueConverter extends AbstractLexerBasedConverter<Integer> {
 
 	@Inject IntUnderscoreValueConverter intConverter
-	@Inject HexUnderscoreValueConverter hexConverter
+	@Inject IntHexUnderscoreValueConverter hexConverter
 
 	val patternS = 
 			"((?<intpart>\\d([\\d_]*[\\d]+)?)(\\.(?<decpart>\\d([\\d_]*[\\d]+)?))?(\\s*(?<btcpart>BTC)?))"

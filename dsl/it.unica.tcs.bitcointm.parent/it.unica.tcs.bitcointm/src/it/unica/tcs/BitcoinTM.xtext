@@ -50,7 +50,7 @@ UserTransactionDeclaration:
 	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? body=TransactionBody;
 
 SerialTransactionDeclaration:
-	isSerial?='serial' 'transaction' name=ID bytes=STRING;
+	isSerial?='serial' 'transaction' name=ID '=' (bytes=TXSERIAL | id=TXID);
 	
 TransactionBody: {TransactionBody} "{"
 	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
@@ -218,7 +218,7 @@ Typeable:
 
 Number returns ecore::EInt:
 	INT ('.' INT)? "BTC"?
-|	HEX;
+|	INT_HEX;
 
 Delay returns ecore::EInt:
 	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
@@ -228,7 +228,7 @@ HoursDelay   returns ecore::EInt: INT "hours";
 DayDelay     returns ecore::EInt: INT "days";
 BlockDelay   returns ecore::EInt: INT "blocks";
 
-terminal HEX returns ecore::EInt:
+terminal INT_HEX returns ecore::EInt:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
@@ -244,6 +244,8 @@ terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXID:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::EInt: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd

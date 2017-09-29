@@ -36,7 +36,7 @@ import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.KeyStore
-import it.unica.tcs.lib.utils.BitcoinJUtils
+import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
@@ -44,6 +44,7 @@ import java.util.Set
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
+import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
@@ -58,7 +59,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import org.bitcoinj.script.ScriptException
 
 /**
  * This class contains custom validation rules. 
@@ -67,12 +67,13 @@ import org.bitcoinj.script.ScriptException
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-	@Inject private extension IQualifiedNameConverter qualifiedNameConverter
-    @Inject private extension BitcoinTMTypeSystem typeSystem
-    @Inject private extension ASTUtils astUtils
-    @Inject private extension TransactionCompiler txCompiler
+	@Inject private extension IQualifiedNameConverter
+    @Inject private extension BitcoinTMTypeSystem
+    @Inject private extension ASTUtils
+    @Inject private extension TransactionCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
+	@Inject private KeyStore keyStore
 
 	/*
 	 * INFO
@@ -210,7 +211,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 			var compilationResult = 
 				switch (resInterpret.first) {
-					byte[]: (exp as Hash).type+":"+BitcoinJUtils.encode(resInterpret.first as byte[])
+					byte[]: (exp as Hash).type+":"+BitcoinUtils.encode(resInterpret.first as byte[])
 					String: '''"«resInterpret.first»"''' 
 					default: resInterpret.first.toString
 				} 
@@ -455,12 +456,26 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	def void checkSerialTransaction(SerialTransactionDeclaration tx) {
 		
 		var ValidationResult validationResult;
-        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
-			error(
-				'''The string does not represent a valid transaction. Details: «validationResult.message»''',
-				BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__BYTES
-			);
+		
+		if (tx.bytes!==null) {			
+	        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
+				error(
+					'''The string does not represent a valid transaction. Details: «validationResult.message»''',
+					tx,
+					BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__BYTES
+				);
+			}
 		}
+		else if (tx.id!==null) {
+			if (!(validationResult=tx.id.isValidTransaction(tx.networkParams)).ok) {
+				error(
+					'''The string does not represent a valid transaction id. Details: «validationResult.message»''',
+					tx,
+					BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__ID
+				);
+			}
+		}
+		
 	}
 	
 	@Check
@@ -741,7 +756,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 				println('''
 				key store
-				«KeyStore.instance.toString»''')
+				«keyStore.toString»''')
 				
 				println('''
 				txBuilder
@@ -797,7 +812,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     OUTPUT:  «outScript»
                     «IF outScript.isPayToScriptHash»
                     REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
-                    REDEEM SCRIPT HASH:  «BitcoinJUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
+                    REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
 					«ENDIF»''',
                     input.eContainer,
                     BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 

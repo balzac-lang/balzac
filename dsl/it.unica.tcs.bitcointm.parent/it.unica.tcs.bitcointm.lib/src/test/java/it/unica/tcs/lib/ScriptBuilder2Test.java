@@ -11,23 +11,13 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
-import org.junit.Before;
 import org.junit.Test;
-
-import it.unica.tcs.lib.KeyStore;
-import it.unica.tcs.lib.ScriptBuilder2;
 
 public class ScriptBuilder2Test {
 
 	/*
 	 * TODO: la classe KeyStore dovrebbe essere mockata
 	 */
-	
-	@Before
-	public void before() {
-		KeyStore.getInstance().clear();
-	}
-	
 	@Test
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();
@@ -96,85 +86,99 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_serialize_signature1() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",**]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",**]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature2() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",1*]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",1*]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
     
     @Test
     public void test_serialize_signature3() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",*1]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",*1]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature4() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",11]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",11]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
     
     @Test
     public void test_serialize_signature5() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",*0]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",*0]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature6() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
-    	String expected = "15 [sig,"+KeyStore.getInstance().getUniqueID(key)+",10]"; 
+    	String expected = "15 [sig,"+store.getUniqueID(key)+",10]"; 
     	String actual = ScriptBuilder2.serialize(sb);
     	assertEquals(expected, actual);
     }
     @Test
     public void test_derialize_signature() {
+    	KeyStore store = new KeyStore();
+    	
     	ECKey key = new ECKey();
-    	String keyID = KeyStore.getInstance().addKey(key);
+    	String keyID = store.addKey(key);
     	String serialScript = "15 [sig,"+keyID+",**]"; 
     	ScriptBuilder2 res = ScriptBuilder2.deserialize(serialScript);
 

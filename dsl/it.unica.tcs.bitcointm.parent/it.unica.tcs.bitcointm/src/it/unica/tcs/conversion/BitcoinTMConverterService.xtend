@@ -13,6 +13,9 @@ import it.unica.tcs.conversion.converter.TimestampValueConverter
 import org.eclipse.xtext.common.services.DefaultTerminalConverters
 import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
+import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
+import org.eclipse.xtext.nodemodel.INode
+import org.eclipse.xtext.conversion.ValueConverterException
 
 class BitcoinTMConverterService extends DefaultTerminalConverters {
 	
@@ -41,30 +44,28 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     def IValueConverter<Integer> getIntConverter() {
         return intTerminalConverter
 	}
-	
-//	@ValueConverter(rule = "MinutesDelay")
-//    def IValueConverter<Integer> getMinutesDealy() {
-//        return delayConverter
-//	}	
-//
-//	@ValueConverter(rule = "HoursDelay")
-//    def IValueConverter<Integer> getHoursDealy() {
-//        return delayConverter
-//	}	
-//	
-//	@ValueConverter(rule = "DaysDelay")
-//    def IValueConverter<Integer> getDaysDealy() {
-//        return delayConverter
-//	}	
-//	
-//	@ValueConverter(rule = "BlocksDelay")
-//    def IValueConverter<Integer> getBlocksDealy() {
-//        return delayConverter
-//	}
-	
+		
 	@ValueConverter(rule = "Delay")
-    def IValueConverter<Integer> getDealy() {
+    def IValueConverter<Integer> getDelay() {
         return delayConverter
+	}
+	
+	@ValueConverter(rule = "TXID")
+    def IValueConverter<String> getTXID() {
+        return new AbstractLexerBasedConverter<String>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				string.substring(5)
+			}
+        }
+	}
+	
+	@ValueConverter(rule = "TXSERIAL")
+    def IValueConverter<String> getHEX() {
+        return new AbstractLexerBasedConverter<String>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				string.substring(4)
+			}
+        }
 	}	
 	
 }

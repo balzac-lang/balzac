@@ -6,8 +6,7 @@ package it.unica.tcs.lib;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
-
-import it.unica.tcs.lib.utils.BitcoinJUtils;
+import org.bitcoinj.core.Utils;
 
 public interface ITransactionBuilder {
 
@@ -43,7 +42,6 @@ public interface ITransactionBuilder {
 	 */
 	public abstract boolean isCoinbase();
 	
-	
 	/**
 	 * Return a transaction builder from a bitcoin serialized transaction 
 	 * @param params the network parameters
@@ -51,7 +49,7 @@ public interface ITransactionBuilder {
 	 * @return the builder
 	 */
 	public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, String bytes) {
-		return fromSerializedTransaction(params, BitcoinJUtils.decode(bytes));
+		return fromSerializedTransaction(params, Utils.HEX.decode(bytes));
 	}
 	
 	/**

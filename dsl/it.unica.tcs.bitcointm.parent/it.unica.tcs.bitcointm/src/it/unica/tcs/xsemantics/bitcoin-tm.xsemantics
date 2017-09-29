@@ -58,19 +58,18 @@ import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcoinTM.VersigOp
+import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
 import java.util.Arrays
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
-import static extension it.unica.tcs.lib.utils.BitcoinJUtils.*
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
 validatorExtends AbstractBitcoinTMValidator
 
 inject LambdaUtils lambdaUtils
-
 
 auxiliary {
 	notoccur(Type type, Type other)
@@ -989,15 +988,14 @@ from {
 
     G |- hash.value ~> var Object expResult
     
-    var bytes = expResult.toBytes
+    var bytes = BitcoinUtils.toBytes(expResult)
     
     result = 
 	    switch(hash.type) {
-	    	case "ripemd160": 	ripemd160(bytes) 
-	    	case "sha256": 		sha256(bytes) 
-	    	case "hash160": 	hash160(bytes)
-	    	case "hash256": 	hash256(bytes)
-	    	
+	    	case "ripemd160": 	BitcoinUtils.ripemd160(bytes) 
+	    	case "sha256": 		BitcoinUtils.sha256(bytes) 
+	    	case "hash160": 	BitcoinUtils.hash160(bytes)
+	    	case "hash256": 	BitcoinUtils.hash256(bytes)
 	    } 
 }
 

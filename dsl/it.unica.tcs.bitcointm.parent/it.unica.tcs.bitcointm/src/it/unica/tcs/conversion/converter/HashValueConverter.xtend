@@ -4,13 +4,13 @@
 
 package it.unica.tcs.conversion.converter
 
-import it.unica.tcs.lib.utils.BitcoinJUtils
+import it.unica.tcs.lib.utils.BitcoinUtils
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 
 class HashValueConverter extends AbstractLexerBasedConverter<byte[]> {
-		
+	
 	override toValue(String string, INode node) throws ValueConverterException {
 		
 		var prefix = string.substring(0,string.indexOf(':'))
@@ -26,7 +26,7 @@ class HashValueConverter extends AbstractLexerBasedConverter<byte[]> {
 		}
 		
 		try {
-			return BitcoinJUtils.decode(value.toLowerCase)
+			return BitcoinUtils.decode(value.toLowerCase)
 		}
 		catch (Exception e) {
 			throw new ValueConverterException("Couldn't convert input '" + value + "' to an int value. \n\nDetails: "+e.message, node, e);

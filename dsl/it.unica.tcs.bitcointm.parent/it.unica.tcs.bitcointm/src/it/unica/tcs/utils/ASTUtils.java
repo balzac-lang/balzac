@@ -37,22 +37,14 @@ import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
 import it.unica.tcs.bitcoinTM.Versig;
-import it.unica.tcs.lib.BitcoinTMUtils;
-import it.unica.tcs.lib.utils.BitcoinJUtils;
+import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
 
 @Singleton
 public class ASTUtils {
 	
-	static {
-		System.out.println("Obliooooooooooooo");
-		BitcoinJUtils.encode(new byte[]{});
-		System.out.println("Obliooooooooooooo x2");
-		TestNet3Params.get();
-		System.out.println("Obliooooooooooooo x3");
-	}
-	
+	@Inject private BitcoinUtils bitcoinUtils;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 //	public boolean allAbsoluteAreBlock(Tlock tlock) {
 //    	return tlock.getTimes().stream()
@@ -253,7 +245,7 @@ public class ASTUtils {
 	public ValidationResult isValidTransaction(String txString, NetworkParameters params) {
 		
 		try {
-			Transaction tx = BitcoinTMUtils.create().bitcoinLib().getTransactionByIdOrHex(txString, params);
+			Transaction tx = bitcoinUtils.getTransactionByIdOrHex(txString, params);
 			tx.verify();
 			return ValidationResult.VALIDATION_OK;
 		}
@@ -264,7 +256,7 @@ public class ASTUtils {
 	
 	public long getOutputAmount(String txString, NetworkParameters params, int index) {
 		try {
-			Transaction tx = new Transaction(params, BitcoinJUtils.decode(txString));
+			Transaction tx = new Transaction(params, bitcoinUtils.decode(txString));
 			return tx.getOutput(index).getValue().value;
 		}
 		catch (Exception e) {

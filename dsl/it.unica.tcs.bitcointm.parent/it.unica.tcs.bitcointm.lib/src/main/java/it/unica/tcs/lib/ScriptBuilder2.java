@@ -141,14 +141,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
-		ECKey key = KeyStore.getInstance().getKey(keyID);
+		ECKey key = KeyStoreFactory.getInstance().getKey(keyID);
 		return signaturePlaceholder(key, hashType, anyoneCanPay);
 	}
 	
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
 		checkNotNull(key);
 		checkNotNull(hashType);
-		String keyID = KeyStore.getInstance().addKey(key);
+		String keyID = KeyStoreFactory.getInstance().addKey(key);
 		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
 		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
@@ -218,7 +218,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
 				SignatureUtil sig = sb.signatures.get(mapKey);
-				ECKey key = KeyStore.getInstance().getKey(sig.keyID);
+				ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
 				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				

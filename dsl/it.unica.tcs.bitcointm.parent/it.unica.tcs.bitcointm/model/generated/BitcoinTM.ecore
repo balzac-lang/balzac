@@ -35,6 +35,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="SerialTransactionDeclaration" eSuperTypes="#//TransactionDeclaration">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSerial" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="bytes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionBody" eSuperTypes="#//Typeable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
