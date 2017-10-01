@@ -256,7 +256,7 @@ public class ASTUtils {
 	
 	public long getOutputAmount(String txString, NetworkParameters params, int index) {
 		try {
-			Transaction tx = new Transaction(params, bitcoinUtils.decode(txString));
+			Transaction tx = new Transaction(params, BitcoinUtils.decode(txString));
 			return tx.getOutput(index).getValue().value;
 		}
 		catch (Exception e) {
