@@ -11,4 +11,8 @@ public interface BitcoinClientI {
 	public boolean isMined(String txid, Reliability reliability);
 	
 	public String sendRawTransaction(String transaction);
+	
+	public boolean isUTXO(String txid);
+	
+	public boolean isUTXO(String txid, int n);
 }

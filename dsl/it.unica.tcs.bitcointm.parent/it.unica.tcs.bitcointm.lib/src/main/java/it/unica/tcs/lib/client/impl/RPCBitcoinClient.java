@@ -58,4 +58,14 @@ public class RPCBitcoinClient implements BitcoinClientI {
 	public String sendRawTransaction(String transaction) {
 		return api.sendrawtransaction(transaction);
 	}
+
+	@Override
+	public boolean isUTXO(String txid) {
+		return isUTXO(txid, 0);
+	}
+
+	@Override
+	public boolean isUTXO(String txid, int n) {
+		return this.api.gettxout(txid, n)!=null;
+	}
 }
