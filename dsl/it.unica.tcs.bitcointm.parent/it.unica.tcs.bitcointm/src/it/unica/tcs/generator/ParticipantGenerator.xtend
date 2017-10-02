@@ -54,12 +54,12 @@ class ParticipantGenerator extends AbstractGenerator {
 		import org.bitcoinj.core.*;
 		import org.bitcoinj.script.*;
 		import it.unica.tcs.bitcointm.lib.*;
-		import it.unica.tcs.bitcointm.lib.prefix.*;
-		import it.unica.tcs.bitcointm.lib.process.*;
-		import it.unica.tcs.bitcointm.lib.process.Process;
-		import static it.unica.tcs.bitcointm.lib.prefix.PrefixFactory.*;
-		import static it.unica.tcs.bitcointm.lib.process.ProcessFactory.*;
-		import static it.unica.tcs.bitcointm.lib.utils.BitcoinJUtils.*;
+		import it.unica.tcs.bitcointm.lib.model.prefix.*;
+		import it.unica.tcs.bitcointm.lib.model.process.*;
+		import it.unica.tcs.bitcointm.lib.model.process.Process;
+		import static it.unica.tcs.bitcointm.lib.model.prefix.PrefixFactory.*;
+		import static it.unica.tcs.bitcointm.lib.model.process.ProcessFactory.*;
+		import static it.unica.tcs.bitcointm.lib.utils.BitcoinUtils.*;
 		
 		@SuppressWarnings("unused")
 		public class Participant_«participant.name» extends Participant {

@@ -38,7 +38,6 @@ public class PrefixFactory {
 		return new Ask(txsid, next);
 	}
 
-	
 	public static Prefix check(Supplier<Boolean> condition) {
 		return check(condition, nil());
 	}

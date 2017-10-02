@@ -9,7 +9,7 @@ import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
 import it.unica.tcs.lib.client.BitcoinClientI;
-import it.unica.tcs.lib.client.Reliability;
+import it.unica.tcs.lib.client.Confidentiality;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
 @Singleton
@@ -40,11 +40,11 @@ public class RPCBitcoinClient implements BitcoinClientI {
 
 	@Override
 	public boolean isMined(String txid) {
-		return isMined(txid, Reliability.HIGH);
+		return isMined(txid, Confidentiality.HIGH);
 	}
 
 	@Override
-	public boolean isMined(String txid, Reliability reliability) {
+	public boolean isMined(String txid, Confidentiality reliability) {
 		try {
 			RawTransaction tx = api.getrawtransaction(txid, true);
 			return tx.getConfirmations() >= reliability.getConfirmations();

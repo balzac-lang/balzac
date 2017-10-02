@@ -8,7 +8,7 @@ public interface BitcoinClientI {
 	
 	public boolean isMined(String txid);
 
-	public boolean isMined(String txid, Reliability reliability);
+	public boolean isMined(String txid, Confidentiality reliability);
 	
 	public String sendRawTransaction(String transaction);
 	
