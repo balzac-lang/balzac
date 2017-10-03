@@ -13,7 +13,7 @@ public class Main {
 	public static class Alice extends Participant {
 
 		public Alice() {
-			super("Alice");
+			super("Alice", 10001);
 		}
 
 		@Override
@@ -23,6 +23,9 @@ public class Main {
 				System.out.println("[Alice] sending "+i);
 				send(i, bob);
 				System.out.println("[Alice] sent "+i);
+				try {
+					Thread.sleep(0);
+				} catch (InterruptedException e) {}
 			}
 		}
 	}
@@ -30,7 +33,7 @@ public class Main {
 	public static class Bob extends Participant {
 
 		public Bob() {
-			super("Bob");
+			super("Bob", 10002);
 		}
 
 		@Override
@@ -38,7 +41,7 @@ public class Main {
 			
 			while (true) {
 				System.out.println("[Bob] receiving");
-				Integer i = (Integer) receive(alice);
+				Integer i = Integer.valueOf(receive(alice));
 				System.out.println("[Bob] received "+i);
 			}
 		}

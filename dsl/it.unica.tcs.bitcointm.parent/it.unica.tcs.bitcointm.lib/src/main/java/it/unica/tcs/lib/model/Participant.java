@@ -4,6 +4,12 @@
 
 package it.unica.tcs.lib.model;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,16 +19,30 @@ public abstract class Participant implements Runnable {
 	
 	private final String name;
 	private final ExecutorService executor;
-//	private final ServerSocket serverSocket;
+	private final ServerSocketDaemon receiverDeamon;
 	
-	public Participant(String name) {
+	public Participant(String name, int port) {
 		this.name = name;
 		this.executor = Executors.newCachedThreadPool();
-//		this.serverSocket = new ServerSocket(port);
+		
+		try {
+			this.receiverDeamon = new ServerSocketDaemon(port);
+			this.executor.execute(receiverDeamon);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public String getName() {
 		return this.name;
+	}
+	
+	public InetAddress getHost() throws UnknownHostException {
+		return InetAddress.getLocalHost();
+	}
+	
+	public int getPort() {
+		return receiverDeamon.getPort();
 	}
 
 	abstract public void run();
@@ -52,12 +72,25 @@ public abstract class Participant implements Runnable {
 		return ProcessFactory.choice(PrefixFactory.put(txhex));
 	}
 	
-	public void send(Object msg, Participant p) {
-		
+	public void send(Integer msg, Participant p) {
+		send(msg.toString(), p);
 	}
 	
-	public Object receive(Participant p) {
-		return null;
+	public void send(String msg, Participant p) {
+		try (
+			Socket socket = new Socket(p.getHost(), p.getPort());
+			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter(socket.getOutputStream()));
+		) {
+			writer.write(msg.trim());
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String receive(Participant p) {
+		return receiverDeamon.read();
 	}
 	
 }
