@@ -2,25 +2,24 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.model.prefix;
+package it.unica.tcs.lib.model;
 
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import com.google.inject.Inject;
-
+import it.unica.tcs.lib.BitcoinUtilsFactory;
 import it.unica.tcs.lib.client.BitcoinClientI;
-import it.unica.tcs.lib.model.process.Process;
 
 public class Ask extends AbstractPrefix {
 
-	@Inject private BitcoinClientI client;
+	private BitcoinClientI client;
 	private final List<String> txsid;
 	
-	Ask(List<String> txsid, Process next) {
-		super(next);
+	Ask(List<String> txsid) {
 		this.txsid = txsid;
+		this.client = BitcoinUtilsFactory.create().getBitcoinClient();
 	}
 	
 	@Override
@@ -31,11 +30,10 @@ public class Ask extends AbstractPrefix {
 	@Override
 	public void execute() {
 		checkState(ready());
-		next.run();
 	}
 
 	@Override
 	public String toString(){
-		return "ask {}";
+		return "ask {"+txsid.stream().collect(Collectors.joining(","))+"}";
 	}
 }

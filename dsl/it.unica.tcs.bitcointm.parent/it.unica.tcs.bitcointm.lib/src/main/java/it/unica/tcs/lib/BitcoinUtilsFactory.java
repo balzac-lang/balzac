@@ -47,6 +47,10 @@ public class BitcoinUtilsFactory {
     public List<Module> getModules() {
     	return modules;
     }
+    
+    public BitcoinClientI getBitcoinClient() {
+    	return injector.getInstance(BitcoinClientI.class);
+    }
 	
 	public static void main(String[] args) throws TransactionNotFoundException {
 		

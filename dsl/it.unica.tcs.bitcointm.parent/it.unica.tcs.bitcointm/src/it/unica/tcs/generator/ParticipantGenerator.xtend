@@ -150,21 +150,16 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
-		ifThenElse(
-			() -> { return «p.exp.compileExpression» },
-			() -> { «p.^then.compileProcess» }«IF p.^else!==null»,
-			() -> { «p.^else.compileProcess» }
-			«ENDIF»
-		);
+		if(«p.exp.compileExpression» ) {
+			«p.^then.compileProcess» 
+		}«IF p.^else!==null» else {
+			() -> { «p.^else.compileProcess» 
+		}
+		«ENDIF»
 	'''
 	
 	def private dispatch String compilePrefix(Tau tau) {
-		if (tau.next===null){
-			'''createTau()'''	
-		}
-		else {
-			'''createTau(«tau.next.compileProcess»)'''
-		}
+		'''«tau.next.compileProcess»'''
 	}
 	
 	def private dispatch String compilePrefix(Ask ask) {

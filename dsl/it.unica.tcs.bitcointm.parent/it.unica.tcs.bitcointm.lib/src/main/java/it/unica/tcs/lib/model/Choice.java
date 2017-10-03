@@ -2,9 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.model.process;
-
-import it.unica.tcs.lib.model.prefix.Prefix;
+package it.unica.tcs.lib.model;
 
 public class Choice implements Process {
 
