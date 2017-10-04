@@ -57,8 +57,6 @@ class ParticipantGenerator extends AbstractGenerator {
 		import it.unica.tcs.bitcointm.lib.model.prefix.*;
 		import it.unica.tcs.bitcointm.lib.model.process.*;
 		import it.unica.tcs.bitcointm.lib.model.process.Process;
-		import static it.unica.tcs.bitcointm.lib.model.prefix.PrefixFactory.*;
-		import static it.unica.tcs.bitcointm.lib.model.process.ProcessFactory.*;
 		import static it.unica.tcs.bitcointm.lib.utils.BitcoinUtils.*;
 		
 		@SuppressWarnings("unused")
@@ -151,9 +149,9 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
 		if(«p.exp.compileExpression» ) {
-			«p.^then.compileProcess» 
+			«p.^then.compileProcess»
 		}«IF p.^else!==null» else {
-			() -> { «p.^else.compileProcess» 
+			«p.^else.compileProcess»
 		}
 		«ENDIF»
 	'''
@@ -163,12 +161,12 @@ class ParticipantGenerator extends AbstractGenerator {
 	}
 	
 	def private dispatch String compilePrefix(Ask ask) {
-		if (ask.next===null){
-			'''createAsk()'''	
-		}
-		else {
-			'''createAsk(«ask.next.compileProcess»)'''
-		}
+		'''
+		ask();
+		«IF ask.next!==null»
+		«ask.next.compileProcess»
+		«ENDIF»
+		'''
 	}
 
 	def private dispatch String compilePrefix(Assert ass) {

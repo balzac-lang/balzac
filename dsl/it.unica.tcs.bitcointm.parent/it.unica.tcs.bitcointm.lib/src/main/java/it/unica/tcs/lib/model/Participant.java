@@ -4,9 +4,10 @@
 
 package it.unica.tcs.lib.model;
 
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -21,16 +22,17 @@ public abstract class Participant implements Runnable {
 	private final ExecutorService executor;
 	private final ServerSocketDaemon receiverDeamon;
 	
+	public Participant(String name) {
+		this(name, 0);
+	}
+	
 	public Participant(String name, int port) {
 		this.name = name;
 		this.executor = Executors.newCachedThreadPool();
-		
-		try {
-			this.receiverDeamon = new ServerSocketDaemon(port);
-			this.executor.execute(receiverDeamon);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		this.receiverDeamon = new ServerSocketDaemon(port);
+		this.executor.execute(receiverDeamon);
+		this.receiverDeamon.waitForOnline();
+		System.out.println("["+this.toString()+"] Listening on port "+this.getPort());
 	}
 	
 	public String getName() {
@@ -71,22 +73,38 @@ public abstract class Participant implements Runnable {
 	public Process put(String txhex) {
 		return ProcessFactory.choice(PrefixFactory.put(txhex));
 	}
-	
+			
 	public void send(Integer msg, Participant p) {
 		send(msg.toString(), p);
 	}
 	
 	public void send(String msg, Participant p) {
+		
 		try (
 			Socket socket = new Socket(p.getHost(), p.getPort());
-			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter(socket.getOutputStream()));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			PrintWriter writer = new PrintWriter(socket.getOutputStream());
 		) {
-			writer.write(msg.trim());
+			socket.setKeepAlive(true);
+			System.out.println("["+this.toString()+"] connected to port "+socket.getPort());
+			System.out.println("["+this.toString()+"] local port "+socket.getLocalPort());
+			System.out.println("["+this.toString()+"] isConnected "+socket.isConnected());
+			System.out.println("["+this.toString()+"] keepalive "+socket.getKeepAlive());
+			System.out.println("["+this.toString()+"] isBound "+socket.isBound());
+			System.out.println("["+this.toString()+"] isClosed "+socket.isClosed());
+			System.out.println("["+this.toString()+"] toString "+socket.toString());
+			System.out.println("["+this.toString()+"] sending "+msg);
+			writer.println(msg.trim());
+			writer.flush();
+			System.out.println("["+this.toString()+"] waiting the server to close the connection");
+			reader.readLine();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+			throw new RuntimeException(e);
+		} 
 	}
 	
 	public String receive(Participant p) {
