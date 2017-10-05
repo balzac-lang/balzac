@@ -14,10 +14,15 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class Participant implements Runnable {
 	
+	private final Logger logger;
 	private final String name;
 	private final ExecutorService executor;
 	private final ServerSocketDaemon receiverDeamon;
@@ -27,12 +32,17 @@ public abstract class Participant implements Runnable {
 	}
 	
 	public Participant(String name, int port) {
+		this.logger = LoggerFactory.getLogger(this.getClass());
 		this.name = name;
 		this.executor = Executors.newCachedThreadPool();
 		this.receiverDeamon = new ServerSocketDaemon(port);
 		this.executor.execute(receiverDeamon);
-		this.receiverDeamon.waitForOnline();
-		System.out.println("["+this.toString()+"] Listening on port "+this.getPort());
+		try {
+			this.receiverDeamon.waitUntilOnline();
+		} catch (InterruptedException e) {
+			throw new IllegalStateException("Cannot start the server");
+		}
+		logger.trace("Listening on port "+this.getPort());
 	}
 	
 	public String getName() {
@@ -86,17 +96,16 @@ public abstract class Participant implements Runnable {
 			PrintWriter writer = new PrintWriter(socket.getOutputStream());
 		) {
 			socket.setKeepAlive(true);
-			System.out.println("["+this.toString()+"] connected to port "+socket.getPort());
-			System.out.println("["+this.toString()+"] local port "+socket.getLocalPort());
-			System.out.println("["+this.toString()+"] isConnected "+socket.isConnected());
-			System.out.println("["+this.toString()+"] keepalive "+socket.getKeepAlive());
-			System.out.println("["+this.toString()+"] isBound "+socket.isBound());
-			System.out.println("["+this.toString()+"] isClosed "+socket.isClosed());
-			System.out.println("["+this.toString()+"] toString "+socket.toString());
-			System.out.println("["+this.toString()+"] sending "+msg);
+			logger.trace("connected to "+socket.getInetAddress()+":"+socket.getPort()+", local port"+socket.getLocalPort());
+			logger.trace("isConnected "+socket.isConnected());
+			logger.trace("keepalive "+socket.getKeepAlive());
+			logger.trace("isBound "+socket.isBound());
+			logger.trace("isClosed "+socket.isClosed());
+			logger.trace("toString "+socket.toString());
+			logger.trace("sending "+msg);
 			writer.println(msg.trim());
 			writer.flush();
-			System.out.println("["+this.toString()+"] waiting the server to close the connection");
+			logger.trace("waiting the server to close the connection");
 			reader.readLine();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -108,7 +117,18 @@ public abstract class Participant implements Runnable {
 	}
 	
 	public String receive(Participant p) {
-		return receiverDeamon.read();
+		logger.trace("reading");
+		try {
+			return receiverDeamon.read();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public void stop() throws InterruptedException {
+		logger.trace("shutting down the executor service");
+		this.executor.shutdownNow();
+		this.executor.awaitTermination(30, TimeUnit.DAYS);
 	}
 	
 }

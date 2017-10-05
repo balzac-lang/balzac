@@ -6,7 +6,8 @@ Bundle-Version: 1.0.2
 Require-Bundle: com.google.guava;bundle-version="21.0.0",
  com.google.inject;bundle-version="3.0.0",
  org.junit;bundle-version="4.12.0",
- com.madgag.spongycastle.core;bundle-version="1.51.0"
+ com.madgag.spongycastle.core;bundle-version="1.51.0",
+ org.slf4j.api;bundle-version="1.7.2"
 Export-Package: it.unica.tcs.lib,
  it.unica.tcs.lib.client,
  it.unica.tcs.lib.client.impl,
@@ -19,3 +20,4 @@ Bundle-ClassPath: .,
  lib/bitcoinj-core-0.15-SNAPSHOT-bundled.jar,
  lib/BitcoindConnector4J-bundled-0.4.0.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: ch.qos.logback.classic;version="1.0.7"

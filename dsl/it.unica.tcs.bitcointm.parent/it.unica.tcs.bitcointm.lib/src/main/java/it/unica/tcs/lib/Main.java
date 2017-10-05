@@ -2,6 +2,7 @@ package it.unica.tcs.lib;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import it.unica.tcs.lib.model.Participant;
 
@@ -18,15 +19,14 @@ public class Main {
 
 		@Override
 		public void run() {
-			
-			for (int i : new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12}) {
-//				System.out.println("[Alice] sending "+i);
+			int i=0;
+			while (i++<5) {
 				send(i, bob);
-//				System.out.println("[Alice] sent "+i);
-				try {
-					Thread.sleep(0);
-				} catch (InterruptedException e) {}
 			}
+			try {
+				stop();
+			} catch (InterruptedException e) {}
+			System.out.println("Alice END");
 		}
 	}
 	
@@ -38,24 +38,25 @@ public class Main {
 
 		@Override
 		public void run() {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {}
-			while (true) {
-//				System.out.println("[Bob] receiving");
-				Integer i = Integer.valueOf(receive(alice));
-//				System.out.println("[Bob] received "+i);
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {}
+			int j=0;
+			while (j++<5) {
+				receive(alice);
 			}
+			try {
+				stop();
+			} catch (InterruptedException e) {}
+			System.out.println("Bob END");
 		}
 	}
 
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		executor.execute(alice);
 		executor.execute(bob);
+		System.out.println("awaiting termination");
+		executor.shutdown();
+		executor.awaitTermination(1, TimeUnit.DAYS);
+		System.out.println("END");
 	}
 }

@@ -7,34 +7,56 @@ package it.unica.tcs.lib.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ServerSocketDaemon implements Runnable {
 
+	private static final Logger logger = LoggerFactory.getLogger(ServerSocketDaemon.class);
+	
 	private BlockingQueue<String> buffer = new SynchronousQueue<>(true);
 	private int port;
 	private boolean online;
-	
-	public static final String STOP = "[stop]";
-	public static final String ACK = "[ack]";
 	
 	public ServerSocketDaemon(int port) {
 		this.port = port;
 		this.online = false;
 	}
 
-	public void waitForOnline() {
-		try {
-			while(!online) {
-				Thread.sleep(500);
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+	/**
+	 * Return the server port. If might be different from the {@code port} parameter
+	 * given in the constructor.
+	 * @return the server port
+	 */
+	public int getPort() {
+		return port;
+	}
+	
+	/**
+	 * Block until the server is online and waiting for connections. 
+	 * @throws InterruptedException
+	 */
+	public void waitUntilOnline() throws InterruptedException {
+		while(!online) {
+			Thread.sleep(500);
 		}
+	}
+	
+	/**
+	 * Read a value. If there is no value to read, 
+	 * it blocks until another thread will send a value through a socket connection. 
+	 * @return 
+	 * @throws InterruptedException
+	 */
+	public String read() throws InterruptedException {
+		return buffer.take();
 	}
 	
 	@Override
@@ -43,60 +65,50 @@ public class ServerSocketDaemon implements Runnable {
 		try (
 			ServerSocket server = new ServerSocket(port);
 		) {
+			server.setSoTimeout(3000);
 			this.port = server.getLocalPort();	// if the port is 0, a free port is assigned by the system 
 			this.online = true;
 
-			System.out.println("["+this.toString()+"] daemon started at port "+port);
+			logger.trace("daemon server started at port "+port);
 			
 			while (true) {
 				
-				System.out.println("["+this.toString()+"] opening connection");
+				if (Thread.currentThread().isInterrupted()) {
+					logger.trace("received interrupt signal, exiting... ");
+					return;
+				}
+				
+				logger.trace("["+this.toString()+"] waiting for connection");
 				try (
 						Socket clientSocket = server.accept();
 						BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 						PrintWriter out = new PrintWriter(clientSocket.getOutputStream())
 				) {
-					System.out.println("["+this.toString()+"] connection "+clientSocket.getPort());
+					logger.trace("connected to remote port "+clientSocket.getPort());
+					logger.trace("waiting for input");
 					
-					System.out.println("["+this.toString()+"] waiting input");
-
 					String inputLine = in.readLine();
 					
-					System.out.println("["+this.toString()+"] read: "+inputLine);
-					System.out.println("["+this.toString()+"] writing buffer");
+					logger.trace("writing '"+inputLine+"' buffer");
 					buffer.put(inputLine.toString());
 					
-					System.out.println("["+this.toString()+"] closing connection "+clientSocket.getPort());
-					clientSocket.close();
-				} catch (IOException e) {
-					// TODO: change to any kind of logger
-					System.err.println("Exception caught when trying to listen on port " + server.getLocalPort() + " or listening for a connection");
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+					logger.trace("connection to port "+clientSocket.getPort()+" closed");
+				} 
+				catch (InterruptedIOException e) {
+					logger.trace("Timeout...");
+				} 
+				catch (IOException e) {
+					logger.error("Exception caught when trying to listen on port " + server.getLocalPort() + " or listening for a connection. Error message: "+e.getMessage());
+				} 
+				catch (InterruptedException e) {
+					logger.trace("received interrupt signal, exiting... ");
+					return;
 				}
 			}
 			
-		} catch (IOException e1) {
-			throw new RuntimeException(e1);
+		} catch (IOException e) {
+			logger.error("unable to start the server: "+e.getMessage());
+			throw new RuntimeException(e);
 		}
-
-	}
-	
-	public String read() {
-		try {
-			System.out.println("["+this.toString()+"] reading");
-			return buffer.take();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return null;
-		}
-		finally {
-			System.out.println("["+this.toString()+"] return");
-		}
-	}
-	
-	public int getPort() {
-		return port;
 	}
 }
