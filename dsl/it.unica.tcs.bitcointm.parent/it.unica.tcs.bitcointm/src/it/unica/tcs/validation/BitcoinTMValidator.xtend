@@ -41,6 +41,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
+import org.apache.log4j.Logger
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
@@ -67,6 +68,8 @@ import static org.bitcoinj.script.Script.*
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
+	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
+
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem
     @Inject private extension ASTUtils
@@ -74,12 +77,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
 	@Inject private KeyStore keyStore
-
 	/*
 	 * INFO
 	 */	
 	@Check
 	def void checkSingleElementArray(UserTransactionDeclaration tx) {
+		
+		logger.trace("--- TRACE TEST --- Oblioooo")
+		logger.info("--- INFO TEST --- Oblioooo")
+		logger.warn("--- WARN TEST --- Oblioooo")
+		logger.error("--- ERROR TEST --- Oblioooo")
+		logger.fatal("--- FATAL TEST --- Oblioooo")
+		
 		var tbody = tx.body
 		var inputs = tbody.inputs
 		var outputs = tbody.outputs
