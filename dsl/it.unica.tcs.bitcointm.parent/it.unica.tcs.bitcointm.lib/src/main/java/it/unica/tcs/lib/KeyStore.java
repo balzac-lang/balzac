@@ -21,6 +21,8 @@ public class KeyStore {
 
 	private final Map<String, ECKey> store = new ConcurrentHashMap<>();
 	
+	KeyStore() {}
+	
 	public String addKey(ECKey key) {
 		checkState(!key.isPubKeyOnly(), "Only private key are allowed.");
 		String uniqueID = getUniqueID(key);

@@ -1,5 +1,7 @@
 package it.unica.tcs.lib;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +53,14 @@ public class Main {
 
 	
 	public static void main(String[] args) throws InterruptedException {
+		
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+
+        for(URL url: urls){
+        	System.out.println(url.getFile());
+        }
 		ExecutorService executor = Executors.newCachedThreadPool();
 		executor.execute(alice);
 		executor.execute(bob);

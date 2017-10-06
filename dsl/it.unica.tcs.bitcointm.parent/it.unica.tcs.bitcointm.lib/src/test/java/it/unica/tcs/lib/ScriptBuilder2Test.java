@@ -86,7 +86,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_serialize_signature1() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
@@ -101,7 +101,7 @@ public class ScriptBuilder2Test {
 
     @Test
     public void test_serialize_signature2() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
@@ -116,7 +116,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_serialize_signature3() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
@@ -131,7 +131,7 @@ public class ScriptBuilder2Test {
 
     @Test
     public void test_serialize_signature4() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
@@ -146,7 +146,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_serialize_signature5() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
@@ -161,7 +161,7 @@ public class ScriptBuilder2Test {
 
     @Test
     public void test_serialize_signature6() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
@@ -175,7 +175,7 @@ public class ScriptBuilder2Test {
     }
     @Test
     public void test_derialize_signature() {
-    	KeyStore store = new KeyStore();
+    	KeyStore store = KeyStoreFactory.getInstance();
     	
     	ECKey key = new ECKey();
     	String keyID = store.addKey(key);

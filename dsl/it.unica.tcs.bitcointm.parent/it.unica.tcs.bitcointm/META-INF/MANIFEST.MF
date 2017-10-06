@@ -5,8 +5,7 @@ Bundle-Vendor: My Company
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: it.unica.tcs.bitcointm.lib,
- org.eclipse.xtext,
+Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtext.xbase,
  org.eclipse.equinox.common;bundle-version="3.5.0",
  org.eclipse.emf.ecore,
@@ -17,7 +16,8 @@ Require-Bundle: it.unica.tcs.bitcointm.lib,
  org.antlr.runtime,
  it.xsemantics.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: it.unica.tcs,
+Export-Package: com.google.inject,
+ it.unica.tcs,
  it.unica.tcs.bitcoinTM,
  it.unica.tcs.bitcoinTM.impl,
  it.unica.tcs.bitcoinTM.util,
@@ -25,6 +25,7 @@ Export-Package: it.unica.tcs,
  it.unica.tcs.conversion,
  it.unica.tcs.conversion.converter,
  it.unica.tcs.generator,
+ it.unica.tcs.lib.utils,
  it.unica.tcs.parser.antlr,
  it.unica.tcs.parser.antlr.internal,
  it.unica.tcs.scoping,
@@ -33,6 +34,9 @@ Export-Package: it.unica.tcs,
  it.unica.tcs.utils,
  it.unica.tcs.validation,
  it.unica.tcs.xsemantics,
- it.unica.tcs.xsemantics.validation
+ it.unica.tcs.xsemantics.validation,
+ org.bitcoinj.core
 Import-Package: org.apache.log4j
-Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar, .
+Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,
+ .,
+ it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
