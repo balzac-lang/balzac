@@ -13,6 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +54,26 @@ public class ServerSocketDaemon implements Runnable {
 	/**
 	 * Read a value. If there is no value to read, 
 	 * it blocks until another thread will send a value through a socket connection. 
-	 * @return 
+	 * @return The read value
 	 * @throws InterruptedException
 	 */
 	public String read() throws InterruptedException {
 		return buffer.take();
+	}
+	
+	/**
+	 * Read a value. If there is no value to read, 
+	 * it blocks until another thread will send a value through a socket connection
+	 * or the given timeout expires. 
+	 * @return The read value
+	 * @throws InterruptedException
+	 * @throws TimeoutException 
+	 */
+	public String read(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+		String value = buffer.poll(timeout, unit);
+		if (value == null)
+			throw new TimeoutException();
+		return value;
 	}
 	
 	@Override
