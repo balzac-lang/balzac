@@ -16,7 +16,7 @@ public class Receive extends AbstractPrefix {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		checkState(ready());
 	}
 

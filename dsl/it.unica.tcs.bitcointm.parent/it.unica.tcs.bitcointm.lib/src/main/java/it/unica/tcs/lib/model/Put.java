@@ -19,10 +19,10 @@ public class Put extends AbstractPrefix {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		String txid = client.sendRawTransaction(txhex);
 		Prefix ask = PrefixFactory.ask(txid);
-		ask.execute();
+		ask.run();
 	}
 
 }

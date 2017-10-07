@@ -4,6 +4,8 @@
 
 package it.unica.tcs.lib.model;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -64,24 +66,29 @@ public abstract class Participant implements Runnable {
 			executor.execute(process);
 	}
 	
+	private Process choice(Prefix... prefixes) {
+		checkState(prefixes.length>0);
+		return new Choice(prefixes);
+	}
+	
 	public Process ask(String... txsid) {
-		return ProcessFactory.choice(PrefixFactory.ask(txsid));
+		return choice(PrefixFactory.ask(txsid));
 	}
 	
 	public Process ask(List<String> txsid) {
-		return ProcessFactory.choice(PrefixFactory.ask(txsid));
+		return choice(PrefixFactory.ask(txsid));
 	}
 	
 	public Process check(Supplier<Boolean> condition) {
-		return ProcessFactory.choice(PrefixFactory.check(condition));
+		return choice(PrefixFactory.check(condition));
 	}
 	
 	public Process check() {
-		return ProcessFactory.choice(PrefixFactory.check());
+		return choice(PrefixFactory.check());
 	}
 	
 	public Process put(String txhex) {
-		return ProcessFactory.choice(PrefixFactory.put(txhex));
+		return choice(PrefixFactory.put(txhex));
 	}
 			
 	public void send(Integer msg, Participant p) {

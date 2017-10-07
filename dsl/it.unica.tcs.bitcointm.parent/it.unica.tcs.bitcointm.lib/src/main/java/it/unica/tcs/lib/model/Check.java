@@ -22,7 +22,7 @@ public class Check extends AbstractPrefix {
 	}
 
 	@Override
-	public void execute() {
+	public void run() {
 		checkState(ready());
 	}
 

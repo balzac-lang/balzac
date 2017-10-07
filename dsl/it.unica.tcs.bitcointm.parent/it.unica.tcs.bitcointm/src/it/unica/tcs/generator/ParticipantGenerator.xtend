@@ -53,11 +53,11 @@ class ParticipantGenerator extends AbstractGenerator {
 					
 		import org.bitcoinj.core.*;
 		import org.bitcoinj.script.*;
-		import it.unica.tcs.bitcointm.lib.*;
-		import it.unica.tcs.bitcointm.lib.model.prefix.*;
-		import it.unica.tcs.bitcointm.lib.model.process.*;
-		import it.unica.tcs.bitcointm.lib.model.process.Process;
-		import static it.unica.tcs.bitcointm.lib.utils.BitcoinUtils.*;
+		import it.unica.tcs.lib.*;
+		import it.unica.tcs.lib.model.*;
+		import it.unica.tcs.lib.model.*;
+		import it.unica.tcs.lib.model.Process;
+		import static it.unica.tcs.lib.utils.BitcoinUtils.*;
 		
 		@SuppressWarnings("unused")
 		public class Participant_«participant.name» extends Participant {
@@ -76,11 +76,11 @@ class ParticipantGenerator extends AbstractGenerator {
 			}
 			
 			@Override
-			public void start() {
+			public void run() {
 				/*
 				 * «NodeModelUtils.findActualNodeFor(participant.process).text.trim»
 				 */
-				«participant.process.compileProcess».run();
+				«participant.process.compileProcess»
 			}
 			
 			«FOR pdecl : participant.defs»
@@ -122,17 +122,22 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compileProcess(Choice choice) {
 		if (choice.actions.size==1) {
-			'''choice(«choice.actions.get(0).compilePrefix»)'''
+			choice.actions.get(0).compilePrefix
 		}
 		else {
+			
 			'''
 			choice(
-			«choice.actions.map[p|p.compilePrefix].join(",\n")»)'''
+			«choice.actions.map[p|
+				'''		() -> {
+		«p.compilePrefix»
+	}'''].join(",\n")»
+			);'''
 		}
 	}
 	
 	def private dispatch String compileProcess(ProcessReference pref) {
-		'''Process_«pref.ref.name».instance(«pref.actualParams.compileActualParams»)'''
+		'''Process_«pref.ref.name».instance(«pref.actualParams.compileActualParams»).run();'''
 	}
 	
 	def private dispatch String compileProcess(Parallel p) '''
@@ -157,7 +162,8 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compilePrefix(Tau tau) {
-		'''«tau.next.compileProcess»'''
+		'''«IF tau.next!==null»«tau.next.compileProcess»«ENDIF»'''
+		
 	}
 	
 	def private dispatch String compilePrefix(Ask ask) {
@@ -170,47 +176,36 @@ class ParticipantGenerator extends AbstractGenerator {
 	}
 
 	def private dispatch String compilePrefix(Assert ass) {
-		if (ass.exp.compileExpression=="true"){
-			if (ass.next===null){
-				'''createAssert()'''	
-			}
-			else {
-				'''createAssert(«ass.next.compileProcess»)'''
-			}
-		}		
-		else
-			if (ass.next===null){
-				'''
-				createAssert(()->{
-					return «ass.exp.compileExpression»;
-				});'''	
-			}
-			else {
-				'''
-				createAssert(()->{
-					return «ass.exp.compileExpression»;
-				},
+		'''
+		«IF ass.exp.compileExpression=="true"»
+			check();
+			«ELSE»
+			check(()->{
+				return «ass.exp.compileExpression»;
+			});
+			«IF ass.next!==null»
 				«ass.next.compileProcess»
-				);'''
-			}
+			«ENDIF»
+		«ENDIF»
+		'''
 	}
 	
 	def private dispatch String compilePrefix(Send send) {
-		if (send.next===null){
-			'''createSend()'''	
-		}
-		else {
-			'''createSend(«send.next.compileProcess»)'''
-		}
+		'''
+		send(«send.message.compileExpression», Participant_«send.p.name».instance());
+		«IF send.next!==null»
+			«send.next.compileProcess»
+		«ENDIF»
+		'''	
 	}
 	
 	def private dispatch String compilePrefix(Receive receive) {
-		if (receive.next===null){
-			'''createSend()'''	
-		}
-		else {
-			'''createSend(«receive.next.compileProcess»)'''
-		}
+		'''
+		receive();
+		«IF receive.next!==null»
+			«receive.next.compileProcess»
+		«ENDIF»
+		'''	
 	}
 }
 

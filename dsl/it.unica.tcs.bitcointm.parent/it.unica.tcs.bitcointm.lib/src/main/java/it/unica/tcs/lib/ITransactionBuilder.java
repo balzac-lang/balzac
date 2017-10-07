@@ -22,7 +22,7 @@ public interface ITransactionBuilder {
 	 * @param params network parameters.
 	 * @return a bitcoinj transaction.
 	 */
-	public abstract Transaction toTransaction(NetworkParameters params);
+	public abstract Transaction toTransaction();
 
 	/**
 	 * Return the number of inputs.
@@ -62,7 +62,7 @@ public interface ITransactionBuilder {
 		return new ITransactionBuilder() {
 			private final Transaction tx = new Transaction(params, bytes);
 			@Override public boolean isReady() { return true; }
-			@Override public Transaction toTransaction(NetworkParameters params) { return tx; }
+			@Override public Transaction toTransaction() { return tx; }
 			@Override public int getInputsSize() { return tx.getInputs().size(); }
 			@Override public int getOutputsSize() { return tx.getOutputs().size(); }
 			@Override public boolean isCoinbase() { return tx.isCoinBase(); }

@@ -24,9 +24,14 @@ public class TransactionBuilder implements ITransactionBuilder {
 
 	private static final long LOCKTIME_NOT_SET = -1;
 	private static final int OUTINDEX_NOT_SET = -1;
-
+	private final NetworkParameters params;
+	
+	public TransactionBuilder(NetworkParameters params) {
+		this.params = params;
+	}
+	
 	private static final ITransactionBuilder nullTransaction = new ITransactionBuilder() {
-		@Override public Transaction toTransaction(NetworkParameters params) { return null; }
+		@Override public Transaction toTransaction() { return null; }
 		@Override public boolean isReady() { return true; }		
 		@Override public int getOutputsSize() { return 0; }
 		@Override public int getInputsSize() { return 0; }
@@ -228,8 +233,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @param params network parameters.
 	 * @return a bitcoinj transaction.
 	 */
-	public Transaction toTransaction(NetworkParameters params) {
-		// TODO: improve this check
+	@Override
+	public Transaction toTransaction() {
 		checkState(this.isReady());
 		checkState(this.getFreeVariables().keySet().equals(freeVarBindings.keySet()));
 		
@@ -247,7 +252,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				checkState(txInput.isCoinBase());
 			}
 			else {
-				Transaction parentTransaction = parentTransaction2.toTransaction(params);
+				Transaction parentTransaction = parentTransaction2.toTransaction();
 				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later
 				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);

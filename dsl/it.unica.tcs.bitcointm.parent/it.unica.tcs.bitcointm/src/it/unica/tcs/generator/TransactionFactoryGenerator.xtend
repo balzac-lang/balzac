@@ -5,6 +5,7 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
@@ -15,6 +16,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -47,7 +49,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 					
 		import org.bitcoinj.core.*;
 		import org.bitcoinj.script.*;
-		import it.unica.tcs.bitcointm.lib.*;
+		import it.unica.tcs.lib.*;
 		
 		@SuppressWarnings("unused")
 		public class TransactionFactory {
@@ -70,7 +72,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
-		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»();
+		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
 		«IF !tx.params.isEmpty»
 			
 			// free variables
@@ -91,7 +93,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 				inScript = new ScriptBuilder2().number(42);
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
-				parentTx = TransactionFactory.tx_«input.txRef.tx.name»(«input.txRef.actualParams.compileActualParams»);
+				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
 				outIndex = «input.outpoint»;
 				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
 				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
@@ -121,4 +123,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return tb;
 	'''
 	
+	def public getTransactionFromFactory(String name, EList<Expression> actualParams) {
+		'''TransactionFactory.tx_«name»(«actualParams.compileActualParams»)'''
+	}
 }

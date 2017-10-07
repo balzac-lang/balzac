@@ -17,7 +17,8 @@ transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276
 		utxo1: sig k;
 		utxo2: sig k
 	]
-	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma) 
+	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma)
+	
 }
  
 transaction T1 { // id: 3168215d8c988d910fe48d7707e074d95c45d19c8138d0bbe7b05c91446a638a

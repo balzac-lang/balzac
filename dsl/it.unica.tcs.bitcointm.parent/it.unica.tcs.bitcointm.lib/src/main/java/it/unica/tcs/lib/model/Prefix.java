@@ -4,8 +4,7 @@
 
 package it.unica.tcs.lib.model;
 
-public interface Prefix {
+public interface Prefix extends Runnable {
 
 	public boolean ready();
-	public void execute();
 }

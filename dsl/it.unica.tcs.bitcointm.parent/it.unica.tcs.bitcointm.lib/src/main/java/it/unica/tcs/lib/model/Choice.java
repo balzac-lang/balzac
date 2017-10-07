@@ -19,7 +19,7 @@ public class Choice implements Process {
 		for (int i=0; ; i++) {
 			Prefix p = prefixes[i];
 			if (p.ready()) {
-				p.execute();
+				p.run();
 				break;
 			}
 			
