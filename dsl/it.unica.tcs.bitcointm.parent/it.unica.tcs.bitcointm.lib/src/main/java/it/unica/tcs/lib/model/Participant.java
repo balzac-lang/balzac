@@ -4,8 +4,6 @@
 
 package it.unica.tcs.lib.model;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +11,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,53 +59,36 @@ public abstract class Participant implements Runnable {
 
 	abstract public void run();
 	
-	public void parallel(Process... processes) {
-		for (Process process : processes)
+	public void parallel(Runnable... processes) {
+		for (Runnable process : processes)
 			executor.execute(process);
 	}
 
-	public static ChoiceElement choiceElm(Prefix prefix) {
-		return new ChoiceElement(prefix);
+	public void ask(String... txsid) {
+		new Choice(PrefixFactory.ask(txsid)).run();
 	}
 	
-	public static ChoiceElement choiceElm(Prefix prefix, Process next) {
-		return new ChoiceElement(prefix, next);
+	public void ask(List<String> txsid) {
+		new Choice(PrefixFactory.ask(txsid)).run();
 	}
 	
-	private static Process choice(Prefix... prefixes) {
-		return choice(Arrays.stream(prefixes).map(ChoiceElement::new).toArray(ChoiceElement[]::new));
+	public void check(Supplier<Boolean> condition) {
+		new Choice(PrefixFactory.check(condition)).run();
 	}
 	
-	public static Process choice(ChoiceElement... prefixes) {
-		checkState(prefixes.length>0);
-		return new Choice(prefixes);
+	public void check() {
+		new Choice(PrefixFactory.check()).run();
 	}
 	
-	public static Process ask(String... txsid) {
-		return choice(PrefixFactory.ask(txsid));
-	}
-	
-	public static Process ask(List<String> txsid) {
-		return choice(PrefixFactory.ask(txsid));
-	}
-	
-	public static Process check(Supplier<Boolean> condition) {
-		return choice(PrefixFactory.check(condition));
-	}
-	
-	public static Process check() {
-		return choice(PrefixFactory.check());
-	}
-	
-	public static Process put(String txhex) {
-		return choice(PrefixFactory.put(txhex));
+	public void put(String txhex) {
+		new Choice(PrefixFactory.put(txhex)).run();
 	}
 			
-	public static void send(Integer msg, Participant p) {
+	public void send(Integer msg, Participant p) {
 		send(msg.toString(), p);
 	}
 	
-	public static void send(String msg, Participant p) {
+	public void send(String msg, Participant p) {
 		
 		try (
 			Socket socket = new Socket(p.getHost(), p.getPort());

@@ -4,12 +4,12 @@
 
 package it.unica.tcs.lib.model;
 
-public class Choice implements Process {
+public class Choice implements Runnable {
 
-	private final ChoiceElement[] prefixes;
+	private final Prefix[] prefixes;
 	private final static int POLLING_DELAY = 1000;
 	
-	public Choice(ChoiceElement... prefixes) {
+	public Choice(Prefix... prefixes) {
 		this.prefixes = prefixes;
 	}
 
