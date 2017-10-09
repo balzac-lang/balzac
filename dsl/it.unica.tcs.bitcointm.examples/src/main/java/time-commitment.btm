@@ -4,13 +4,8 @@
  
 package it.unica.btm.time_commitment
 
-
-participant Alice {
-	t
-	key kA = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
-	key kB = "cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ"
-	key kC = "cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66"
-}
+transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
+transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(kB; sigma)}
 
 transaction T_commitA { 
 	input = _
@@ -69,9 +64,20 @@ transaction T_compute {
 } 
 
 
-//participant PA = "gianni"
-//participant PB = "raga"
-//
+
+
+participant Alice {
+	put T_commitA {input = T_fundsA: sig kA }
+	-> send (do sig T_payDepositA kA to Bob)
+		
+	key kA = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
+}
+
+participant Bob {
+	t
+	key kB = "cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ"
+}
+
 //
 //contract CA  {
 //	put T_commitA . send to PB: sig kA  . put T_openA

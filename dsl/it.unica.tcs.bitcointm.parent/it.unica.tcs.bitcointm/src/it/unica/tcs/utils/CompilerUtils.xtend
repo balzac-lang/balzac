@@ -7,34 +7,34 @@ package it.unica.tcs.utils
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Network
 import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.ProtocolExpression
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.compiler.CompileException
-import it.unica.tcs.generator.ExpressionGenerator
+import it.unica.tcs.generator.ProtocolExpressionGenerator
 import it.unica.tcs.lib.ScriptBuilder2
 import it.xsemantics.runtime.Result
+import java.util.List
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptOpCodes
-import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 
 @Singleton
 class CompilerUtils {
 	
-	@Inject private extension ExpressionGenerator
+	@Inject private extension ProtocolExpressionGenerator
 	
-	def String compileActualParams(EList<Expression> actualParams) {
-		actualParams.map[e|e.compileExpression].join(",")
+	def String compileActualParams(List<ProtocolExpression> actualParams) {
+		actualParams.map[e|e.compileProtocolExpression].join(",")
 	}
-		
-	def String compileFormalParams(EList<Parameter> formalParams) {
+	
+	def String compileFormalParams(List<Parameter> formalParams) {
 		formalParams.map[p|p.paramType.compileType+" "+p.name].join(", ")
     }
 	

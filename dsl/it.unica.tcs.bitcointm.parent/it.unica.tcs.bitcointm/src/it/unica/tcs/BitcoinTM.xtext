@@ -94,7 +94,7 @@ Parameter:
 
 
 /*
- * expressions
+ * script expressions
  */
 Expression:
     OrExpression;
@@ -320,19 +320,50 @@ ProtocolIfThenElse:
 'then' then=NextProcess 
 (=> 'else' else=NextProcess)?;
 
-ProtocolExpression returns Expression:
-   Expression		// normal expression (TODO: remove if-then-else/sigliteral/versig during validation)
- | ("do" 
- 	  SignOp		// signature operation, returns bytes or string 
- 	| VersigOp		// versig operation, returns boolean
- );
-
-SignOp:	"sig" tx=ProtocolTransactionReference key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
-VersigOp: "versig" tx=ProtocolTransactionReference "(" 
-		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-		signatures+=Expression ("," signatures+=Expression)* ")";
 
 ProtocolTransactionReference:
 	txRef=TransactionReference (substitution=TransactionBody)?;
-	
 
+ProtocolExpression:
+    OrProtocolExpression;
+
+OrProtocolExpression returns ProtocolExpression:
+	AndProtocolExpression (({OrProtocolExpression.left=current} => '||' ) right=AndProtocolExpression)*;
+
+AndProtocolExpression returns ProtocolExpression:
+	ProtocolComparison (({AndProtocolExpression.left=current} '&&') right=ProtocolComparison)*;
+
+ProtocolComparison returns ProtocolExpression:
+    ProtocolEquals (({ProtocolComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ProtocolEquals)*;
+
+ProtocolEquals returns ProtocolExpression:
+    ProtocolAddition (({ProtocolEquals.left=current} op=("==" | "!=") ) right=ProtocolAddition)*;
+ 
+ProtocolAddition returns ProtocolExpression:
+    ProtocolMultiply (({ProtocolPlus.left=current} '+' | {ProtocolMinus.left=current} '-') right=ProtocolMultiply)*; 
+
+ProtocolMultiply returns ProtocolExpression:
+    ProtocolPrefixed (({ProtocolTimes.left=current} '*' | {ProtocolDiv.left=current} '/') right=ProtocolPrefixed)*; 
+
+
+ProtocolPrefixed returns ProtocolExpression:
+    {ProtocolBooleanNegation} =>"!" exp=ProtocolAtomic | /* right associativity */
+    {ProtocolArithmeticSigned} =>"-" exp=ProtocolAtomic | /* right associativity */
+    ProtocolAtomic;
+
+ProtocolAtomic returns ProtocolExpression:
+    '(' ProtocolExpression ')' 
+|   Literal 
+|   VariableReference
+|	Hash 
+|	SignOp		// signature operation, returns bytes or string 
+|	VersigOp		// versig operation, returns boolean
+;
+
+SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
+VersigOp: "versig" "(" 
+		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+		signatures+=Expression ("," signatures+=Expression)* ")" 
+		"using" tx=ProtocolTransactionReference;
+		
+		

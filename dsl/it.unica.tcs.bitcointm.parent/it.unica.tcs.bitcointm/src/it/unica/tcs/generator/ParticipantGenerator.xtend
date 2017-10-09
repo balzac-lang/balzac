@@ -31,7 +31,7 @@ import it.unica.tcs.bitcoinTM.Put
 class ParticipantGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider
-	@Inject private extension ExpressionGenerator
+	@Inject private extension ProtocolExpressionGenerator
 	@Inject private extension CompilerUtils
 	@Inject private extension TransactionFactoryGenerator
 	

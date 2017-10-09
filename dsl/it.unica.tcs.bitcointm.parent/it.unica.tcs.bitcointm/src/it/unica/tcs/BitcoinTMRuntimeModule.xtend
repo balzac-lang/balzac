@@ -35,9 +35,7 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 	
 	override void configure(Binder builder) {
 		BitcoinUtilsFactory.create().modules.forEach[
-			m|
-			println("Obliooooo")
-			m.configure(builder)
+			m|m.configure(builder)
 		]
 //		builder.bind(BitcoinClientI).to(RPCBitcoinClient).asEagerSingleton;
 //		builder.bind(String).annotatedWith(Names.named("bitcoind.address")).toInstance("co2.unica.it");

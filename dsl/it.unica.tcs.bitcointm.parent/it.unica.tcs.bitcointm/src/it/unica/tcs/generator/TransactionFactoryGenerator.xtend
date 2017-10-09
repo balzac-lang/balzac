@@ -5,10 +5,12 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.bitcoinTM.ProtocolExpression
+import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.ScriptBuilder2
@@ -16,6 +18,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
+import java.util.List
 import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
@@ -23,8 +26,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
-import it.unica.tcs.bitcoinTM.TransactionReference
+import org.eclipse.emf.ecore.EObject
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -133,7 +135,11 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return getTransactionFromFactory(txRef.tx.name, txRef.actualParams)
 	}
 	
-	def public getTransactionFromFactory(String name, EList<Expression> actualParams) {
+	def public getTransactionFromFactory(String name, EList<EObject> actualParams) {
+		return getTransactionFromFactory(name, actualParams.map[x|x as ProtocolExpression])
+	}
+	
+	def public getTransactionFromFactory(String name, List<ProtocolExpression> actualParams) {
 		'''TransactionFactory.tx_«name»(«actualParams.compileActualParams»)'''
 	}
 }
