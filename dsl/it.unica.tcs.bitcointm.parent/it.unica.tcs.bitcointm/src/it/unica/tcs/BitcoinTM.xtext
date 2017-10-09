@@ -278,8 +278,9 @@ ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Param
 ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Process:
-  Choice 
-| ProtocolIfThenElse
+//  Choice 
+//| 
+ProtocolIfThenElse
 | ProcessReference
 | '(' Parallel ')'
 ;

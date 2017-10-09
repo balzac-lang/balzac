@@ -638,7 +638,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else {
             
-            var refTx = input.txRef.tx.compileTransaction.toTransaction(input.networkParams)
+            var refTx = input.txRef.tx.compileTransaction.toTransaction()
                         
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
                 lastExp instanceof Script
@@ -773,7 +773,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				
 				
 				
-				var txJ = txBuilder.toTransaction(tbody.networkParams)
+				var txJ = txBuilder.toTransaction()
 				
 				println('''
 				txJ

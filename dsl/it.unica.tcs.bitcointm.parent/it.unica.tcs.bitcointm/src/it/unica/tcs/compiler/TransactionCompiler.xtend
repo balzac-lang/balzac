@@ -53,8 +53,8 @@ class TransactionCompiler {
     def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
    	
     	val tb =  
-    		if (tx.isCoinbase) new CoinbaseTransactionBuilder	    	
-	    	else new TransactionBuilder
+    		if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)    	
+	    	else new TransactionBuilder(tx.networkParams)
     	
     	// free variables
     	for (param : tx.params) {
@@ -117,7 +117,7 @@ class TransactionCompiler {
 	        	/*
 	        	 * Serial transaction
 	        	 */
-	        	var output = input.txRef.tx.compileTransaction.toTransaction(input.networkParams).getOutput(outIdx)
+	        	var output = input.txRef.tx.compileTransaction.toTransaction().getOutput(outIdx)
 	            
 	            if (output.scriptPubKey.isSentToAddress) {
 	                var sig = (input.exps.get(0) as Expression).simplifySafe as Signature
