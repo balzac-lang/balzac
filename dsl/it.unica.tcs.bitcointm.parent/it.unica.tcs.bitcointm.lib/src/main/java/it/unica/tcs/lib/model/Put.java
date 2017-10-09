@@ -1,16 +1,16 @@
 package it.unica.tcs.lib.model;
 
-import com.google.inject.Inject;
-
+import it.unica.tcs.lib.BitcoinUtilsFactory;
 import it.unica.tcs.lib.client.BitcoinClientI;
 
 public class Put extends AbstractPrefix {
 
-	@Inject private BitcoinClientI client;
+	private BitcoinClientI client;
 	private final String txhex;
 	
 	Put(String txhex) {
 		this.txhex = txhex;
+		this.client = BitcoinUtilsFactory.create().getBitcoinClient();
 	}
 
 	@Override
@@ -20,9 +20,10 @@ public class Put extends AbstractPrefix {
 
 	@Override
 	public void run() {
-		String txid = client.sendRawTransaction(txhex);
-		Prefix ask = PrefixFactory.ask(txid);
-		ask.run();
+//		String txid = 
+				client.sendRawTransaction(txhex);
+//		Prefix ask = PrefixFactory.ask(txid);
+//		ask.run();
 	}
 
 }

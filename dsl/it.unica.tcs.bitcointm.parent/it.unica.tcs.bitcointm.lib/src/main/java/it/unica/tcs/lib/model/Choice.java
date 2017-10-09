@@ -6,10 +6,10 @@ package it.unica.tcs.lib.model;
 
 public class Choice implements Process {
 
-	private final Prefix[] prefixes;
+	private final ChoiceElement[] prefixes;
 	private final static int POLLING_DELAY = 1000;
 	
-	public Choice(Prefix... prefixes) {
+	public Choice(ChoiceElement... prefixes) {
 		this.prefixes = prefixes;
 	}
 

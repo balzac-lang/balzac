@@ -26,12 +26,14 @@ import it.unica.tcs.bitcoinTM.Assert
 import it.unica.tcs.bitcoinTM.Send
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Ask
+import it.unica.tcs.bitcoinTM.Put
 
 class ParticipantGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider
 	@Inject private extension ExpressionGenerator
 	@Inject private extension CompilerUtils
+	@Inject private extension TransactionFactoryGenerator
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		
@@ -129,9 +131,10 @@ class ParticipantGenerator extends AbstractGenerator {
 			'''
 			choice(
 			«choice.actions.map[p|
-				'''		() -> {
-		«p.compilePrefix»
-	}'''].join(",\n")»
+			
+				'''«IF p.next===null»	choiceElm(«p.compilePrefix»)«ELSE»	choiceElm(«p.compilePrefix», () -> {
+		«p.next.compileProcess»
+	}«ENDIF»'''].join(",\n")»			
 			);'''
 		}
 	}
@@ -153,7 +156,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
-		if(«p.exp.compileExpression» ) {
+		if(«p.exp.compileExpression») {
 			«p.^then.compileProcess»
 		}«IF p.^else!==null» else {
 			«p.^else.compileProcess»
@@ -168,9 +171,18 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compilePrefix(Ask ask) {
 		'''
-		ask();
+		ask(BitcoinUtils.encode(«ask.txRefs.map[x| x.getTransactionFromFactory]».toTransaction().bitcoinSerialize()));
 		«IF ask.next!==null»
 		«ask.next.compileProcess»
+		«ENDIF»
+		'''
+	}
+	
+	def private dispatch String compilePrefix(Put put) {
+		'''
+		put(BitcoinUtils.encode(«put.txRefs.map[x| x.getTransactionFromFactory]».toTransaction().bitcoinSerialize()));
+		«IF put.next!==null»
+		«put.next.compileProcess»
 		«ENDIF»
 		'''
 	}
@@ -183,9 +195,9 @@ class ParticipantGenerator extends AbstractGenerator {
 			check(()->{
 				return «ass.exp.compileExpression»;
 			});
-			«IF ass.next!==null»
-				«ass.next.compileProcess»
-			«ENDIF»
+		«ENDIF»
+		«IF ass.next!==null»
+			«ass.next.compileProcess»
 		«ENDIF»
 		'''
 	}
@@ -201,7 +213,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compilePrefix(Receive receive) {
 		'''
-		receive();
+		// receive();
 		«IF receive.next!==null»
 			«receive.next.compileProcess»
 		«ENDIF»

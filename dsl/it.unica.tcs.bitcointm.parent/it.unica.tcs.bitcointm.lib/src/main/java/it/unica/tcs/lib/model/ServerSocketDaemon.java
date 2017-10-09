@@ -76,6 +76,10 @@ public class ServerSocketDaemon implements Runnable {
 		return value;
 	}
 	
+	public boolean isReady() {
+		return !buffer.isEmpty();
+	}
+	
 	@Override
 	public void run() {
 		

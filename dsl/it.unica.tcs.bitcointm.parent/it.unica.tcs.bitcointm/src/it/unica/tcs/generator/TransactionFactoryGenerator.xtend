@@ -23,6 +23,8 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
+import it.unica.tcs.bitcoinTM.TransactionReference
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -122,6 +124,14 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«ENDIF»		    	
 		return tb;
 	'''
+	
+	def public getTransactionFromFactory(ProtocolTransactionReference tx) {
+		return getTransactionFromFactory(tx.txRef)
+	}
+	
+	def public getTransactionFromFactory(TransactionReference txRef) {
+		return getTransactionFromFactory(txRef.tx.name, txRef.actualParams)
+	}
 	
 	def public getTransactionFromFactory(String name, EList<Expression> actualParams) {
 		'''TransactionFactory.tx_«name»(«actualParams.compileActualParams»)'''

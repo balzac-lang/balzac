@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Participant implements Runnable {
 	
-	private final Logger logger;
+	private static final Logger logger = LoggerFactory.getLogger(Participant.class);
+	
 	private final String name;
 	private final ExecutorService executor;
 	private final ServerSocketDaemon receiverDeamon;
@@ -34,7 +36,6 @@ public abstract class Participant implements Runnable {
 	}
 	
 	public Participant(String name, int port) {
-		this.logger = LoggerFactory.getLogger(this.getClass());
 		this.name = name;
 		this.executor = Executors.newCachedThreadPool();
 		this.receiverDeamon = new ServerSocketDaemon(port);
@@ -65,37 +66,49 @@ public abstract class Participant implements Runnable {
 		for (Process process : processes)
 			executor.execute(process);
 	}
+
+	public static ChoiceElement choiceElm(Prefix prefix) {
+		return new ChoiceElement(prefix);
+	}
 	
-	private Process choice(Prefix... prefixes) {
+	public static ChoiceElement choiceElm(Prefix prefix, Process next) {
+		return new ChoiceElement(prefix, next);
+	}
+	
+	private static Process choice(Prefix... prefixes) {
+		return choice(Arrays.stream(prefixes).map(ChoiceElement::new).toArray(ChoiceElement[]::new));
+	}
+	
+	public static Process choice(ChoiceElement... prefixes) {
 		checkState(prefixes.length>0);
 		return new Choice(prefixes);
 	}
 	
-	public Process ask(String... txsid) {
+	public static Process ask(String... txsid) {
 		return choice(PrefixFactory.ask(txsid));
 	}
 	
-	public Process ask(List<String> txsid) {
+	public static Process ask(List<String> txsid) {
 		return choice(PrefixFactory.ask(txsid));
 	}
 	
-	public Process check(Supplier<Boolean> condition) {
+	public static Process check(Supplier<Boolean> condition) {
 		return choice(PrefixFactory.check(condition));
 	}
 	
-	public Process check() {
+	public static Process check() {
 		return choice(PrefixFactory.check());
 	}
 	
-	public Process put(String txhex) {
+	public static Process put(String txhex) {
 		return choice(PrefixFactory.put(txhex));
 	}
 			
-	public void send(Integer msg, Participant p) {
+	public static void send(Integer msg, Participant p) {
 		send(msg.toString(), p);
 	}
 	
-	public void send(String msg, Participant p) {
+	public static void send(String msg, Participant p) {
 		
 		try (
 			Socket socket = new Socket(p.getHost(), p.getPort());
