@@ -60,6 +60,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import org.eclipse.xtext.validation.CheckType
 
 /**
  * This class contains custom validation rules. 
@@ -487,7 +488,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 	}
 	
-	@Check
+	@Check(CheckType.NORMAL)
 	def void checkUserDefinedTx(UserTransactionDeclaration tx) {
 
 		var tbody = tx.body		

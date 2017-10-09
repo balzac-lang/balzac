@@ -123,7 +123,7 @@ transaction bar {
 
 participant Alice {
 	P(45) 
-	process P(b) = ask A0 + assert b==4 -> P(b+1)
+	process P(b) = assert b==4 -> P(b+1)
 //	process P1(b) = ask A0 + assert b==4 -> P(789+12)
 	key kA = "KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW"		// mainnet, compressed, encoded (address)
 	

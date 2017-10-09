@@ -20,6 +20,7 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+import it.unica.tcs.bitcoinTM.Receive
 
 /**
  * This class contains custom scoping description.
@@ -60,14 +61,19 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 			getDeclaredVariables(obj.eContainer)
 		);
 	}
+	
+	def dispatch IScope getDeclaredVariables(Receive obj) {
+		return Scopes.scopeFor(
+			newArrayList(obj.^var),
+			getDeclaredVariables(obj.eContainer)
+		);
+	}
 
 	def dispatch IScope getDeclaredVariables(UserTransactionDeclaration obj) {
-//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(obj.params); 	// stop recursion
 	}	
 
 	def dispatch IScope getDeclaredVariables(SerialTransactionDeclaration obj) {
-//		println("found parameters: "+obj.params.map[x|x.toString].reduce[p1, p2| (p1+", "+p2)]);
 		return Scopes.scopeFor(newArrayList); 	// stop recursion
 	}	
 
