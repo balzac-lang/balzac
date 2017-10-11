@@ -304,7 +304,7 @@ NextProcess returns Process:
 | '(' Process ')'
 ;
 
-Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('->' next=NextProcess)?;
+Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('.' next=NextProcess)?;
 
 Tau: {Tau} 't';
 
