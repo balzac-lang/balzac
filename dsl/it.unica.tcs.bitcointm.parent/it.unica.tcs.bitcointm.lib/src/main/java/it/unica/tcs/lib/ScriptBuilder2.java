@@ -111,16 +111,25 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		this(script, new HashMap<>(), new HashMap<>());
 	}
 
+	@Override
+	public Script build() {
+		checkState(freeVariableSize() == 0 && signatureSize() == 0);
+		return super.build();
+	}
+	
+	@Override
 	public ScriptBuilder2 data(byte[] data) {
 		super.data(data);
 		return this;
 	}
 	
+	@Override
 	public ScriptBuilder2 number(long num) {
 		super.number(num);
 		return this;
 	}
 	
+	@Override
 	public ScriptBuilder2 op(int op) {
 		super.op(op);
 		return this;
