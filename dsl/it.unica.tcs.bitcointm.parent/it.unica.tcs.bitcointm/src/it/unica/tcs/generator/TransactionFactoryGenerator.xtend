@@ -26,7 +26,6 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import org.eclipse.emf.ecore.EObject
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -135,7 +134,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return getTransactionFromFactory(txRef.tx.name, txRef.actualParams)
 	}
 	
-	def public getTransactionFromFactory(String name, EList<EObject> actualParams) {
+	def public getTransactionFromFactory(String name, EList<?> actualParams) {
 		return getTransactionFromFactory(name, actualParams.map[x|x as ProtocolExpression])
 	}
 	

@@ -84,7 +84,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="TransactionReference">
     <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//TransactionDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
-        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"/>
+        eType="#//Typeable" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Script">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="lambda" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
@@ -220,7 +220,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="ProcessReference" eSuperTypes="#//Typeable #//Process">
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//ProcessDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
-        eType="#//Expression" containment="true"/>
+        eType="#//ProtocolExpression" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Process" eSuperTypes="#//Typeable"/>
   <eClassifiers xsi:type="ecore:EClass" name="Choice" eSuperTypes="#//Process">
@@ -251,7 +251,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="p" eType="#//ParticipantDeclaration"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Prefix">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//ProtocolExpression"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ProtocolIfThenElse" eSuperTypes="#//Process">
@@ -268,7 +268,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//TransactionBody"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ProtocolExpression" eSuperTypes="#//Typeable"/>
   <eClassifiers xsi:type="ecore:EClass" name="SignOp" eSuperTypes="#//ProtocolExpression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//KeyDeclaration"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="modifier" eType="#//Modifier"/>

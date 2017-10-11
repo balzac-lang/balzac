@@ -214,6 +214,7 @@ Typeable:
 | Process
 | Prefix
 | ProtocolTransactionReference
+| ProtocolExpression
 ;
 
 Number returns ecore::EInt:
@@ -275,7 +276,7 @@ ParticipantDeclaration: 'participant' name=ID '{'
 
 
 ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
-ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=ProtocolExpression ("," actualParams+=ProtocolExpression)*)?")")?;
 
 Process:
   SingleChoice 
@@ -313,7 +314,7 @@ Put: 'put' (
 
 Send: 'send' message=ProtocolExpression 'to' p=[ParticipantDeclaration];
 Receive: 'receive' var=Parameter 'from' p=[ParticipantDeclaration];
-Assert:	'assert' exp=Expression;
+Assert:	'check' exp=ProtocolExpression;
 
 ProtocolIfThenElse: 
 'if' exp=ProtocolExpression 

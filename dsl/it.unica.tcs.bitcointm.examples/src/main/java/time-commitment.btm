@@ -1,7 +1,7 @@
 /*
- * Andrychowicz
+ * Time commitment - Andrychowicz
  */
- 
+
 package it.unica.btm.time_commitment
 
 transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
@@ -67,9 +67,10 @@ transaction T_compute {
 
 
 participant Alice {
-	put T_commitA {input = T_fundsA: sig kA }
-	-> send (do sig T_payDepositA kA to Bob)
-		
+	t
+//	put T_commitA {input = T_fundsA: sig kA }
+//	-> send (do sig T_payDepositA kA to Bob)
+//		
 	key kA = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
 }
 

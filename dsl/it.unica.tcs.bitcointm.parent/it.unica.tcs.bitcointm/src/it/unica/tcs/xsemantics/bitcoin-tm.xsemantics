@@ -289,7 +289,7 @@ from {
 			
 			// check the actual parameters type match the formal ones (Transaction)
 			for (var i=0; i<input.txRef.actualParams.size; i++) {
-				var actualParam = input.txRef.actualParams.get(i)
+				var actualParam = input.txRef.actualParams.get(i) as Expression
 				var formalParam = inputTx.params.get(i)
 				
 				// all the actual parameters are well type and the type is basic

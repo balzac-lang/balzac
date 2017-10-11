@@ -156,7 +156,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
-		if(«p.exp.compileExpression») {
+		if(«p.exp.compileProtocolExpression») {
 			«p.^then.compileProcess»
 		}«IF p.^else!==null» else {
 			«p.^else.compileProcess»
@@ -189,11 +189,11 @@ class ParticipantGenerator extends AbstractGenerator {
 
 	def private dispatch String compilePrefix(Assert ass) {
 		'''
-		«IF ass.exp.compileExpression=="true"»
+		«IF ass.exp.compileProtocolExpression=="true"»
 			check();
 			«ELSE»
 			check(()->{
-				return «ass.exp.compileExpression»;
+				return «ass.exp.compileProtocolExpression»;
 			});
 		«ENDIF»
 		«IF ass.next!==null»
@@ -204,7 +204,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compilePrefix(Send send) {
 		'''
-		send(«send.message.compileExpression», Participant_«send.p.name».instance());
+		send(«send.message.compileProtocolExpression», Participant_«send.p.name».instance());
 		«IF send.next!==null»
 			«send.next.compileProcess»
 		«ENDIF»
