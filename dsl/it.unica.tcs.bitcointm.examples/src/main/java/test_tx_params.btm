@@ -1,0 +1,17 @@
+
+package com.example
+
+transaction T {
+	input = _
+	output = 2BTC : fun(a:int) . a==5 
+}
+
+transaction T1(x:int) {
+	input = T: x
+	output = 1BTC : fun(a:int) . a==3  
+}
+
+transaction T2 {
+	input = T1(5): 3
+	output = 0: ""
+}

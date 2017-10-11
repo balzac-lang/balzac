@@ -9,14 +9,13 @@ generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
     
 Model:
-	package=PackageDeclaration?
-	imports+=Import*
-	net=Network?
-	declarations+=Declaration*
-	;
+	PackageDeclaration;
 
 PackageDeclaration:
     'package' name=QualifiedName
+    	imports+=Import*
+		net=Network?
+		declarations+=Declaration*
 ;
 
 QualifiedName: ID ('.' ID)*;
@@ -61,7 +60,7 @@ TransactionBody: {TransactionBody} "{"
 
 
 Input:
-	txRef=TransactionReference ("@" outpoint=INT)? ":" (exps+=Atomic)+ ("["redeemScript=Script"]")?;
+	txRef=TransactionReference ("@" outpoint=INT)? ":" (exps+=ScriptAtomic)+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -70,7 +69,7 @@ Output:
 	value=BitcoinValue ":" script=Script;
 
 BitcoinValue:
-	exp=Expression;
+	exp=ScriptExpression;
 
 Tlock: times+=Time ("&&" times+=Time)*;
 
@@ -86,42 +85,46 @@ TransactionReference:
 	tx=[TransactionDeclaration] 
 	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
 
-
 Script:
-	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
 
 Parameter:
 	name=ID (":" paramType=ParameterType)?;
 
 
+
+Expression:		/* just to force some hierarchy and resolve ambiguity */
+	"1" ScriptExpression | "2" ProtocolExpression;
+
+
 /*
  * script expressions
  */
-Expression:
-    OrExpression;
+ScriptExpression:
+    OrScriptExpression;
 
-OrExpression returns Expression:
-	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
+OrScriptExpression returns ScriptExpression:
+	AndScriptExpression (({OrScriptExpression.left=current} => '||' ) right=AndScriptExpression)*;
 
-AndExpression returns Expression:
-	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
+AndScriptExpression returns ScriptExpression:
+	ScriptComparison (({AndScriptExpression.left=current} '&&') right=ScriptComparison)*;
 
-Comparison returns Expression:
-       Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
+ScriptComparison returns ScriptExpression:
+       ScriptEquals (({ScriptComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ScriptEquals)*;
 
-Equals returns Expression:
-       Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
+ScriptEquals returns ScriptExpression:
+       ScritpAddition (({ScriptEquals.left=current} op=("==" | "!=") ) right=ScritpAddition)*;
  
-Addition returns Expression:
-    Prefixed (({Plus.left=current} '+' | {Minus.left=current} '-') right=Prefixed)*; 
+ScritpAddition returns ScriptExpression:
+    ScriptPrefixed (({ScriptPlus.left=current} '+' | {ScriptMinus.left=current} '-') right=ScriptPrefixed)*; 
 
-Prefixed returns Expression:
-    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
-    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
-    Atomic;
+ScriptPrefixed returns ScriptExpression:
+    {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
+    {ScriptArithmeticSigned} =>"-" exp=ScriptAtomic | /* right associativity */
+    ScriptAtomic;
 
-Atomic returns Expression:
-    '(' Expression ')' 
+ScriptAtomic returns ScriptExpression:
+    '(' ScriptExpression ')' 
 |   Literal 
 |   VariableReference
 |   Signature 
@@ -148,9 +151,9 @@ BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 HashLiteral: value=BTC_HASH;
 
 IfThenElse:
-	'if' if=Expression
-	"then" then=Atomic
-	'else' else=Atomic;
+	'if' if=ScriptExpression
+	"then" then=ScriptAtomic
+	'else' else=ScriptAtomic;
 
 Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
 
@@ -165,16 +168,16 @@ enum Modifier:
 Versig:
 	"versig" "(" 
 		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-		signatures+=Expression ("," signatures+=Expression)* 
+		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
 	")";
 
-Hash: type=('sha256'|'ripemd160'|'hash256'|'hash160') "(" value=Expression ")";
+Hash: type=('sha256'|'ripemd160'|'hash256'|'hash160') "(" value=ScriptExpression ")";
 
-Min: "min" "(" left=Expression "," right=Expression ")";
-Max: "max" "(" left=Expression"," right=Expression ")";
-Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
-Size: "size" "(" value=Expression ")";
-AfterTimeLock: "after" timelock=Time ":" continuation=Atomic;
+Min: "min" "(" left=ScriptExpression "," right=ScriptExpression ")";
+Max: "max" "(" left=ScriptExpression"," right=ScriptExpression ")";
+Between: "between" "(" value=ScriptExpression "," left=ScriptExpression":" right=ScriptExpression ")";
+Size: "size" "(" value=ScriptExpression ")";
+AfterTimeLock: "after" timelock=Time ":" continuation=ScriptAtomic;
 
 
 ParameterType returns Type:
@@ -208,14 +211,13 @@ Typeable:
 | Parameter
 | Input
 | Output 
-| Expression
 | ParticipantDeclaration
 | ProcessDeclaration
 | ProcessReference
 | Process
 | Prefix
 | ProtocolTransactionReference
-| ProtocolExpression
+| Expression
 ;
 
 Number returns ecore::EInt:
@@ -365,7 +367,7 @@ ProtocolAtomic returns ProtocolExpression:
 SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
 VersigOp: "versig" "(" 
 		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-		signatures+=Expression ("," signatures+=Expression)* ")" 
+		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* ")" 
 		"using" tx=ProtocolTransactionReference;
 		
 		

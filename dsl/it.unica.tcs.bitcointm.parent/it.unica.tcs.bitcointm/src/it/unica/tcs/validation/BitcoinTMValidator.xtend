@@ -10,7 +10,6 @@ package it.unica.tcs.validation
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.AfterTimeLock
-import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.Expression
@@ -26,6 +25,7 @@ import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
+import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -57,10 +57,10 @@ import org.eclipse.xtext.resource.IResourceDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import org.eclipse.xtext.validation.CheckType
 
 /**
  * This class contains custom validation rules. 
@@ -195,7 +195,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		if (context.containsKey(exp.eContainer) 
 			|| exp instanceof Literal
-			|| exp instanceof ArithmeticSigned
+			|| exp instanceof ScriptArithmeticSigned
 			|| exp.eContainer instanceof BitcoinValue
 		){
 			// your parent can be simplified, so you are too
@@ -774,7 +774,19 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				txBuilder
 				«txBuilder.toString»''')
 				
-				
+//				
+//				
+//				if (txBuilder instanceof TransactionBuilder) {
+//					
+//					for (var j=0; j<input.txRef.actualParams.size; j++) {
+//						
+//						txBuilder.addFreeVariableBinding(p.name, )
+//					}
+//					
+//					for (p : input.txRef.actualParams) {
+//						
+//					}
+//				}
 				
 				var txJ = txBuilder.toTransaction()
 				

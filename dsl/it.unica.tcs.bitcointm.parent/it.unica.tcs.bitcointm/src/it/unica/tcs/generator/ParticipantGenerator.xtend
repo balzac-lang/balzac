@@ -40,7 +40,7 @@ class ParticipantGenerator extends AbstractGenerator {
 		var packageDecl = resource.allContents.toIterable.filter(PackageDeclaration).get(0)
 		var subpackage = "participant"
 		var package = packageDecl.fullyQualifiedName.append(subpackage);
-		var packagePath = packageDecl.fullyQualifiedName.append(subpackage).toString(File.separator) ;
+		var packagePath = package.toString(File.separator) ;
 		
 		for (participant : resource.allContents.toIterable.filter(ParticipantDeclaration)) {
 			
@@ -58,7 +58,6 @@ class ParticipantGenerator extends AbstractGenerator {
 		import it.unica.tcs.lib.*;
 		import it.unica.tcs.lib.model.*;
 		import it.unica.tcs.lib.model.*;
-		import it.unica.tcs.lib.model.Process;
 		import static it.unica.tcs.lib.utils.BitcoinUtils.*;
 		
 		@SuppressWarnings("unused")

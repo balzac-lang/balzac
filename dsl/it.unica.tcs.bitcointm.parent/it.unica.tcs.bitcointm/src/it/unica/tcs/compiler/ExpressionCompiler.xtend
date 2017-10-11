@@ -6,23 +6,23 @@ package it.unica.tcs.compiler
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AfterTimeLock
-import it.unica.tcs.bitcoinTM.AndExpression
-import it.unica.tcs.bitcoinTM.ArithmeticSigned
+import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
-import it.unica.tcs.bitcoinTM.BooleanNegation
-import it.unica.tcs.bitcoinTM.Comparison
-import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
-import it.unica.tcs.bitcoinTM.Minus
 import it.unica.tcs.bitcoinTM.NumberLiteral
-import it.unica.tcs.bitcoinTM.OrExpression
-import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
+import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
+import it.unica.tcs.bitcoinTM.ScriptComparison
+import it.unica.tcs.bitcoinTM.ScriptEquals
+import it.unica.tcs.bitcoinTM.ScriptMinus
+import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -100,25 +100,25 @@ class ExpressionCompiler {
         sb.append(stmt.continuation.compileExpression(ctx))
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(AndExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AndScriptExpression stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_BOOLAND)            
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(OrExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(OrScriptExpression stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_BOOLOR)            
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Plus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptPlus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_ADD)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Minus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptMinus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_SUB)
@@ -141,12 +141,12 @@ class ExpressionCompiler {
         sb.op(OP_SIZE)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(BooleanNegation stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptBooleanNegation stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)            
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ArithmeticSigned stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptArithmeticSigned stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)
     }
@@ -158,7 +158,7 @@ class ExpressionCompiler {
         sb.op(OP_WITHIN)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Comparison stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptComparison stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
 
@@ -170,7 +170,7 @@ class ExpressionCompiler {
         }
     }
     
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Equals stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptEquals stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         

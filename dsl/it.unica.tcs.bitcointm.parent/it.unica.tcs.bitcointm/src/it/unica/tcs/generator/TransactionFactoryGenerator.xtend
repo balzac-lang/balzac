@@ -76,13 +76,6 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
 		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
-		«IF !tx.params.isEmpty»
-			
-			// free variables
-		«ENDIF»
-		«FOR param:tx.params»
-			tb.freeVariable(«param.name», «param.paramType.compileType».class);
-		«ENDFOR»
 		«IF !tx.body.inputs.isEmpty»
 			
 			// inputs
@@ -122,7 +115,15 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«IF (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)»
 			// absolute timelock
 			tb.setLocktime(«tx.body.tlock.getAbsolute()»);
-		«ENDIF»		    	
+		«ENDIF»
+		«IF !tx.params.isEmpty»
+			
+			// free variables
+		«ENDIF»
+		«FOR param:tx.params»
+			tb.addFreeVariableBinding("«param.name»", «param.name»);
+		«ENDFOR»  	
+		
 		return tb;
 	'''
 	
