@@ -33,12 +33,14 @@
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//TransactionTypeEnum">
       <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//TransactionTypeEnum/transaction"/>
     </genEnums>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Model"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Model">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/package"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/imports"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/net"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Model/declarations"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//PackageDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//PackageDeclaration/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//PackageDeclaration/imports"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//PackageDeclaration/net"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//PackageDeclaration/declarations"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Import">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Import/importedNamespace"/>

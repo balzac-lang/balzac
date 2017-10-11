@@ -294,14 +294,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkDeclarationNameIsUnique(TransactionDeclaration t) {
+	def void checkTransactionDeclarationNameIsUnique(TransactionDeclaration t) {
 		
 		var root = EcoreUtil2.getRootContainer(t);
 		for (other: EcoreUtil2.getAllContentsOfType(root, TransactionDeclaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME,
+					IssueCodes.TRANSACTION_DECLARATION__DUPLICATED_NAME
 				);
 			}
 		}
@@ -315,7 +316,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.PARTICIPANT_DECLARATION__NAME
+					BitcoinTMPackage.Literals.PARTICIPANT_DECLARATION__NAME,
+					IssueCodes.PARTICIPANT_DECLARATION__DUPLICATED_NAME
 				);
 			}
 		}
