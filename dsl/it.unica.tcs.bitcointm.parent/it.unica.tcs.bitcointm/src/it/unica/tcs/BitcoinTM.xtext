@@ -94,7 +94,7 @@ Parameter:
 
 
 Expression:		/* just to force some hierarchy and resolve ambiguity */
-	"1" ScriptExpression | "2" ProtocolExpression;
+	"ε" ScriptExpression | "η" ProtocolExpression;
 
 
 /*
