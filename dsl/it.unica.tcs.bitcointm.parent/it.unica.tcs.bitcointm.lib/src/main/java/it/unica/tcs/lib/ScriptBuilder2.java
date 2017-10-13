@@ -113,7 +113,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 
 	@Override
 	public Script build() {
-		checkState(freeVariableSize() == 0 && signatureSize() == 0);
+		checkState(freeVariableSize() == 0 && signatureSize() == 0, "there exist some free-variables or signatures that need to be set before building");
 		return super.build();
 	}
 	
@@ -135,15 +135,20 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
+	public byte[] getLastPush() {
+		checkState(getChunks().size()>0, "script is empty");
+		return getChunks().get(getChunks().size()-1).data;
+	}
+	
 	public Map<String,Class<?>> getFreeVariables() {
 		return new HashMap<>(freeVariables);
 	}
 	
 	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
-		checkNotNull(name);
-		checkNotNull(clazz);
-		checkArgument(!freeVariables.containsKey(name) || clazz.equals(freeVariables.get(name)));
-		ScriptChunk chunk = new ScriptBuilder().data((FREEVAR_PREFIX_PLACEHOLDER+name).getBytes()).build().getChunks().get(0);
+		checkNotNull(name, "'name' cannot be null");
+		checkNotNull(clazz, "'clazz' cannot be null");
+		checkArgument(!freeVariables.containsKey(name) || clazz.equals(freeVariables.get(name)), "'"+name+"' is already with class '"+clazz+"'");
+		ScriptChunk chunk = new ScriptBuilder2().data((FREEVAR_PREFIX_PLACEHOLDER+name).getBytes()).getChunks().get(0);
 		super.addChunk(chunk);
 		this.freeVariables.put(name, clazz);
 		return this;
@@ -155,19 +160,19 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
-		checkNotNull(key);
-		checkNotNull(hashType);
+		checkNotNull(key, "'key' cannot be null");
+		checkNotNull(hashType, "'hashType' cannot be null");
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
 		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
-		ScriptChunk chunk = new ScriptBuilder().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).build().getChunks().get(0);
+		ScriptChunk chunk = new ScriptBuilder2().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).getChunks().get(0);
 		super.addChunk(chunk);
 		this.signatures.put(mapKey, sig);
 		return this;
 	}
 	
 	public int size() {
-		return super.build().getChunks().size();
+		return super.getChunks().size();
 	}
 	
 	public int freeVariableSize() {
@@ -181,7 +186,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	public ScriptBuilder2 setFreeVariable(String name, Object obj) {
 		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
 		
-		for (ScriptChunk chunk : build().getChunks()) {
+		for (ScriptChunk chunk : getChunks()) {
 			
 			if (Arrays.equals(chunk.data, (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes())) {
 				Class<?> expectedClass = sb.freeVariables.get(name);
@@ -222,7 +227,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	public ScriptBuilder2 setSignatures(Transaction tx, int inputIndex, byte[] outScript) {
 		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
 		
-		for (ScriptChunk chunk : build().getChunks()) {
+		for (ScriptChunk chunk : getChunks()) {
 			
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
@@ -269,7 +274,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @return this builder
 	 */
 	public ScriptBuilder2 append(ScriptBuilder2 append) {
-		for (ScriptChunk ch : append.build().getChunks()) {
+		for (ScriptChunk ch : append.getChunks()) {
 			this.addChunk(ch);
 			
 			// merge free variables
@@ -313,7 +318,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 */
 	public static String serialize(ScriptBuilder2 sb) {
 		StringBuilder str = new StringBuilder();
-		for (ScriptChunk ch : sb.build().getChunks()) {
+		for (ScriptChunk ch : sb.getChunks()) {
 			if (isSignature(ch)) {
 				String mapKey = getMapKey(ch);
 				str.append("[");
@@ -421,9 +426,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		builder.append("freeVariables = ").append(freeVariables.keySet()).append("\n");
 		builder.append("signatures = ").append(signatures.keySet()).append("\n");
 		builder.append("script = ").append(serialize(this)).append("\n");
-		builder.append("         isOpReturn : ").append(this.build().isOpReturn()).append("\n");
-		builder.append("         P2SH       : ").append(this.build().isPayToScriptHash()).append("\n");
-		builder.append("         P2PKH      : ").append(this.build().isSentToAddress());
+		builder.append("         isOpReturn : ").append(super.build().isOpReturn()).append("\n");
+		builder.append("         P2SH       : ").append(super.build().isPayToScriptHash()).append("\n");
+		builder.append("         P2PKH      : ").append(super.build().isSentToAddress());
 		return builder.toString();
 	}
 	

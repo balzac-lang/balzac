@@ -2,7 +2,7 @@
 package com.example
 
 transaction T {
-	input = _
+	input = _ 
 	output = 2 BTC : fun(a:int) . a==5 
 }
 
@@ -12,6 +12,6 @@ transaction T1(x:int) {
 }
 
 transaction T2 {
-	input = T1(5): 3
+	input = T1(5): 3  
 	output = 0: ""
 }

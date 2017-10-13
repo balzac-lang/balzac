@@ -43,6 +43,13 @@ public interface ITransactionBuilder {
 	public abstract boolean isCoinbase();
 	
 	/**
+	 * Return the transaction builder of the input {@code index}.
+	 * @param index the input index
+	 * @return the corresponding transaction builder
+	 */
+	public ITransactionBuilder getInputTransaction(int index);
+	
+	/**
 	 * Return a transaction builder from a bitcoin serialized transaction 
 	 * @param params the network parameters
 	 * @param bytes the payload of the transaction
@@ -67,6 +74,7 @@ public interface ITransactionBuilder {
 			@Override public int getOutputsSize() { return tx.getOutputs().size(); }
 			@Override public boolean isCoinbase() { return tx.isCoinBase(); }
 			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
+			@Override public ITransactionBuilder getInputTransaction(int index) { throw new UnsupportedOperationException(); }
 		};
 	}
 }

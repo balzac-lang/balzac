@@ -36,6 +36,7 @@ import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.KeyStore
+import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -84,11 +85,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSingleElementArray(UserTransactionDeclaration tx) {
 		
-		logger.trace("--- TRACE TEST --- Oblioooo")
-		logger.info("--- INFO TEST --- Oblioooo")
-		logger.warn("--- WARN TEST --- Oblioooo")
-		logger.error("--- ERROR TEST --- Oblioooo")
-		logger.fatal("--- FATAL TEST --- Oblioooo")
+		logger.trace("--- TRACE TEST --- ")
+		logger.info ("--- INFO  TEST --- ")
+		logger.warn ("--- WARN  TEST --- ")
+		logger.error("--- ERROR TEST --- ")
+		logger.fatal("--- FATAL TEST --- ")
 		
 		var tbody = tx.body
 		var inputs = tbody.inputs
@@ -774,19 +775,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				txBuilder
 				«txBuilder.toString»''')
 				
-//				
-//				
-//				if (txBuilder instanceof TransactionBuilder) {
-//					
-//					for (var j=0; j<input.txRef.actualParams.size; j++) {
-//						
-//						txBuilder.addFreeVariableBinding(p.name, )
-//					}
-//					
-//					for (p : input.txRef.actualParams) {
-//						
-//					}
-//				}
+				
+				
+				if (input.txRef.tx instanceof UserTransactionDeclaration) {
+					
+					val redeemedTx = input.txRef.tx as UserTransactionDeclaration
+					
+					for (var j=0; j<input.txRef.actualParams.size; j++) {
+						val formalP = redeemedTx.params.get(j)
+						val actualP = input.txRef.actualParams.get(j)
+						
+						val redeemedTxBuilder = (txBuilder.getInputTransaction(i) as TransactionBuilder)
+						redeemedTxBuilder.setFreeVariable(formalP.name, actualP.interpret.first)
+					}
+				}
 				
 				var txJ = txBuilder.toTransaction()
 				

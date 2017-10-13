@@ -25,8 +25,8 @@ transaction T {
 	]
 }
 
-transaction T1 { 
-	input = [
+transaction T1 {
+	input = [  
 		T@0: (0.00000043 BTC);
 		T@1: if (10+2==12) then "abc" else "xyz";
 		T@2: sig kA AIAO sig kA AIAO;
