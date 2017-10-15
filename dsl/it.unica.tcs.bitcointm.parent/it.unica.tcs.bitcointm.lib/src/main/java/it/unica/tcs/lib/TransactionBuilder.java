@@ -86,8 +86,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * <p>The methods {@link TransactionBuilder#addInput(TransactionBuilder, Map, ScriptBuilder2)} and
 	 * {@link TransactionBuilder#addOutput(ScriptBuilder2, int) will check this requirement.
 	 */
-	private final Map<String,Class<?>> freeVariables = new HashMap<>();
-	private final Map<String,Object> freeVarBindings = new HashMap<>();
+	private final Map<String,Class<?>> freeVariablesType = new HashMap<>();
+	private final Map<String,Object> freeVariablesBinding = new HashMap<>();
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
 	private long locktime = LOCKTIME_NOT_SET;
@@ -115,7 +115,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return this builder
 	 */
 	public TransactionBuilder freeVariable(String name, Class<?> clazz) {
-		this.freeVariables.put(name, clazz);
+		this.freeVariablesType.put(name, clazz);
 		return this;
 	}
 	
@@ -124,7 +124,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return a map containing the free variables
 	 */
 	public Map<String,Class<?>> getFreeVariables() {
-		return new HashMap<>(freeVariables);
+		return new HashMap<>(freeVariablesType);
 	}
 	
 	/**
@@ -138,9 +138,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             the expected class of the free variable.
 	 */
 	public TransactionBuilder setFreeVariable(String name, Object value) {
-		checkState(this.freeVariables.containsKey(name), "'"+name+"' is not a free variable");
-		checkState(this.freeVariables.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariables.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
-		freeVarBindings.put(name, value);
+		checkState(this.freeVariablesType.containsKey(name), "'"+name+"' is not a free variable");
+		checkState(this.freeVariablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
+		freeVariablesBinding.put(name, value);
 		return this;
 	}
 	
@@ -192,7 +192,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             contained within this tx free variables.
 	 */
 	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript, long locktime) {
-		checkArgument(freeVariables.entrySet().containsAll(inputScript.getFreeVariables().entrySet()), "the input script contains free-variables "+inputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariables.entrySet());
+		checkArgument(freeVariablesType.entrySet().containsAll(inputScript.getFreeVariables().entrySet()), "the input script contains free-variables "+inputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariablesType.entrySet());
 		inputs.add(Input.of(tx, outIndex, inputScript, locktime));
 		return this;
 	}
@@ -207,7 +207,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             this tx free variables.
 	 */
 	public TransactionBuilder addOutput(ScriptBuilder2 outputScript, int satoshis) {
-		checkArgument(freeVariables.entrySet().containsAll(outputScript.getFreeVariables().entrySet()), "the output script contains free-variables "+outputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariables.entrySet());
+		checkArgument(freeVariablesType.entrySet().containsAll(outputScript.getFreeVariables().entrySet()), "the output script contains free-variables "+outputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariablesType.entrySet());
 		outputs.add(Output.of(outputScript, satoshis));
 		return this;
 	}
@@ -227,10 +227,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return true if this transaction and all the ancestors don't have free variables, false otherwise.
 	 */
 	public boolean isReady() {
-		boolean allBound = this.freeVariables.entrySet().stream().allMatch(e->{
+		boolean allBound = this.freeVariablesType.entrySet().stream().allMatch(e->{
 			String name = e.getKey();
 			Class<?> type = e.getValue();
-			return this.freeVarBindings.containsKey(name) && type.isInstance(freeVarBindings.get(name));
+			return this.freeVariablesBinding.containsKey(name) && type.isInstance(freeVariablesBinding.get(name));
 		});		
 		return allBound && inputs.size()>0 && outputs.size()>0 && 
 				inputs.stream().map(x->x.tx).allMatch(ITransactionBuilder::isReady);
@@ -260,6 +260,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 				checkState(txInput.isCoinBase(), "'txInput' is expected to be a coinbase");
 			}
 			else {
+				ScriptBuilder2 sb = input.script;
+				
+//				if (sb instanceof P2SHInputScript) {
+//					P2SHInputScript p2shIn = (P2SHInputScript) sb; 
+//					p2shIn.setRedeemScript(p2shIn.getRedeemScript().setFreeVariable(freeVar.getKey(), freeVar.getValue()));
+//				}
+				
 				Transaction parentTransaction = parentTransaction2.toTransaction();
 				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later
@@ -283,7 +290,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		for (Output output : outputs) {
 			// bind free variables
 			ScriptBuilder2 sb = output.script;
-			for(Entry<String, Object> freeVar : freeVarBindings.entrySet()) {
+			for(Entry<String, Object> freeVar : freeVariablesBinding.entrySet()) {
 				sb = sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
 			}
 			checkState(sb.freeVariableSize()==0);
@@ -305,9 +312,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 			ScriptBuilder2 sb = inputs.get(i).script;
 			
 			// bind free variables
-			for(Entry<String, Object> freeVar : freeVarBindings.entrySet()) {
-				sb = sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
+			for(Entry<String, Object> freeVar : freeVariablesBinding.entrySet()) {
+				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
 			}
+			
 			checkState(sb.freeVariableSize()==0, "input script cannot have free variables");
 			
 			byte[] outScript;
@@ -320,7 +328,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				else
 					outScript = txInput.getOutpoint().getConnectedPubKeyScript();
 			}
-			sb = sb.setSignatures(tx, i, outScript);
+			sb.setAllSignatures(tx, i, outScript);
             checkState(sb.signatureSize()==0,  "all the signatures should have been set");
             
             // update scriptSig
@@ -341,13 +349,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 		sb.append("TransactionBuilder\n\n");
 		if (isCoinbase()) 
 			sb.append("        coinbase\n");
-		if (freeVarBindings.size()>0) {
+		if (freeVariablesBinding.size()>0) {
 			sb.append("\n        bindings : \n");
-			for (Entry<String,Object> binding : freeVarBindings.entrySet())
+			for (Entry<String,Object> binding : freeVariablesBinding.entrySet())
 				sb.append("            ").append(binding.getKey()).append(" -> ").append(binding.getValue()).append("\n");
 		}
-		if (freeVariables.size()>0)
-			sb.append("        freeVariables : "+this.freeVariables.keySet()+"\n");
+		if (freeVariablesType.size()>0)
+			sb.append("        freeVariables : "+this.freeVariablesType.keySet()+"\n");
 		sb.append("        ready : ").append(isReady()).append("\n");
 		
 		if (inputs.size()>0) {
@@ -367,8 +375,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	
 	
 	private Set<String> getUnboundFreeVariables() {
-		Set<String> s = new HashSet<>(this.freeVariables.keySet());
-		s.removeAll(this.freeVarBindings.keySet());
+		Set<String> s = new HashSet<>(this.freeVariablesType.keySet());
+		s.removeAll(this.freeVariablesBinding.keySet());
 		return s;
 	}
 }

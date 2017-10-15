@@ -58,7 +58,7 @@ public class ScriptBuilder2Test {
         assertEquals(1, sb.signatureSize());
         Transaction tx = new Transaction(new MainNetParams());
         tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-        sb = sb.setSignatures(tx, 0, new byte[]{});
+        sb = sb.setAllSignatures(tx, 0, new byte[]{});
         assertEquals(1, sb.size());
         assertEquals(0, sb.freeVariableSize());
         assertEquals(0, sb.signatureSize());

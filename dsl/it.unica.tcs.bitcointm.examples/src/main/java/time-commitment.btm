@@ -46,7 +46,7 @@ transaction T_payDepositA {
 transaction T_payDepositB {
     input = T_commitB: sig kA sig kB ""
  	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
-	after block 45
+	after block 45 
 }
 
 transaction T_compute {

@@ -31,6 +31,8 @@ import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.lib.P2SHInputScript
+import it.unica.tcs.lib.P2SHOutputScript
 
 class TransactionCompiler {
 	
@@ -165,20 +167,17 @@ class TransactionCompiler {
 	                return sb
 	            } else if (output.script.isP2SH) {
 	            	
-	                val sb = new ScriptBuilder2()
+	                // get the redeem script to push
+	                var redeemScript = output.script.getRedeemScript
+	                val p2sh = new P2SHInputScript(redeemScript)
 	                
 	                // build the list of expression pushes (actual parameters) 
 	                input.exps.forEach[e|
-	                	sb.append(e.simplifySafe.compileInputExpression)
+	                	p2sh.append(e.simplifySafe.compileInputExpression)
 	                ]
 	                
-	                // get the redeem script to push
-	                var redeemScript = output.script.getRedeemScript
-	                
-	                sb.data(redeemScript.build.program)
-	                                
 	                /* <e1> ... <en> <serialized script> */
-	                return sb
+	                return p2sh
 	            } else
 	                throw new CompileException
 	        }
@@ -207,13 +206,12 @@ class TransactionCompiler {
             
             // get the redeem script to serialize
             var redeemScript = output.script.getRedeemScript
-            var script = ScriptBuilder.createP2SHOutputScript(redeemScript.build)
 
-            if (script.scriptType != ScriptType.P2SH)
-                throw new CompileException
+//            if (redeemScript.getP2SHOutputScript().build().scriptType != ScriptType.P2SH)
+//                throw new CompileException
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
-            new ScriptBuilder2().append(script)
+            new P2SHOutputScript(redeemScript)
         } else if (outScript.isOpReturn) {
             var c = outScript.exp as StringLiteral
             var script = ScriptBuilder.createOpReturnScript(c.value.bytes)

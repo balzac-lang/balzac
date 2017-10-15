@@ -15,9 +15,12 @@ import static org.bitcoinj.script.ScriptOpCodes.OP_INVALIDOPCODE;
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
@@ -37,7 +40,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
 	
 	private final Map<String, SignatureUtil> signatures;
-	private final Map<String, Class<?>> freeVariables;
+	private final Map<String, Class<?>> freeVariablesType;
+	private final Map<String, Object> freeVariablesBinding;
 	
 	private static class SignatureUtil {
 		private final String keyID;
@@ -88,32 +92,29 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		}
 	}
 	
-	private ScriptBuilder2(
-			Script script,
-			Map<String, SignatureUtil> signatures, 
-			Map<String,Class<?>> freeVariablesTypes) {
-		super(script);
-		this.signatures = new HashMap<>(signatures);
-		this.freeVariables = new HashMap<>(freeVariablesTypes);
-	}
-
-	private ScriptBuilder2(
-			Map<String, SignatureUtil> signatures, 
-			Map<String,Class<?>> freeVariablesTypes) {
-		this(new Script(new byte[]{}), signatures, freeVariablesTypes);
-	}
-	
 	public ScriptBuilder2() {
 		this(new Script(new byte[]{}));
 	}
 
 	public ScriptBuilder2(Script script) {
-		this(script, new HashMap<>(), new HashMap<>());
+		this.signatures = new HashMap<>();
+		this.freeVariablesType = new HashMap<>();
+		this.freeVariablesBinding = new HashMap<>();
 	}
 
+	public boolean isReady() {
+		boolean allBound = this.freeVariablesType.entrySet().stream().allMatch(e->{
+			String name = e.getKey();
+			Class<?> type = e.getValue();
+			return this.freeVariablesBinding.containsKey(name) && type.isInstance(freeVariablesBinding.get(name));
+		});		
+		return allBound;
+	}
+	
 	@Override
 	public Script build() {
-		checkState(freeVariableSize() == 0 && signatureSize() == 0, "there exist some free-variables or signatures that need to be set before building");
+		checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
+		bindAllFreeVariables();
 		return super.build();
 	}
 	
@@ -141,16 +142,16 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public Map<String,Class<?>> getFreeVariables() {
-		return new HashMap<>(freeVariables);
+		return new HashMap<>(freeVariablesType);
 	}
 	
 	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(clazz, "'clazz' cannot be null");
-		checkArgument(!freeVariables.containsKey(name) || clazz.equals(freeVariables.get(name)), "'"+name+"' is already with class '"+clazz+"'");
+		checkArgument(!freeVariablesType.containsKey(name) || clazz.equals(freeVariablesType.get(name)), "'"+name+"' is already with class '"+clazz+"'");
 		ScriptChunk chunk = new ScriptBuilder2().data((FREEVAR_PREFIX_PLACEHOLDER+name).getBytes()).getChunks().get(0);
 		super.addChunk(chunk);
-		this.freeVariables.put(name, clazz);
+		this.freeVariablesType.put(name, clazz);
 		return this;
 	}
 	
@@ -176,44 +177,62 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public int freeVariableSize() {
-		return freeVariables.size();
+		return freeVariablesType.size()-freeVariablesBinding.size();
 	}
 	
 	public int signatureSize() {
 		return signatures.size();
 	}
 	
-	public ScriptBuilder2 setFreeVariable(String name, Object obj) {
-		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
-		
-		for (ScriptChunk chunk : getChunks()) {
-			
-			if (Arrays.equals(chunk.data, (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes())) {
-				Class<?> expectedClass = sb.freeVariables.get(name);
-				if (expectedClass.isInstance(obj)) {
-					if (obj instanceof String){
-			            sb.data(((String) obj).getBytes());
-			        }
-			        else if (obj instanceof Integer) {
-			        	sb.number((Integer) obj);
-			        }
-			        else if (obj instanceof Boolean) {
-			            if ((Boolean) obj) this.op(ScriptOpCodes.OP_TRUE);
-			            else sb.op(ScriptOpCodes.OP_FALSE);
-			        }
-			        else if (obj instanceof byte[]) {
-			        	sb.data((byte[]) obj);
-			        }
-			        else throw new IllegalArgumentException("Unxpected type "+obj.getClass());
+	public ScriptBuilder2 setFreeVariable(String name, Object value) {
+		checkState(this.freeVariablesType.containsKey(name), "'"+name+"' is not a free variable");
+		checkState(this.freeVariablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
+		freeVariablesBinding.put(name, value);
+		return this;
+	}
+
+	private ScriptBuilder2 bindAllFreeVariables() {
+		// this ScriptBuilder2 is assumed to be ready
+		List<ScriptChunk> newChunks = new ArrayList<>();
+
+		for (Entry<String, Object> entry : freeVariablesBinding.entrySet()) {
+			String name = entry.getKey();
+			Object obj = entry.getValue();
+
+			for (ScriptChunk chunk : getChunks()) {
+
+				ScriptBuilder sb = new ScriptBuilder();
+				if (Arrays.equals(chunk.data, (FREEVAR_PREFIX_PLACEHOLDER + name).getBytes())) {
+					Class<?> expectedClass = freeVariablesType.get(name);
+					if (expectedClass.isInstance(obj)) {
+						if (obj instanceof String) {
+							sb.data(((String) obj).getBytes());
+						} else if (obj instanceof Integer) {
+							sb.number((Integer) obj);
+						} else if (obj instanceof Boolean) {
+							if ((Boolean) obj)
+								sb.number(ScriptOpCodes.OP_TRUE);
+							else
+								sb.op(ScriptOpCodes.OP_FALSE);
+						} else if (obj instanceof byte[]) {
+							sb.data((byte[]) obj);
+						} else
+							throw new IllegalArgumentException("Unxpected type " + obj.getClass());
+					} else
+						throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
+				} else {
+					sb.addChunk(chunk);
 				}
-				else throw new IllegalArgumentException("expected class "+expectedClass.getName()+", got "+obj.getClass().getName());
-			}
-			else {
-				sb.addChunk(chunk);
+
+				newChunks.addAll(sb.build().getChunks());
 			}
 		}
-		sb.freeVariables.remove(name);
-		return sb;
+		super.getChunks().clear();
+		super.getChunks().addAll(newChunks);
+
+		freeVariablesBinding.clear();
+		freeVariablesType.clear();
+		return this;
 	}
 	
 	/**
@@ -224,14 +243,16 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @param outScript the redeemed output script 
 	 * @return a <b>copy</b> of this builder
 	 */
-	public ScriptBuilder2 setSignatures(Transaction tx, int inputIndex, byte[] outScript) {
-		ScriptBuilder2 sb = new ScriptBuilder2(signatures,freeVariables);
+	public ScriptBuilder2 setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) {
 		
+		List<ScriptChunk> newChunks = new ArrayList<>();
+
 		for (ScriptChunk chunk : getChunks()) {
 			
+			ScriptBuilder sb = new ScriptBuilder();
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
-				SignatureUtil sig = sb.signatures.get(mapKey);
+				SignatureUtil sig = this.signatures.get(mapKey);
 				ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
 				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
@@ -252,9 +273,11 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			else {
 				sb.addChunk(chunk);
 			}
+			
+			newChunks.addAll(sb.build().getChunks());
 		}
-		sb.signatures.clear();
-		return sb;
+		this.signatures.clear();
+		return this;
 	}
 	
 	/**
@@ -280,14 +303,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			// merge free variables
 			if (isFreeVariable(ch)) {
 				String name = getFreeVariableName(ch);
-				if (this.freeVariables.containsKey(name)) {
+				if (this.freeVariablesType.containsKey(name)) {
 					// check they are consistent
-					checkState(this.freeVariables.get(name).equals(append.freeVariables.get(name)), 
+					checkState(this.freeVariablesType.get(name).equals(append.freeVariablesType.get(name)), 
 							"Inconsitent state: free variable '%s' is bound to '%s' (this) and '%s' (append)",
-							name, this.freeVariables.get(name), append.freeVariables.get(name));
+							name, this.freeVariablesType.get(name), append.freeVariablesType.get(name));
 				}
 				else {
-					this.freeVariables.put(name, append.freeVariables.get(name));
+					this.freeVariablesType.put(name, append.freeVariablesType.get(name));
 				}
 			}
 			// merge signatures
@@ -337,7 +360,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 				str.append(",");
 				str.append(name);
 				str.append(",");
-				str.append(sb.freeVariables.get(name).getCanonicalName());
+				str.append(sb.freeVariablesType.get(name).getCanonicalName());
 				str.append("]");
 				str.append(" ");
 			}
@@ -423,7 +446,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("freeVariables = ").append(freeVariables.keySet()).append("\n");
+		builder.append("freeVariables = ").append(freeVariablesType.keySet()).append("\n");
 		builder.append("signatures = ").append(signatures.keySet()).append("\n");
 		builder.append("script = ").append(serialize(this)).append("\n");
 		builder.append("         isOpReturn : ").append(super.build().isOpReturn()).append("\n");
@@ -496,4 +519,5 @@ public class ScriptBuilder2 extends ScriptBuilder {
         else
             return value - 1 + OP_1;
     }
+    
 }

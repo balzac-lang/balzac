@@ -121,7 +121,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			// free variables
 		«ENDIF»
 		«FOR param:tx.params»
-			tb.addFreeVariableBinding("«param.name»", «param.name»);
+			tb.setFreeVariable("«param.name»", «param.name»);
 		«ENDFOR»  	
 		
 		return tb;
