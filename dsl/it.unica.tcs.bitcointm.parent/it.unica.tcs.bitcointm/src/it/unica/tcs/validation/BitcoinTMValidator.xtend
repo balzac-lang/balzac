@@ -33,6 +33,7 @@ import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.KeyStore
@@ -79,6 +80,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
 	@Inject private KeyStore keyStore
+	
 	/*
 	 * INFO
 	 */	
@@ -611,7 +613,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def boolean checkInputExpressions(Input input) {
         var inputTx = input.txRef.tx
         var outputIdx = input.outpoint
-        var lastExp = input.exps.get(input.exps.size-1)
 		
 		if (inputTx instanceof UserTransactionDeclaration) {
             var outputScript = inputTx.body.outputs.get(outputIdx).script;
@@ -628,10 +629,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 return false
             }
             
-            if (lastExp instanceof Script) {
+            if (input.redeemScript!==null) {
                 error(
                     "You must not specify the redeem script when referring to a user-defined transaction.",
-                    lastExp,
+                    input.redeemScript,
                     BitcoinTMPackage.Literals.INPUT__EXPS,
                     input.exps.size-1
                 );
@@ -644,20 +645,34 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             
             var refTx = input.txRef.tx.compileTransaction.toTransaction()
                         
-            if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                lastExp instanceof Script
-            ) {
-                error(
-                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
-                    input,
-                    BitcoinTMPackage.Literals.INPUT__EXPS,
-                    input.exps.size-1
-                );
-                return false
+            if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
+            	if (input.redeemScript===null) {
+            		error(
+	                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
+	                    input,
+	                    BitcoinTMPackage.Literals.INPUT__EXPS,
+	                    input.exps.size-1
+	                );
+	                return false	
+            	}
+            	else {
+            		// free variables are not allowed
+            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, VariableReference)) {
+            			if (v.ref.eContainer instanceof UserTransactionDeclaration) {
+            				error(
+			                    "Cannot reference transaction parameters from the redeem script.",
+			                    v,
+			                    BitcoinTMPackage.Literals.VARIABLE_REFERENCE__REF
+			                );
+            			}
+            		}
+            	}
+            	
+                
             }
             
             if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                lastExp instanceof Script
+                input.redeemScript===null
             ) {
                 error(
                     "The pointed output is not a P2SH output. You must not specify the redeem script.",

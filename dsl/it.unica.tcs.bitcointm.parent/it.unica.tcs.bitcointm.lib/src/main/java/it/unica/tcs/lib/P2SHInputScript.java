@@ -9,8 +9,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class P2SHInputScript extends ScriptBuilder2 {
 
-	// TODO: make it final!
-	private ScriptBuilder2 redeemScript;
+	private final ScriptBuilder2 redeemScript;
 	
 	public P2SHInputScript(ScriptBuilder2 redeemScript) {
 		this.redeemScript = redeemScript;
@@ -31,9 +30,4 @@ public class P2SHInputScript extends ScriptBuilder2 {
 	public ScriptBuilder2 getRedeemScript() {
 		return redeemScript;
 	}
-	
-	public void setRedeemScript(ScriptBuilder2 redeemScript) {
-		this.redeemScript = redeemScript;
-	}
-
 }

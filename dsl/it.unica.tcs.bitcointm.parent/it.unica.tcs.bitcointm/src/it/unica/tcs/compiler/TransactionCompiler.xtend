@@ -132,19 +132,17 @@ class TransactionCompiler {
 	                return sb
 	            } else if (output.scriptPubKey.isPayToScriptHash) {
 	                
-	                val sb = new ScriptBuilder2()
+	                // get the redeem script to push (specified by the user)
+	                var redeemScript = input.redeemScript.getRedeemScript
+	                val p2sh = new P2SHInputScript(redeemScript)
 	                
 	                // build the list of expression pushes (actual parameters) 
 	                input.exps.forEach[e|
-	                	sb.append(e.simplifySafe.compileInputExpression)
+	                	p2sh.append(e.simplifySafe.compileInputExpression)
 	                ]
 	                
-	                // get the redeem script to push
-	                var redeemScript = input.redeemScript.getRedeemScript
-	                sb.data(redeemScript.build.program)
-	                
 	                /* <e1> ... <en> <serialized script> */
-	                return sb
+	                return p2sh
 	            } else
 	                throw new CompileException
 	        }
