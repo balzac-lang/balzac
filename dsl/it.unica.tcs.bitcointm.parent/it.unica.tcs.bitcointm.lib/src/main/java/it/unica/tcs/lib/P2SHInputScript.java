@@ -27,7 +27,7 @@ public class P2SHInputScript extends InputScriptImpl {
 		return super.isReady() && redeemScript.isReady();
 	}
 
-	public ScriptBuilder2 getRedeemScript() {
+	public P2SHOutputScript getRedeemScript() {
 		return redeemScript;
 	}
 }

@@ -2,7 +2,7 @@ package it.unica.tcs.lib;
 
 import org.bitcoinj.script.Script;
 
-abstract public class OutputScript extends ScriptBuilder2 {
+abstract public class OutputScript extends ScriptBuilder2<OutputScript> {
 
 	public OutputScript() {
 		super();

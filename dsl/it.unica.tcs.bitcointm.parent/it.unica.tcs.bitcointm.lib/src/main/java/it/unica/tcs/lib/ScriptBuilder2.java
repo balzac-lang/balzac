@@ -25,8 +25,8 @@ import java.util.Map;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.UnsafeByteArrayOutputStream;
+import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
@@ -35,7 +35,7 @@ import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 // TODO: make it abstract
-public class ScriptBuilder2 extends ScriptBuilder {
+public class ScriptBuilder2<T extends ScriptBuilder2<T>> extends AbstractScriptBuilder<T> {
 
 	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
@@ -120,29 +120,14 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return super.build();
 	}
 	
-	@Override
-	public ScriptBuilder2 data(byte[] data) {
-		super.data(data);
-		return this;
-	}
-	
-	@Override
-	public ScriptBuilder2 number(long num) {
-		super.number(num);
-		return this;
-	}
-	
-	@Override
-	public ScriptBuilder2 op(int op) {
-		super.op(op);
-		return this;
-	}
+
 	
 	public Map<String,Class<?>> getFreeVariables() {
 		return new HashMap<>(freeVariablesType);
 	}
 	
-	public ScriptBuilder2 freeVariable(String name, Class<?> clazz) {
+	@SuppressWarnings("unchecked")
+	public T freeVariable(String name, Class<?> clazz) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(clazz, "'clazz' cannot be null");
 		checkArgument(!freeVariablesType.containsKey(name) || clazz.equals(freeVariablesType.get(name)), "'"+name+"' is already with class '"+clazz+"'");
@@ -151,15 +136,16 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
 		this.freeVariablesType.put(name, clazz);
-		return this;
+		return (T) this;
 	}
 	
-	public ScriptBuilder2 signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
+	public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
 		ECKey key = KeyStoreFactory.getInstance().getKey(keyID);
 		return signaturePlaceholder(key, hashType, anyoneCanPay);
 	}
 	
-	public ScriptBuilder2 signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+	@SuppressWarnings("unchecked")
+	public T signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
 		checkNotNull(key, "'key' cannot be null");
 		checkNotNull(hashType, "'hashType' cannot be null");
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
@@ -170,7 +156,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
 		this.signatures.put(mapKey, sig);
-		return this;
+		return (T) this;
 	}
 	
 	public int size() {
@@ -185,18 +171,20 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return signatures.size();
 	}
 	
-	public ScriptBuilder2 setFreeVariable(String name, Object value) {
+	@SuppressWarnings("unchecked")
+	public T setFreeVariable(String name, Object value) {
 		if (!this.freeVariablesType.containsKey(name))
-			return this;
+			return (T) this;
 		checkState(this.freeVariablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
 		freeVariablesBinding.put(name, value);
-		return this;
+		return (T) this;
 	}
 
-	private ScriptBuilder2 bindAllFreeVariables() {
+	@SuppressWarnings("unchecked")
+	private T bindAllFreeVariables() {
 		
 		if (freeVariablesType.size()==0)	// nothing to substitute
-			return this;
+			return (T) this;
 		
 		// this ScriptBuilder2 is assumed to be ready
 		List<ScriptChunk> newChunks = new ArrayList<>();
@@ -237,7 +225,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 
 		freeVariablesBinding.clear();
 		freeVariablesType.clear();
-		return this;
+		
+		return (T) this;
 	}
 	
 	/**
@@ -248,7 +237,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @param outScript the redeemed output script 
 	 * @return a <b>copy</b> of this builder
 	 */
-	public ScriptBuilder2 setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) {
+	@SuppressWarnings("unchecked")
+	public T setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) {
 		
 		List<ScriptChunk> newChunks = new ArrayList<>();
 
@@ -285,7 +275,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		super.getChunks().addAll(newChunks);
 		
 		this.signatures.clear();
-		return this;
+		return (T) this;
 	}
 	
 	/**
@@ -293,8 +283,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @param append the script to append
 	 * @return this builder
 	 */
-	public ScriptBuilder2 append(Script append) {
-		ScriptBuilder2 sb = new ScriptBuilder2(append);
+	public T append(Script append) {
+		ScriptBuilder2<T> sb = new ScriptBuilder2<T>(append);
 		return this.append(sb);
 	}
 	
@@ -304,7 +294,8 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @param append the script builder to append
 	 * @return this builder
 	 */
-	public ScriptBuilder2 append(ScriptBuilder2 append) {
+	@SuppressWarnings("unchecked")
+	public <U extends ScriptBuilder2<U>> T append(ScriptBuilder2<U> append) {
 		for (ScriptChunk ch : append.getChunks()) {
 			this.addChunk(ch);
 			
@@ -339,7 +330,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			}
 		}
 		
-		return this;
+		return (T) this;
 	}
 	
 	/**
@@ -347,7 +338,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	 * @return a string representing this builder
 	 * @see #parse(String)
 	 */
-	public static String serialize(ScriptBuilder2 sb) {
+	public static <T extends ScriptBuilder2<T>> String serialize(ScriptBuilder2<T> sb) {
 		StringBuilder str = new StringBuilder();
 		for (ScriptChunk ch : sb.getChunks()) {
 			if (isSignature(ch)) {
@@ -382,11 +373,12 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	/**
 	 * Parse the given string to initialize this {@link ScriptBuilder}
 	 * @param str
+	 * @return 
 	 * @return
 	 * @see #serialize()
 	 */
-	public static ScriptBuilder2 deserialize(String str) {
-		ScriptBuilder2 sb = new ScriptBuilder2();
+	public static <T extends ScriptBuilder2<T>> ScriptBuilder2<T> deserialize(String str) {
+		ScriptBuilder2<T> sb = new ScriptBuilder2<T>();
 		for (String ch : str.split(" ")) {
 			if (ch.startsWith("[")) {
 				String[] vals = ch.substring(1, ch.length()-1).split(",");
@@ -429,48 +421,17 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return new String(ch.data).substring(PREFIX_SIGNATURE_PLACEHOLDER.length());
 	}
 	
-	@SuppressWarnings("incomplete-switch")
-	private static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
-		switch (sigHash) {
-		case ALL: return (anyoneCanPay?"1":"*")+"*";
-		case NONE: return (anyoneCanPay?"1":"*")+"0";
-		case SINGLE: return (anyoneCanPay?"1":"*")+"1";
-		}
-		throw new IllegalStateException();
-	}
-	
-	private static Object[] decodeModifier(String modifier) {
-		switch (modifier) {
-		case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
-		case "1*": return new Object[]{SigHash.ALL, Boolean.TRUE};
-		case "*0": return new Object[]{SigHash.NONE, Boolean.FALSE};
-		case "10": return new Object[]{SigHash.NONE, Boolean.TRUE};
-		case "*1": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
-		case "11": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
-		}
-		throw new IllegalStateException(modifier);
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("freeVariables = ").append(freeVariablesType.keySet()).append("\n");
-		builder.append("signatures = ").append(signatures.keySet()).append("\n");
-		builder.append("script = ").append(serialize(this)).append("\n");
-		builder.append("         isOpReturn : ").append(super.build().isOpReturn()).append("\n");
-		builder.append("         P2SH       : ").append(super.build().isPayToScriptHash()).append("\n");
-		builder.append("         P2PKH      : ").append(super.build().isSentToAddress());
+		builder.append("signatures    = ").append(signatures.keySet()).append("\n");
+		builder.append("script        = ").append(serialize(this));
 		return builder.toString();
 	}
 	
-	
-	/* ---------------------------------------------------------------------------------------------- */
-	/*
-	 * below there are some methods customized from bitcoinJ
-	 */
-	
 
-	private static String serializeChunk(ScriptChunk ch) {
+	protected static String serializeChunk(ScriptChunk ch) {
 		StringBuilder buf = new StringBuilder();
         if (ch.isOpCode()) {
             buf.append(getOpCodeName(ch.opcode));
@@ -484,7 +445,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
         return buf.toString();
 	}
 	
-	private static ScriptChunk deserializeChunk(String w) {
+	protected static ScriptChunk deserializeChunk(String w) {
         try(UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream()) {
 	        if (w.matches("^-?[0-9]*$")) {
 	            // Small Number
@@ -508,7 +469,29 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		}
 	}
 	
-    static int decodeFromOpN(int opcode) {
+	@SuppressWarnings("incomplete-switch")
+	protected static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
+		switch (sigHash) {
+		case ALL: return (anyoneCanPay?"1":"*")+"*";
+		case NONE: return (anyoneCanPay?"1":"*")+"0";
+		case SINGLE: return (anyoneCanPay?"1":"*")+"1";
+		}
+		throw new IllegalStateException();
+	}
+	
+	protected static Object[] decodeModifier(String modifier) {
+		switch (modifier) {
+		case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
+		case "1*": return new Object[]{SigHash.ALL, Boolean.TRUE};
+		case "*0": return new Object[]{SigHash.NONE, Boolean.FALSE};
+		case "10": return new Object[]{SigHash.NONE, Boolean.TRUE};
+		case "*1": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
+		case "11": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
+		}
+		throw new IllegalStateException(modifier);
+	}
+	
+	protected static int decodeFromOpN(int opcode) {
         checkArgument((opcode == OP_0 || opcode == OP_1NEGATE) || (opcode >= OP_1 && opcode <= OP_16), "decodeFromOpN called on non OP_N opcode");
         if (opcode == OP_0)
             return 0;
@@ -518,7 +501,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
             return opcode + 1 - OP_1;
     }
 
-    static int encodeToOpN(int value) {
+	protected static int encodeToOpN(int value) {
         checkArgument(value >= -1 && value <= 16, "encodeToOpN called for " + value + " which we cannot encode in an opcode.");
         if (value == 0)
             return OP_0;
@@ -527,5 +510,4 @@ public class ScriptBuilder2 extends ScriptBuilder {
         else
             return value - 1 + OP_1;
     }
-    
 }

@@ -20,7 +20,7 @@ public class ScriptBuilder2Test {
 	 */
 	@Test
     public void test_size() {
-        ScriptBuilder2 sb = new ScriptBuilder2();
+        ScriptBuilder2<?> sb = new ScriptBuilder2<>();
         assertEquals(0, sb.size());
         assertEquals(0, sb.freeVariableSize());
         assertEquals(0, sb.signatureSize());
@@ -32,7 +32,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_freeVariable() {
-        ScriptBuilder2 sb = new ScriptBuilder2();
+        ScriptBuilder2<?> sb = new ScriptBuilder2<>();
         assertEquals(0, sb.size());
         assertEquals(0, sb.freeVariableSize());
         assertEquals(0, sb.signatureSize());
@@ -48,7 +48,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_signature() {
-        ScriptBuilder2 sb = new ScriptBuilder2();
+        ScriptBuilder2<?> sb = new ScriptBuilder2<>();
         assertEquals(0, sb.size());
         assertEquals(0, sb.freeVariableSize());
         assertEquals(0, sb.signatureSize());
@@ -66,7 +66,7 @@ public class ScriptBuilder2Test {
     
     @Test
     public void test_serialize_freeVariable() {
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.freeVariable("Donald", String.class);
     	String expected = "15 [var,Donald,java.lang.String]"; 
@@ -90,7 +90,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
@@ -105,7 +105,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.ALL;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
@@ -120,7 +120,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
@@ -135,7 +135,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.SINGLE;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
@@ -150,7 +150,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, false);
     	
@@ -165,7 +165,7 @@ public class ScriptBuilder2Test {
     	
     	ECKey key = new ECKey();
     	SigHash hashType = SigHash.NONE;
-    	ScriptBuilder2 sb = new ScriptBuilder2();
+    	ScriptBuilder2<?> sb = new ScriptBuilder2<>();
     	sb.number(15);
     	sb.signaturePlaceholder(key, hashType, true);
     	
@@ -180,7 +180,7 @@ public class ScriptBuilder2Test {
     	ECKey key = new ECKey();
     	String keyID = store.addKey(key);
     	String serialScript = "15 [sig,"+keyID+",**]"; 
-    	ScriptBuilder2 res = ScriptBuilder2.deserialize(serialScript);
+    	ScriptBuilder2<?> res = ScriptBuilder2.deserialize(serialScript);
 
     	assertEquals(1, res.signatureSize());
     	assertEquals(2, res.size());
@@ -231,7 +231,7 @@ public class ScriptBuilder2Test {
     	};
     	
 		for (String s : scripts) {
-			assertEquals(s, ScriptBuilder2.serialize(ScriptBuilder2.deserialize(s)));
+			assertEquals(s, ScriptBuilder2.<InputScript>serialize(ScriptBuilder2.<InputScript>deserialize(s)));
 		}
     }
 }
