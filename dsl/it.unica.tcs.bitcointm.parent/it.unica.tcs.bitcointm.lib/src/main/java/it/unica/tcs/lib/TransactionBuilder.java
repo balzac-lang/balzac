@@ -22,8 +22,8 @@ import org.bitcoinj.script.Script;
 
 public class TransactionBuilder implements ITransactionBuilder {
 
-	private static final long LOCKTIME_NOT_SET = -1;
-//	private static final int OUTINDEX_NOT_SET = -1;
+	private static final long UNSET_LOCKTIME = -1;
+
 	private final NetworkParameters params;
 	
 	public TransactionBuilder(NetworkParameters params) {
@@ -41,7 +41,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private final Map<String,Object> freeVariablesBinding = new HashMap<>();
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
-	private long locktime = LOCKTIME_NOT_SET;
+	private long locktime = UNSET_LOCKTIME;
 	
 	@Override
 	public List<Input> getInputs() {
@@ -218,9 +218,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
 				
 				//set checksequenseverify (relative locktime)
-				if (input.getLocktime()==LOCKTIME_NOT_SET) {
+				if (input.getLocktime()==UNSET_LOCKTIME) {
 					// see BIP-0065
-					if (this.locktime!=LOCKTIME_NOT_SET)
+					if (this.locktime!=UNSET_LOCKTIME)
 						txInput.setSequenceNumber(TransactionInput.NO_SEQUENCE-1);
 				}
 				else {
@@ -234,7 +234,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		// outputs
 		for (Output output : outputs) {
 			// bind free variables
-			OutputScript sb = output.script;
+			OutputScript sb = output.getScript();
 			for(Entry<String, Object> freeVar : freeVariablesBinding.entrySet()) {
 				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
 			}
@@ -251,12 +251,12 @@ public class TransactionBuilder implements ITransactionBuilder {
 				outScript = sb.build();
 			}
 			
-			Coin value = Coin.valueOf(output.value);
+			Coin value = Coin.valueOf(output.getValue());
 			tx.addOutput(value, outScript);
 		}
 		
 		//set checklocktime (absolute locktime)
-		if (locktime!=LOCKTIME_NOT_SET) {
+		if (locktime!=UNSET_LOCKTIME) {
 			tx.setLockTime(locktime);
 		}
 		
@@ -324,7 +324,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		if (outputs.size()>0) {
 			sb.append("\n        outputs : \n");
 			for(Output out : outputs) {
-				sb.append("            [").append(out.value).append("] ").append(out.script.toString()).append("\n");
+				sb.append("            [").append(out.getValue()).append("] ").append(out.getScript().toString()).append("\n");
 			}
 		}
 		return sb.toString();
