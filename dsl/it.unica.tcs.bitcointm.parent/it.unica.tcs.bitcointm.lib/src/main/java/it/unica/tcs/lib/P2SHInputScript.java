@@ -7,11 +7,11 @@ package it.unica.tcs.lib;
 import org.bitcoinj.script.Script;
 import static com.google.common.base.Preconditions.checkState;
 
-public class P2SHInputScript extends ScriptBuilder2 {
+public class P2SHInputScript extends InputScriptImpl {
 
-	private final ScriptBuilder2 redeemScript;
+	private final P2SHOutputScript redeemScript;
 	
-	public P2SHInputScript(ScriptBuilder2 redeemScript) {
+	public P2SHInputScript(P2SHOutputScript redeemScript) {
 		this.redeemScript = redeemScript;
 	}
 	
@@ -24,7 +24,7 @@ public class P2SHInputScript extends ScriptBuilder2 {
 	
 	@Override
 	public boolean isReady() {
-		return this.isReady() && redeemScript.isReady();
+		return super.isReady() && redeemScript.isReady();
 	}
 
 	public ScriptBuilder2 getRedeemScript() {

@@ -12,6 +12,7 @@ import static org.bitcoinj.script.ScriptOpCodes.OP_1;
 import static org.bitcoinj.script.ScriptOpCodes.OP_16;
 import static org.bitcoinj.script.ScriptOpCodes.OP_1NEGATE;
 import static org.bitcoinj.script.ScriptOpCodes.OP_INVALIDOPCODE;
+import static org.bitcoinj.script.ScriptOpCodes.OP_PUSHDATA1;
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
@@ -34,6 +34,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
+// TODO: make it abstract
 public class ScriptBuilder2 extends ScriptBuilder {
 
 	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
@@ -97,6 +98,7 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 
 	public ScriptBuilder2(Script script) {
+		super(script);
 		this.signatures = new HashMap<>();
 		this.freeVariablesType = new HashMap<>();
 		this.freeVariablesBinding = new HashMap<>();
@@ -136,11 +138,6 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		return this;
 	}
 	
-	public byte[] getLastPush() {
-		checkState(getChunks().size()>0, "script is empty");
-		return getChunks().get(getChunks().size()-1).data;
-	}
-	
 	public Map<String,Class<?>> getFreeVariables() {
 		return new HashMap<>(freeVariablesType);
 	}
@@ -149,7 +146,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(clazz, "'clazz' cannot be null");
 		checkArgument(!freeVariablesType.containsKey(name) || clazz.equals(freeVariablesType.get(name)), "'"+name+"' is already with class '"+clazz+"'");
-		ScriptChunk chunk = new ScriptBuilder2().data((FREEVAR_PREFIX_PLACEHOLDER+name).getBytes()).getChunks().get(0);
+		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
+		checkState(data.length<256, "data too long: "+data.length);
+		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
 		this.freeVariablesType.put(name, clazz);
 		return this;
@@ -166,7 +165,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
 		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
-		ScriptChunk chunk = new ScriptBuilder2().data((PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes()).getChunks().get(0);
+		byte[] data = (PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes();
+		checkState(data.length<256, "data too long: "+data.length);
+		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
 		this.signatures.put(mapKey, sig);
 		return this;
@@ -185,46 +186,50 @@ public class ScriptBuilder2 extends ScriptBuilder {
 	}
 	
 	public ScriptBuilder2 setFreeVariable(String name, Object value) {
-		checkState(this.freeVariablesType.containsKey(name), "'"+name+"' is not a free variable");
+		if (!this.freeVariablesType.containsKey(name))
+			return this;
 		checkState(this.freeVariablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
 		freeVariablesBinding.put(name, value);
 		return this;
 	}
 
 	private ScriptBuilder2 bindAllFreeVariables() {
+		
+		if (freeVariablesType.size()==0)	// nothing to substitute
+			return this;
+		
 		// this ScriptBuilder2 is assumed to be ready
 		List<ScriptChunk> newChunks = new ArrayList<>();
 
-		for (Entry<String, Object> entry : freeVariablesBinding.entrySet()) {
-			String name = entry.getKey();
-			Object obj = entry.getValue();
+		for (ScriptChunk chunk : getChunks()) {
 
-			for (ScriptChunk chunk : getChunks()) {
-
+			if (isFreeVariable(chunk)) {
+				String name = getFreeVariableName(chunk);
+				Object obj = freeVariablesBinding.get(name);
+				
 				ScriptBuilder sb = new ScriptBuilder();
-				if (Arrays.equals(chunk.data, (FREEVAR_PREFIX_PLACEHOLDER + name).getBytes())) {
-					Class<?> expectedClass = freeVariablesType.get(name);
-					if (expectedClass.isInstance(obj)) {
-						if (obj instanceof String) {
-							sb.data(((String) obj).getBytes());
-						} else if (obj instanceof Integer) {
-							sb.number((Integer) obj);
-						} else if (obj instanceof Boolean) {
-							if ((Boolean) obj)
-								sb.number(ScriptOpCodes.OP_TRUE);
-							else
-								sb.op(ScriptOpCodes.OP_FALSE);
-						} else if (obj instanceof byte[]) {
-							sb.data((byte[]) obj);
-						} else
-							throw new IllegalArgumentException("Unxpected type " + obj.getClass());
-					} else
-						throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
-				} else {
-					sb.addChunk(chunk);
-				}
 
-				newChunks.addAll(sb.build().getChunks());
+				Class<?> expectedClass = freeVariablesType.get(name);
+				if (expectedClass.isInstance(obj)) {
+					if (obj instanceof String) {
+						sb.data(((String) obj).getBytes());
+					} else if (obj instanceof Integer) {
+						sb.number((Integer) obj);
+					} else if (obj instanceof Boolean) {
+						if ((Boolean) obj)
+							sb.number(ScriptOpCodes.OP_TRUE);
+						else
+							sb.op(ScriptOpCodes.OP_FALSE);
+					} else if (obj instanceof byte[]) {
+						sb.data((byte[]) obj);
+					} else
+						throw new IllegalArgumentException("Unxpected type " + obj.getClass());
+				} else
+					throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
+
+			}
+			else {
+				newChunks.add(chunk);
 			}
 		}
 		super.getChunks().clear();
@@ -276,6 +281,9 @@ public class ScriptBuilder2 extends ScriptBuilder {
 			
 			newChunks.addAll(sb.build().getChunks());
 		}
+		super.getChunks().clear();
+		super.getChunks().addAll(newChunks);
+		
 		this.signatures.clear();
 		return this;
 	}

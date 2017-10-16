@@ -17,11 +17,7 @@ import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.generator.ProtocolExpressionGenerator
-import it.unica.tcs.lib.ScriptBuilder2
-import it.xsemantics.runtime.Result
 import java.util.List
-import org.bitcoinj.script.Script
-import org.bitcoinj.script.ScriptOpCodes
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 
@@ -71,34 +67,4 @@ class CompilerUtils {
     	
     	throw new CompileException("Unexpected type "+type.class.simpleName)
     }
-    
-    /* ScriptBuilder extensions */
-	def ScriptBuilder2 append(ScriptBuilder2 sb, Script other) {
-		return sb.append(other)
-	}
-
-	def ScriptBuilder2 append(ScriptBuilder2 sb, ScriptBuilder2 other) {
-		return sb.append(other);
-	}
-
-	def ScriptBuilder2 append(ScriptBuilder2 sb, Result<Object> res) {
-		
-		if (res.getFirst() instanceof String){
-            sb.data((res.getFirst() as String).getBytes());
-        }
-        else if (res.getFirst() instanceof Integer) {
-            sb.number(res.getFirst() as Integer);
-        }
-        else if (res.getFirst() instanceof Boolean) {
-            if (res.getFirst() as Boolean) {
-                sb.op(ScriptOpCodes.OP_TRUE);
-            }
-            else sb.number(ScriptOpCodes.OP_FALSE);
-        }
-        else if (res.getFirst() instanceof byte[]) {
-            sb.data(res.getFirst() as byte[]);
-        }
-        else throw new IllegalArgumentException("Unxpected type "+res.getFirst().getClass());
-		return sb;
-	}
 }

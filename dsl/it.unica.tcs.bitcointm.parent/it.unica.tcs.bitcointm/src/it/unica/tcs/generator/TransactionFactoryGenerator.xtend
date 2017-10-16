@@ -16,7 +16,6 @@ import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.io.File
 import java.util.List
 import org.eclipse.emf.common.util.EList
@@ -30,7 +29,6 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
-	@Inject private extension BitcoinTMTypeSystem
 	@Inject private extension TransactionCompiler	
 	@Inject private extension CompilerUtils
 	@Inject private extension ASTUtils
@@ -75,23 +73,27 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
-		TransactionBuilder tb = new «IF tx.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
+		«val txBuilder = tx.compileTransaction»
+		TransactionBuilder tb = new «IF txBuilder.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
 		«IF !tx.body.inputs.isEmpty»
 			
 			// inputs
 			ITransactionBuilder parentTx;
 			int outIndex;
-			ScriptBuilder2 inScript;
+			InputScript inScript;
 			int relativeLocktime;
 		«ENDIF»
-		«FOR input:tx.body.inputs»
+		
+		«FOR i : 0 ..< tx.body.inputs.size»
+			«val input = tx.body.inputs.get(i)»
+			«val inputB = txBuilder.inputs.get(i)»
 			«IF tx.isCoinbase»
-				inScript = new ScriptBuilder2().number(42);
+				inScript = (InputScript) new InputScriptImpl().number(42);
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
 				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
-				outIndex = «input.outpoint»;
-				inScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(input.compileInput)»");
+				outIndex = «inputB.outIndex»;
+				inScript = (InputScript) ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(inputB.script)»");
 				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
 					// relative timelock
 					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
@@ -104,12 +106,13 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«IF !tx.body.outputs.isEmpty»
 					
 			// outputs
-			ScriptBuilder2 outScript;
+			OutputScript outScript;
 			int satoshis;
 		«ENDIF»
-		«FOR output:tx.body.outputs»
-			outScript = ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(output.compileOutput)»");
-			satoshis = «output.value.exp.interpret.first as Integer»;
+		«FOR i : 0 ..< tx.body.outputs.size»
+			«val outputB = txBuilder.outputs.get(i)»
+			outScript = (OutputScript) ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(outputB.script)»");
+			satoshis = «outputB.value»;
 			tb.addOutput(outScript, satoshis);
 		«ENDFOR»
 		«IF (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)»

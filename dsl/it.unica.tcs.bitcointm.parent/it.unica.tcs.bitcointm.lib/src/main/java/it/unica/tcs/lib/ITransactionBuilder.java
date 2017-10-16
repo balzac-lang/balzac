@@ -4,9 +4,13 @@
 
 package it.unica.tcs.lib;
 
+import java.util.AbstractList;
+import java.util.List;
+
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.script.Script;
 
 public interface ITransactionBuilder {
 
@@ -25,29 +29,22 @@ public interface ITransactionBuilder {
 	public abstract Transaction toTransaction();
 
 	/**
-	 * Return the number of inputs.
-	 * @return the number of inputs
+	 * Return the inputs.
+	 * @return the inputs
 	 */
-	public abstract int getInputsSize();
+	public abstract List<Input> getInputs();
 	
 	/**
 	 * Return the number of outputs.
 	 * @return the number of outputs
 	 */
-	public abstract int getOutputsSize();
+	public abstract List<Output> getOutputs();
 
 	/**
 	 * Return true if this builder will generate a coinbase transaction, false otherwise.
 	 * @return true if this builder will generate a coinbase transaction, false otherwise.
 	 */
 	public abstract boolean isCoinbase();
-	
-	/**
-	 * Return the transaction builder of the input {@code index}.
-	 * @param index the input index
-	 * @return the corresponding transaction builder
-	 */
-	public ITransactionBuilder getInputTransaction(int index);
 	
 	/**
 	 * Return a transaction builder from a bitcoin serialized transaction 
@@ -70,11 +67,59 @@ public interface ITransactionBuilder {
 			private final Transaction tx = new Transaction(params, bytes);
 			@Override public boolean isReady() { return true; }
 			@Override public Transaction toTransaction() { return tx; }
-			@Override public int getInputsSize() { return tx.getInputs().size(); }
-			@Override public int getOutputsSize() { return tx.getOutputs().size(); }
 			@Override public boolean isCoinbase() { return tx.isCoinBase(); }
+			@Override public List<Input> getInputs() { return new AbstractList<Input>() {
+
+				@Override
+				public Input get(int index) {
+					return Input.of(new InputScriptImpl(tx.getInput(index).getScriptSig()));
+				}
+
+				@Override
+				public int size() {
+					return tx.getInputs().size();
+				}
+			}; }
+			@Override public List<Output> getOutputs() { return new AbstractList<Output>() {
+
+				@Override
+				public Output get(int index) {
+					Script s = tx.getOutput(index).getScriptPubKey();
+					if (s.isPayToScriptHash()) {
+						return Output.of(new P2SHOutputScript(s), tx.getOutput(index).getValue().value);
+					}
+					else if (s.isSentToAddress()) {
+						return Output.of(new P2PKHOutputScript(s), tx.getOutput(index).getValue().value);
+					}
+					if (s.isOpReturn()) {
+						return Output.of(new OpReturnOutputScript(s), tx.getOutput(index).getValue().value);
+					}
+					throw new UnsupportedOperationException();
+				}
+
+				@Override
+				public int size() {
+					return tx.getOutputs().size();
+				}
+			}; }
 			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
-			@Override public ITransactionBuilder getInputTransaction(int index) { throw new UnsupportedOperationException(); }
 		};
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

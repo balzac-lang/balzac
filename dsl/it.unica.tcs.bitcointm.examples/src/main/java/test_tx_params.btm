@@ -13,5 +13,6 @@ transaction T1(x:int) {
 
 transaction T2 {
 	input = T1(5): 3  
-	output = 0: ""
+	output = 0: "" 
 }
+ 

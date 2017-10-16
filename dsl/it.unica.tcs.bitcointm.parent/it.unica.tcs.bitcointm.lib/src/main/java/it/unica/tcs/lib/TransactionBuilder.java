@@ -9,11 +9,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
@@ -25,58 +23,11 @@ import org.bitcoinj.script.Script;
 public class TransactionBuilder implements ITransactionBuilder {
 
 	private static final long LOCKTIME_NOT_SET = -1;
-	private static final int OUTINDEX_NOT_SET = -1;
+//	private static final int OUTINDEX_NOT_SET = -1;
 	private final NetworkParameters params;
 	
 	public TransactionBuilder(NetworkParameters params) {
 		this.params = params;
-	}
-	
-	private static final ITransactionBuilder nullTransaction = new ITransactionBuilder() {
-		@Override public Transaction toTransaction() { return null; }
-		@Override public boolean isReady() { return true; }		
-		@Override public int getOutputsSize() { return 0; }
-		@Override public int getInputsSize() { return 0; }
-		@Override public boolean isCoinbase() { return false; }
-		@Override public ITransactionBuilder getInputTransaction(int index) { throw new UnsupportedOperationException(); }
-	};
-	
-	/*
-	 * Input internal representation (not visible outside)
-	 */
-	protected static class Input {
-		private final ITransactionBuilder tx;
-		private final int outIndex;
-		private final ScriptBuilder2 script;
-		private final long locktime;
-		
-		private Input(ITransactionBuilder tx, int outIndex, ScriptBuilder2 script, long locktime) {
-			this.tx = tx;
-			this.script = script;
-			this.outIndex = outIndex;
-			this.locktime = locktime;
-		}
-		
-		private static Input of(ITransactionBuilder tx, int index, ScriptBuilder2 script, long locktime){
-			return new Input(tx, index, script, locktime);
-		}
-	}
-	
-	/*
-	 * Output internal representation (not visible outside)
-	 */
-	protected static class Output {
-		private final ScriptBuilder2 script;
-		private final Integer value;
-		
-		private Output(ScriptBuilder2 script, Integer value) {
-			this.script = script;
-			this.value = value;
-		}
-		
-		private static Output of(ScriptBuilder2 script, Integer value) {
-			return new Output(script,value);
-		}
 	}
 	
 	/**
@@ -93,21 +44,15 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private long locktime = LOCKTIME_NOT_SET;
 	
 	@Override
-	public int getInputsSize() {
-		return inputs.size();
+	public List<Input> getInputs() {
+		return inputs;
 	}
 
 	@Override
-	public int getOutputsSize() {
-		return outputs.size();
+	public List<Output> getOutputs() {
+		return outputs;
 	}
 
-	@Override
-	public ITransactionBuilder getInputTransaction(int index) {
-		checkArgument(index<=inputs.size(), "'index' is out-of-range: "+index);
-		return inputs.get(index).tx;
-	}
-	
 	/**
 	 * Add a free variable.
 	 * @param name the name of the variable
@@ -157,9 +102,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             contained within this tx free variables.
 	 * @see CoinbaseTransactionBuilder
 	 */
-	protected TransactionBuilder addInput(ScriptBuilder2 inputScript) {
+	protected TransactionBuilder addInput(InputScript inputScript) {
 		checkState(this.inputs.size()==0, "addInput(ScriptBuilder2) can be invoked only once");
-		return addInput(nullTransaction, OUTINDEX_NOT_SET, inputScript, LOCKTIME_NOT_SET);
+		return addInput(Input.of(inputScript));
 	}
 	
 	/**
@@ -174,8 +119,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             variables, or the input script free variables are not
 	 *             contained within this tx free variables.
 	 */
-	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript) {
-		return addInput(tx, outIndex, inputScript, LOCKTIME_NOT_SET);
+	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, InputScript inputScript) {
+		return addInput(Input.of(tx, outIndex, inputScript));
 	}
 	
 	/**
@@ -191,9 +136,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             variables, or the input script free variables are not
 	 *             contained within this tx free variables.
 	 */
-	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, ScriptBuilder2 inputScript, long locktime) {
-		checkArgument(freeVariablesType.entrySet().containsAll(inputScript.getFreeVariables().entrySet()), "the input script contains free-variables "+inputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariablesType.entrySet());
-		inputs.add(Input.of(tx, outIndex, inputScript, locktime));
+	public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, InputScript inputScript, long locktime) {
+		return addInput(Input.of(tx, outIndex, inputScript, locktime));
+	}
+	
+	public TransactionBuilder addInput(Input input) {
+		checkArgument(freeVariablesType.entrySet().containsAll(input.getScript().getFreeVariables().entrySet()), "the input script contains free-variables "+input.getScript().getFreeVariables().entrySet()+", but the transactions only contains "+freeVariablesType.entrySet());
+		inputs.add(input);
 		return this;
 	}
 	
@@ -206,7 +155,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             if the output script free variables are not contained within
 	 *             this tx free variables.
 	 */
-	public TransactionBuilder addOutput(ScriptBuilder2 outputScript, int satoshis) {
+	public TransactionBuilder addOutput(OutputScript outputScript, int satoshis) {
 		checkArgument(freeVariablesType.entrySet().containsAll(outputScript.getFreeVariables().entrySet()), "the output script contains free-variables "+outputScript.getFreeVariables().entrySet()+", but the transactions only contains "+freeVariablesType.entrySet());
 		outputs.add(Output.of(outputScript, satoshis));
 		return this;
@@ -233,7 +182,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 			return this.freeVariablesBinding.containsKey(name) && type.isInstance(freeVariablesBinding.get(name));
 		});		
 		return allBound && inputs.size()>0 && outputs.size()>0 && 
-				inputs.stream().map(x->x.tx).allMatch(ITransactionBuilder::isReady);
+				inputs.stream()
+					.filter(Input::hasParentTx)
+					.map(Input::getParentTx)
+					.allMatch(ITransactionBuilder::isReady);
 	}
 	
 	/**
@@ -250,9 +202,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 		
 		// inputs
 		for (Input input : inputs) {
-			ITransactionBuilder parentTransaction2 = input.tx;
+			ITransactionBuilder parentTransaction2 = input.getParentTx();
 			
-			if (input.outIndex == OUTINDEX_NOT_SET) {
+			if (!input.hasParentTx()) {
 				// coinbase transaction
 				byte[] script = new byte[]{};	// script will be set later
 				TransactionInput txInput = new TransactionInput(params, tx, script);
@@ -260,26 +212,19 @@ public class TransactionBuilder implements ITransactionBuilder {
 				checkState(txInput.isCoinBase(), "'txInput' is expected to be a coinbase");
 			}
 			else {
-				ScriptBuilder2 sb = input.script;
-				
-//				if (sb instanceof P2SHInputScript) {
-//					P2SHInputScript p2shIn = (P2SHInputScript) sb; 
-//					p2shIn.setRedeemScript(p2shIn.getRedeemScript().setFreeVariable(freeVar.getKey(), freeVar.getValue()));
-//				}
-				
 				Transaction parentTransaction = parentTransaction2.toTransaction();
-				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.outIndex, parentTransaction);
+				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later
 				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
 				
 				//set checksequenseverify (relative locktime)
-				if (input.locktime==LOCKTIME_NOT_SET) {
+				if (input.getLocktime()==LOCKTIME_NOT_SET) {
 					// see BIP-0065
 					if (this.locktime!=LOCKTIME_NOT_SET)
 						txInput.setSequenceNumber(TransactionInput.NO_SEQUENCE-1);
 				}
 				else {
-					txInput.setSequenceNumber(input.locktime);
+					txInput.setSequenceNumber(input.getLocktime());
 				}
 //				txInput.setScriptSig(input.script.build());
 				tx.addInput(txInput);
@@ -289,14 +234,23 @@ public class TransactionBuilder implements ITransactionBuilder {
 		// outputs
 		for (Output output : outputs) {
 			// bind free variables
-			ScriptBuilder2 sb = output.script;
+			OutputScript sb = output.script;
 			for(Entry<String, Object> freeVar : freeVariablesBinding.entrySet()) {
-				sb = sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
+				sb.setFreeVariable(freeVar.getKey(), freeVar.getValue());
 			}
 			checkState(sb.freeVariableSize()==0);
 			checkState(sb.signatureSize()==0);
 			
-			Script outScript = sb.build();
+			Script outScript;
+			
+			if (sb instanceof P2SHOutputScript) {
+				// P2SH
+				outScript = ((P2SHOutputScript) sb).getOutputScript();
+			}
+			else {
+				outScript = sb.build();
+			}
+			
 			Coin value = Coin.valueOf(output.value);
 			tx.addOutput(value, outScript);
 		}
@@ -309,7 +263,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		// set all the signatures within the input scripts (which are never part of the signature)
 		for (int i=0; i<tx.getInputs().size(); i++) {
 			TransactionInput txInput = tx.getInputs().get(i);
-			ScriptBuilder2 sb = inputs.get(i).script;
+			InputScript sb = inputs.get(i).getScript();
 			
 			// bind free variables
 			for(Entry<String, Object> freeVar : freeVariablesBinding.entrySet()) {
@@ -323,8 +277,11 @@ public class TransactionBuilder implements ITransactionBuilder {
 				outScript = new byte[]{};
 			}
 			else {
-				if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash())
-					outScript = sb.getLastPush();
+				if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash()) {
+					checkState(sb instanceof P2SHInputScript, "why not?");
+					P2SHInputScript p2shInput = (P2SHInputScript) sb;
+					outScript = p2shInput.getRedeemScript().build().getProgram();
+				}
 				else
 					outScript = txInput.getOutpoint().getConnectedPubKeyScript();
 			}
@@ -340,7 +297,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 
 	@Override
 	public boolean isCoinbase() {
-		return inputs.size()==1 && inputs.get(0).tx == nullTransaction;
+		return inputs.size()==1 && inputs.get(0).getParentTx() == null;
 	}
 	
 	@Override
@@ -361,7 +318,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		if (inputs.size()>0) {
 			sb.append("\n        inputs : \n");
 			for(Input in : inputs) {
-				sb.append("            [").append(in.outIndex).append("] ").append(in.script.toString()).append("\n");
+				sb.append("            [").append(in.getOutIndex()).append("] ").append(in.getScript().toString()).append("\n");
 			}
 		}
 		if (outputs.size()>0) {
@@ -371,12 +328,5 @@ public class TransactionBuilder implements ITransactionBuilder {
 			}
 		}
 		return sb.toString();
-	}
-	
-	
-	private Set<String> getUnboundFreeVariables() {
-		Set<String> s = new HashSet<>(this.freeVariablesType.keySet());
-		s.removeAll(this.freeVariablesBinding.keySet());
-		return s;
 	}
 }

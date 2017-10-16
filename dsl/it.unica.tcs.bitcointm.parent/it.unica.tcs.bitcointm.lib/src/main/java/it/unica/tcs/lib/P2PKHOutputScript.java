@@ -6,37 +6,37 @@ package it.unica.tcs.lib;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import org.bitcoinj.core.Address;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 
-public class P2SHOutputScript extends OutputScript {
+public class P2PKHOutputScript extends OutputScript {
 
-	public P2SHOutputScript() {
+	public P2PKHOutputScript() {
 		super();
 	}
-
-	public P2SHOutputScript(Script script) {
+	
+	public P2PKHOutputScript(Script script) {
 		super(script);
+		checkState(script.isSentToAddress());
 	}
-
-	public Script getOutputScript() {
-		checkState(isReady(), "redeemScript is not ready");
-		return ScriptBuilder.createP2SHOutputScript(super.build());
+	
+	public P2PKHOutputScript(Address addr) {
+		super(ScriptBuilder.createOutputScript(addr));
 	}
-
+	
 	@Override
 	public boolean isP2SH() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean isP2PKH() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public boolean isOP_RETURN() {
 		return false;
 	}
-	
 }

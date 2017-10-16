@@ -19,6 +19,12 @@ import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.InputScript
+import it.unica.tcs.lib.OpReturnOutputScript
+import it.unica.tcs.lib.OutputScript
+import it.unica.tcs.lib.P2PKHOutputScript
+import it.unica.tcs.lib.P2SHInputScript
+import it.unica.tcs.lib.P2SHOutputScript
 import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.client.BitcoinClientI
@@ -26,13 +32,10 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
-import org.bitcoinj.script.Script.ScriptType
-import org.bitcoinj.script.ScriptBuilder
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.lib.P2SHInputScript
-import it.unica.tcs.lib.P2SHOutputScript
+import it.unica.tcs.lib.InputScriptImpl
 
 class TransactionCompiler {
 	
@@ -44,35 +47,48 @@ class TransactionCompiler {
     @Inject private extension CompilerUtils
     
     def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
-    	if (tx.bytes!==null) {
-			return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
-		}
-		else {
-			return ITransactionBuilder.fromSerializedTransaction(tx.networkParams, bitcoin.getRawTransaction(tx.id));
-		}			
+    	val txBuilder = 
+	    	if (tx.bytes!==null) {
+				ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
+			}
+			else {
+				ITransactionBuilder.fromSerializedTransaction(tx.networkParams, bitcoin.getRawTransaction(tx.id));
+			}
+		println()
+		println('''::: Compiling '«tx.name»' ''')
+		println('''«txBuilder.toTransaction»''')
+		return txBuilder			
 	}
     
     def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
    	
-    	val tb =  
+    	println()
+		println('''::: Compiling '«tx.name»' ''')
+		
+		val tb =  
     		if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)    	
 	    	else new TransactionBuilder(tx.networkParams)
     	
     	// free variables
     	for (param : tx.params) {
+    		println('''freevar «param.name» : «param.paramType»''')
     		tb.freeVariable(param.name, param.paramType.convertType)
     	} 		
     	
     	// inputs
     	for(input : tx.body.inputs) {
     		if (tb instanceof CoinbaseTransactionBuilder) {
-    			val inScript = input.compileInput
+    			/*
+	             * This transaction is like a coinbase transaction.
+	             * You can put the input you want.
+	             */
+    			val inScript = new InputScriptImpl().number(42) as InputScript
     			tb.addInput(inScript)
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
 	    		val outIndex = input.outpoint
-	    		val inScript = input.compileInput
+	    		val inScript = input.compileInput(parentTx)
 	    		
 	    		// relative timelock
 	    		if (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx)) {
@@ -101,91 +117,61 @@ class TransactionCompiler {
     }
     
 
-    def ScriptBuilder2 compileInput(Input input) {
+    def private InputScript compileInput(Input input, ITransactionBuilder parentTx) {
 
-		if (input.isPlaceholder) {
- 			/*
-             * This transaction is like a coinbase transaction.
-             * You can put the input you want.
-             */
-            return new ScriptBuilder2().number(42)
-		}
-		else {
-	        
-	        var outIdx = input.outpoint
-	        var inputTx = input.txRef.tx
-	        
-	        if (inputTx instanceof SerialTransactionDeclaration) {
-	        	/*
-	        	 * Serial transaction
-	        	 */
-	        	var output = input.txRef.tx.compileTransaction.toTransaction().getOutput(outIdx)
-	            
-	            if (output.scriptPubKey.isSentToAddress) {
-	                var sig = (input.exps.get(0) as Expression).simplifySafe as Signature
-	                var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
+        var outIdx = input.outpoint
+        var inputTx = input.txRef.tx
+        
+        
+        if (parentTx.getOutputs().get(outIdx).script.isP2PKH) {
+        	/*
+        	 * P2PKH
+        	 */
+        	var sig = input.exps.get(0).simplifySafe as Signature
+            var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
+            
+            var sb = sig.compileInputExpression
+            sb.data(pubkey)
+
+            /* <sig> <pubkey> */
+            return new InputScriptImpl().append(sb) as InputScript
+        }
+        else if (parentTx.getOutputs().get(outIdx).script.isP2SH) {
+        	/*
+        	 * P2SH
+        	 */
+        	val redeemScript = 
+	        	if (inputTx instanceof SerialTransactionDeclaration) {
+	        		// get the redeem script from the AST (specified by the user)
+	                val s = input.redeemScript.getRedeemScript
 	                
-	                var sb = sig.compileInputExpression
-	                sb.data(pubkey)
-	    
-	                /* <sig> <pubkey> */
-	                return sb
-	            } else if (output.scriptPubKey.isPayToScriptHash) {
-	                
-	                // get the redeem script to push (specified by the user)
-	                var redeemScript = input.redeemScript.getRedeemScript
-	                val p2sh = new P2SHInputScript(redeemScript)
-	                
-	                // build the list of expression pushes (actual parameters) 
-	                input.exps.forEach[e|
-	                	p2sh.append(e.simplifySafe.compileInputExpression)
-	                ]
-	                
-	                /* <e1> ... <en> <serialized script> */
-	                return p2sh
-	            } else
-	                throw new CompileException
-	        }
-	        else if (inputTx instanceof UserTransactionDeclaration) {
-	        	/*
-				 * User defined transaction.
-				 * Return the expected inputs based on the kind of output script
-				 */
-	            var output = inputTx.body.outputs.get(outIdx);
-	    
-	            if (output.script.isP2PKH) {
-	            	
-	                var sig = input.exps.get(0).simplifySafe as Signature
-	                var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
-	                
-	                var sb = sig.compileInputExpression
-	                sb.data(pubkey)
-	    
-	                /* <sig> <pubkey> */
-	                return sb
-	            } else if (output.script.isP2SH) {
-	            	
-	                // get the redeem script to push
-	                var redeemScript = output.script.getRedeemScript
-	                val p2sh = new P2SHInputScript(redeemScript)
-	                
-	                // build the list of expression pushes (actual parameters) 
-	                input.exps.forEach[e|
-	                	p2sh.append(e.simplifySafe.compileInputExpression)
-	                ]
-	                
-	                /* <e1> ... <en> <serialized script> */
-	                return p2sh
-	            } else
-	                throw new CompileException
-	        }
-		}
+	                if (!s.ready)
+		                throw new CompileException("This redeem script cannot have free variables")
+		            
+		            s
+	        	}
+	        	else if (inputTx instanceof UserTransactionDeclaration) {
+	        		parentTx.getOutputs.get(outIdx).script as P2SHOutputScript
+	        	}
+	        	
+	        val p2sh = new P2SHInputScript(redeemScript)
+                
+            // build the list of expression pushes (actual parameters) 
+            input.exps.forEach[e|
+            	p2sh.append(e.simplifySafe.compileInputExpression)
+            ]
+            
+            /* <e1> ... <en> <serialized script> */
+            return p2sh
+        }
+        else
+            throw new CompileException("cannot redeem OP_RETURN outputs")
     }
 
 	/**
 	 * Compile an output based on its "type".
 	 */
-    def ScriptBuilder2 compileOutput(Output output) {
+    def private OutputScript compileOutput(Output output) {
 		
         var outScript = output.script
 
@@ -193,32 +179,21 @@ class TransactionCompiler {
             var versig = outScript.exp.simplifySafe as Versig
             var pk = BitcoinUtils.wifToECKey(versig.pubkeys.get(0).value, output.networkParams).toAddress(output.networkParams)
 
-            var script = ScriptBuilder.createOutputScript(pk)
-
-            if (script.scriptType != ScriptType.P2PKH)
-                throw new CompileException
-
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-            new ScriptBuilder2().append(script)
+            new P2PKHOutputScript(pk)
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize
             var redeemScript = output.script.getRedeemScript
 
-//            if (redeemScript.getP2SHOutputScript().build().scriptType != ScriptType.P2SH)
-//                throw new CompileException
-
             /* OP_HASH160 <script hash-160> OP_EQUAL */
-            new P2SHOutputScript(redeemScript)
+            redeemScript
         } else if (outScript.isOpReturn) {
             var c = outScript.exp as StringLiteral
-            var script = ScriptBuilder.createOpReturnScript(c.value.bytes)
-
-            if (script.scriptType != ScriptType.NO_TYPE)
-                throw new CompileException
+            var data = c.value.bytes
 
             /* OP_RETURN <bytes> */
-            new ScriptBuilder2().append(script)
+            new OpReturnOutputScript(data)
         } else
             throw new UnsupportedOperationException
     }
@@ -233,22 +208,22 @@ class TransactionCompiler {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def private ScriptBuilder2 getRedeemScript(Script script) {
+	def private P2SHOutputScript getRedeemScript(Script script) {
         
         var ctx = new Context
         
         // build the redeem script to serialize
-        var sb = new ScriptBuilder2()
+        var redeemScript = new P2SHOutputScript()
         for (var i=script.params.size-1; i>=0; i--) {
             val Parameter p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
             
             ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size, numberOfRefs))    // update the context
             
-            sb.op(OP_TOALTSTACK)
+            redeemScript.op(OP_TOALTSTACK)
         }
         
-        sb.append(script.exp.compileExpression(ctx))
+        redeemScript.append(script.exp.compileExpression(ctx)) as P2SHOutputScript
 	}
 	
 	

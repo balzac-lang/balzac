@@ -593,7 +593,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var inputTx = input.txRef.tx
         
         if (inputTx instanceof SerialTransactionDeclaration) {
-            numOfOutputs = inputTx.compileTransaction.outputsSize
+            numOfOutputs = inputTx.compileTransaction.outputs.size
         }
         else if (inputTx instanceof UserTransactionDeclaration){
             numOfOutputs = inputTx.body.outputs.size
@@ -672,7 +672,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             }
             
             if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                input.redeemScript===null
+                input.redeemScript!==null
             ) {
                 error(
                     "The pointed output is not a P2SH output. You must not specify the redeem script.",
@@ -800,7 +800,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 						val formalP = redeemedTx.params.get(j)
 						val actualP = input.txRef.actualParams.get(j)
 						
-						val redeemedTxBuilder = (txBuilder.getInputTransaction(i) as TransactionBuilder)
+						val redeemedTxBuilder = (txBuilder.getInputs.get(i).parentTx as TransactionBuilder)
 						redeemedTxBuilder.setFreeVariable(formalP.name, actualP.interpret.first)
 					}
 				}

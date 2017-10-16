@@ -16,7 +16,7 @@ public class CoinbaseTransactionBuilder extends TransactionBuilder {
 	 * This override is changing the method visibility.
 	 */
 	@Override
-	public TransactionBuilder addInput(ScriptBuilder2 inputScript) {
+	public TransactionBuilder addInput(InputScript inputScript) {
 		return super.addInput(inputScript);
 	}
 }
