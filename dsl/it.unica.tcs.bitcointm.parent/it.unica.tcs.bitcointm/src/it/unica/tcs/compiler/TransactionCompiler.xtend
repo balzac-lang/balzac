@@ -36,6 +36,7 @@ import org.eclipse.xtext.EcoreUtil2
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.lib.InputScriptImpl
 import it.unica.tcs.lib.AbstractScriptBuilderWithVar
+import it.unica.tcs.lib.ScriptBuilder2
 
 class TransactionCompiler {
 	
@@ -72,7 +73,7 @@ class TransactionCompiler {
     	// free variables
     	for (param : tx.params) {
     		println('''freevar «param.name» : «param.paramType»''')
-    		tb.freeVariable(param.name, param.paramType.convertType)
+    		tb.addVariable(param.name, param.paramType.convertType)
     	} 		
     	
     	// inputs
@@ -230,7 +231,7 @@ class TransactionCompiler {
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def private AbstractScriptBuilderWithVar compileInputExpression(Expression exp) {
+    def private InputScript compileInputExpression(Expression exp) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
         
@@ -238,6 +239,6 @@ class TransactionCompiler {
         if (!refs.empty)
         	throw new CompileException("The given expression must not have free variables.")
         
-        exp.compileExpression(new Context)
+        new InputScriptImpl().append(exp.compileExpression(new Context)) as InputScript
     }
 }

@@ -36,7 +36,7 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.lib.AbstractScriptBuilderWithVar
+import it.unica.tcs.lib.ScriptBuilder2
 
 /*
  * EXPRESSIONS
@@ -55,33 +55,33 @@ class ExpressionCompiler {
     @Inject private extension ASTUtils astUtils
 	
     
-	def AbstractScriptBuilderWithVar compileExpression(Expression exp, Context ctx) {
+	def ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
         return exp.simplifySafe.interpretSafe.compileExpressionInternal(ctx)
     }
 
 	// default
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Expression exp, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Expression exp, Context ctx) {
         throw new CompileException
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(NumberLiteral n, Context ctx) {
-        new AbstractScriptBuilderWithVar().number(n.value)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(NumberLiteral n, Context ctx) {
+        new ScriptBuilder2().number(n.value)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(BooleanLiteral n, Context ctx) {
-        if(n.isTrue) new AbstractScriptBuilderWithVar().op(OP_TRUE)
-    	else         new AbstractScriptBuilderWithVar().number(OP_FALSE)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(BooleanLiteral n, Context ctx) {
+        if(n.isTrue) new ScriptBuilder2().op(OP_TRUE)
+    	else         new ScriptBuilder2().number(OP_FALSE)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(StringLiteral s, Context ctx) {
-        new AbstractScriptBuilderWithVar().data(s.value.bytes)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(StringLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value.bytes)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(HashLiteral s, Context ctx) {
-        new AbstractScriptBuilderWithVar().data(s.value)
+    def private dispatch ScriptBuilder2 compileExpressionInternal(HashLiteral s, Context ctx) {
+        new ScriptBuilder2().data(s.value)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Hash hash, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Hash hash, Context ctx) {
 	    var sb = hash.value.compileExpression(ctx)
         
         switch(hash.type) {
@@ -92,73 +92,73 @@ class ExpressionCompiler {
         }
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
-        var sb = new AbstractScriptBuilderWithVar()
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
+        var sb = new ScriptBuilder2()
         sb.number(stmt.timelock.value)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
         sb.op(OP_DROP)
         sb.append(stmt.continuation.compileExpression(ctx))
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(AndScriptExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AndScriptExpression stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_BOOLAND)            
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(OrScriptExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(OrScriptExpression stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_BOOLOR)            
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptPlus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptPlus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_ADD)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptMinus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptMinus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_SUB)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Max stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Max stmt, Context ctx) {
 	    var sb = stmt.left.compileExpression(ctx)
 	    sb.append(stmt.right.compileExpression(ctx))
 	    sb.op(OP_MAX)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Min stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Min stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_MIN)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Size stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Size stmt, Context ctx) {
         var sb = stmt.value.compileExpression(ctx)
         sb.op(OP_SIZE)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptBooleanNegation stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptBooleanNegation stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)            
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptArithmeticSigned stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptArithmeticSigned stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Between stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Between stmt, Context ctx) {
         var sb = stmt.value.compileExpression(ctx)
         sb.append(stmt.left.compileExpression(ctx))
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_WITHIN)
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptComparison stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptComparison stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
 
@@ -170,7 +170,7 @@ class ExpressionCompiler {
         }
     }
     
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(ScriptEquals stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptEquals stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         
@@ -180,7 +180,7 @@ class ExpressionCompiler {
         }
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(IfThenElse stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(IfThenElse stmt, Context ctx) {
         var sb = stmt.^if.compileExpression(ctx)
         sb.op(OP_IF)
         sb.append(stmt.then.compileExpression(ctx))
@@ -189,13 +189,13 @@ class ExpressionCompiler {
         sb.op(OP_ENDIF)            
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Versig stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
             sb.data(stmt.pubkeys.get(0).value.privateKeyToPubkeyBytes(stmt.networkParams))
             sb.op(OP_CHECKSIG)
         } else {
-            val sb = new AbstractScriptBuilderWithVar().number(OP_0)
+            val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
             stmt.pubkeys.forEach[k|sb.data(k.value.privateKeyToPubkeyBytes(stmt.networkParams))]
@@ -204,16 +204,16 @@ class ExpressionCompiler {
         }
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(Signature stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
 		var wif = stmt.key.value
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
         var hashType = stmt.modifier.toHashType
         var anyoneCanPay = stmt.modifier.toAnyoneCanPay
-        var sb = new AbstractScriptBuilderWithVar().signaturePlaceholder(key, hashType, anyoneCanPay)
+        var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
         sb
     }
 
-    def private dispatch AbstractScriptBuilderWithVar compileExpressionInternal(VariableReference varRef, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(VariableReference varRef, Context ctx) {
         /*
          * N: altezza dell'altstack
          * i: posizione della variabile interessata
@@ -230,10 +230,10 @@ class ExpressionCompiler {
         var isTxParam = param.eContainer instanceof TransactionDeclaration 
         
         if (isTxParam) {
-        	return new AbstractScriptBuilderWithVar().freeVariable(param.name, param.paramType.convertType)
+        	return new ScriptBuilder2().addVariable(param.name, param.paramType.convertType)
         }
         else {
-        	val sb = new AbstractScriptBuilderWithVar()
+        	val sb = new ScriptBuilder2()
 	        val pos = ctx.altstack.get(param).position
 			var count = ctx.altstack.get(param).occurrences
 	

@@ -88,12 +88,12 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			«val input = tx.body.inputs.get(i)»
 			«val inputB = txBuilder.inputs.get(i)»
 			«IF tx.isCoinbase»
-				inScript = (InputScript) new InputScriptImpl().number(42);
+				inScript = new InputScriptImpl().number(42);
 				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 			«ELSE»
 				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
 				outIndex = «inputB.outIndex»;
-				inScript = (InputScript) ScriptBuilder2.deserialize("«AbstractScriptBuilderWithVar.serialize(inputB.script)»");
+				inScript = new InputScriptImpl("«inputB.script.serialize»");
 				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
 					// relative timelock
 					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
@@ -111,7 +111,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«ENDIF»
 		«FOR i : 0 ..< tx.body.outputs.size»
 			«val outputB = txBuilder.outputs.get(i)»
-			outScript = (OutputScript) ScriptBuilder2.deserialize("«AbstractScriptBuilderWithVar.serialize(outputB.script)»");
+			outScript = (OutputScript) new ScriptBuilder2("«outputB.script.serialize»");
 			satoshis = «outputB.value»;
 			tb.addOutput(outScript, satoshis);
 		«ENDFOR»

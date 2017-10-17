@@ -801,7 +801,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 						val actualP = input.txRef.actualParams.get(j)
 						
 						val redeemedTxBuilder = (txBuilder.getInputs.get(i).parentTx as TransactionBuilder)
-						redeemedTxBuilder.setFreeVariable(formalP.name, actualP.interpret.first)
+						redeemedTxBuilder.bindVariable(formalP.name, actualP.interpret.first)
 					}
 				}
 				

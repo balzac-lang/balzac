@@ -11,4 +11,8 @@ abstract public class InputScript extends ScriptBuilder2 {
 	public InputScript(Script script) {
 		super(script);
 	}
+
+	public InputScript(String serializedScript) {
+		super(serializedScript);
+	}
 }

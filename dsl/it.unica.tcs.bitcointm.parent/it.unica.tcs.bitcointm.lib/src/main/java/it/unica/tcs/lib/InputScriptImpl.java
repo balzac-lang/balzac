@@ -16,4 +16,8 @@ public class InputScriptImpl extends InputScript {
 		super(script);
 	}
 
+	public InputScriptImpl(String serializedScript) {
+		super(serializedScript);
+	}
+
 }

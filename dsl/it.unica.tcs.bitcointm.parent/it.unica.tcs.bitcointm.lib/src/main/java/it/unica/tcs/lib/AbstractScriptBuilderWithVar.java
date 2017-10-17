@@ -44,7 +44,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	
 	private final Env env = new Env();
 	
-	private final Map<String, SignatureUtil> signatures = new HashMap<>();
+	protected final Map<String, SignatureUtil> signatures = new HashMap<>();
 	
 	private static class SignatureUtil {
 		private final String keyID;
