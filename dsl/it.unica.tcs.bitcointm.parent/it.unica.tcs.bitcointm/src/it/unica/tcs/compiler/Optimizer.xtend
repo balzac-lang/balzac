@@ -4,17 +4,17 @@
 
 package it.unica.tcs.compiler
 
-import it.unica.tcs.lib.ScriptBuilder2
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.script.ScriptChunk
 import org.bitcoinj.script.ScriptOpCodes
+import it.unica.tcs.lib.AbstractScriptBuilderWithVar
 
 class Optimizer {
 
 
-	def private ScriptBuilder2 optimize(ScriptBuilder script) {
-		return new ScriptBuilder2().append(script.build.optimize)
+	def private AbstractScriptBuilderWithVar optimize(ScriptBuilder script) {
+		return new AbstractScriptBuilderWithVar().append(script.build.optimize)
 	}
 	
 	def private Script optimize(Script script) {

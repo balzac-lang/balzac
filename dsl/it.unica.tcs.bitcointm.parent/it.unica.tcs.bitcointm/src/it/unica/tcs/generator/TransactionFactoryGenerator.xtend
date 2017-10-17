@@ -13,7 +13,6 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
-import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import java.io.File
@@ -25,6 +24,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import it.unica.tcs.lib.AbstractScriptBuilderWithVar
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
@@ -93,7 +93,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 			«ELSE»
 				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
 				outIndex = «inputB.outIndex»;
-				inScript = (InputScript) ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(inputB.script)»");
+				inScript = (InputScript) ScriptBuilder2.deserialize("«AbstractScriptBuilderWithVar.serialize(inputB.script)»");
 				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
 					// relative timelock
 					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
@@ -111,7 +111,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		«ENDIF»
 		«FOR i : 0 ..< tx.body.outputs.size»
 			«val outputB = txBuilder.outputs.get(i)»
-			outScript = (OutputScript) ScriptBuilder2.deserialize("«ScriptBuilder2.serialize(outputB.script)»");
+			outScript = (OutputScript) ScriptBuilder2.deserialize("«AbstractScriptBuilderWithVar.serialize(outputB.script)»");
 			satoshis = «outputB.value»;
 			tb.addOutput(outScript, satoshis);
 		«ENDFOR»

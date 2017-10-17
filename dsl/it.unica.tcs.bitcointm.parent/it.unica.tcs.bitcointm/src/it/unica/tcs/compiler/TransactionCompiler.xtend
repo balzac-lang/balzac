@@ -25,7 +25,6 @@ import it.unica.tcs.lib.OutputScript
 import it.unica.tcs.lib.P2PKHOutputScript
 import it.unica.tcs.lib.P2SHInputScript
 import it.unica.tcs.lib.P2SHOutputScript
-import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
@@ -36,6 +35,7 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.lib.InputScriptImpl
+import it.unica.tcs.lib.AbstractScriptBuilderWithVar
 
 class TransactionCompiler {
 	
@@ -230,7 +230,7 @@ class TransactionCompiler {
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def private ScriptBuilder2 compileInputExpression(Expression exp) {
+    def private AbstractScriptBuilderWithVar compileInputExpression(Expression exp) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
         

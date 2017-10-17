@@ -31,11 +31,11 @@ public class TransactionBuilder implements ITransactionBuilder {
 	}
 	
 	/**
-	 * <p>Free variables of the transaction. Input/Output script are {@link ScriptBuilder2}, and they can
+	 * <p>Free variables of the transaction. Input/Output script are {@link AbstractScriptBuilderWithVar}, and they can
 	 * have free variables that must be a subset of this map.</p>
 	 * 
-	 * <p>The methods {@link TransactionBuilder#addInput(TransactionBuilder, Map, ScriptBuilder2)} and
-	 * {@link TransactionBuilder#addOutput(ScriptBuilder2, int) will check this requirement.
+	 * <p>The methods {@link TransactionBuilder#addInput(TransactionBuilder, Map, AbstractScriptBuilderWithVar)} and
+	 * {@link TransactionBuilder#addOutput(AbstractScriptBuilderWithVar, int) will check this requirement.
 	 */
 	private final Map<String,Class<?>> freeVariablesType = new HashMap<>();
 	private final Map<String,Object> freeVariablesBinding = new HashMap<>();
