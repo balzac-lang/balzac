@@ -57,6 +57,11 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 	public Object getValue(String name) {
 		return env.getValue(name);
 	}
+	
+	@Override
+	public <E> E getValue(String name, Class<E> clazz) {
+		return env.getValue(name, clazz);
+	}
 
 	@Override
 	public TransactionBuilder addVariable(String name, Class<?> type) {

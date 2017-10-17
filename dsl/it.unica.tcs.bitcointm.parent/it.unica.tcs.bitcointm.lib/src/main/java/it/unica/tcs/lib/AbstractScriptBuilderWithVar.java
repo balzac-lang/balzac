@@ -35,7 +35,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
-
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
 	extends AbstractScriptBuilder<T> 
 	implements EnvI<T> {
@@ -111,7 +110,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@Override
 	public Script build() {
 		checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
-		bindAllFreeVariables();
+		substituteAllBinding();
 		return super.build();
 	}
 	
@@ -144,7 +143,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	}
 	
 	@SuppressWarnings("unchecked")
-	private T bindAllFreeVariables() {
+	private T substituteAllBinding() {
 		
 		if (getFreeVariables().size()==0)	// nothing to substitute
 			return (T) this;
@@ -277,8 +276,6 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			if (isSignature(ch)) {
 				String mapKey = getMapKey(ch);
 				checkNotNull(append.signatures.containsKey(mapKey));
-				// TODO: probabilmente questi check non servono nel caso delle signature.
-				// Data una mappa, non possono esistere due chiavi uguali che mappano a valori differenti.
 				if (this.signatures.containsKey(mapKey)) {
 					// check they are consistent
 					checkState(this.signatures.get(mapKey).equals(append.signatures.get(mapKey)), 
@@ -498,6 +495,11 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return env.getValue(name);
 	}
 
+	@Override
+	public <E> E getValue(String name, Class<E> clazz) {
+		return env.getValue(name, clazz);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {

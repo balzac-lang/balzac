@@ -49,6 +49,15 @@ public interface EnvI<T extends EnvI<T>> {
 	public Object getValue(String name);
 	
 	/**
+	 * Return the value of the variable {@code name}, casted to the given class.
+	 * 
+	 * @param name the variable name
+	 * @param clazz the expected class of the object
+	 * @return
+	 */
+	public <E> E getValue(String name, Class<E> clazz);
+	
+	/**
 	 * Add a variable.
 	 * 
 	 * @param name the name of the variable
@@ -104,4 +113,5 @@ public interface EnvI<T extends EnvI<T>> {
 	 * Remove all variables and binding.
 	 */
 	public void clear();
+
 }

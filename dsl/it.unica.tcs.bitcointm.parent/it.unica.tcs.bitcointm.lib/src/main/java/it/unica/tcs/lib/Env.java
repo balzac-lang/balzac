@@ -2,6 +2,7 @@ package it.unica.tcs.lib;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,13 +24,15 @@ public class Env implements EnvI<Env> {
 	@Override
 	public boolean isFree(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		return hasVariable(name) && !isBound(name);
+		checkArgument(hasVariable(name), "'name' is not a variable");
+		return !isBound(name);
 	}
 
 	@Override
 	public boolean isBound(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		return hasVariable(name) && variablesBinding.containsKey(name);
+		checkArgument(hasVariable(name), "'name' is not a variable");
+		return variablesBinding.containsKey(name);
 	}
 
 	@Override
@@ -43,6 +46,13 @@ public class Env implements EnvI<Env> {
 	public Object getValue(String name) {
 		checkArgument(hasVariable(name), "'name' is not a variable");
 		return variablesBinding.get(name);
+	}
+	
+	@Override
+	public <T> T getValue(String name, Class<T> clazz) {
+		Class<?> expectedType = getType(name);
+		checkState(expectedType.equals(clazz));
+		return clazz.cast(variablesBinding.get(name));
 	}
 
 	@Override
