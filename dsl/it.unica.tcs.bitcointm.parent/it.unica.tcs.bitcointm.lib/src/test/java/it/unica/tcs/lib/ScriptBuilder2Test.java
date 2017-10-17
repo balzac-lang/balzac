@@ -22,11 +22,11 @@ public class ScriptBuilder2Test {
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();
         assertEquals(0, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         sb.number(5);
         assertEquals(1, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
     
@@ -34,15 +34,15 @@ public class ScriptBuilder2Test {
     public void test_freeVariable() {
         ScriptBuilder2 sb = new ScriptBuilder2();
         assertEquals(0, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
-        sb.freeVariable("pippo", Integer.class);
+        sb.addVariable("pippo", Integer.class);
         assertEquals(1, sb.size());
-        assertEquals(1, sb.freeVariableSize());
+        assertEquals(1, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
-        sb = sb.setFreeVariable("pippo", 5);
+        sb = sb.bindVariable("pippo", 5);
         assertEquals(1, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
     
@@ -50,17 +50,17 @@ public class ScriptBuilder2Test {
     public void test_signature() {
         ScriptBuilder2 sb = new ScriptBuilder2();
         assertEquals(0, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         sb.signaturePlaceholder(new ECKey(), SigHash.ALL, false);
         assertEquals(1, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(1, sb.signatureSize());
         Transaction tx = new Transaction(new MainNetParams());
         tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
         sb = sb.setAllSignatures(tx, 0, new byte[]{});
         assertEquals(1, sb.size());
-        assertEquals(0, sb.freeVariableSize());
+        assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
     
@@ -68,7 +68,7 @@ public class ScriptBuilder2Test {
     public void test_serialize_freeVariable() {
     	ScriptBuilder2 sb = new ScriptBuilder2();
     	sb.number(15);
-    	sb.freeVariable("Donald", String.class);
+    	sb.addVariable("Donald", String.class);
     	String expected = "15 [var,Donald,java.lang.String]"; 
     	String actual = sb.serialize();
     	assertEquals(expected, actual);
@@ -79,9 +79,9 @@ public class ScriptBuilder2Test {
     	String serialScript = "15 [var,Donald,java.lang.String]"; 
     	ScriptBuilder2 res = new ScriptBuilder2(serialScript);
 
-    	assertEquals(1, res.freeVariableSize());
+    	assertEquals(1, res.getFreeVariables().size());
     	assertEquals(2, res.size());
-    	assertEquals(String.class, res.getFreeVariables().get("Donald"));
+    	assertEquals(String.class, res.getType("Donald"));
     }
     
     @Test

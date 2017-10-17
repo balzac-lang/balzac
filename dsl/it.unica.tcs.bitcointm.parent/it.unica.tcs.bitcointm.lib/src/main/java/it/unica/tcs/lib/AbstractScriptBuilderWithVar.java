@@ -18,6 +18,7 @@ import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +36,16 @@ import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 
-public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> extends AbstractScriptBuilder<T> {
+public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
+	extends AbstractScriptBuilder<T> 
+	implements EnvI<T> {
 
 	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
 	
+	private final Env env = new Env();
+	
 	private final Map<String, SignatureUtil> signatures = new HashMap<>();
-	private final Map<String, Class<?>> freeVariablesType = new HashMap<>();
-	private final Map<String, Object> freeVariablesBinding = new HashMap<>();
 	
 	private static class SignatureUtil {
 		private final String keyID;
@@ -105,39 +108,11 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		this.deserialize(serializedScript);
 	}
 
-	public boolean isReady() {
-		boolean allBound = this.freeVariablesType.entrySet().stream().allMatch(e->{
-			String name = e.getKey();
-			Class<?> type = e.getValue();
-			return this.freeVariablesBinding.containsKey(name) && type.isInstance(freeVariablesBinding.get(name));
-		});		
-		return allBound;
-	}
-	
 	@Override
 	public Script build() {
 		checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
 		bindAllFreeVariables();
 		return super.build();
-	}
-	
-
-	
-	public Map<String,Class<?>> getFreeVariables() {
-		return new HashMap<>(freeVariablesType);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public T freeVariable(String name, Class<?> clazz) {
-		checkNotNull(name, "'name' cannot be null");
-		checkNotNull(clazz, "'clazz' cannot be null");
-		checkArgument(!freeVariablesType.containsKey(name) || clazz.equals(freeVariablesType.get(name)), "'"+name+"' is already with class '"+clazz+"'");
-		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
-		checkState(data.length<256, "data too long: "+data.length);
-		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
-		super.addChunk(chunk);
-		this.freeVariablesType.put(name, clazz);
-		return (T) this;
 	}
 	
 	public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
@@ -164,27 +139,14 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return super.getChunks().size();
 	}
 	
-	public int freeVariableSize() {
-		return freeVariablesType.size()-freeVariablesBinding.size();
-	}
-	
 	public int signatureSize() {
 		return signatures.size();
 	}
 	
 	@SuppressWarnings("unchecked")
-	public T setFreeVariable(String name, Object value) {
-		if (!this.freeVariablesType.containsKey(name))
-			return (T) this;
-		checkState(this.freeVariablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+this.freeVariablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
-		freeVariablesBinding.put(name, value);
-		return (T) this;
-	}
-
-	@SuppressWarnings("unchecked")
 	private T bindAllFreeVariables() {
 		
-		if (freeVariablesType.size()==0)	// nothing to substitute
+		if (getFreeVariables().size()==0)	// nothing to substitute
 			return (T) this;
 		
 		// this ScriptBuilder2 is assumed to be ready
@@ -194,11 +156,11 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
 			if (isFreeVariable(chunk)) {
 				String name = getFreeVariableName(chunk);
-				Object obj = freeVariablesBinding.get(name);
+				Object obj = getValue(name);
 				
 				ScriptBuilder sb = new ScriptBuilder();
 
-				Class<?> expectedClass = freeVariablesType.get(name);
+				Class<?> expectedClass = getType(name);
 				if (expectedClass.isInstance(obj)) {
 					if (obj instanceof String) {
 						sb.data(((String) obj).getBytes());
@@ -224,9 +186,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		super.getChunks().clear();
 		super.getChunks().addAll(newChunks);
 
-		freeVariablesBinding.clear();
-		freeVariablesType.clear();
-		
+		this.clear();		
 		return (T) this;
 	}
 	
@@ -303,14 +263,14 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			// merge free variables
 			if (isFreeVariable(ch)) {
 				String name = getFreeVariableName(ch);
-				if (this.freeVariablesType.containsKey(name)) {
+				if (hasVariable(name)) {
 					// check they are consistent
-					checkState(this.freeVariablesType.get(name).equals(append.freeVariablesType.get(name)), 
+					checkState(getType(name).equals(append.getType(name)), 
 							"Inconsitent state: free variable '%s' is bound to '%s' (this) and '%s' (append)",
-							name, this.freeVariablesType.get(name), append.freeVariablesType.get(name));
+							name, this.getType(name), append.getType(name));
 				}
 				else {
-					this.freeVariablesType.put(name, append.freeVariablesType.get(name));
+					this.addVariable(name, append.getType(name));
 				}
 			}
 			// merge signatures
@@ -379,7 +339,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("freeVariables = ").append(freeVariablesType.keySet()).append("\n");
+		builder.append("freeVariables = ").append(getFreeVariables()).append("\n");
 		builder.append("signatures    = ").append(signatures.keySet()).append("\n");
 		builder.append("script        = ").append(this.serialize());
 		return builder.toString();
@@ -408,7 +368,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			str.append(",");
 			str.append(name);
 			str.append(",");
-			str.append(this.freeVariablesType.get(name).getCanonicalName());
+			str.append(getType(name).getCanonicalName());
 			str.append("]");
 			str.append(" ");
 		}
@@ -437,7 +397,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				try {
 					String name = vals[1];
 					Class<?> clazz = Class.forName(vals[2]);
-					this.freeVariable(name, clazz);
+					this.addVariable(name, clazz);
 				} catch (ClassNotFoundException e) {
 					throw new RuntimeException("Error retrieving the class "+vals[2], e);
 				}
@@ -510,4 +470,74 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         else
             return value - 1 + OP_1;
     }
+	
+	
+	
+	@Override
+	public boolean hasVariable(String name) {
+		return env.hasVariable(name);
+	}
+
+	@Override
+	public boolean isFree(String name) {
+		return env.isFree(name);
+	}
+
+	@Override
+	public boolean isBound(String name) {
+		return env.isBound(name);
+	}
+
+	@Override
+	public Class<?> getType(String name) {
+		return env.getType(name);
+	}
+	
+	@Override
+	public Object getValue(String name) {
+		return env.getValue(name);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public T addVariable(String name, Class<?> type) {
+		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
+		checkState(data.length<256, "data too long: "+data.length);
+		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
+		super.addChunk(chunk);
+		env.addVariable(name, type);
+		return (T) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public T bindVariable(String name, Object value) {
+		env.bindVariable(name, value);
+		return (T) this;
+	}
+
+	@Override
+	public Collection<String> getVariables() {
+		return env.getVariables();
+	}
+
+	@Override
+	public Collection<String> getFreeVariables() {
+		return env.getFreeVariables();
+	}
+
+	@Override
+	public Collection<String> getBoundFreeVariables() {
+		return env.getBoundFreeVariables();
+	}
+	
+	@Override
+	public boolean isReady() {
+		return env.isReady();
+	}
+	
+	@Override
+	public void clear() {
+		env.clear();
+	}
 }
