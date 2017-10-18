@@ -4,6 +4,7 @@
 
 package it.unica.tcs.lib;
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.Script;
 
-public interface ITransactionBuilder {
+public interface ITransactionBuilder extends Serializable {
 
 	/**
 	 * Check that this transaction builder is ready to be converted using {@link #toTransaction(NetworkParameters)}.
@@ -64,6 +65,7 @@ public interface ITransactionBuilder {
 	 */
 	public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, byte[] bytes) {
 		return new ITransactionBuilder() {
+			private static final long serialVersionUID = 1L;
 			private final Transaction tx = new Transaction(params, bytes);
 			@Override public boolean isReady() { return true; }
 			@Override public Transaction toTransaction() { return tx; }

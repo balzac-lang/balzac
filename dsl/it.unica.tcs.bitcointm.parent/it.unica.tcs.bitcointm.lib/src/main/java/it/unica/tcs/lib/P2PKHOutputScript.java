@@ -12,6 +12,8 @@ import org.bitcoinj.script.ScriptBuilder;
 
 public class P2PKHOutputScript extends OutputScript {
 
+	private static final long serialVersionUID = 1L;
+
 	public P2PKHOutputScript() {
 		super();
 	}

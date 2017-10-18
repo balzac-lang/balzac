@@ -5,6 +5,8 @@ import org.bitcoinj.script.ScriptBuilder;
 
 public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder {
 
+	private static final long serialVersionUID = 1L;
+
 	public AbstractScriptBuilder() {
 		super();
 	}

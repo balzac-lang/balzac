@@ -1,8 +1,9 @@
 package it.unica.tcs.lib;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public interface EnvI<T extends EnvI<T>> {
+public interface EnvI<T extends EnvI<T>> extends Serializable {
 
 	/**
 	 * Return true if the given {@code name} is a variable.

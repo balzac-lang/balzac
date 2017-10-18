@@ -10,6 +10,8 @@ import static  com.google.common.base.Preconditions.checkState;
 
 public class OpReturnOutputScript extends OutputScript {
 
+	private static final long serialVersionUID = 1L;
+
 	public OpReturnOutputScript() {
 		super();
 	}

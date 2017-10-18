@@ -13,7 +13,7 @@ import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
-import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.lib.utils.ObjectUtils
 import it.unica.tcs.utils.CompilerUtils
 import java.io.File
 import java.util.List
@@ -24,14 +24,13 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import it.unica.tcs.lib.AbstractScriptBuilderWithVar
 
 class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
 	@Inject private extension TransactionCompiler	
 	@Inject private extension CompilerUtils
-	@Inject private extension ASTUtils
+//	@Inject private extension ASTUtils
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		
@@ -51,6 +50,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		import org.bitcoinj.core.*;
 		import org.bitcoinj.script.*;
 		import it.unica.tcs.lib.*;
+		import it.unica.tcs.lib.utils.*;
 		
 		@SuppressWarnings("unused")
 		public class TransactionFactory {
@@ -74,60 +74,61 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
 		«val txBuilder = tx.compileTransaction»
-		TransactionBuilder tb = new «IF txBuilder.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
-		«IF !tx.body.inputs.isEmpty»
-			
-			// inputs
-			ITransactionBuilder parentTx;
-			int outIndex;
-			InputScript inScript;
-			int relativeLocktime;
-		«ENDIF»
-		
-		«FOR i : 0 ..< tx.body.inputs.size»
-			«val input = tx.body.inputs.get(i)»
-			«val inputB = txBuilder.inputs.get(i)»
-			«IF tx.isCoinbase»
-				inScript = new InputScriptImpl().number(42);
-				((CoinbaseTransactionBuilder)tb).addInput(inScript);
-			«ELSE»
-				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
-				outIndex = «inputB.outIndex»;
-				inScript = new InputScriptImpl("«inputB.script.serialize»");
-				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
-					// relative timelock
-					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
-					tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
-				«ELSE»
-					tb.addInput(parentTx, outIndex, inScript);
-				«ENDIF»				
-			«ENDIF»
-		«ENDFOR»
-		«IF !tx.body.outputs.isEmpty»
-					
-			// outputs
-			OutputScript outScript;
-			int satoshis;
-		«ENDIF»
-		«FOR i : 0 ..< tx.body.outputs.size»
-			«val outputB = txBuilder.outputs.get(i)»
-			outScript = (OutputScript) new ScriptBuilder2("«outputB.script.serialize»");
-			satoshis = «outputB.value»;
-			tb.addOutput(outScript, satoshis);
-		«ENDFOR»
-		«IF (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)»
-			// absolute timelock
-			tb.setLocktime(«tx.body.tlock.getAbsolute()»);
-		«ENDIF»
-		«IF !tx.params.isEmpty»
-			
-			// free variables
-		«ENDIF»
-		«FOR param:tx.params»
-			tb.setFreeVariable("«param.name»", «param.name»);
-		«ENDFOR»  	
-		
-		return tb;
+		return ObjectUtils.deserializeObjectFromStringQuietly("«ObjectUtils.serializeObjectToString(txBuilder)»", ITransactionBuilder.class);
+«««		TransactionBuilder tb = new «IF txBuilder.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
+«««		«IF !tx.body.inputs.isEmpty»
+«««			
+«««			// inputs
+«««			ITransactionBuilder parentTx;
+«««			int outIndex;
+«««			InputScript inScript;
+«««			int relativeLocktime;
+«««		«ENDIF»
+«««		
+«««		«FOR i : 0 ..< tx.body.inputs.size»
+«««			«val input = tx.body.inputs.get(i)»
+«««			«val inputB = txBuilder.inputs.get(i)»
+«««			«IF tx.isCoinbase»
+«««				inScript = (InputScript) new InputScriptImpl().number(42);
+«««				((CoinbaseTransactionBuilder)tb).addInput(inScript);
+«««			«ELSE»
+«««				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
+«««				outIndex = «inputB.outIndex»;
+«««				inScript = (InputScript) new InputScriptImpl("«inputB.script.serialize»");
+«««				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
+«««					// relative timelock
+«««					relativeLocktime = «tx.body.tlock.getRelative(tx)»;
+«««					tb.addInput(parentTx, outIndex, inScript, relativeLocktime);
+«««				«ELSE»
+«««					tb.addInput(parentTx, outIndex, inScript);
+«««				«ENDIF»				
+«««			«ENDIF»
+«««		«ENDFOR»
+«««		«IF !tx.body.outputs.isEmpty»
+«««					
+«««			// outputs
+«««			ScriptBuilder2 outScript;
+«««			int satoshis;
+«««		«ENDIF»
+«««		«FOR i : 0 ..< tx.body.outputs.size»
+«««			«val outputB = txBuilder.outputs.get(i)»
+«««			outScript = new ScriptBuilder2("«outputB.script.serialize»");
+«««			satoshis = «outputB.value»;
+«««			tb.addOutput(outScript, satoshis);
+«««		«ENDFOR»
+«««		«IF (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)»
+«««			// absolute timelock
+«««			tb.setLocktime(«tx.body.tlock.getAbsolute()»);
+«««		«ENDIF»
+«««		«IF !tx.params.isEmpty»
+«««			
+«««			// free variables
+«««		«ENDIF»
+«««		«FOR param:tx.params»
+«««			tb.setFreeVariable("«param.name»", «param.name»);
+«««		«ENDFOR»  	
+«««		
+«««		return tb;
 	'''
 	
 	def public getTransactionFromFactory(ProtocolTransactionReference tx) {
@@ -144,5 +145,5 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	
 	def public getTransactionFromFactory(String name, List<ProtocolExpression> actualParams) {
 		'''TransactionFactory.tx_«name»(«actualParams.compileActualParams»)'''
-	}
+	}	
 }

@@ -16,6 +16,7 @@ import static org.bitcoinj.script.ScriptOpCodes.OP_PUSHDATA1;
 import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,10 +36,13 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
+import it.unica.tcs.lib.Wrapper.SigHashWrapper;
+
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
 	extends AbstractScriptBuilder<T> 
 	implements EnvI<T> {
 
+	private static final long serialVersionUID = 1L;
 	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
 	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
 	
@@ -46,11 +50,12 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	
 	protected final Map<String, SignatureUtil> signatures = new HashMap<>();
 	
-	private static class SignatureUtil {
+	private static class SignatureUtil implements Serializable {
+		private static final long serialVersionUID = 1L;
 		private final String keyID;
-		private final SigHash hashType;
+		private final SigHashWrapper hashType;
 		private final Boolean anyoneCanPay;
-		public SignatureUtil(String keyID, SigHash hashType, boolean anyoneCanPay) {
+		public SignatureUtil(String keyID, SigHashWrapper hashType, boolean anyoneCanPay) {
 			checkNotNull(keyID);
 			this.keyID = keyID;
 			this.hashType = hashType;
@@ -124,7 +129,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		checkNotNull(key, "'key' cannot be null");
 		checkNotNull(hashType, "'hashType' cannot be null");
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
-		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
+		SignatureUtil sig = new SignatureUtil(keyID, SigHashWrapper.wrap(hashType), anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
 		byte[] data = (PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes();
 		checkState(data.length<256, "data too long: "+data.length);
@@ -209,7 +214,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				String mapKey = getMapKey(chunk);
 				SignatureUtil sig = this.signatures.get(mapKey);
 				ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
-				SigHash hashType = sig.hashType;
+				SigHash hashType = sig.hashType.get();
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				
 				// check the key is correct when P2PKH
@@ -311,10 +316,12 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	 * @return
 	 * @see #serialize()
 	 */
-	private void deserialize(String str) {
+	@SuppressWarnings("unchecked")
+	public T deserialize(String str) {
 		for (String ch : str.split(" ")) {
 			this.deserializeChunk(ch);
 		}
+		return (T) this;
 	}
 	
 	private static boolean isSignature(ScriptChunk ch) {
@@ -354,7 +361,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			str.append(",");
 			str.append(this.signatures.get(mapKey).keyID);
 			str.append(",");
-			str.append(encodeModifier(this.signatures.get(mapKey).hashType, this.signatures.get(mapKey).anyoneCanPay));
+			str.append(encodeModifier(this.signatures.get(mapKey).hashType.get(), this.signatures.get(mapKey).anyoneCanPay));
 			str.append("]");
 			str.append(" ");
 		}

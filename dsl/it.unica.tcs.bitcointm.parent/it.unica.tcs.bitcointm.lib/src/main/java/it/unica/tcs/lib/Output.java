@@ -4,11 +4,14 @@
 
 package it.unica.tcs.lib;
 
+import java.io.Serializable;
+
 /*
  * Output internal representation (not visible outside)
  */
-public class Output {
+public class Output implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private final OutputScript script;
 	private final long value;
 	

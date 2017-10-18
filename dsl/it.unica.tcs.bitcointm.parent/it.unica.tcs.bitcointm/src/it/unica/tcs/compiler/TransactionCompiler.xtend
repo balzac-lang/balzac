@@ -20,12 +20,14 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.InputScript
+import it.unica.tcs.lib.InputScriptImpl
 import it.unica.tcs.lib.OpReturnOutputScript
 import it.unica.tcs.lib.OutputScript
 import it.unica.tcs.lib.P2PKHOutputScript
 import it.unica.tcs.lib.P2SHInputScript
 import it.unica.tcs.lib.P2SHOutputScript
 import it.unica.tcs.lib.TransactionBuilder
+import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper
 import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
@@ -34,9 +36,6 @@ import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.lib.InputScriptImpl
-import it.unica.tcs.lib.AbstractScriptBuilderWithVar
-import it.unica.tcs.lib.ScriptBuilder2
 
 class TransactionCompiler {
 	
@@ -67,8 +66,8 @@ class TransactionCompiler {
 		println('''::: Compiling '«tx.name»' ''')
 		
 		val tb =  
-    		if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)    	
-	    	else new TransactionBuilder(tx.networkParams)
+    		if (tx.isCoinbase) new CoinbaseTransactionBuilder(NetworkParametersWrapper.wrap(tx.networkParams))    	
+	    	else new TransactionBuilder(NetworkParametersWrapper.wrap(tx.networkParams))
     	
     	// free variables
     	for (param : tx.params) {

@@ -13,6 +13,7 @@ import com.google.common.collect.Sets;
 
 public class Env implements EnvI<Env> {
 	
+	private static final long serialVersionUID = 1L;
 	private final Map<String,Class<?>> variablesType = new HashMap<>();
 	private final Map<String,Object> variablesBinding = new HashMap<>();
 	

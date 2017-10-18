@@ -12,24 +12,27 @@ import java.util.Collection;
 import java.util.List;
 
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
 
+import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+
 public class TransactionBuilder implements ITransactionBuilder, EnvI<TransactionBuilder> {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final long UNSET_LOCKTIME = -1;
 
-	private final NetworkParameters params;
+	transient private final NetworkParametersWrapper params;
 	
-	private final List<Input> inputs = new ArrayList<>();
-	private final List<Output> outputs = new ArrayList<>();
-	private long locktime = UNSET_LOCKTIME;
+	transient private final List<Input> inputs = new ArrayList<>();
+	transient private final List<Output> outputs = new ArrayList<>();
+	transient private long locktime = UNSET_LOCKTIME;
 	private final Env env = new Env();
 	
-	public TransactionBuilder(NetworkParameters params) {
+	public TransactionBuilder(NetworkParametersWrapper params) {
 		this.params = params;
 	}
 	
@@ -209,7 +212,7 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 	public Transaction toTransaction() {
 		checkState(this.isReady(), "the transaction and all its ancestors are not ready");
 		
-		Transaction tx = new Transaction(params);
+		Transaction tx = new Transaction(params.get());
 		
 		// inputs
 		for (Input input : inputs) {
@@ -218,15 +221,15 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 			if (!input.hasParentTx()) {
 				// coinbase transaction
 				byte[] script = new byte[]{};	// script will be set later
-				TransactionInput txInput = new TransactionInput(params, tx, script);
+				TransactionInput txInput = new TransactionInput(params.get(), tx, script);
 				tx.addInput(txInput);
 				checkState(txInput.isCoinBase(), "'txInput' is expected to be a coinbase");
 			}
 			else {
 				Transaction parentTransaction = parentTransaction2.toTransaction();
-				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
+				TransactionOutPoint outPoint = new TransactionOutPoint(params.get(), input.getOutIndex(), parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later
-				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
+				TransactionInput txInput = new TransactionInput(params.get(), tx, script, outPoint);
 				
 				//set checksequenseverify (relative locktime)
 				if (input.getLocktime()==UNSET_LOCKTIME) {
@@ -247,9 +250,9 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 			// bind free variables
 			OutputScript sb = output.getScript();
 			
-			for(String freeVarName : getFreeVariables()) {
+			for(String freeVarName : getVariables()) {
 				if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {					
-					sb.bindVariable(freeVarName, this.getType(freeVarName));
+					sb.bindVariable(freeVarName, this.getValue(freeVarName));
 				}
 			}
 			checkState(sb.getFreeVariables().size()==0);
@@ -280,13 +283,13 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 			InputScript sb = inputs.get(i).getScript();
 			
 			// bind free variables
-			for(String freeVarName : getFreeVariables()) {
+			for(String freeVarName : getVariables()) {
 				if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {					
-					sb.bindVariable(freeVarName, this.getType(freeVarName));
+					sb.bindVariable(freeVarName, this.getValue(freeVarName));
 				}
 			}
 			
-			checkState(sb.getFreeVariables().size()==0, "input script cannot have free variables");
+			checkState(sb.getFreeVariables().size()==0, "input script cannot have free variables: "+sb.toString());
 			
 			byte[] outScript;
 			if (txInput.isCoinBase()) {

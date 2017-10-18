@@ -4,11 +4,14 @@
 
 package it.unica.tcs.lib;
 
+import java.io.Serializable;
+
 /*
  * Input internal representation (not visible outside)
  */
-public class Input {
+public class Input implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private static int UNSET_OUTINDEX = -1;
 	private static int UNSET_LOCKTIME = -1;
 	

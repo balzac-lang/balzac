@@ -9,6 +9,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class P2SHInputScript extends InputScriptImpl {
 
+	private static final long serialVersionUID = 1L;
+
 	private final P2SHOutputScript redeemScript;
 	
 	public P2SHInputScript(P2SHOutputScript redeemScript) {

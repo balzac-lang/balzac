@@ -8,6 +8,8 @@ import org.bitcoinj.script.Script;
 
 public class InputScriptImpl extends InputScript {
 
+	private static final long serialVersionUID = 1L;
+
 	public InputScriptImpl() {
 		super();
 	}
