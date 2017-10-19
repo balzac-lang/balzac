@@ -54,6 +54,17 @@ public class ScriptBuilder2Test {
     }
 	
 	@Test
+    public void test3() {
+		CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(NetworkParametersWrapper.wrap(MainNetParams.get()));
+		net.addInput(Input.of(new InputScriptImpl()));
+		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
+		ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
+		
+		assertTrue(net.isCoinbase());
+		assertTrue(net2.isCoinbase());
+    }
+	
+	@Test
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();
         assertEquals(0, sb.size());

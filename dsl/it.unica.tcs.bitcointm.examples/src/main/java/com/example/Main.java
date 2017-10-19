@@ -1,6 +1,8 @@
 package com.example;
 
-import org.bitcoinj.core.Transaction;
+import com.example.factory.TransactionFactory;
+
+import it.unica.tcs.lib.ITransactionBuilder;
 
 //import com.example.factory.TransactionFactory;
 
@@ -8,11 +10,16 @@ public class Main {
 
 	
 	public static void main(String[] args) {
+
+		ITransactionBuilder t = TransactionFactory.tx_T();
+		ITransactionBuilder t1 = TransactionFactory.tx_T1(42);
+		ITransactionBuilder t2 = TransactionFactory.tx_T2();
 		
-//		Transaction T = TransactionFactory.tx_T(Boolean.TRUE).toTransaction();
-//		Transaction T1 = TransactionFactory.tx_T1().toTransaction();
-//		
-//		System.out.println(T.getHashAsString());
-//		System.out.println(T1.getHashAsString());
+		System.out.println(t);
+		System.out.println(t1);
+		System.out.println(t2);
+		
+		
+		
 	}
 }

@@ -25,11 +25,11 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 
 	private static final long UNSET_LOCKTIME = -1;
 
-	transient private final NetworkParametersWrapper params;
+	private final NetworkParametersWrapper params;
 	
-	transient private final List<Input> inputs = new ArrayList<>();
-	transient private final List<Output> outputs = new ArrayList<>();
-	transient private long locktime = UNSET_LOCKTIME;
+	private final List<Input> inputs = new ArrayList<>();
+	private final List<Output> outputs = new ArrayList<>();
+	private long locktime = UNSET_LOCKTIME;
 	private final Env env = new Env();
 	
 	public TransactionBuilder(NetworkParametersWrapper params) {

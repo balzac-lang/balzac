@@ -87,11 +87,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSingleElementArray(UserTransactionDeclaration tx) {
 		
-		logger.trace("--- TRACE TEST --- ")
-		logger.info ("--- INFO  TEST --- ")
-		logger.warn ("--- WARN  TEST --- ")
-		logger.error("--- ERROR TEST --- ")
-		logger.fatal("--- FATAL TEST --- ")
+//		logger.trace("--- TRACE TEST --- ")
+//		logger.info ("--- INFO  TEST --- ")
+//		logger.warn ("--- WARN  TEST --- ")
+//		logger.error("--- ERROR TEST --- ")
+//		logger.fatal("--- FATAL TEST --- ")
 		
 		var tbody = tx.body
 		var inputs = tbody.inputs
