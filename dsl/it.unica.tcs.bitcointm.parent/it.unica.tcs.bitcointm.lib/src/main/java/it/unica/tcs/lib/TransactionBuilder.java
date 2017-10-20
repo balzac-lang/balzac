@@ -5,11 +5,15 @@
 package it.unica.tcs.lib;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Transaction;
@@ -19,7 +23,7 @@ import org.bitcoinj.script.Script;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 
-public class TransactionBuilder implements ITransactionBuilder, EnvI<TransactionBuilder> {
+public class TransactionBuilder implements ITransactionBuilder {
 
 	private static final long serialVersionUID = 1L;
 
@@ -31,6 +35,7 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 	private final List<Output> outputs = new ArrayList<>();
 	private long locktime = UNSET_LOCKTIME;
 	private final Env env = new Env();
+	private final Map<String,Consumer<Object>> variableHooks = new HashMap<>();
 	
 	public TransactionBuilder(NetworkParametersWrapper params) {
 		this.params = params;
@@ -73,8 +78,31 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 	}
 
 	@Override
+	public TransactionBuilder removeVariable(String name) {
+		for (Input in : inputs) {
+			checkState(!in.getScript().hasVariable(name), "input script "+in.getScript()+" use variable '"+name+"'");			
+		}
+		for (Output out : outputs) {
+			checkState(!out.getScript().hasVariable(name), "output script "+out.getScript()+" use variable '"+name+"'");			
+		}
+		env.removeVariable(name);
+		variableHooks.remove(name);
+		return this;
+	}
+	
+	@Override
 	public TransactionBuilder bindVariable(String name, Object value) {
 		env.bindVariable(name, value);
+		if (variableHooks.containsKey(name))
+			variableHooks.get(name).accept(value);
+		return this;
+	}
+	
+	public TransactionBuilder addHookToVariableBinding(String name, Consumer<Object> hook) {
+		checkNotNull(name, "'name' cannot be null");
+		checkNotNull(hook, "'hook' cannot be null");
+		checkArgument(hasVariable(name), "'name' is not a variable");
+		variableHooks.put(name, hook);
 		return this;
 	}
 
@@ -108,6 +136,26 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 		return outputs;
 	}
 
+	public TransactionBuilder removeUnusedVariables() {
+		for (String name : getVariables()) {
+			
+			boolean used = false;
+			
+			for (Input in : inputs) {
+				used = used || in.getScript().hasVariable(name);
+			}
+
+			for (Output out : outputs) {
+				used = used || out.getScript().hasVariable(name);
+			}
+			
+			if (!used)
+				removeVariable(name);
+		}
+		
+		return this;
+	}
+	
 	/**
 	 * Add a new transaction input.
 	 * <p>This method is only used by {@link CoinbaseTransactionBuilder} to provide a valid input.
@@ -255,7 +303,7 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 					sb.bindVariable(freeVarName, this.getValue(freeVarName));
 				}
 			}
-			checkState(sb.getFreeVariables().size()==0);
+			checkState(sb.getFreeVariables().size()==0, "script cannot have free variables: "+sb.toString());
 			checkState(sb.signatureSize()==0);
 			
 			Script outScript;
@@ -289,7 +337,7 @@ public class TransactionBuilder implements ITransactionBuilder, EnvI<Transaction
 				}
 			}
 			
-			checkState(sb.getFreeVariables().size()==0, "input script cannot have free variables: "+sb.toString());
+			checkState(sb.getFreeVariables().size()==0, "script cannot have free variables: "+sb.toString());
 			
 			byte[] outScript;
 			if (txInput.isCoinBase()) {

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.bitcoinj.core.ECKey;
@@ -332,6 +333,10 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX_PLACEHOLDER);
 	}
 	
+	private static boolean isFreeVariable(ScriptChunk ch, String name) {
+		return ch.data != null && new String(ch.data).equals(FREEVAR_PREFIX_PLACEHOLDER+name);
+	}
+	
 	private static String getFreeVariableName(ScriptChunk ch) {
 		return new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
 	}
@@ -477,6 +482,25 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	
 	
 	
+	private void addVariableChunk(String name) {
+		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
+		checkState(data.length<256, "data too long: "+data.length);
+		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
+		super.addChunk(chunk);
+	}
+	
+	private void removeVariableChunk(String name) {
+		ListIterator<ScriptChunk> it = getChunks().listIterator();
+		
+		while(it.hasNext()) {
+			ScriptChunk next = it.next();
+			
+			if (isFreeVariable(next, name)) {
+				it.remove();
+			}
+		}
+	}
+	
 	@Override
 	public boolean hasVariable(String name) {
 		return env.hasVariable(name);
@@ -510,11 +534,16 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {
-		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
-		checkState(data.length<256, "data too long: "+data.length);
-		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
-		super.addChunk(chunk);
+		addVariableChunk(name);
 		env.addVariable(name, type);
+		return (T) this;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public T removeVariable(String name) {
+		removeVariableChunk(name);
+		env.removeVariable(name);
 		return (T) this;
 	}
 

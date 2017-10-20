@@ -12,7 +12,7 @@ participant Alice {
 	key k1 = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
 }
 
-transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468 (UTXO)
+transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468
 	input = [ 
 		utxo1: sig k; 
 		utxo2: sig k 

@@ -7,6 +7,7 @@ package it.unica.tcs.compiler
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Input
+import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Script
@@ -35,6 +36,7 @@ import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import org.eclipse.xtext.EcoreUtil2
 
+import static com.google.common.base.Preconditions.*
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 class TransactionCompiler {
@@ -87,6 +89,33 @@ class TransactionCompiler {
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
+	    		
+				println('''«tx.name»: parent tx «input.txRef.tx.name», v=«parentTx.variables», fv=«parentTx.freeVariables»''')
+	    		
+	    		// set eventual variables
+				for (var j=0; j<input.txRef.actualParams.size; j++) {
+					val formalP = (input.txRef.tx as UserTransactionDeclaration).params.get(j)
+					val actualP = input.txRef.actualParams.get(j)
+					
+					val value = actualP.interpretSafe
+					
+					if (parentTx.hasVariable(formalP.name)) { // unused free-variables have been removed 
+						if (value instanceof Literal) {
+							println('''«tx.name»: setting [«value.interpret.first»] variable '«formalP.name»' for parent tx «input.txRef.tx.name»''')
+							parentTx.bindVariable(formalP.name, value.interpret.first)
+						}
+						else if (value instanceof VariableReference) {
+							val name = value.ref.name
+							checkState(tb.hasVariable(name) && tb.isFree(name))
+							tb.addHookToVariableBinding(name, [v|
+								parentTx.bindVariable(formalP.name, v)
+							])
+						}
+						else
+							throw new CompileException
+					}
+				}
+	    		
 	    		val outIndex = input.outpoint
 	    		val inScript = input.compileInput(parentTx)
 	    		
@@ -112,6 +141,10 @@ class TransactionCompiler {
     	// absolute timelock
     	if (tx.body.tlock!==null && tx.body.tlock.containsAbsolute)
 	        tb.locktime = tx.body.tlock.getAbsolute()
+    	
+    	
+    	// remove unused tx variables
+    	tb.removeUnusedVariables()
     	
     	return tb
     }

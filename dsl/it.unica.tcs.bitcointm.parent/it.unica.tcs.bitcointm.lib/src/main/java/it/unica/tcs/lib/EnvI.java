@@ -68,6 +68,15 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	public T addVariable(String name, Class<?> type);
 	
 	/**
+	 * Remove a variable.
+	 * 
+	 * @param name the name of the variable
+	 * @return this class
+	 */
+	public T removeVariable(String name);
+	
+	
+	/**
 	 * Bind a variable to a given {@code value}.
 	 * 
 	 * @param name the name of the variable

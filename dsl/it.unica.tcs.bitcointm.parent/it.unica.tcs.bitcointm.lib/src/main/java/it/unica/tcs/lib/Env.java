@@ -25,35 +25,38 @@ public class Env implements EnvI<Env> {
 	@Override
 	public boolean isFree(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'name' is not a variable");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 		return !isBound(name);
 	}
 
 	@Override
 	public boolean isBound(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'name' is not a variable");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 		return variablesBinding.containsKey(name);
 	}
 
 	@Override
 	public Class<?> getType(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'name' is not a variable");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 		return variablesType.get(name);
 	}
 	
 	@Override
 	public Object getValue(String name) {
-		checkArgument(hasVariable(name), "'name' is not a variable");
+		checkNotNull(name, "'name' cannot be null");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 		return variablesBinding.get(name);
 	}
 	
 	@Override
-	public <T> T getValue(String name, Class<T> clazz) {
+	public <T> T getValue(String name, Class<T> type) {
+		checkNotNull(name, "'name' cannot be null");
+		checkNotNull(type, "'type' cannot be null");
 		Class<?> expectedType = getType(name);
-		checkState(expectedType.equals(clazz));
-		return clazz.cast(variablesBinding.get(name));
+		checkState(expectedType.equals(type));
+		return type.cast(variablesBinding.get(name));
 	}
 
 	@Override
@@ -64,12 +67,21 @@ public class Env implements EnvI<Env> {
 		variablesType.put(name, type);
 		return this;
 	}
+	
+	@Override
+	public Env removeVariable(String name) {
+		checkNotNull(name, "'name' cannot be null");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		variablesType.remove(name);
+		variablesBinding.remove(name);
+		return this;
+	}
 
 	@Override
 	public Env bindVariable(String name, Object value) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(value, "'value' cannot be null");
-		checkArgument(hasVariable(name), "'name' is not a variable");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 		checkArgument(variablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+variablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
 		checkArgument(!variablesBinding.containsKey(name), "'"+name+"' is already associated with value '"+variablesBinding.get(name)+"'");
 		variablesBinding.put(name, value);

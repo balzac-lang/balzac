@@ -4,7 +4,6 @@
 
 package it.unica.tcs.utils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,7 +11,6 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.DumpedPrivateKey;
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
@@ -262,15 +260,6 @@ public class ASTUtils {
 		catch (Exception e) {
 			return -1;
 		}
-	}
-	
-	public ValidationResult isValidKeyPair(String pvtKey, String pubKey, NetworkParameters params) {
-		ECKey keyPair = DumpedPrivateKey.fromBase58(params, pvtKey).getKey();
-		Address pubkeyAddr = Address.fromBase58(params, pubKey);
-
-		boolean isValid = Arrays.equals(keyPair.getPubKeyHash(), pubkeyAddr.getHash160());
-		
-		return isValid? ValidationResult.VALIDATION_OK: ValidationResult.VALIDATION_ERROR;
 	}
 	
 	public SigHash toHashType(Modifier mod) {

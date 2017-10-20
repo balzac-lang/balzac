@@ -21,6 +21,7 @@ import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.ParticipantDeclaration
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
@@ -36,8 +37,7 @@ import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
-import it.unica.tcs.lib.KeyStore
-import it.unica.tcs.lib.TransactionBuilder
+import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -75,11 +75,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem
-    @Inject private extension ASTUtils
+    @Inject private extension ASTUtils    
+    @Inject private extension BitcoinUtils bitcoinUtils
+    @Inject private extension BitcoinClientI bitcoinClient
     @Inject private extension TransactionCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
-	@Inject private KeyStore keyStore
+//	@Inject private KeyStore keyStore
 	
 	/*
 	 * INFO
@@ -115,19 +117,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 */
 	
 	@Check
-	def void checkUnusedParameters(it.unica.tcs.bitcoinTM.Script script){
+	def void checkUnusedParameters(Parameter param){
 
-		for (param : script.params) {
-			var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
-			// var references = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
-			if (references.size==0)
-				warning("Unused variable '"+param.name+"'.", 
-					param,
-					BitcoinTMPackage.Literals.PARAMETER__NAME
-				);			
-		}
+		var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
+		// var references = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
+		if (references.size==0)
+			warning("Unused variable '"+param.name+"'.", 
+				param,
+				BitcoinTMPackage.Literals.PARAMETER__NAME
+			);			
 	}
-	
+
 	@Check
 	def void checkVerSigDuplicatedKeys(Versig versig) {
 		
@@ -310,6 +310,44 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			}
 		}
 	}
+	
+	
+	@Check
+	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
+		
+		val txB = t.compileTransaction
+
+		if (txB.isReady) {
+			val txId = txB.toTransaction.hashAsString
+			
+			if (txId !== null) {
+				val isMined = bitcoinClient.isMined(txId)
+				
+				if (isMined)
+					info('''The transaction is already on the blockchain with id «txId»''', 
+						t,
+						BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+					);
+			}
+			
+		}
+		
+	}
+	
+	@Check
+	def void checkSerialTransactionIsMined(SerialTransactionDeclaration t) {
+		
+		val tx = bitcoinUtils.getTransactionByIdOrHex(if (t.bytes!==null) t.bytes else t.id, t.networkParams);
+		var txId = tx.hashAsString
+		val isMined = bitcoinClient.isMined(txId)
+		
+		if (!isMined)
+			info('''The transaction «txId» is not mined''', 
+				t,
+				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+			);
+	}
+	
 	
     @Check
 	def void checkDeclarationNameIsUnique(ParticipantDeclaration t) {
@@ -751,120 +789,88 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean correctlySpendsOutput(UserTransactionDeclaration tx) {
-        var tbody = tx.body
         
-        if (tx.params.size>0) {
-        	// TODO: checks where the free variables appear
+		var txBuilder = tx.compileTransaction
+
+		 if (!txBuilder.isReady) {
         	info(
 				'''Cannot check if these inputs are correctly spending their outputs''',
-				tbody,
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS						
+				tx,
+				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME						
 			)
 			return true
         }
-        
+
 		println(
 		'''
 		############### correctlySpendsOutput ###############
 		«NodeModelUtils.findActualNodeFor(tx).text.trim»''');
         
-        for (var i=0; i<tbody.inputs.size; i++) {
-
-            var input = tbody.inputs.get(i)
-            var Script inScript
-            var Script outScript
-
-            try {
-				println(
-				'''
-				current input : «NodeModelUtils.findActualNodeFor(input).text.trim»
-				''')
-	            
-				var txBuilder = tx.compileTransaction
+		println(txBuilder.toString)
 		
-				println('''
-				key store
-				«keyStore.toString»''')
-				
-				println('''
-				txBuilder
-				«txBuilder.toString»''')
-				
-				
-				
-				if (input.txRef.tx instanceof UserTransactionDeclaration) {
-					
-					val redeemedTx = input.txRef.tx as UserTransactionDeclaration
-					
-					for (var j=0; j<input.txRef.actualParams.size; j++) {
-						val formalP = redeemedTx.params.get(j)
-						val actualP = input.txRef.actualParams.get(j)
-						
-						val redeemedTxBuilder = (txBuilder.getInputs.get(i).parentTx as TransactionBuilder)
-						redeemedTxBuilder.bindVariable(formalP.name, actualP.interpret.first)
-					}
-				}
-				
-				var txJ = txBuilder.toTransaction()
-				
-				println('''
-				txJ
-				«txJ.toString»''')
-				
-				try {
-					txJ.verify();
-				}
-				catch (Exception e) {
-					warning(
-						'''
-						The transaction is not valid.
-						
-						Details: «e.message»
-						''',
-						tbody.eContainer,
-						tbody.eContainingFeature						
-					)
-				}
+        for (var i=0; i<tx.body.inputs.size; i++) {
 
-                inScript = txJ.getInput(i).scriptSig
-                outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey
-                inScript.correctlySpends(
-	                    txJ, 
-	                    i, 
-	                    outScript, 
-	                    ALL_VERIFY_FLAGS
-	                )
-                
-//              	println("input "+inScript+" correctly redeem output "+outScript)
-//                
-//                tx.body.outputs.forEach[out|
-//                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
-//                ]
-                
-            } catch(ScriptException e) {
+            var Script inScript = null
+            var Script outScript = null
+            
+            if (txBuilder.isReady) {
+				            	
+	            try {
+					// conpile the transaction to BitcoinJ representation
+					var txJ = txBuilder.toTransaction()
 
-                warning(
-                    '''
-                    This input does not redeem the specified output script. 
-                    
-                    Details: «e.message»
-                    
-                    INPUT:   «inScript»
-                    OUTPUT:  «outScript»
-                    «IF outScript.isPayToScriptHash»
-                    REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
-                    REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
-					«ENDIF»''',
-                    input.eContainer,
-                    BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
-                    i
-                );
-            } catch(Exception e) {
-                error('''Something went wrong: see error for details''',
-						tbody.eContainer,
-						tbody.eContainingFeature)
-				e.printStackTrace
+					println()					
+					println(txJ.toString)
+					
+	                inScript = txJ.getInput(i).scriptSig
+	                outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey
+	                inScript.correctlySpends(
+		                    txJ, 
+		                    i, 
+		                    outScript, 
+		                    ALL_VERIFY_FLAGS
+		                )
+	                
+	//              	println("input "+inScript+" correctly redeem output "+outScript)
+	//                
+	//                tx.body.outputs.forEach[out|
+	//                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
+	//                ]
+	                
+	            } catch(ScriptException e) {
+	
+	                warning(
+	                    '''
+	                    This input does not redeem the specified output script. 
+	                    
+	                    Details: «e.message»
+	                    
+	                    INPUT:   «inScript»
+	                    OUTPUT:  «outScript»
+	                    «IF outScript.isPayToScriptHash»
+	                    REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
+	                    REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
+						«ENDIF»''',
+	                    tx.body,
+	                    BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
+	                    i
+	                );
+	            } catch(Exception e) {
+	                error('''Something went wrong: see error for details''',
+							tx.body.eContainer,
+							tx.body.eContainingFeature)
+					e.printStackTrace
+	            }
             }
+            else {
+            	info('''Cannot check if this input is correctly spending its output.''',
+					tx.body,
+					BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS,
+					i	
+				)
+            }
+            
+
         }
         return true
     }
@@ -1070,7 +1076,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 BitcoinTMPackage.Literals.PROCESS_REFERENCE__ACTUAL_PARAMS
             );
         }
-	}    
+	}
+	
+	
     
     
     

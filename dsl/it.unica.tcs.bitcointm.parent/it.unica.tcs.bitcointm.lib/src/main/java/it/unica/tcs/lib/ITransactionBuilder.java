@@ -6,6 +6,8 @@ package it.unica.tcs.lib;
 
 import java.io.Serializable;
 import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.bitcoinj.core.NetworkParameters;
@@ -13,7 +15,7 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.Script;
 
-public interface ITransactionBuilder extends Serializable {
+public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializable {
 
 	/**
 	 * Check that this transaction builder is ready to be converted using {@link #toTransaction(NetworkParameters)}.
@@ -104,6 +106,19 @@ public interface ITransactionBuilder extends Serializable {
 					return tx.getOutputs().size();
 				}
 			}; }
+			@Override public boolean hasVariable(String name) { return false; }
+			@Override public boolean isFree(String name) { return false; }
+			@Override public boolean isBound(String name) { return false; }
+			@Override public Class<?> getType(String name) { throw new UnsupportedOperationException(); }
+			@Override public Object getValue(String name) { throw new UnsupportedOperationException(); }
+			@Override public <E> E getValue(String name, Class<E> clazz) { throw new UnsupportedOperationException(); }
+			@Override public ITransactionBuilder addVariable(String name, Class<?> type) { throw new UnsupportedOperationException(); }
+			@Override public ITransactionBuilder removeVariable(String name) { throw new UnsupportedOperationException(); }
+			@Override public ITransactionBuilder bindVariable(String name, Object value) { throw new UnsupportedOperationException(); }
+			@Override public Collection<String> getVariables() { return new ArrayList<>(); }
+			@Override public Collection<String> getFreeVariables() { return new ArrayList<>(); }
+			@Override public Collection<String> getBoundFreeVariables() { return new ArrayList<>(); }
+			@Override public void clear() {}
 			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
 		};
 	}

@@ -80,14 +80,23 @@ public class ScriptBuilder2Test {
     public void test_freeVariable() {
         ScriptBuilder2 sb = new ScriptBuilder2();
         assertEquals(0, sb.size());
+        assertEquals(0, sb.getVariables().size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         sb.addVariable("pippo", Integer.class);
         assertEquals(1, sb.size());
+        assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         sb = sb.bindVariable("pippo", 5);
         assertEquals(1, sb.size());
+        assertEquals(1, sb.getVariables().size());
+        assertEquals(0, sb.getFreeVariables().size());
+        assertEquals(0, sb.signatureSize());
+        sb = sb.removeVariable("pippo");
+        assertEquals(0, sb.size());
+        assertFalse(sb.hasVariable("pippo"));
+        assertEquals(0, sb.getVariables().size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
