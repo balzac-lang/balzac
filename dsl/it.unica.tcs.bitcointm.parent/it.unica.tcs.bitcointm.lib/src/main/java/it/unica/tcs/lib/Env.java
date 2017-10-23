@@ -130,7 +130,10 @@ public class Env implements EnvI<Env> {
 		sb.append(StringUtils.rightPad(" Name", maxNameLength)).append("    ");
 		sb.append(StringUtils.rightPad("Type", maxTypeLength)).append("    ");
 		sb.append(StringUtils.rightPad("Binding", maxTypeValues)).append("\n");
-		sb.append(StringUtils.repeat('-', sb.length())).append("\n");
+		
+		String line = StringUtils.repeat('-', sb.length())+"\n";
+		sb.insert(0, line);
+		sb.append(line);
 		
 		for (String name : variables) {
 			String name2 = StringUtils.rightPad(name, maxNameLength);
@@ -138,6 +141,7 @@ public class Env implements EnvI<Env> {
 			String value = variablesBinding.getOrDefault(name, "").toString();
 			sb.append(" ").append(name2).append("    ").append(type).append(value.isEmpty()? "":"    "+value).append("\n");
 		}
+		sb.append(line);
 		return sb.toString();
 	}
 }
