@@ -98,6 +98,14 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return this;
 	}
 	
+	/**
+	 * Add an hook that will be executed when the variable {@code name} will have been bound.
+	 * The hook is a {@link Consumer} that will take the value of the variable.
+	 * 
+	 * @param name the name of the variable
+	 * @param hook the consumer
+	 * @return this builder
+	 */
 	public TransactionBuilder addHookToVariableBinding(String name, Consumer<Object> hook) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(hook, "'hook' cannot be null");
@@ -136,6 +144,13 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return outputs;
 	}
 
+	/**
+	 * Remove the unused variables of this builder.
+	 * A transaction variable is unused if it is unused by all the
+	 * input/output scripts.
+	 * 
+	 * @return this builder
+	 */
 	public TransactionBuilder removeUnusedVariables() {
 		for (String name : getVariables()) {
 			
