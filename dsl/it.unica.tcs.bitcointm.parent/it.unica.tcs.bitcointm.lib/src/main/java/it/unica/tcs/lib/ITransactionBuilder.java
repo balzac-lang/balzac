@@ -117,7 +117,7 @@ public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializ
 			@Override public ITransactionBuilder bindVariable(String name, Object value) { throw new UnsupportedOperationException(); }
 			@Override public Collection<String> getVariables() { return new ArrayList<>(); }
 			@Override public Collection<String> getFreeVariables() { return new ArrayList<>(); }
-			@Override public Collection<String> getBoundFreeVariables() { return new ArrayList<>(); }
+			@Override public Collection<String> getBoundVariables() { return new ArrayList<>(); }
 			@Override public void clear() {}
 			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
 		};

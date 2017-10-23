@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -95,11 +97,11 @@ public class Env implements EnvI<Env> {
 
 	@Override
 	public Set<String> getFreeVariables() {
-		return Sets.difference(getVariables(), getBoundFreeVariables());
+		return Sets.difference(getVariables(), getBoundVariables());
 	}
 
 	@Override
-	public Set<String> getBoundFreeVariables() {
+	public Set<String> getBoundVariables() {
 		return ImmutableSet.copyOf(variablesBinding.keySet());
 	}
 
@@ -112,5 +114,30 @@ public class Env implements EnvI<Env> {
 	public void clear() {
 		variablesType.clear();
 		variablesBinding.clear();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		Set<String> variables = getVariables();
+		if (variables.isEmpty())
+			return "No variables";
+		
+		int maxNameLength = variables.stream().mapToInt(String::length).reduce(0, Integer::max);
+		int maxTypeLength = variables.stream().map(s -> variablesType.get(s).getSimpleName().length()).reduce(0, Integer::max);
+		int maxTypeValues = variables.stream().map(s -> variablesBinding.getOrDefault(s,"").toString().length()).reduce(0, Integer::max);
+		
+		sb.append(StringUtils.rightPad(" Name", maxNameLength)).append("    ");
+		sb.append(StringUtils.rightPad("Type", maxTypeLength)).append("    ");
+		sb.append(StringUtils.rightPad("Binding", maxTypeValues)).append("\n");
+		sb.append(StringUtils.repeat('-', sb.length())).append("\n");
+		
+		for (String name : variables) {
+			String name2 = StringUtils.rightPad(name, maxNameLength);
+			String type = StringUtils.rightPad(variablesType.get(name).getSimpleName(), maxTypeLength);
+			String value = variablesBinding.getOrDefault(name, "").toString();
+			sb.append(" ").append(name2).append("    ").append(type).append(value.isEmpty()? "":"    "+value).append("\n");
+		}
+		return sb.toString();
 	}
 }

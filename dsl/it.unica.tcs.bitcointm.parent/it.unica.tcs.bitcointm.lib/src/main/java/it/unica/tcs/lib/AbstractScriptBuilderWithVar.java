@@ -28,8 +28,8 @@ import java.util.Map;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.core.UnsafeByteArrayOutputStream;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
@@ -44,8 +44,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	implements EnvI<T> {
 
 	private static final long serialVersionUID = 1L;
-	private static final String PREFIX_SIGNATURE_PLACEHOLDER = "\u03C3"; 	// σ
-	private static final String FREEVAR_PREFIX_PLACEHOLDER = "\u03F0"; 		// ϰ;
+	private static final String SIGNATURE_PREFIX = "\u03C3"; 	// σ
+	private static final String FREEVAR_PREFIX = "\u03F0"; 		// ϰ;
 	
 	private final Env env = new Env();
 	
@@ -116,8 +116,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@Override
 	public Script build() {
 		checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
-		substituteAllBinding();
-		return super.build();
+		return substituteAllBinding();
 	}
 	
 	public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
@@ -132,7 +131,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
 		SignatureUtil sig = new SignatureUtil(keyID, SigHashWrapper.wrap(hashType), anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
-		byte[] data = (PREFIX_SIGNATURE_PLACEHOLDER+mapKey).getBytes();
+		byte[] data = (SIGNATURE_PREFIX+mapKey).getBytes();
 		checkState(data.length<256, "data too long: "+data.length);
 		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
@@ -148,24 +147,21 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return signatures.size();
 	}
 	
-	@SuppressWarnings("unchecked")
-	private T substituteAllBinding() {
+	/*
+	 * Return a Script, binding the variables.
+	 * This builder is assumed to be ready 
+	 */
+	private Script substituteAllBinding() {
 		
-		if (getFreeVariables().size()==0)	// nothing to substitute
-			return (T) this;
-		
-		// this ScriptBuilder2 is assumed to be ready
-		List<ScriptChunk> newChunks = new ArrayList<>();
+		ScriptBuilder sb = new ScriptBuilder();
 
 		for (ScriptChunk chunk : getChunks()) {
 
 			if (isFreeVariable(chunk)) {
 				String name = getFreeVariableName(chunk);
 				Object obj = getValue(name);
-				
-				ScriptBuilder sb = new ScriptBuilder();
-
 				Class<?> expectedClass = getType(name);
+
 				if (expectedClass.isInstance(obj)) {
 					if (obj instanceof String) {
 						sb.data(((String) obj).getBytes());
@@ -182,17 +178,13 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 						throw new IllegalArgumentException("Unxpected type " + obj.getClass());
 				} else
 					throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
-
 			}
 			else {
-				newChunks.add(chunk);
+				sb.addChunk(chunk);
 			}
 		}
-		super.getChunks().clear();
-		super.getChunks().addAll(newChunks);
-
-		this.clear();		
-		return (T) this;
+		
+		return sb.build();
 	}
 	
 	/**
@@ -326,23 +318,23 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	}
 	
 	private static boolean isSignature(ScriptChunk ch) {
-		return ch.data != null && new String(ch.data).startsWith(PREFIX_SIGNATURE_PLACEHOLDER);
+		return ch.data != null && new String(ch.data).startsWith(SIGNATURE_PREFIX);
 	}
 	
 	private static boolean isFreeVariable(ScriptChunk ch) {
-		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX_PLACEHOLDER);
+		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX);
 	}
 	
 	private static boolean isFreeVariable(ScriptChunk ch, String name) {
-		return ch.data != null && new String(ch.data).equals(FREEVAR_PREFIX_PLACEHOLDER+name);
+		return ch.data != null && new String(ch.data).equals(FREEVAR_PREFIX+name);
 	}
 	
 	private static String getFreeVariableName(ScriptChunk ch) {
-		return new String(ch.data).substring(FREEVAR_PREFIX_PLACEHOLDER.length());
+		return new String(ch.data).substring(FREEVAR_PREFIX.length());
 	}
 	
 	private static String getMapKey(ScriptChunk ch) {
-		return new String(ch.data).substring(PREFIX_SIGNATURE_PLACEHOLDER.length());
+		return new String(ch.data).substring(SIGNATURE_PREFIX.length());
 	}
 	
 	@Override
@@ -483,7 +475,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	
 	
 	private void addVariableChunk(String name) {
-		byte[] data = (FREEVAR_PREFIX_PLACEHOLDER+name).getBytes();
+		byte[] data = (FREEVAR_PREFIX+name).getBytes();
 		checkState(data.length<256, "data too long: "+data.length);
 		ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
 		super.addChunk(chunk);
@@ -565,8 +557,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	}
 
 	@Override
-	public Collection<String> getBoundFreeVariables() {
-		return env.getBoundFreeVariables();
+	public Collection<String> getBoundVariables() {
+		return env.getBoundVariables();
 	}
 	
 	@Override

@@ -8,10 +8,10 @@ transaction T {
 
 transaction T1(x:int) {
 	input = T: 5
-	output = 1 BTC : fun(a:int) . a==x  
+	output = 1 BTC : fun(a:int) . a==x
 }
 
 transaction T2 {
-	input = T1(5): 5
+	input = T1(5): 4
 	output = 0: "" 
 }

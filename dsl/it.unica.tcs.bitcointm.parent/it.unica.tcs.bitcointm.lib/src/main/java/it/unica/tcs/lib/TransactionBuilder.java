@@ -130,8 +130,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	}
 
 	@Override
-	public Collection<String> getBoundFreeVariables() {
-		return env.getBoundFreeVariables();
+	public Collection<String> getBoundVariables() {
+		return env.getBoundVariables();
 	}
 		
 	@Override

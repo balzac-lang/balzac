@@ -101,13 +101,15 @@ class TransactionCompiler {
 					
 					if (parentTx.hasVariable(formalP.name)) { // unused free-variables have been removed 
 						if (value instanceof Literal) {
-							println('''«tx.name»: setting [«value.interpret.first»] variable '«formalP.name»' for parent tx «input.txRef.tx.name»''')
+							println('''«tx.name»: setting value «value.interpret.first» for variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
 							parentTx.bindVariable(formalP.name, value.interpret.first)
 						}
 						else if (value instanceof VariableReference) {
 							val name = value.ref.name
+							println('''«tx.name»: setting hook for variable '«name»': variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
 							checkState(tb.hasVariable(name) && tb.isFree(name))
 							tb.addHookToVariableBinding(name, [v|
+								println('''executing hook for variable '«name»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
 								parentTx.bindVariable(formalP.name, v)
 							])
 						}

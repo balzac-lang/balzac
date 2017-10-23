@@ -110,7 +110,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * 
 	 * @return the bound variables
 	 */
-	public Collection<String> getBoundFreeVariables();
+	public Collection<String> getBoundVariables();
 	
 	/**
 	 * Return true if there are not free-variables, false otherwise.

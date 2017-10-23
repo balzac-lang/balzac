@@ -12,6 +12,7 @@ import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
+import org.bitcoinj.script.Script;
 import org.junit.Test;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
@@ -83,16 +84,32 @@ public class ScriptBuilder2Test {
         assertEquals(0, sb.getVariables().size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
+        
         sb.addVariable("pippo", Integer.class);
+        assertTrue(sb.hasVariable("pippo"));
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
+        
         sb = sb.bindVariable("pippo", 5);
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
+        assertEquals(1, sb.getBoundVariables().size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
+        
+        Script s = sb.build();
+        assertEquals("5", s.toString());
+
+        // sb state is unchanged
+        assertEquals(1, sb.size());
+        assertEquals(1, sb.getVariables().size());
+        assertEquals(1, sb.getBoundVariables().size());
+        assertEquals(0, sb.getFreeVariables().size());
+        assertEquals(0, sb.signatureSize());
+        
+        
         sb = sb.removeVariable("pippo");
         assertEquals(0, sb.size());
         assertFalse(sb.hasVariable("pippo"));
@@ -100,6 +117,7 @@ public class ScriptBuilder2Test {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
+    
     
     @Test
     public void test_signature() {

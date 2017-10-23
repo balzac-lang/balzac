@@ -15,7 +15,7 @@ public class EnvTest {
 		assertTrue(env.isReady());
 		assertTrue(env.getVariables().isEmpty());
 		assertTrue(env.getFreeVariables().isEmpty());
-		assertTrue(env.getBoundFreeVariables().isEmpty());
+		assertTrue(env.getBoundVariables().isEmpty());
 		
 		try {
 			env.isFree(name);
@@ -65,7 +65,7 @@ public class EnvTest {
 		
 		assertEquals(1, env.getVariables().size());
 		assertEquals(1, env.getFreeVariables().size());
-		assertEquals(0, env.getBoundFreeVariables().size());
+		assertEquals(0, env.getBoundVariables().size());
 		
 		assertEquals(Integer.class, env.getType(name));
 
@@ -86,7 +86,7 @@ public class EnvTest {
 		
 		assertEquals(1, env.getVariables().size());
 		assertEquals(0, env.getFreeVariables().size());
-		assertEquals(1, env.getBoundFreeVariables().size());
+		assertEquals(1, env.getBoundVariables().size());
 		
 		try {
 			// fails if try to set another type
@@ -103,19 +103,23 @@ public class EnvTest {
 		String name2 = "any2";
 				
 		env.addVariable(name, Integer.class);
-		env.addVariable(name2, Integer.class);	// multi add with the same time is fine
+		env.addVariable(name2, Long.class);	// multi add with the same time is fine
 		
 		assertFalse(env.isReady());
 		assertEquals(2, env.getVariables().size());
 		assertEquals(2, env.getFreeVariables().size());
-		assertEquals(0, env.getBoundFreeVariables().size());
+		assertEquals(0, env.getBoundVariables().size());
+		
+		env.bindVariable(name, 5);
+//		env.bindVariable(name2, 8745287489874L);
+		System.out.println(env);
 		
 		env.clear();
 		
 		assertTrue(env.isReady());
 		assertEquals(0, env.getVariables().size());
 		assertEquals(0, env.getFreeVariables().size());
-		assertEquals(0, env.getBoundFreeVariables().size());
+		assertEquals(0, env.getBoundVariables().size());
 	}
 	
 }
