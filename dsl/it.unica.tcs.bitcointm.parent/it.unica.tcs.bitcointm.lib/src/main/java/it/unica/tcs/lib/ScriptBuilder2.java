@@ -17,4 +17,5 @@ public class ScriptBuilder2 extends AbstractScriptBuilderWithVar<ScriptBuilder2>
 	public ScriptBuilder2(String serializedScript) {
 		super(serializedScript);
 	}
+
 }

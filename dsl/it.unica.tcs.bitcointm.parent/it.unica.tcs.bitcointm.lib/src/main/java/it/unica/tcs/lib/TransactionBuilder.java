@@ -13,8 +13,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
@@ -64,6 +69,11 @@ public class TransactionBuilder implements ITransactionBuilder {
 	@Override
 	public Object getValue(String name) {
 		return env.getValue(name);
+	}
+	
+	@Override
+	public Object getValueOrDefault(String name, Object defaultValue) {
+		return env.getValueOrDefault(name, defaultValue);
 	}
 	
 	@Override
@@ -222,7 +232,11 @@ public class TransactionBuilder implements ITransactionBuilder {
 	}
 	
 	public TransactionBuilder addInput(Input input) {
-		checkArgument(this.getFreeVariables().containsAll(input.getScript().getFreeVariables()), "the input script contains free-variables "+input.getScript().getFreeVariables()+", but the transactions only contains "+this.getFreeVariables());
+		checkNotNull(input, "'input' cannot be null");
+		checkArgument(getFreeVariables().containsAll(input.getScript().getFreeVariables()), "the input script contains free-variables "+input.getScript().getFreeVariables()+", but the transactions only contains "+getFreeVariables());
+		for (String fv : input.getScript().getFreeVariables()) {
+			checkArgument(input.getScript().getType(fv).equals(getType(fv)), "input script variable '"+fv+"' is of type "+input.getScript().getType(fv)+" while the tx variable is of type "+getType(fv));
+		}
 		inputs.add(input);
 		return this;
 	}
@@ -238,6 +252,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 */
 	public TransactionBuilder addOutput(OutputScript outputScript, int satoshis) {
 		checkArgument(getFreeVariables().containsAll(outputScript.getFreeVariables()), "the output script contains free-variables "+outputScript.getFreeVariables()+", but the transactions only contains "+getFreeVariables());
+		for (String fv : outputScript.getFreeVariables()) {
+			checkArgument(outputScript.getType(fv).equals(getType(fv)), "input script variable '"+fv+"' is of type "+outputScript.getType(fv)+" while the tx variable is of type "+getType(fv));
+		}
 		outputs.add(Output.of(outputScript, satoshis));
 		return this;
 	}
@@ -318,7 +335,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 					sb.bindVariable(freeVarName, this.getValue(freeVarName));
 				}
 			}
-			checkState(sb.getFreeVariables().size()==0, "script cannot have free variables: "+sb.toString());
+			checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
 			checkState(sb.signatureSize()==0);
 			
 			Script outScript;
@@ -382,35 +399,213 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return inputs.size()==1 && inputs.get(0).getParentTx() == null;
 	}
 	
+	
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("TransactionBuilder\n\n");
-		if (isCoinbase()) 
-			sb.append("        coinbase\n");
-		if (getFreeVariables().size()>0) {
-			sb.append("\n        free-variables : \n");
-			for (String name : getFreeVariables())
-				sb.append("            ")
-				.append(name).append(" -> ").append(getType(name))
-				.append(" [").append(isBound(name)? getValue(name): "none").append("]")
-				.append("\n");
-		}
-		sb.append("        ready : ").append(isReady()).append("\n");
 		
-		if (inputs.size()>0) {
-			sb.append("\n        inputs : \n");
-			for(Input in : inputs) {
-				sb.append("            [").append(in.getOutIndex()).append("] ").append(in.getScript().toString()).append("\n");
-			}
-		}
-		if (outputs.size()>0) {
-			sb.append("\n        outputs : \n");
-			for(Output out : outputs) {
-				sb.append("            [").append(out.getValue()).append("] ").append(out.getScript().toString()).append("\n");
-			}
-		}
+		sb.append(" hashCode : ").append(hashCode()).append("\n");
+		sb.append(" coinbase : ").append(isCoinbase()).append("\n");
+		sb.append(" ready    : ").append(isReady()).append("\n");
+		sb.append(" locktime : ").append(locktime!=UNSET_LOCKTIME? locktime: "none").append("\n");
+		
+		addVariables(sb, this);
+		addInputs(sb, this.inputs);
+		addOutputs(sb, this.outputs);
+		
 		return sb.toString();
+	}
+	
+	
+	private static void addVariables(StringBuilder sb, EnvI<?> env) {
+		TablePrinter tp = new TablePrinter();
+		tp.title = "Variables";
+		tp.noValueRow = "No variables";
+		tp.setHeader(new String[]{"Name", "Type", "Binding"});
+		for (String name : new TreeSet<>(env.getVariables())) {
+			tp.addRow(new String[]{
+					name, 
+					env.getType(name).getSimpleName(), 
+					env.getValueOrDefault(name, "").toString()});
+		}
+		sb.append("\n\n");
+		sb.append(tp.build());
+	}
+	
+	private static void addInputs(StringBuilder sb, List<Input> inputs) {
+		TablePrinter tp = new TablePrinter();
+		tp.title = "Inputs";
+		tp.noValueRow = "No inputs";
+		tp.setHeader(new String[]{"Index", "Outpoint", "Locktime", "Ready", "Variables", "Script"});
+		int i=0;
+		for (Input input : inputs) {
+			String index = String.valueOf(i++);
+			String outpoint = input.hasParentTx()?input.getOutIndex()+":"+input.getParentTx().hashCode():"none";
+			String locktime = input.hasLocktime()?String.valueOf(input.getLocktime()):"none";
+			String ready = String.valueOf(input.getScript().isReady());
+			List<String> vars = getCompactVariables(input.getScript());
+			String script = input.getScript().serialize();
+						
+			tp.addRow(new String[]{
+					index, 
+					outpoint, 
+					locktime,
+					ready,
+					vars.isEmpty()?"":vars.get(0),
+					script});
+			
+			for (int j=1; j<vars.size();j++) {
+				tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
+			}
+		}
+		sb.append("\n\n");
+		sb.append(tp.build());
+	}
+	
+	private static void addOutputs(StringBuilder sb, List<Output> inputs) {
+		TablePrinter tp = new TablePrinter();
+		tp.title = "Outputs";
+		tp.noValueRow = "No outputs";
+		tp.setHeader(new String[]{"Index", "Value", "Type", "Ready", "Variables", "Script"});
+		int i=0;
+		for (Output output : inputs) {
+			String index = String.valueOf(i++);
+			String value = String.valueOf(output.getValue());
+			String type = String.valueOf(output.getScript().getType());
+			String ready = output.getScript().isReady()+"";
+			List<String> vars = getCompactVariables(output.getScript());
+			String script = output.getScript().serialize();
+						
+			tp.addRow(new String[]{
+					index, 
+					value, 
+					type,
+					ready,
+					vars.isEmpty()?"":vars.get(0),
+					script});
+			
+			for (int j=1; j<vars.size();j++) {
+				tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
+			}
+		}
+		sb.append("\n\n");
+		sb.append(tp.build());
+	}
+	private static List<String> getCompactVariables(EnvI<?> env) {
+		List<String> res = new ArrayList<>();
+		Collection<String> variables = new TreeSet<>(env.getVariables());
+		
+		int size = variables.stream().map(v->("("+env.getType(v).getSimpleName()+") "+v).length()).reduce(0, Integer::max);
+				
+		for (String v : variables) {
+			res.add(StringUtils.rightPad("("+env.getType(v).getSimpleName()+") "+v, size)+(env.isBound(v)? " -> "+env.getValue(v):""));
+		}
+		return res;
 	}
 
 }
+
+
+
+
+
+class TablePrinter {
+	String title;
+	
+	String[] header;
+	
+	List<String[]> valuesPerLine = new ArrayList<>();
+	Map<Integer,Integer> maxColLength = new TreeMap<>();
+	
+	String rowPrefix = " ";
+	int rowPrefixSize = 1;
+	
+	String rowSuffix = " ";
+	int rowSuffixSize = 1;
+	
+	String valueSeparator = " ";
+	int valueSeparatorSize = 6; 
+	
+	String noValueRow = "no values";
+	
+	void setHeader(String... header) {
+		this.header = header;
+		for (int i=0; i<header.length; i++) {
+			this.maxColLength.putIfAbsent(i, header[i].length());
+		}
+	}
+		
+	
+	void addRow(String... values) {
+		for (int i=0; i<values.length; i++) {
+			String v = values[i];
+			this.maxColLength.putIfAbsent(i, header[i].length());
+			
+			if (maxColLength.get(i) < v.length())
+				this.maxColLength.put(i, v.length());
+		}
+		this.valuesPerLine.add(values);
+	}
+	
+	void printTitle(StringBuilder sb) {
+		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
+		sb.append(title);
+		sb.append("\n");
+	}
+	
+	void printNoValues(StringBuilder sb) {
+		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
+		sb.append(noValueRow);
+		sb.append("\n");
+	}
+		
+	void printLine(StringBuilder sb, char ch) {
+		int size = maxColLength.values().stream().reduce(0, Integer::sum)+rowPrefixSize+rowSuffixSize+valueSeparatorSize*(header.length-1);
+		sb.append(StringUtils.repeat(ch, size));
+		sb.append("\n");
+	}
+	
+	void printRow(StringBuilder sb, String[] values) {
+		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
+		for (int col=0; col<values.length; col++) {
+			sb.append(StringUtils.rightPad(values[col], maxColLength.get(col)));
+			if (col!=values.length-1)
+				sb.append(StringUtils.repeat(valueSeparator, valueSeparatorSize));
+		}
+		sb.append(StringUtils.repeat(rowSuffix, rowSuffixSize));
+		sb.append("\n");
+	}
+	
+	String build() {
+		StringBuilder sb = new StringBuilder();
+		
+		printTitle(sb);
+		
+		printLine(sb, '=');
+		printRow(sb, header);
+		printLine(sb, '-');
+		
+		if (valuesPerLine.isEmpty()) {
+			printNoValues(sb);
+		}
+		else {
+			for (int row=0; row<valuesPerLine.size(); row++) {
+				String[] values = this.valuesPerLine.get(row);
+				printRow(sb, values);
+			}
+		}
+		
+		printLine(sb, '=');
+		return sb.toString();
+	}
+}
+
+
+
+
+
+
+
+
+

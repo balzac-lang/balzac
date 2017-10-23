@@ -523,6 +523,11 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return env.getValue(name, clazz);
 	}
 	
+	@Override
+	public Object getValueOrDefault(String name, Object defaultValue) {
+		return env.getValueOrDefault(name, defaultValue);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {

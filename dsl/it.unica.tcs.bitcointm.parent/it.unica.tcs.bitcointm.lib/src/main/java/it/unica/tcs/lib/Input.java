@@ -6,6 +6,8 @@ package it.unica.tcs.lib;
 
 import java.io.Serializable;
 
+import static com.google.common.base.Preconditions.*;
+
 /*
  * Input internal representation (not visible outside)
  */
@@ -40,6 +42,7 @@ public class Input implements Serializable {
 	}
 	
 	static Input of(ITransactionBuilder tx, int index, InputScript script, long locktime){
+		checkNotNull(script);
 		return new Input(tx, index, script, locktime);
 	}
 

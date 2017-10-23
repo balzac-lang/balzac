@@ -42,7 +42,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	
 	/**
 	 * Return the value of the variable {@code name}.
-	 * The variable must be bound. 
+	 * The variable must be bound, otherwise an exception is thrown. 
 	 * 
 	 * @param name the variable name
 	 * @return the value associated to the variable
@@ -57,6 +57,16 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @return
 	 */
 	public <E> E getValue(String name, Class<E> clazz);
+
+	/**
+	 * Return the value of the variable {@code name}.
+	 * The variable must be bound, otherwise the default value is returned. 
+	 * 
+	 * @param name the variable name
+	 * @param defaultValue a default value if the variable is unbound 
+	 * @return the value associated to the variable
+	 */
+	public Object getValueOrDefault(String name, Object defaultValue);
 	
 	/**
 	 * Add a variable.
@@ -123,5 +133,6 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * Remove all variables and binding.
 	 */
 	public void clear();
+
 
 }

@@ -49,7 +49,16 @@ public class Env implements EnvI<Env> {
 	public Object getValue(String name) {
 		checkNotNull(name, "'name' cannot be null");
 		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(isBound(name), "'"+name+"' is not bounded");
 		return variablesBinding.get(name);
+	}
+	
+	@Override
+	public Object getValueOrDefault(String name, Object defaultValue) {
+		checkNotNull(name, "'name' cannot be null");
+		checkNotNull(defaultValue, "'defaultValue' cannot be null");
+		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		return isBound(name)? getValue(name): defaultValue;
 	}
 	
 	@Override
@@ -125,11 +134,11 @@ public class Env implements EnvI<Env> {
 		
 		int maxNameLength = variables.stream().mapToInt(String::length).reduce(0, Integer::max);
 		int maxTypeLength = variables.stream().map(s -> variablesType.get(s).getSimpleName().length()).reduce(0, Integer::max);
-		int maxTypeValues = variables.stream().map(s -> variablesBinding.getOrDefault(s,"").toString().length()).reduce(0, Integer::max);
+		int maxValuesLength = variables.stream().map(s -> variablesBinding.getOrDefault(s,"").toString().length()).reduce(0, Integer::max);
 		
 		sb.append(StringUtils.rightPad(" Name", maxNameLength)).append("    ");
 		sb.append(StringUtils.rightPad("Type", maxTypeLength)).append("    ");
-		sb.append(StringUtils.rightPad("Binding", maxTypeValues)).append("\n");
+		sb.append(StringUtils.rightPad("Binding", maxValuesLength)).append("\n");
 		
 		String line = StringUtils.repeat('-', sb.length())+"\n";
 		sb.insert(0, line);

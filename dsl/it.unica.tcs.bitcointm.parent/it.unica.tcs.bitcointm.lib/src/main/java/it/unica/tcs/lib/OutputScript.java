@@ -22,4 +22,13 @@ abstract public class OutputScript extends ScriptBuilder2 {
 	abstract public boolean isP2PKH();
 	abstract public boolean isOP_RETURN();
 	
+	public String getType() {
+		if (isP2SH())
+			return "P2SH";
+		if (isP2PKH())
+			return "P2PKH";
+		if (isOP_RETURN())
+			return "OP_RETURN";
+		throw new IllegalStateException();
+	}
 }

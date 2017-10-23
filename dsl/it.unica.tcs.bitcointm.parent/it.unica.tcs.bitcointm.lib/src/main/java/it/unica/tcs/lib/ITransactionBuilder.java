@@ -112,6 +112,7 @@ public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializ
 			@Override public Class<?> getType(String name) { throw new UnsupportedOperationException(); }
 			@Override public Object getValue(String name) { throw new UnsupportedOperationException(); }
 			@Override public <E> E getValue(String name, Class<E> clazz) { throw new UnsupportedOperationException(); }
+			@Override public Object getValueOrDefault(String name, Object defaultValue) { throw new UnsupportedOperationException(); }
 			@Override public ITransactionBuilder addVariable(String name, Class<?> type) { throw new UnsupportedOperationException(); }
 			@Override public ITransactionBuilder removeVariable(String name) { throw new UnsupportedOperationException(); }
 			@Override public ITransactionBuilder bindVariable(String name, Object value) { throw new UnsupportedOperationException(); }
@@ -120,6 +121,7 @@ public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializ
 			@Override public Collection<String> getBoundVariables() { return new ArrayList<>(); }
 			@Override public void clear() {}
 			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
+
 		};
 	}
 }
