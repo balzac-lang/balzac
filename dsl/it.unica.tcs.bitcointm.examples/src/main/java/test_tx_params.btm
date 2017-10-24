@@ -6,7 +6,7 @@ transaction T {
 	output = 2 BTC : fun(a:int) . a==5 
 }
 
-transaction T1(x:hash) {
+transaction T1(x:hash160) {
 	input = T: 5
 	output = 1 BTC : fun(a:string) . hash160(a)==x
 }
@@ -15,4 +15,4 @@ transaction T2 {
 	input = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
 	output = 0: ""
 }
-
+ 

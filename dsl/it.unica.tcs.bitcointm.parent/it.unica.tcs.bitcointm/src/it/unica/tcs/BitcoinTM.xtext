@@ -145,10 +145,20 @@ Literal:
 |	BooleanLiteral
 |	HashLiteral;
 
+HashLiteral:
+	Hash160Literal
+|	Hash256Literal
+|	Ripmed160Literal
+|	Sha256Literal
+;
+
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
-HashLiteral: value=BTC_HASH;
+Hash160Literal: value=HASH_160;
+Hash256Literal: value=HASH_256;
+Ripmed160Literal: value=RIPMED_160;
+Sha256Literal: value=SHA_256;
 
 IfThenElse:
 	'if' if=ScriptExpression
@@ -171,7 +181,11 @@ Versig:
 		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
 	")";
 
-Hash: type=('sha256'|'ripemd160'|'hash256'|'hash160') "(" value=ScriptExpression ")";
+Hash: Hash160 | Hash256 | Ripmed160 | Sha256;
+Hash160: 	'hash160' "(" value=ScriptExpression ")";
+Hash256: 	'hash256' "(" value=ScriptExpression ")";
+Ripmed160: 	'ripemd160' "(" value=ScriptExpression ")";
+Sha256: 	'sha256' "(" value=ScriptExpression ")";
 
 Min: "min" "(" left=ScriptExpression "," right=ScriptExpression ")";
 Max: "max" "(" left=ScriptExpression"," right=ScriptExpression ")";
@@ -189,17 +203,27 @@ Type:
 
 BasicType:
 	{IntType} value=IntTypeEnum 
-|	{HashType} value=HashTypeEnum
-|   {StringType} value=StringTypeEnum 
+|	{StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
 |   {SignatureType} value=SignatureTypeEnum
-|   {TransactionType} value=TransactionTypeEnum;
+|   {TransactionType} value=TransactionTypeEnum
+|	HashType;
+
+HashType:
+	{Hash160Type} value=Hash160TypeEnum
+|	{Hash256Type} value=Hash256TypeEnum
+|	{Ripmed160Type} value=Ripmed160TypeEnum
+|	{Sha256Type} value=Sha256TypeEnum
+;
 
 TypeVariable:
 	value=ID;
 
 enum IntTypeEnum: int;
-enum HashTypeEnum: hash;
+enum Hash160TypeEnum: hash160;
+enum Hash256TypeEnum: hash256;
+enum Ripmed160TypeEnum: ripmed160;
+enum Sha256TypeEnum: sha256;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum SignatureTypeEnum: signature;
@@ -243,11 +267,10 @@ terminal INT returns ecore::EInt:
 terminal BASE58: 
 	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
-terminal BTC_HASH returns ecore::EByteArray: SHA256 | RIPEMD160 | HASH256 | HASH160;
-terminal SHA256:	'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal RIPEMD160: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal HASH256:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal HASH160:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXID:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 	

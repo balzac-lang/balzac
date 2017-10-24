@@ -10,25 +10,29 @@ import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Expression
-import it.unica.tcs.bitcoinTM.Hash
+import it.unica.tcs.bitcoinTM.Hash160
+import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.Ripmed160
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
 import it.unica.tcs.bitcoinTM.ScriptComparison
 import it.unica.tcs.bitcoinTM.ScriptEquals
 import it.unica.tcs.bitcoinTM.ScriptMinus
 import it.unica.tcs.bitcoinTM.ScriptPlus
+import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.lib.ScriptBuilder2
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -36,7 +40,6 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.lib.ScriptBuilder2
 
 /*
  * EXPRESSIONS
@@ -81,15 +84,24 @@ class ExpressionCompiler {
         new ScriptBuilder2().data(s.value)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Hash hash, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Hash160 hash, Context ctx) {
 	    var sb = hash.value.compileExpression(ctx)
-        
-        switch(hash.type) {
-        	case "sha256":	 	sb.op(OP_SHA256)
-        	case "ripemd160":	sb.op(OP_RIPEMD160)
-        	case "hash256":	 	sb.op(OP_HASH256)
-        	case "hash160":		sb.op(OP_HASH160)
-        }
+		sb.op(OP_HASH160)
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Hash256 hash, Context ctx) {
+	    var sb = hash.value.compileExpression(ctx)
+        sb.op(OP_HASH256)
+    }
+    
+        def private dispatch ScriptBuilder2 compileExpressionInternal(Ripmed160 hash, Context ctx) {
+	    var sb = hash.value.compileExpression(ctx)
+        sb.op(OP_RIPEMD160)
+    }
+    
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Sha256 hash, Context ctx) {
+	    var sb = hash.value.compileExpression(ctx)
+        sb.op(OP_SHA256)
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {

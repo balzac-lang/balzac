@@ -7,7 +7,6 @@ package it.unica.tcs.utils
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Network
 import it.unica.tcs.bitcoinTM.Parameter
@@ -20,6 +19,14 @@ import it.unica.tcs.generator.ProtocolExpressionGenerator
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.Hash160Type
+import it.unica.tcs.bitcoinTM.Hash256Type
+import it.unica.tcs.bitcoinTM.Ripmed160Type
+import it.unica.tcs.bitcoinTM.Sha256Type
+import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.Hash.Ripmed160
+import it.unica.tcs.lib.Hash.Hash256
+import it.unica.tcs.lib.Hash.Hash160
 
 @Singleton
 class CompilerUtils {
@@ -36,7 +43,10 @@ class CompilerUtils {
 	
 	def String compileType(Type type) {
     	if(type instanceof IntType) return "Integer"
-    	if(type instanceof HashType) return "byte[]"
+    	if(type instanceof Hash160Type) return "Hash160"
+    	if(type instanceof Hash256Type) return "Hash256"
+    	if(type instanceof Ripmed160Type) return "Ripmed160"
+    	if(type instanceof Sha256Type) return "Sha256"
     	if(type instanceof StringType) return "String"
     	if(type instanceof BooleanType) return "Boolean"
     	if(type instanceof SignatureType) return "byte[]"
@@ -60,7 +70,10 @@ class CompilerUtils {
     
 	def Class<?> convertType(Type type) {
     	if(type instanceof IntType) return Integer
-    	if(type instanceof HashType) return typeof(byte[])
+    	if(type instanceof Hash160Type) return Hash160
+    	if(type instanceof Hash256Type) return Hash256
+    	if(type instanceof Ripmed160Type) return Ripmed160
+    	if(type instanceof Sha256Type) return Sha256
     	if(type instanceof StringType) return String
     	if(type instanceof BooleanType) return Boolean
     	if(type instanceof SignatureType) return typeof(byte[])

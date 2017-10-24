@@ -20,7 +20,7 @@ import org.eclipse.xtext.conversion.ValueConverterException
 class BitcoinTMConverterService extends DefaultTerminalConverters {
 	
 	@Inject private NumberValueConverter numberValueConverter;
-	@Inject private HashValueConverter customTerminalConverter;
+	@Inject private HashValueConverter hashConverter;
 	@Inject private TimestampValueConverter timestampTerminalConverter;
 	@Inject private IntUnderscoreValueConverter intTerminalConverter;
 	@Inject private DelayValueConverter delayConverter;
@@ -30,9 +30,24 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
         return numberValueConverter
 	}
 	
-	@ValueConverter(rule = "BTC_HASH")
+	@ValueConverter(rule = "HASH_160")
+    def IValueConverter<byte[]> getHash160Converter() {
+        return hashConverter
+	}
+
+	@ValueConverter(rule = "HASH_256")
+    def IValueConverter<byte[]> getHash256Converter() {
+        return hashConverter
+	}
+
+	@ValueConverter(rule = "RIPMED_160")
+    def IValueConverter<byte[]> getRipmed160Converter() {
+        return hashConverter
+	}
+
+	@ValueConverter(rule = "SHA_256")
     def IValueConverter<byte[]> getSha256Converter() {
-        return customTerminalConverter
+        return hashConverter
 	}
 
 	@ValueConverter(rule = "TIMESTAMP")

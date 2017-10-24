@@ -4,43 +4,50 @@
 
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndScriptExpression
-import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.Ask
 import it.unica.tcs.bitcoinTM.Assert
 import it.unica.tcs.bitcoinTM.BasicType
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
-import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Choice
-import it.unica.tcs.bitcoinTM.ScriptComparison
-import it.unica.tcs.bitcoinTM.ScriptEquals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash
-import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.bitcoinTM.Hash160
+import it.unica.tcs.bitcoinTM.Hash160Literal
+import it.unica.tcs.bitcoinTM.Hash256
+import it.unica.tcs.bitcoinTM.Hash256Literal
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
-import it.unica.tcs.bitcoinTM.ScriptMinus
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parallel
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.ParticipantDeclaration
-import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
+import it.unica.tcs.bitcoinTM.Ripmed160
+import it.unica.tcs.bitcoinTM.Ripmed160Literal
+import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
+import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
+import it.unica.tcs.bitcoinTM.ScriptComparison
+import it.unica.tcs.bitcoinTM.ScriptEquals
+import it.unica.tcs.bitcoinTM.ScriptMinus
+import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.Send
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
+import it.unica.tcs.bitcoinTM.Sha256
+import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.SignOp
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -61,7 +68,6 @@ import it.unica.tcs.bitcoinTM.VersigOp
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
-import java.util.Arrays
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -123,6 +129,7 @@ auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variabl
 auxiliary unify(TypeSubstitutions substitutions, Type t1, Type t2) {
     // if we get here we cannot unify the two types
     fail
+	error "Cannot unify type "+t1+" with type "+t2
 	null
 } 
 
@@ -198,13 +205,30 @@ auxiliary interpretSafe(Expression exp) {
     		res.^true = value
     		return res	
     	}	
-    	else if (value instanceof byte[]) {
-			val res = BitcoinTMFactory::eINSTANCE.createHashLiteral
-    		res.value = value
+    	else if (value instanceof it.unica.tcs.lib.Hash.Hash160) {
+			val res = BitcoinTMFactory::eINSTANCE.createHash160Literal
+    		res.value = value.bytes
     		return res    		
-    	}	
+    	}
+    	else if (value instanceof it.unica.tcs.lib.Hash.Hash256) {
+			val res = BitcoinTMFactory::eINSTANCE.createHash256Literal
+    		res.value = value.bytes
+    		return res    		
+    	}
+    	else if (value instanceof it.unica.tcs.lib.Hash.Ripmed160) {
+			val res = BitcoinTMFactory::eINSTANCE.createRipmed160Literal
+    		res.value = value.bytes
+    		return res    		
+    	}
+    	else if (value instanceof it.unica.tcs.lib.Hash.Sha256) {
+			val res = BitcoinTMFactory::eINSTANCE.createSha256Literal
+    		res.value = value.bytes
+    		return res    		
+    	}
     	else {
-    		fail null
+    		fail
+    		error "Unexpected type "+value.class
+			null
     	}	
     }
 }
@@ -380,8 +404,17 @@ axiom BooleanLiteral
 axiom StringLiteral
 	G |- TypeSubstitutions substitutions |> StringLiteral str : BitcoinTMFactory::eINSTANCE.createStringType
 
-axiom HashLiteral
-	G |- TypeSubstitutions substitutions |> HashLiteral h : BitcoinTMFactory::eINSTANCE.createHashType
+axiom Hash160Literal
+	G |- TypeSubstitutions substitutions |> Hash160Literal h : BitcoinTMFactory::eINSTANCE.createHash160Type
+
+axiom Hash256Literal
+	G |- TypeSubstitutions substitutions |> Hash256Literal h : BitcoinTMFactory::eINSTANCE.createHash256Type
+
+axiom Ripmed160Literal
+	G |- TypeSubstitutions substitutions |> Ripmed160Literal h : BitcoinTMFactory::eINSTANCE.createRipmed160Type
+
+axiom Sha256Literal
+	G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
 
 axiom Signature
 	G |- TypeSubstitutions substitutions |> Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
@@ -541,8 +574,47 @@ from {
 	}
 }
 
-rule Hash
-	G |- TypeSubstitutions substitutions |> Hash hash: BitcoinTMFactory::eINSTANCE.createHashType
+rule Hash160
+	G |- TypeSubstitutions substitutions |> Hash160 hash: BitcoinTMFactory::eINSTANCE.createHash160Type
+from {
+	G |- substitutions |> hash.value: var Type t
+	t = typesubstitution(substitutions, t)
+	
+	if (!(t instanceof BasicType)) {
+		fail
+			error "basic type expected"
+			source hash.value			
+	}
+}
+
+rule Hash256
+	G |- TypeSubstitutions substitutions |> Hash256 hash: BitcoinTMFactory::eINSTANCE.createHash256Type
+from {
+	G |- substitutions |> hash.value: var Type t
+	t = typesubstitution(substitutions, t)
+	
+	if (!(t instanceof BasicType)) {
+		fail
+			error "basic type expected"
+			source hash.value			
+	}
+}
+
+rule Ripmed160
+	G |- TypeSubstitutions substitutions |> Ripmed160 hash: BitcoinTMFactory::eINSTANCE.createRipmed160Type
+from {
+	G |- substitutions |> hash.value: var Type t
+	t = typesubstitution(substitutions, t)
+	
+	if (!(t instanceof BasicType)) {
+		fail
+			error "basic type expected"
+			source hash.value			
+	}
+}
+
+rule Sha256
+	G |- TypeSubstitutions substitutions |> Sha256 hash: BitcoinTMFactory::eINSTANCE.createSha256Type
 from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
@@ -788,8 +860,17 @@ axiom InterpretStringLiteral
 axiom InterpretBooleanLiteral
     G |- BooleanLiteral bool ~> bool.^true
 
-axiom InterpretHashLiteral
-    G |- HashLiteral hash ~> hash.value
+axiom InterpretHash160Literal
+    G |- Hash160Literal hash ~> new it.unica.tcs.lib.Hash.Hash160(hash.value)
+
+axiom InterpretHash256Literal
+    G |- Hash256Literal hash ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
+
+axiom InterpretRipmed160Literal
+    G |- Ripmed160Literal hash ~> new it.unica.tcs.lib.Hash.Ripmed160(hash.value)
+
+axiom InterpretSha256Literal
+    G |- Sha256Literal hash ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
 
 rule InterpretMinus
     G |- ScriptMinus minus ~> Integer result
@@ -888,9 +969,7 @@ from {
 	    G |- comparison.left ~> var Object leftResult
 	    G |- comparison.right ~> var Object rightResult
 	    
-	    leftResult.class == rightResult.class
-	    
-	    var areEqual = leftResult==rightResult || Arrays.equals(leftResult as byte[], rightResult as byte[])
+	    var areEqual = leftResult==rightResult
 	    
 	    result = switch(comparison.op) {
     		case "==": areEqual
@@ -905,6 +984,7 @@ from {
 		}
 	    
     } or {
+    	// TODO: remove this case
     	comparison.left instanceof Signature
     	comparison.right instanceof Signature
     	// two signs are the same if the key and the modifier are the same
@@ -993,20 +1073,28 @@ from {
 }
 
 rule InterpretHash
-    G |- Hash hash ~> byte[] result
+    G |- Hash hash ~> it.unica.tcs.lib.Hash result
 from {
 
     G |- hash.value ~> var Object expResult
     
+    // convert an object to a sequence of byte
     var bytes = BitcoinUtils.toBytes(expResult)
     
-    result = 
-	    switch(hash.type) {
-	    	case "ripemd160": 	BitcoinUtils.ripemd160(bytes) 
-	    	case "sha256": 		BitcoinUtils.sha256(bytes) 
-	    	case "hash160": 	BitcoinUtils.hash160(bytes)
-	    	case "hash256": 	BitcoinUtils.hash256(bytes)
-	    } 
+    // hash the bytes
+    if (hash instanceof Hash160)
+	    result = new it.unica.tcs.lib.Hash.Hash160(BitcoinUtils.hash160(bytes))
+    else if (hash instanceof Hash256)
+	    result = new it.unica.tcs.lib.Hash.Hash256(BitcoinUtils.hash256(bytes))
+    else if (hash instanceof Ripmed160)
+	    result = new it.unica.tcs.lib.Hash.Ripmed160(BitcoinUtils.ripemd160(bytes))
+    else if (hash instanceof Sha256)
+	    result = new it.unica.tcs.lib.Hash.Sha256(BitcoinUtils.sha256(bytes))
+	else {
+		fail 
+		error "Unexpecter instance "+hash.class 
+		source hash
+	}
 }
 
 rule InterpretSize

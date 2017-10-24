@@ -63,6 +63,12 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.services.BitcoinTMGrammarAccess
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory
+import it.unica.tcs.lib.Hash.Hash160
+import it.unica.tcs.lib.Hash.Hash256
+import it.unica.tcs.lib.Hash.Ripmed160
+import it.unica.tcs.lib.Hash.Sha256
 
 /**
  * This class contains custom validation rules. 
@@ -221,15 +227,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			
 			// the expression can be simplified. Store it within the context such that sub-expression will skip this check
 			context.put(exp, exp)
+			
+			val value = resInterpret.first
 		
 			var compilationResult = 
-				switch (resInterpret.first) {
-					byte[]: (exp as Hash).type+":"+BitcoinUtils.encode(resInterpret.first as byte[])
-					String: '''"«resInterpret.first»"''' 
-					default: resInterpret.first.toString
+				switch (value) {
+					Hash160: 	BitcoinTMFactory.eINSTANCE.createHash160Type.value+":"+BitcoinUtils.encode(value.bytes)
+					Hash256: 	BitcoinTMFactory.eINSTANCE.createHash256Type.value+":"+BitcoinUtils.encode(value.bytes)
+					Ripmed160: 	BitcoinTMFactory.eINSTANCE.createRipmed160Type.value+":"+BitcoinUtils.encode(value.bytes)
+					Sha256: 	BitcoinTMFactory.eINSTANCE.createSha256Type.value+":"+BitcoinUtils.encode(value.bytes)
+					String: 	'"'+value+'"' 
+					default: 	value.toString
 				} 
 		
-			warning('''This expression can be simplified. It will be compiled as «compilationResult» ''',
+			info('''This expression can be simplified. It will be compiled as «compilationResult» ''',
 				exp.eContainer,
 				exp.eContainmentFeature,
 				index

@@ -16,6 +16,7 @@ import org.spongycastle.crypto.digests.RIPEMD160Digest;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.client.BitcoinClientException;
 import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
@@ -87,8 +88,8 @@ public class BitcoinUtils {
 			return _toBytes((Integer) obj);
 		else if (obj instanceof String)
 			return _toBytes((String) obj);
-		else if (obj instanceof byte[])
-			return _toBytes((byte[]) obj);
+		else if (obj instanceof Hash)
+			return _toBytes((Hash) obj);
 		else if (obj instanceof Boolean)
 			return _toBytes((Boolean) obj);
 		throw new IllegalArgumentException();
@@ -102,8 +103,8 @@ public class BitcoinUtils {
     	return new ScriptBuilder().number(b? 1 : 0).build().getProgram();
     }
     
-    private static byte[] _toBytes(byte[] b) {
-    	return b;
+    private static byte[] _toBytes(Hash b) {
+    	return b.getBytes();
     }
     
     private static byte[] _toBytes(String s) {

@@ -37,6 +37,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
+import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Wrapper.SigHashWrapper;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
@@ -172,8 +173,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 							sb.number(ScriptOpCodes.OP_TRUE);
 						else
 							sb.op(ScriptOpCodes.OP_FALSE);
-					} else if (obj instanceof byte[]) {
-						sb.data((byte[]) obj);
+					} else if (obj instanceof Hash) {
+						sb.data(((Hash) obj).getBytes());
 					} else
 						throw new IllegalArgumentException("Unxpected type " + obj.getClass());
 				} else
@@ -533,6 +534,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {
+		checkArgument(Integer.class.equals(type) || String.class.equals(type) || Boolean.class.equals(type) || Hash.class.isAssignableFrom(type), "invalid type "+type);
 		addVariableChunk(name);
 		env.addVariable(name, type);
 		return (T) this;

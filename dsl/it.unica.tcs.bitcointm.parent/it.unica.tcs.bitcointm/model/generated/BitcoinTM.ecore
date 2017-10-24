@@ -104,6 +104,9 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//Parameter"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Literal" eSuperTypes="#//ScriptExpression #//ProtocolExpression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HashLiteral" eSuperTypes="#//Literal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EByteArray"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="NumberLiteral" eSuperTypes="#//Literal">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
@@ -113,9 +116,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="BooleanLiteral" eSuperTypes="#//Literal">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="true" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="HashLiteral" eSuperTypes="#//Literal">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EByteArray"/>
-  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash160Literal" eSuperTypes="#//HashLiteral"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash256Literal" eSuperTypes="#//HashLiteral"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Ripmed160Literal" eSuperTypes="#//HashLiteral"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Sha256Literal" eSuperTypes="#//HashLiteral"/>
   <eClassifiers xsi:type="ecore:EClass" name="IfThenElse" eSuperTypes="#//ScriptExpression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="if" eType="#//ScriptExpression"
         containment="true"/>
@@ -143,10 +147,13 @@
         eType="#//ScriptExpression" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Hash" eSuperTypes="#//ScriptExpression #//ProtocolExpression">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//ScriptExpression"
         containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash160" eSuperTypes="#//Hash"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash256" eSuperTypes="#//Hash"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Ripmed160" eSuperTypes="#//Hash"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Sha256" eSuperTypes="#//Hash"/>
   <eClassifiers xsi:type="ecore:EClass" name="Min" eSuperTypes="#//ScriptExpression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//ScriptExpression"
         containment="true"/>
@@ -179,14 +186,24 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Type"/>
   <eClassifiers xsi:type="ecore:EClass" name="BasicType" eSuperTypes="#//Type"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HashType" eSuperTypes="#//BasicType"/>
   <eClassifiers xsi:type="ecore:EClass" name="TypeVariable" eSuperTypes="#//Type">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="IntTypeEnum">
     <eLiterals name="int" literal="int"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EEnum" name="HashTypeEnum">
-    <eLiterals name="hash" literal="hash"/>
+  <eClassifiers xsi:type="ecore:EEnum" name="Hash160TypeEnum">
+    <eLiterals name="hash160" literal="hash160"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Hash256TypeEnum">
+    <eLiterals name="hash256" literal="hash256"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Ripmed160TypeEnum">
+    <eLiterals name="ripmed160" literal="ripmed160"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Sha256TypeEnum">
+    <eLiterals name="sha256" literal="sha256"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="StringTypeEnum">
     <eLiterals name="string" literal="string"/>
@@ -333,9 +350,6 @@
   <eClassifiers xsi:type="ecore:EClass" name="IntType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//IntTypeEnum"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="HashType" eSuperTypes="#//BasicType">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//HashTypeEnum"/>
-  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="StringType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//StringTypeEnum"/>
   </eClassifiers>
@@ -347,6 +361,18 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionType" eSuperTypes="#//BasicType">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//TransactionTypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash160Type" eSuperTypes="#//HashType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//Hash160TypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Hash256Type" eSuperTypes="#//HashType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//Hash256TypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Ripmed160Type" eSuperTypes="#//HashType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//Ripmed160TypeEnum"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Sha256Type" eSuperTypes="#//HashType">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//Sha256TypeEnum"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Parallel" eSuperTypes="#//Process">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Process"
