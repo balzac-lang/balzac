@@ -13,11 +13,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Coin;
@@ -27,6 +24,7 @@ import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import it.unica.tcs.lib.utils.TablePrinter;
 
 public class TransactionBuilder implements ITransactionBuilder {
 
@@ -403,13 +401,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("\n");
 		
-		sb.append(" hashCode : ").append(hashCode()).append("\n");
-		sb.append(" coinbase : ").append(isCoinbase()).append("\n");
-		sb.append(" ready    : ").append(isReady()).append("\n");
-		sb.append(" locktime : ").append(locktime!=UNSET_LOCKTIME? locktime: "none").append("\n");
-		
+		addInfo(sb, this);
 		addVariables(sb, this);
 		addInputs(sb, this.inputs);
 		addOutputs(sb, this.outputs);
@@ -417,27 +411,31 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return sb.toString();
 	}
 	
+	private static void addInfo(StringBuilder sb, TransactionBuilder tb) {
+		TablePrinter tp = new TablePrinter("General info", 2);
+		tp.addRow("hashcode", tb.hashCode());
+		tp.addRow("coinbase", tb.isCoinbase());
+		tp.addRow("ready", tb.isReady());
+		tp.addRow("locktime", tb.locktime!=UNSET_LOCKTIME?String.valueOf(tb.locktime):"none");
+		sb.append(tp.build());
+		sb.append("\n\n");
+	}
 	
 	private static void addVariables(StringBuilder sb, EnvI<?> env) {
-		TablePrinter tp = new TablePrinter();
-		tp.title = "Variables";
-		tp.noValueRow = "No variables";
-		tp.setHeader(new String[]{"Name", "Type", "Binding"});
+		TablePrinter tp = new TablePrinter("Variables", new String[]{"Name", "Type", "Binding"}, "No variables");
 		for (String name : new TreeSet<>(env.getVariables())) {
-			tp.addRow(new String[]{
+			tp.addRow(
 					name, 
 					env.getType(name).getSimpleName(), 
-					env.getValueOrDefault(name, "").toString()});
+					env.getValueOrDefault(name, "").toString());
 		}
-		sb.append("\n\n");
 		sb.append(tp.build());
+		sb.append("\n\n");
 	}
 	
 	private static void addInputs(StringBuilder sb, List<Input> inputs) {
-		TablePrinter tp = new TablePrinter();
-		tp.title = "Inputs";
-		tp.noValueRow = "No inputs";
-		tp.setHeader(new String[]{"Index", "Outpoint", "Locktime", "Ready", "Variables", "Script"});
+
+		TablePrinter tp = new TablePrinter("Inputs", new String[]{"Index", "Outpoint", "Locktime", "Ready", "Variables", "Script"}, "No inputs");
 		int i=0;
 		for (Input input : inputs) {
 			String index = String.valueOf(i++);
@@ -447,27 +445,24 @@ public class TransactionBuilder implements ITransactionBuilder {
 			List<String> vars = getCompactVariables(input.getScript());
 			String script = input.getScript().serialize();
 						
-			tp.addRow(new String[]{
+			tp.addRow(
 					index, 
 					outpoint, 
 					locktime,
 					ready,
 					vars.isEmpty()?"":vars.get(0),
-					script});
+					script);
 			
 			for (int j=1; j<vars.size();j++) {
 				tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
 			}
 		}
-		sb.append("\n\n");
 		sb.append(tp.build());
+		sb.append("\n\n");
 	}
 	
 	private static void addOutputs(StringBuilder sb, List<Output> inputs) {
-		TablePrinter tp = new TablePrinter();
-		tp.title = "Outputs";
-		tp.noValueRow = "No outputs";
-		tp.setHeader(new String[]{"Index", "Value", "Type", "Ready", "Variables", "Script"});
+		TablePrinter tp = new TablePrinter("Outputs", new String[]{"Index", "Value", "Type", "Ready", "Variables", "Script"}, "No outputs");
 		int i=0;
 		for (Output output : inputs) {
 			String index = String.valueOf(i++);
@@ -477,20 +472,20 @@ public class TransactionBuilder implements ITransactionBuilder {
 			List<String> vars = getCompactVariables(output.getScript());
 			String script = output.getScript().serialize();
 						
-			tp.addRow(new String[]{
+			tp.addRow(
 					index, 
 					value, 
 					type,
 					ready,
 					vars.isEmpty()?"":vars.get(0),
-					script});
+					script);
 			
 			for (int j=1; j<vars.size();j++) {
-				tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
+				tp.addRow("","","","",vars.isEmpty()?"":vars.get(j),"");
 			}
 		}
-		sb.append("\n\n");
 		sb.append(tp.build());
+		sb.append("\n\n");
 	}
 	private static List<String> getCompactVariables(EnvI<?> env) {
 		List<String> res = new ArrayList<>();
@@ -504,101 +499,6 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return res;
 	}
 
-}
-
-
-
-
-
-class TablePrinter {
-	String title;
-	
-	String[] header;
-	
-	List<String[]> valuesPerLine = new ArrayList<>();
-	Map<Integer,Integer> maxColLength = new TreeMap<>();
-	
-	String rowPrefix = " ";
-	int rowPrefixSize = 1;
-	
-	String rowSuffix = " ";
-	int rowSuffixSize = 1;
-	
-	String valueSeparator = " ";
-	int valueSeparatorSize = 6; 
-	
-	String noValueRow = "no values";
-	
-	void setHeader(String... header) {
-		this.header = header;
-		for (int i=0; i<header.length; i++) {
-			this.maxColLength.putIfAbsent(i, header[i].length());
-		}
-	}
-		
-	
-	void addRow(String... values) {
-		for (int i=0; i<values.length; i++) {
-			String v = values[i];
-			this.maxColLength.putIfAbsent(i, header[i].length());
-			
-			if (maxColLength.get(i) < v.length())
-				this.maxColLength.put(i, v.length());
-		}
-		this.valuesPerLine.add(values);
-	}
-	
-	void printTitle(StringBuilder sb) {
-		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
-		sb.append(title);
-		sb.append("\n");
-	}
-	
-	void printNoValues(StringBuilder sb) {
-		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
-		sb.append(noValueRow);
-		sb.append("\n");
-	}
-		
-	void printLine(StringBuilder sb, char ch) {
-		int size = maxColLength.values().stream().reduce(0, Integer::sum)+rowPrefixSize+rowSuffixSize+valueSeparatorSize*(header.length-1);
-		sb.append(StringUtils.repeat(ch, size));
-		sb.append("\n");
-	}
-	
-	void printRow(StringBuilder sb, String[] values) {
-		sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
-		for (int col=0; col<values.length; col++) {
-			sb.append(StringUtils.rightPad(values[col], maxColLength.get(col)));
-			if (col!=values.length-1)
-				sb.append(StringUtils.repeat(valueSeparator, valueSeparatorSize));
-		}
-		sb.append(StringUtils.repeat(rowSuffix, rowSuffixSize));
-		sb.append("\n");
-	}
-	
-	String build() {
-		StringBuilder sb = new StringBuilder();
-		
-		printTitle(sb);
-		
-		printLine(sb, '=');
-		printRow(sb, header);
-		printLine(sb, '-');
-		
-		if (valuesPerLine.isEmpty()) {
-			printNoValues(sb);
-		}
-		else {
-			for (int row=0; row<valuesPerLine.size(); row++) {
-				String[] values = this.valuesPerLine.get(row);
-				printRow(sb, values);
-			}
-		}
-		
-		printLine(sb, '=');
-		return sb.toString();
-	}
 }
 
 
