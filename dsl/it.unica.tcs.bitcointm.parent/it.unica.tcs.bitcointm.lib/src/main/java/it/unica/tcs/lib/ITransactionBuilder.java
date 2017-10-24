@@ -5,15 +5,13 @@
 package it.unica.tcs.lib;
 
 import java.io.Serializable;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
-import org.bitcoinj.script.Script;
+
+import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 
 public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializable {
 
@@ -66,79 +64,6 @@ public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializ
 	 * @return the builder
 	 */
 	public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, byte[] bytes) {
-		return new ITransactionBuilder() {
-			private static final long serialVersionUID = 1L;
-			private final Transaction tx = new Transaction(params, bytes);
-			@Override public boolean isReady() { return true; }
-			@Override public Transaction toTransaction() { return tx; }
-			@Override public boolean isCoinbase() { return tx.isCoinBase(); }
-			@Override public List<Input> getInputs() { return new AbstractList<Input>() {
-
-				@Override
-				public Input get(int index) {
-					return Input.of(new InputScriptImpl(tx.getInput(index).getScriptSig()));
-				}
-
-				@Override
-				public int size() {
-					return tx.getInputs().size();
-				}
-			}; }
-			@Override public List<Output> getOutputs() { return new AbstractList<Output>() {
-
-				@Override
-				public Output get(int index) {
-					Script s = tx.getOutput(index).getScriptPubKey();
-					if (s.isPayToScriptHash()) {
-						return Output.of(new P2SHOutputScript(s), tx.getOutput(index).getValue().value);
-					}
-					else if (s.isSentToAddress()) {
-						return Output.of(new P2PKHOutputScript(s), tx.getOutput(index).getValue().value);
-					}
-					if (s.isOpReturn()) {
-						return Output.of(new OpReturnOutputScript(s), tx.getOutput(index).getValue().value);
-					}
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public int size() {
-					return tx.getOutputs().size();
-				}
-			}; }
-			@Override public boolean hasVariable(String name) { return false; }
-			@Override public boolean isFree(String name) { return false; }
-			@Override public boolean isBound(String name) { return false; }
-			@Override public Class<?> getType(String name) { throw new UnsupportedOperationException(); }
-			@Override public Object getValue(String name) { throw new UnsupportedOperationException(); }
-			@Override public <E> E getValue(String name, Class<E> clazz) { throw new UnsupportedOperationException(); }
-			@Override public Object getValueOrDefault(String name, Object defaultValue) { throw new UnsupportedOperationException(); }
-			@Override public ITransactionBuilder addVariable(String name, Class<?> type) { throw new UnsupportedOperationException(); }
-			@Override public ITransactionBuilder removeVariable(String name) { throw new UnsupportedOperationException(); }
-			@Override public ITransactionBuilder bindVariable(String name, Object value) { throw new UnsupportedOperationException(); }
-			@Override public Collection<String> getVariables() { return new ArrayList<>(); }
-			@Override public Collection<String> getFreeVariables() { return new ArrayList<>(); }
-			@Override public Collection<String> getBoundVariables() { return new ArrayList<>(); }
-			@Override public void clear() {}
-			@Override public String toString() { return "SerializedTransaction\n\n"+tx.toString(); }
-
-		};
+		return new SerialTransactionBuilder(NetworkParametersWrapper.wrap(params), bytes);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -795,17 +795,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 if (!txBuilder.isReady) {
         	info(
 				'''Cannot check if these inputs are correctly spending their outputs''',
-				tx,
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME						
+				tx.body,
+				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS						
 			)
 			return true
         }
 
-		println(
-		'''
-		############### correctlySpendsOutput ###############
-		«NodeModelUtils.findActualNodeFor(tx).text.trim»''');
-        
+		println('''correctlySpendsOutput: «NodeModelUtils.findActualNodeFor(tx).text.trim»''');
 		println(txBuilder.toString)
 		
         for (var i=0; i<tx.body.inputs.size; i++) {
@@ -816,7 +812,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (txBuilder.isReady) {
 				            	
 	            try {
-					// conpile the transaction to BitcoinJ representation
+					// compile the transaction to BitcoinJ representation
 					var txJ = txBuilder.toTransaction()
 
 					println()					
@@ -830,13 +826,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		                    outScript, 
 		                    ALL_VERIFY_FLAGS
 		                )
-	                
-	//              	println("input "+inScript+" correctly redeem output "+outScript)
-	//                
-	//                tx.body.outputs.forEach[out|
-	//                	println('''out[«out.index»]: «out.scriptPubKey.toString»''')
-	//                ]
-	                
 	            } catch(ScriptException e) {
 	
 	                warning(

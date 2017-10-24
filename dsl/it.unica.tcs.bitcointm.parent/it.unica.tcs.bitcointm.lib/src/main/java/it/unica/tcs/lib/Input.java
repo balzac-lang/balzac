@@ -69,4 +69,42 @@ public class Input implements Serializable {
 	public long getLocktime() {
 		return locktime;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (locktime ^ (locktime >>> 32));
+		result = prime * result + outIndex;
+		result = prime * result + ((parentTx == null) ? 0 : parentTx.hashCode());
+		result = prime * result + ((script == null) ? 0 : script.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Input other = (Input) obj;
+		if (locktime != other.locktime)
+			return false;
+		if (outIndex != other.outIndex)
+			return false;
+		if (parentTx == null) {
+			if (other.parentTx != null)
+				return false;
+		} else if (!parentTx.equals(other.parentTx))
+			return false;
+		if (script == null) {
+			if (other.script != null)
+				return false;
+		} else if (!script.equals(other.script))
+			return false;
+		return true;
+	}
+	
 }

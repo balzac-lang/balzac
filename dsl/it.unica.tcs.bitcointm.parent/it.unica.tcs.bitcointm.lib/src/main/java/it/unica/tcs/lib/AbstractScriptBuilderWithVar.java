@@ -255,10 +255,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@SuppressWarnings("unchecked")
 	public <U extends AbstractScriptBuilderWithVar<U>> T append(AbstractScriptBuilderWithVar<U> append) {
 		for (ScriptChunk ch : append.getChunks()) {
-			this.addChunk(ch);
 			
-			// merge free variables
 			if (isFreeVariable(ch)) {
+				// merge free variables
 				String name = getFreeVariableName(ch);
 				if (hasVariable(name)) {
 					// check they are consistent
@@ -270,8 +269,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 					this.addVariable(name, append.getType(name));
 				}
 			}
-			// merge signatures
-			if (isSignature(ch)) {
+			else if (isSignature(ch)) {
+				// merge signatures
 				String mapKey = getMapKey(ch);
 				checkNotNull(append.signatures.containsKey(mapKey));
 				if (this.signatures.containsKey(mapKey)) {
@@ -283,6 +282,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				else {
 					this.signatures.put(mapKey, append.signatures.get(mapKey));
 				}
+			}
+			else {
+				this.addChunk(ch);
 			}
 		}
 		
@@ -574,5 +576,37 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@Override
 	public void clear() {
 		env.clear();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((env == null) ? 0 : env.hashCode());
+		result = prime * result + ((signatures == null) ? 0 : signatures.hashCode());
+		result = prime * result + ((getChunks() == null) ? 0 : getChunks().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AbstractScriptBuilderWithVar<?> other = (AbstractScriptBuilderWithVar<?>) obj;
+		if (env == null) {
+			if (other.env != null)
+				return false;
+		} else if (!env.equals(other.env))
+			return false;
+		if (signatures == null) {
+			if (other.signatures != null)
+				return false;
+		} else if (!signatures.equals(other.signatures))
+			return false;
+		return getChunks().equals(super.getChunks());
 	}
 }

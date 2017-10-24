@@ -417,7 +417,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		tp.addRow("coinbase", tb.isCoinbase());
 		tp.addRow("ready", tb.isReady());
 		tp.addRow("locktime", tb.locktime!=UNSET_LOCKTIME?String.valueOf(tb.locktime):"none");
-		sb.append(tp.build());
+		sb.append(tp.toString());
 		sb.append("\n\n");
 	}
 	
@@ -429,7 +429,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 					env.getType(name).getSimpleName(), 
 					env.getValueOrDefault(name, "").toString());
 		}
-		sb.append(tp.build());
+		sb.append(tp.toString());
 		sb.append("\n\n");
 	}
 	
@@ -457,7 +457,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
 			}
 		}
-		sb.append(tp.build());
+		sb.append(tp.toString());
 		sb.append("\n\n");
 	}
 	
@@ -484,7 +484,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				tp.addRow("","","","",vars.isEmpty()?"":vars.get(j),"");
 			}
 		}
-		sb.append(tp.build());
+		sb.append(tp.toString());
 		sb.append("\n\n");
 	}
 	private static List<String> getCompactVariables(EnvI<?> env) {
@@ -499,6 +499,51 @@ public class TransactionBuilder implements ITransactionBuilder {
 		return res;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((env == null) ? 0 : env.hashCode());
+		result = prime * result + ((inputs == null) ? 0 : inputs.hashCode());
+		result = prime * result + (int) (locktime ^ (locktime >>> 32));
+		result = prime * result + ((outputs == null) ? 0 : outputs.hashCode());
+		result = prime * result + ((variableHooks == null) ? 0 : variableHooks.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TransactionBuilder other = (TransactionBuilder) obj;
+		if (env == null) {
+			if (other.env != null)
+				return false;
+		} else if (!env.equals(other.env))
+			return false;
+		if (inputs == null) {
+			if (other.inputs != null)
+				return false;
+		} else if (!inputs.equals(other.inputs))
+			return false;
+		if (locktime != other.locktime)
+			return false;
+		if (outputs == null) {
+			if (other.outputs != null)
+				return false;
+		} else if (!outputs.equals(other.outputs))
+			return false;
+		if (variableHooks == null) {
+			if (other.variableHooks != null)
+				return false;
+		} else if (!variableHooks.equals(other.variableHooks))
+			return false;
+		return true;
+	}
 }
 
 

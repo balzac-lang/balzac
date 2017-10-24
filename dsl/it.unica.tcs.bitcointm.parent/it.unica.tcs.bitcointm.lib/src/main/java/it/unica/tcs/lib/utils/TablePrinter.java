@@ -169,13 +169,14 @@ public class TablePrinter {
 	}
 	
 	private void printHeader(StringBuilder sb) {
-		if (header.length>0) {
+		if (header.length>0 && !valuesPerLine.isEmpty()) {
 			printRow(sb, header);
 			printLine(sb, '-');
 		}
 	}
 	
-	public String build() {
+	@Override
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
 		printTitle(sb);

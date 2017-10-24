@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
+import it.unica.tcs.lib.utils.TablePrinter;
 
 public class Env implements EnvI<Env> {
 	
@@ -127,30 +127,42 @@ public class Env implements EnvI<Env> {
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		TablePrinter tp = new TablePrinter(new String[]{"Name","Type","Binding"}, "No variables");
 		Set<String> variables = getVariables();
-		if (variables.isEmpty())
-			return "No variables";
-		
-		int maxNameLength = variables.stream().mapToInt(String::length).reduce(0, Integer::max);
-		int maxTypeLength = variables.stream().map(s -> variablesType.get(s).getSimpleName().length()).reduce(0, Integer::max);
-		int maxValuesLength = variables.stream().map(s -> variablesBinding.getOrDefault(s,"").toString().length()).reduce(0, Integer::max);
-		
-		sb.append(StringUtils.rightPad(" Name", maxNameLength)).append("    ");
-		sb.append(StringUtils.rightPad("Type", maxTypeLength)).append("    ");
-		sb.append(StringUtils.rightPad("Binding", maxValuesLength)).append("\n");
-		
-		String line = StringUtils.repeat('-', sb.length())+"\n";
-		sb.insert(0, line);
-		sb.append(line);
-		
 		for (String name : variables) {
-			String name2 = StringUtils.rightPad(name, maxNameLength);
-			String type = StringUtils.rightPad(variablesType.get(name).getSimpleName(), maxTypeLength);
-			String value = variablesBinding.getOrDefault(name, "").toString();
-			sb.append(" ").append(name2).append("    ").append(type).append(value.isEmpty()? "":"    "+value).append("\n");
+			tp.addRow(name, variablesType.get(name).getSimpleName(), variablesBinding.getOrDefault(name, ""));
 		}
-		sb.append(line);
-		return sb.toString();
+		return tp.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((variablesBinding == null) ? 0 : variablesBinding.hashCode());
+		result = prime * result + ((variablesType == null) ? 0 : variablesType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Env other = (Env) obj;
+		if (variablesBinding == null) {
+			if (other.variablesBinding != null)
+				return false;
+		} else if (!variablesBinding.equals(other.variablesBinding))
+			return false;
+		if (variablesType == null) {
+			if (other.variablesType != null)
+				return false;
+		} else if (!variablesType.equals(other.variablesType))
+			return false;
+		return true;
 	}
 }

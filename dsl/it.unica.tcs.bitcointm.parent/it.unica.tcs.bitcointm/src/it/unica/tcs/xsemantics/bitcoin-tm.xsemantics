@@ -292,7 +292,7 @@ from {
 				var actualParam = input.txRef.actualParams.get(i)
 				var formalParam = inputTx.params.get(i)
 				
-				// all the actual parameters are well type and the type is basic
+				// all the actual parameters are well typed and the type is basic
 				G |- substitutions |> actualParam : var Type actualParamType
 				
 				// the actual param type must be unifiable with the formal param type

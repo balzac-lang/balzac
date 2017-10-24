@@ -17,10 +17,13 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.compiler.TransactionCompiler
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
 	@Inject extension ASTUtils
+	@Inject extension TransactionCompiler
 	
 	override String getLabel(EObject eobj) {
 		return eobj.labelInternal
@@ -58,6 +61,10 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getFirstLine(obj)
 	}
 	
+	def String getFirstLineInternal(TransactionDeclaration tx) {
+		'''transaction «tx.name»'''
+	}
+	
 	// base case getDocumentationInternal
 	def dispatch String getDocumentationInternal(EObject obj) {
 		return super.getDocumentation(obj)
@@ -79,36 +86,13 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		«ENDIF»
 		'''
 	
-//	dispatch def String getFirstLineInternal(RelativeTime p) {
-//		
-//		var time = p.value.castUnsignedShort	// consider only last 16 bits
-//		
-//		if (p.isDate) {
-//			time *= 512;
-//			var int timeRemainder 
-//			
-//			val days = time / (24*60*60)
-//			timeRemainder = time % (24*60*60)
-//			
-//			val hours = timeRemainder / (60*60)
-//			timeRemainder = time % (60*60)
-//			
-//			val minutes = timeRemainder / (60)
-//			timeRemainder = time % (60)
-//						
-//			val seconds = timeRemainder
-//			
-//			return '''
-//			«days» «IF days==1»day«ELSE»days«ENDIF», 
-//			«hours» «IF hours==1»hour«ELSE»hours«ENDIF»
-//			«minutes» «IF minutes==1»minute«ELSE»minutes«ENDIF»
-//			«seconds» «IF seconds==1»second«ELSE»seconds«ENDIF»
-//			'''
-//		}
-//		else {
-//			return '''«time» blocks'''
-//		}
-//	}
+	def dispatch String getDocumentationInternal(TransactionDeclaration tx) {
+		'''
+		<pre>
+		«tx.compileTransaction.toString»
+		</pre>
+		'''		
+	}
 	
 
 	
