@@ -122,17 +122,25 @@ public class ScriptBuilder2Test {
     @Test
     public void test_signature() {
         ScriptBuilder2 sb = new ScriptBuilder2();
+        
         assertEquals(0, sb.size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
+        
         sb.signaturePlaceholder(new ECKey(), SigHash.ALL, false);
-        assertEquals(1, sb.size());
+        sb.signaturePlaceholder(new ECKey(), SigHash.ALL, false);
+        System.out.println(sb);
+        
+        assertEquals(2, sb.size());
         assertEquals(0, sb.getFreeVariables().size());
-        assertEquals(1, sb.signatureSize());
+        assertEquals(2, sb.signatureSize());
+        
         Transaction tx = new Transaction(new MainNetParams());
         tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-        sb = sb.setAllSignatures(tx, 0, new byte[]{});
-        assertEquals(1, sb.size());
+        sb.setAllSignatures(tx, 0, new byte[]{});
+        System.out.println(sb);
+        
+        assertEquals(2, sb.size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }

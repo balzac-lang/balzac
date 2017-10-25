@@ -72,7 +72,8 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 				Script s = getTx().getOutput(index).getScriptPubKey();
 				if (s.isPayToScriptHash()) {
 					return Output.of(new P2SHOutputScript(s), getTx().getOutput(index).getValue().value);
-				} else if (s.isSentToAddress()) {
+				}
+				if (s.isSentToAddress()) {
 					return Output.of(new P2PKHOutputScript(s), getTx().getOutput(index).getValue().value);
 				}
 				if (s.isOpReturn()) {

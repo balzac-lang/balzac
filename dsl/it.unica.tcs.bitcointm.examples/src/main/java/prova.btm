@@ -19,12 +19,12 @@ transaction T {
 	output = [
 		0.00000546 BTC:		fun(n) . n!=42 ;
 		0.00000546 BTC:		fun(n) . n=="screen";
-		546:				fun(x:signature, y:signature) . y==x; 
+		546:				fun(x:signature, y:signature) . x==y; 
 		550:				fun(y:signature) . false;
 		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
 	]
 }
-
+ 
 transaction T1 {
 	input = [  
 		T@0: (0.00000043 BTC);

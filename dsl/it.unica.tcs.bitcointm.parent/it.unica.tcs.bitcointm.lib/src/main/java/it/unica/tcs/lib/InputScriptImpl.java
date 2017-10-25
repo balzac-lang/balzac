@@ -22,4 +22,9 @@ public class InputScriptImpl extends InputScript {
 		super(serializedScript);
 	}
 
+	@Override
+	public boolean isP2SH() {
+		return false;
+	}
+
 }

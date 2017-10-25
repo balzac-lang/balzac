@@ -979,7 +979,7 @@ from {
     	
 		if (result===null) {
 			fail 
-				error "Unexpecter operator "+comparison.op 
+				error "Unexpected operator "+comparison.op 
 				source comparison
 		}
 	    

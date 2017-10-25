@@ -20,8 +20,7 @@ public class P2SHInputScript extends InputScriptImpl {
 	@Override
 	public Script build() {
 		checkState(redeemScript.isReady(), "redeemScript is not ready");
-		super.data(redeemScript.build().getProgram());
-		return super.build();
+		return new ScriptBuilder2().append(this).append(redeemScript.build()).build();
 	}
 	
 	@Override
@@ -31,5 +30,15 @@ public class P2SHInputScript extends InputScriptImpl {
 
 	public P2SHOutputScript getRedeemScript() {
 		return redeemScript;
+	}
+	
+	@Override
+	public boolean isP2SH() {
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return super.toString()+" ["+redeemScript.toString()+"]";
 	}
 }

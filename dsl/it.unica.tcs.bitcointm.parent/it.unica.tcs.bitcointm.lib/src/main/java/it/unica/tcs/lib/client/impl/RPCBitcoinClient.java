@@ -1,10 +1,14 @@
 package it.unica.tcs.lib.client.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApiFactory;
+import com.sulacosoft.bitcoindconnector4j.core.BitcoindConnector4JException;
 import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
@@ -15,6 +19,7 @@ import it.unica.tcs.lib.client.TransactionNotFoundException;
 @Singleton
 public class RPCBitcoinClient implements BitcoinClientI {
 
+	private static final Logger logger = LoggerFactory.getLogger(RPCBitcoinClient.class);
 	public BitcoindApi api;
 	
 	@Inject
@@ -25,7 +30,12 @@ public class RPCBitcoinClient implements BitcoinClientI {
 			@Named("bitcoind.user") String user,
 			@Named("bitcoind.password") String password
 			) {
-		this.api = BitcoindApiFactory.createConnection(address, port, protocol, user, password);
+		try {
+			this.api = BitcoindApiFactory.createConnection(address, port, protocol, user, password);
+		}
+		catch (BitcoindConnector4JException e) {
+			logger.warn("Unable to create a BitcoinApi object. Error: {}", e.getMessage());
+		}
 	}
 	
 	@Override

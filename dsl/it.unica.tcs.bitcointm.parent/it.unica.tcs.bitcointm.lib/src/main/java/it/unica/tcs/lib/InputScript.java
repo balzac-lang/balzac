@@ -17,4 +17,13 @@ abstract public class InputScript extends ScriptBuilder2 {
 	public InputScript(String serializedScript) {
 		super(serializedScript);
 	}
+	
+	abstract public boolean isP2SH();
+	
+	public String getType() {
+		if (isP2SH())
+			return "P2SH";
+		else
+			return "STANDARD";
+	}
 }

@@ -37,7 +37,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
-import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Wrapper.SigHashWrapper;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
@@ -176,7 +175,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 					} else if (obj instanceof Hash) {
 						sb.data(((Hash) obj).getBytes());
 					} else
-						throw new IllegalArgumentException("Unxpected type " + obj.getClass());
+						throw new IllegalArgumentException("Unexpected type " + obj.getClass());
 				} else
 					throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
 			}
@@ -203,7 +202,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
 		for (ScriptChunk chunk : getChunks()) {
 			
-			ScriptBuilder sb = new ScriptBuilder();
+			ScriptBuilder2 sb = new ScriptBuilder2();
 			if (isSignature(chunk)) {
 				String mapKey = getMapKey(chunk);
 				SignatureUtil sig = this.signatures.get(mapKey);
@@ -228,7 +227,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				sb.addChunk(chunk);
 			}
 			
-			newChunks.addAll(sb.build().getChunks());
+			newChunks.addAll(sb.getChunks());
 		}
 		super.getChunks().clear();
 		super.getChunks().addAll(newChunks);
@@ -283,6 +282,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				else {
 					this.signatures.put(mapKey, append.signatures.get(mapKey));
 				}
+				this.addChunk(ch);
 			}
 			else {
 				this.addChunk(ch);
@@ -342,11 +342,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("freeVariables = ").append(getFreeVariables()).append("\n");
-		builder.append("signatures    = ").append(signatures.keySet()).append("\n");
-		builder.append("script        = ").append(this.serialize());
-		return builder.toString();
+		return this.serialize();
 	}
 	
 

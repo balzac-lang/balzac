@@ -434,21 +434,22 @@ public class TransactionBuilder implements ITransactionBuilder {
 	}
 	
 	private static void addInputs(StringBuilder sb, List<Input> inputs) {
-
-		TablePrinter tp = new TablePrinter("Inputs", new String[]{"Index", "Outpoint", "Locktime", "Ready", "Variables", "Script"}, "No inputs");
+		TablePrinter tp = new TablePrinter("Inputs", new String[]{"Index", "Outpoint", "Locktime", "Type", "Ready", "Variables", "Script"}, "No inputs");
 		int i=0;
 		for (Input input : inputs) {
 			String index = String.valueOf(i++);
 			String outpoint = input.hasParentTx()?input.getOutIndex()+":"+input.getParentTx().hashCode():"none";
 			String locktime = input.hasLocktime()?String.valueOf(input.getLocktime()):"none";
+			String type = String.valueOf(input.getScript().getType());
 			String ready = String.valueOf(input.getScript().isReady());
 			List<String> vars = getCompactVariables(input.getScript());
-			String script = input.getScript().serialize();
+			String script = input.getScript().toString();
 						
 			tp.addRow(
 					index, 
 					outpoint, 
 					locktime,
+					type,
 					ready,
 					vars.isEmpty()?"":vars.get(0),
 					script);
@@ -470,7 +471,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 			String type = String.valueOf(output.getScript().getType());
 			String ready = output.getScript().isReady()+"";
 			List<String> vars = getCompactVariables(output.getScript());
-			String script = output.getScript().serialize();
+			String script = output.getScript().toString();
 						
 			tp.addRow(
 					index, 
@@ -487,6 +488,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		sb.append(tp.toString());
 		sb.append("\n\n");
 	}
+	
 	private static List<String> getCompactVariables(EnvI<?> env) {
 		List<String> res = new ArrayList<>();
 		Collection<String> variables = new TreeSet<>(env.getVariables());

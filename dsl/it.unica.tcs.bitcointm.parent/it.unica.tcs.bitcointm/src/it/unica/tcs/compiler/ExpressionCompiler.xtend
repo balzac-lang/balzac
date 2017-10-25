@@ -83,6 +83,65 @@ class ExpressionCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(HashLiteral s, Context ctx) {
         new ScriptBuilder2().data(s.value)
     }
+    
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
+		var wif = stmt.key.value
+		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
+        var hashType = stmt.modifier.toHashType
+        var anyoneCanPay = stmt.modifier.toAnyoneCanPay
+        var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
+        sb
+    }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(VariableReference varRef, Context ctx) {
+        /*
+         * N: altezza dell'altstack
+         * i: posizione della variabile interessata
+         * 
+         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
+         * 	                                       x ora è in cima al main stack
+         * 
+         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
+         * 
+         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
+         * 
+         */
+        var param = varRef.ref
+        var isTxParam = param.eContainer instanceof TransactionDeclaration 
+        
+        if (isTxParam) {
+        	return new ScriptBuilder2().addVariable(param.name, param.paramType.convertType)
+        }
+        else {
+        	val sb = new ScriptBuilder2()
+	        val pos = ctx.altstack.get(param).position
+			var count = ctx.altstack.get(param).occurrences
+	
+	        if(pos === null) throw new CompileException;
+	
+	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+	        
+	        if (count==1) {
+	        	// this is the last usage of the variable
+	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
+	        	}
+	        	
+		        if (ctx.altstack.size - pos> 0)
+		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+	        	
+	        }
+	        else {
+	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
+		        sb.op(OP_DUP).op(OP_TOALTSTACK)
+	
+		        if (ctx.altstack.size - pos - 1 > 0)
+		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+	        }
+	        return sb
+        }
+    }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Hash160 hash, Context ctx) {
 	    var sb = hash.value.compileExpression(ctx)
@@ -213,65 +272,6 @@ class ExpressionCompiler {
             stmt.pubkeys.forEach[k|sb.data(k.value.privateKeyToPubkeyBytes(stmt.networkParams))]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
-        }
-    }
-
-    def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
-		var wif = stmt.key.value
-		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
-        var hashType = stmt.modifier.toHashType
-        var anyoneCanPay = stmt.modifier.toAnyoneCanPay
-        var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
-        sb
-    }
-
-    def private dispatch ScriptBuilder2 compileExpressionInternal(VariableReference varRef, Context ctx) {
-        /*
-         * N: altezza dell'altstack
-         * i: posizione della variabile interessata
-         * 
-         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
-         * 	                                       x ora è in cima al main stack
-         * 
-         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
-         * 
-         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
-         * 
-         */
-        var param = varRef.ref
-        var isTxParam = param.eContainer instanceof TransactionDeclaration 
-        
-        if (isTxParam) {
-        	return new ScriptBuilder2().addVariable(param.name, param.paramType.convertType)
-        }
-        else {
-        	val sb = new ScriptBuilder2()
-	        val pos = ctx.altstack.get(param).position
-			var count = ctx.altstack.get(param).occurrences
-	
-	        if(pos === null) throw new CompileException;
-	
-	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-	        
-	        if (count==1) {
-	        	// this is the last usage of the variable
-	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
-	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-	        	}
-	        	
-		        if (ctx.altstack.size - pos> 0)
-		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-	        	
-	        }
-	        else {
-	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
-		        sb.op(OP_DUP).op(OP_TOALTSTACK)
-	
-		        if (ctx.altstack.size - pos - 1 > 0)
-		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
-	        }
-	        return sb
         }
     }
 }

@@ -323,7 +323,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	
-	@Check
+	@Check(NORMAL)
 	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
 		
 		val txB = t.compileTransaction
@@ -863,7 +863,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	            }
             }
             else {
-            	info('''Cannot check if this input is correctly spending its output.''',
+            	info('''Cannot check if these inputs are correctly spending their outputs.''',
 					tx.body,
 					BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS,
 					i	
