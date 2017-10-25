@@ -23,10 +23,18 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
+import it.unica.tcs.bitcoinTM.BooleanLiteral;
+import it.unica.tcs.bitcoinTM.ExpressionI;
+import it.unica.tcs.bitcoinTM.Hash160Literal;
+import it.unica.tcs.bitcoinTM.Hash256Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
+import it.unica.tcs.bitcoinTM.NumberLiteral;
 import it.unica.tcs.bitcoinTM.RelativeTime;
+import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
+import it.unica.tcs.bitcoinTM.Sha256Literal;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Time;
@@ -35,15 +43,82 @@ import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
 import it.unica.tcs.bitcoinTM.Versig;
+import it.unica.tcs.lib.Hash.Hash160;
+import it.unica.tcs.lib.Hash.Hash256;
+import it.unica.tcs.lib.Hash.Ripemd160;
+import it.unica.tcs.lib.Hash.Sha256;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
+import it.xsemantics.runtime.Result;
 
 @Singleton
 public class ASTUtils {
 	
 	@Inject private BitcoinUtils bitcoinUtils;
 	@Inject private BitcoinTMTypeSystem typeSystem;
+	
+	public <T extends ExpressionI> T interpretAndSimplify(T exp) {
+		return interpretSafe(simplifySafe(exp));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends ExpressionI> T simplifySafe(T exp) {
+		Result<ExpressionI> simplified = typeSystem.simplify(exp);
+		if (simplified.failed()) 
+			return exp;
+		else
+			return (T) simplified.getFirst();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends ExpressionI> T interpretSafe(T exp) {
+		Result<Object> interpreted = typeSystem.interpret(exp);
+		if (interpreted.failed()) 
+			return exp;
+		else {
+			Object value = interpreted.getFirst();
+			if (value instanceof Integer) {
+				NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
+	    		res.setValue((Integer) value);
+	    		return (T) res;
+	    	}
+	    	else if (value instanceof String) {
+	    		StringLiteral res = BitcoinTMFactory.eINSTANCE.createStringLiteral();
+	    		res.setValue((String) value);
+	    		return (T) res;
+	    	}	
+	    	else if (value instanceof Boolean) {
+	    		BooleanLiteral res = BitcoinTMFactory.eINSTANCE.createBooleanLiteral();
+	    		res.setTrue((Boolean) value);
+	    		return (T) res;	
+	    	}	
+	    	else if (value instanceof Hash160) {
+	    		Hash160Literal res = BitcoinTMFactory.eINSTANCE.createHash160Literal();
+	    		res.setValue(((Hash160) value).getBytes());
+	    		return (T) res;	
+	    	}
+	    	else if (value instanceof Hash256) {
+	    		Hash256Literal res = BitcoinTMFactory.eINSTANCE.createHash256Literal();
+	    		res.setValue(((Hash256) value).getBytes());
+	    		return (T) res;    		
+	    	}
+	    	else if (value instanceof Ripemd160) {
+	    		Ripemd160Literal res = BitcoinTMFactory.eINSTANCE.createRipemd160Literal();
+	    		res.setValue(((Ripemd160) value).getBytes());
+	    		return (T) res;    		
+	    	}
+	    	else if (value instanceof Sha256) {
+	    		Sha256Literal res = BitcoinTMFactory.eINSTANCE.createSha256Literal();
+	    		res.setValue(((Sha256) value).getBytes());
+	    		return (T) res;    		
+	    	}
+	    	else {
+	    		throw new IllegalStateException("Unexpected type "+value.getClass());
+	    	}	
+		}
+	}
+	
 //	public boolean allAbsoluteAreBlock(Tlock tlock) {
 //    	return tlock.getTimes().stream()
 //    			.filter(x -> x instanceof AbsoluteTime)
@@ -83,15 +158,15 @@ public class ASTUtils {
 	public boolean isP2PKH(Script script) {
         boolean onlyOneSignatureParam = 
         		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
-        boolean onlyOnePubkey = (typeSystem.interpretAndSimplify(script.getExp()) instanceof Versig) 
-        		&& ((Versig) typeSystem.interpretAndSimplify(script.getExp())).getPubkeys().size() == 1;
+        boolean onlyOnePubkey = (interpretAndSimplify(script.getExp()) instanceof Versig) 
+        		&& ((Versig) interpretAndSimplify(script.getExp())).getPubkeys().size() == 1;
 
         return onlyOneSignatureParam && onlyOnePubkey;
     }
 
 	public boolean isOpReturn(Script script) {
         boolean noParam = script.getParams().size() == 0;
-        boolean onlyString = typeSystem.interpretAndSimplify(script.getExp()) instanceof StringLiteral;
+        boolean onlyString = interpretAndSimplify(script.getExp()) instanceof StringLiteral;
         return noParam && onlyString;
     }
 

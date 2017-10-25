@@ -31,7 +31,7 @@ import it.unica.tcs.bitcoinTM.Put
 class ParticipantGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider
-	@Inject private extension ProtocolExpressionGenerator
+	@Inject private extension ExpressionGenerator
 	@Inject private extension CompilerUtils
 	@Inject private extension TransactionFactoryGenerator
 	
@@ -155,7 +155,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	'''
 	
 	def private dispatch String compileProcess(ProtocolIfThenElse p) '''
-		if(«p.exp.compileProtocolExpression») {
+		if(«p.exp.compileExpression») {
 			«p.^then.compileProcess»
 		}«IF p.^else!==null» else {
 			«p.^else.compileProcess»
@@ -188,11 +188,11 @@ class ParticipantGenerator extends AbstractGenerator {
 
 	def private dispatch String compilePrefix(Assert ass) {
 		'''
-		«IF ass.exp.compileProtocolExpression=="true"»
+		«IF ass.exp.compileExpression=="true"»
 			check();
 			«ELSE»
 			check(()->{
-				return «ass.exp.compileProtocolExpression»;
+				return «ass.exp.compileExpression»;
 			});
 		«ENDIF»
 		«IF ass.next!==null»
@@ -203,7 +203,7 @@ class ParticipantGenerator extends AbstractGenerator {
 	
 	def private dispatch String compilePrefix(Send send) {
 		'''
-		send(«send.message.compileProtocolExpression», Participant_«send.p.name».instance());
+		send(«send.message.compileExpression», Participant_«send.p.name».instance());
 		«IF send.next!==null»
 			«send.next.compileProcess»
 		«ENDIF»

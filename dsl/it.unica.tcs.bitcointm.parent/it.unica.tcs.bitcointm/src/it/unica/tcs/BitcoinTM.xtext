@@ -83,7 +83,7 @@ RelativeTime:
 
 TransactionReference:
 	tx=[TransactionDeclaration] 
-	("("(actualParams+=(Literal|VariableReference) ("," actualParams+=(Literal|VariableReference))*)?")")?;
+	("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
@@ -93,8 +93,9 @@ Parameter:
 
 
 
-Expression:		/* just to force some hierarchy and resolve ambiguity */
-	"ε" ScriptExpression | "η" ProtocolExpression;
+ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
+	"ε" ScriptExpression | "η" Expression;
+
 
 
 /*
@@ -148,7 +149,7 @@ Literal:
 HashLiteral:
 	Hash160Literal
 |	Hash256Literal
-|	Ripmed160Literal
+|	Ripemd160Literal
 |	Sha256Literal
 ;
 
@@ -157,7 +158,7 @@ StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 Hash160Literal: value=HASH_160;
 Hash256Literal: value=HASH_256;
-Ripmed160Literal: value=RIPMED_160;
+Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
 
 IfThenElse:
@@ -181,10 +182,10 @@ Versig:
 		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
 	")";
 
-Hash: Hash160 | Hash256 | Ripmed160 | Sha256;
+Hash: Hash160 | Hash256 | Ripemd160 | Sha256;
 Hash160: 	'hash160' "(" value=ScriptExpression ")";
 Hash256: 	'hash256' "(" value=ScriptExpression ")";
-Ripmed160: 	'ripemd160' "(" value=ScriptExpression ")";
+Ripemd160: 	'ripemd160' "(" value=ScriptExpression ")";
 Sha256: 	'sha256' "(" value=ScriptExpression ")";
 
 Min: "min" "(" left=ScriptExpression "," right=ScriptExpression ")";
@@ -212,7 +213,7 @@ BasicType:
 HashType:
 	{Hash160Type} value=Hash160TypeEnum
 |	{Hash256Type} value=Hash256TypeEnum
-|	{Ripmed160Type} value=Ripmed160TypeEnum
+|	{Ripemd160Type} value=Ripemd160TypeEnum
 |	{Sha256Type} value=Sha256TypeEnum
 ;
 
@@ -222,7 +223,7 @@ TypeVariable:
 enum IntTypeEnum: int;
 enum Hash160TypeEnum: hash160;
 enum Hash256TypeEnum: hash256;
-enum Ripmed160TypeEnum: ripmed160;
+enum Ripemd160TypeEnum: ripemd160;
 enum Sha256TypeEnum: sha256;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
@@ -241,7 +242,7 @@ Typeable:
 | Process
 | Prefix
 | ProtocolTransactionReference
-| Expression
+| ExpressionI
 ;
 
 Number returns ecore::EInt:
@@ -302,7 +303,7 @@ ParticipantDeclaration: 'participant' name=ID '{'
 
 
 ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
-ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=ProtocolExpression ("," actualParams+=ProtocolExpression)*)?")")?;
+ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Process:
   SingleChoice 
@@ -338,12 +339,12 @@ Put: 'put' (
 	  	txRefs+=ProtocolTransactionReference
 		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}');
 
-Send: 'send' message=ProtocolExpression 'to' p=[ParticipantDeclaration];
+Send: 'send' message=Expression 'to' p=[ParticipantDeclaration];
 Receive: 'receive' var=Parameter 'from' p=[ParticipantDeclaration];
-Assert:	'check' exp=ProtocolExpression;
+Assert:	'check' exp=Expression;
 
 ProtocolIfThenElse: 
-'if' exp=ProtocolExpression 
+'if' exp=Expression 
 'then' then=NextProcess 
 (=> 'else' else=NextProcess)?;
 
@@ -351,35 +352,35 @@ ProtocolIfThenElse:
 ProtocolTransactionReference:
 	txRef=TransactionReference (substitution=TransactionBody)?;
 
-ProtocolExpression:
-    OrProtocolExpression;
+Expression:
+    OrExpression;
 
-OrProtocolExpression returns ProtocolExpression:
-	AndProtocolExpression (({OrProtocolExpression.left=current} => '||' ) right=AndProtocolExpression)*;
+OrExpression returns Expression:
+	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
 
-AndProtocolExpression returns ProtocolExpression:
-	ProtocolComparison (({AndProtocolExpression.left=current} '&&') right=ProtocolComparison)*;
+AndExpression returns Expression:
+	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
 
-ProtocolComparison returns ProtocolExpression:
-    ProtocolEquals (({ProtocolComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ProtocolEquals)*;
+Comparison returns Expression:
+    Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
 
-ProtocolEquals returns ProtocolExpression:
-    ProtocolAddition (({ProtocolEquals.left=current} op=("==" | "!=") ) right=ProtocolAddition)*;
+Equals returns Expression:
+    Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
  
-ProtocolAddition returns ProtocolExpression:
-    ProtocolMultiply (({ProtocolPlus.left=current} '+' | {ProtocolMinus.left=current} '-') right=ProtocolMultiply)*; 
+Addition returns Expression:
+    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
 
-ProtocolMultiply returns ProtocolExpression:
-    ProtocolPrefixed (({ProtocolTimes.left=current} '*' | {ProtocolDiv.left=current} '/') right=ProtocolPrefixed)*; 
+Multiply returns Expression:
+    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*; 
 
 
-ProtocolPrefixed returns ProtocolExpression:
-    {ProtocolBooleanNegation} =>"!" exp=ProtocolAtomic | /* right associativity */
-    {ProtocolArithmeticSigned} =>"-" exp=ProtocolAtomic | /* right associativity */
-    ProtocolAtomic;
+Prefixed returns Expression:
+    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
+    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
+    Atomic;
 
-ProtocolAtomic returns ProtocolExpression:
-    '(' ProtocolExpression ')' 
+Atomic returns Expression:
+    '(' Expression ')' 
 |   Literal 
 |   VariableReference
 |	Hash 

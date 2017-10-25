@@ -38,6 +38,7 @@ import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 import it.unica.tcs.lib.Wrapper.SigHashWrapper;
+import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
 	extends AbstractScriptBuilder<T> 
@@ -163,19 +164,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				Class<?> expectedClass = getType(name);
 
 				if (expectedClass.isInstance(obj)) {
-					if (obj instanceof String) {
-						sb.data(((String) obj).getBytes());
-					} else if (obj instanceof Integer) {
-						sb.number((Integer) obj);
-					} else if (obj instanceof Boolean) {
-						if ((Boolean) obj)
-							sb.number(ScriptOpCodes.OP_TRUE);
-						else
-							sb.op(ScriptOpCodes.OP_FALSE);
-					} else if (obj instanceof Hash) {
-						sb.data(((Hash) obj).getBytes());
-					} else
-						throw new IllegalArgumentException("Unexpected type " + obj.getClass());
+					for (ScriptChunk ch : BitcoinUtils.toScript(obj).getChunks()) {
+						sb.addChunk(ch);
+					}
 				} else
 					throw new IllegalArgumentException("expected class " + expectedClass.getName() + ", got " + obj.getClass().getName());
 			}

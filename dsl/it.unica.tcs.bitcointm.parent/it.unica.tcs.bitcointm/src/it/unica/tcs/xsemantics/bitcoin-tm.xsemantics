@@ -12,7 +12,7 @@ import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Choice
-import it.unica.tcs.bitcoinTM.Expression
+import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash160Literal
@@ -36,8 +36,8 @@ import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
-import it.unica.tcs.bitcoinTM.Ripmed160
-import it.unica.tcs.bitcoinTM.Ripmed160Literal
+import it.unica.tcs.bitcoinTM.Ripemd160
+import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
 import it.unica.tcs.bitcoinTM.ScriptComparison
@@ -86,9 +86,6 @@ auxiliary {
     unify(TypeSubstitutions substitutions, Type left, Type right) : Type
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
         
-    simplifySafe(Expression exp) : Expression
-    interpretSafe(Expression exp) : Expression
-    interpretAndSimplify(Expression exp) : Expression
 }
 
 judgments {
@@ -97,9 +94,8 @@ judgments {
 		error "Cannot type " + stringRep(exp)
 		source exp
 		
-	interpret |- Expression expression ~> output Object
-	
-	simplify |= Expression obj ~> output Expression
+	interpret |- ExpressionI expression ~> output Object
+	simplify  |= ExpressionI expression ~> output ExpressionI
 }
 
 /*
@@ -175,63 +171,6 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     fresh
 }
 
-auxiliary interpretAndSimplify(Expression exp) {
-	return interpretSafe(simplifySafe(exp))
-}
-
-auxiliary simplifySafe(Expression exp) {
-	var simplifiedExp = simplify(exp)
-    if (simplifiedExp.failed) exp else simplifiedExp.first
-}
-
-auxiliary interpretSafe(Expression exp) {
-	var simplifiedExp = interpret(exp)
-    if (simplifiedExp.failed) exp 
-    else {
-    	val value = simplifiedExp.first
-    	
-    	if (value instanceof Integer) {
-    		val res = BitcoinTMFactory::eINSTANCE.createNumberLiteral
-    		res.value = value
-    		return res
-    	}
-    	else if (value instanceof String) {
-    		val res = BitcoinTMFactory::eINSTANCE.createStringLiteral
-    		res.value = value
-    		return res
-    	}	
-    	else if (value instanceof Boolean) {
-    		val res = BitcoinTMFactory::eINSTANCE.createBooleanLiteral
-    		res.^true = value
-    		return res	
-    	}	
-    	else if (value instanceof it.unica.tcs.lib.Hash.Hash160) {
-			val res = BitcoinTMFactory::eINSTANCE.createHash160Literal
-    		res.value = value.bytes
-    		return res    		
-    	}
-    	else if (value instanceof it.unica.tcs.lib.Hash.Hash256) {
-			val res = BitcoinTMFactory::eINSTANCE.createHash256Literal
-    		res.value = value.bytes
-    		return res    		
-    	}
-    	else if (value instanceof it.unica.tcs.lib.Hash.Ripmed160) {
-			val res = BitcoinTMFactory::eINSTANCE.createRipmed160Literal
-    		res.value = value.bytes
-    		return res    		
-    	}
-    	else if (value instanceof it.unica.tcs.lib.Hash.Sha256) {
-			val res = BitcoinTMFactory::eINSTANCE.createSha256Literal
-    		res.value = value.bytes
-    		return res    		
-    	}
-    	else {
-    		fail
-    		error "Unexpected type "+value.class
-			null
-    	}	
-    }
-}
 
 
 /*
@@ -360,7 +299,7 @@ from {
 		p.paramType = paramType		// and in the AST
 	}
 
-	val value = (interpretSafe(satoshis) as NumberLiteral).value
+	val int value = interpret(satoshis).first as Integer
 	
 	var expectedType = 
 		if (value==0) {
@@ -410,8 +349,8 @@ axiom Hash160Literal
 axiom Hash256Literal
 	G |- TypeSubstitutions substitutions |> Hash256Literal h : BitcoinTMFactory::eINSTANCE.createHash256Type
 
-axiom Ripmed160Literal
-	G |- TypeSubstitutions substitutions |> Ripmed160Literal h : BitcoinTMFactory::eINSTANCE.createRipmed160Type
+axiom Ripemd160Literal
+	G |- TypeSubstitutions substitutions |> Ripemd160Literal h : BitcoinTMFactory::eINSTANCE.createRipemd160Type
 
 axiom Sha256Literal
 	G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
@@ -600,8 +539,8 @@ from {
 	}
 }
 
-rule Ripmed160
-	G |- TypeSubstitutions substitutions |> Ripmed160 hash: BitcoinTMFactory::eINSTANCE.createRipmed160Type
+rule Ripemd160
+	G |- TypeSubstitutions substitutions |> Ripemd160 hash: BitcoinTMFactory::eINSTANCE.createRipemd160Type
 from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
@@ -866,8 +805,8 @@ axiom InterpretHash160Literal
 axiom InterpretHash256Literal
     G |- Hash256Literal hash ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
 
-axiom InterpretRipmed160Literal
-    G |- Ripmed160Literal hash ~> new it.unica.tcs.lib.Hash.Ripmed160(hash.value)
+axiom InterpretRipemd160Literal
+    G |- Ripemd160Literal hash ~> new it.unica.tcs.lib.Hash.Ripemd160(hash.value)
 
 axiom InterpretSha256Literal
     G |- Sha256Literal hash ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
@@ -1078,18 +1017,15 @@ from {
 
     G |- hash.value ~> var Object expResult
     
-    // convert an object to a sequence of byte
-    var bytes = BitcoinUtils.toBytes(expResult)
-    
     // hash the bytes
     if (hash instanceof Hash160)
-	    result = new it.unica.tcs.lib.Hash.Hash160(BitcoinUtils.hash160(bytes))
+	    result = BitcoinUtils.hash160(expResult)
     else if (hash instanceof Hash256)
-	    result = new it.unica.tcs.lib.Hash.Hash256(BitcoinUtils.hash256(bytes))
-    else if (hash instanceof Ripmed160)
-	    result = new it.unica.tcs.lib.Hash.Ripmed160(BitcoinUtils.ripemd160(bytes))
+	    result = BitcoinUtils.hash256(expResult)
+    else if (hash instanceof Ripemd160)
+	    result = BitcoinUtils.ripemd160(expResult)
     else if (hash instanceof Sha256)
-	    result = new it.unica.tcs.lib.Hash.Sha256(BitcoinUtils.sha256(bytes))
+	    result = BitcoinUtils.sha256(expResult)
 	else {
 		fail 
 		error "Unexpecter instance "+hash.class 
@@ -1112,10 +1048,10 @@ from {
 
 
 /*
- * AST simplifier
+ * AST simplifier (TODO)
  */
-axiom SimplifyEObject
-	G |= Expression obj ~> obj
+axiom SimplifyExpressionI
+	G |= ExpressionI obj ~> obj
 	
 //rule SimplifyAnd
 //    G |= AndExpression exp ~> Expression result

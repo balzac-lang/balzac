@@ -16,3 +16,7 @@ transaction T2 {
 	output = 0: ""
 }
  
+transaction T3 {
+	input = T1(ripemd160("5") ): "5"
+	output = 0: ""
+}

@@ -5,12 +5,12 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.ScriptExpression
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -44,7 +44,7 @@ class TransactionCompiler {
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject private extension ASTUtils astUtils
-	@Inject private extension ExpressionCompiler expGenerator
+	@Inject private extension ScriptExpressionCompiler expGenerator
 //	@Inject private extension Optimizer optimizer
     @Inject private extension CompilerUtils
     
@@ -193,7 +193,7 @@ class TransactionCompiler {
                 
             // build the list of expression pushes (actual parameters) 
             input.exps.forEach[e|
-            	p2sh.append(e.simplifySafe.compileInputExpression)
+            	p2sh.append(e.compileInputExpression)
             ]
             
             /* <e1> ... <en> <serialized script> */
@@ -265,7 +265,7 @@ class TransactionCompiler {
 	/**
 	 * Compile an input expression. It must not have free variables
 	 */
-    def private InputScript compileInputExpression(Expression exp) {
+    def private InputScript compileInputExpression(ScriptExpression exp) {
         var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
         			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
         

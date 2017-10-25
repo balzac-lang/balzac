@@ -10,10 +10,9 @@ package it.unica.tcs.validation
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.AfterTimeLock
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
-import it.unica.tcs.bitcoinTM.Expression
-import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyDeclaration
@@ -27,6 +26,7 @@ import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
+import it.unica.tcs.bitcoinTM.ScriptExpression
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -37,13 +37,15 @@ import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.lib.Hash.Hash160
+import it.unica.tcs.lib.Hash.Hash256
+import it.unica.tcs.lib.Hash.Sha256
 import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
-import org.apache.log4j.Logger
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.Script
@@ -63,12 +65,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.services.BitcoinTMGrammarAccess
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory
-import it.unica.tcs.lib.Hash.Hash160
-import it.unica.tcs.lib.Hash.Hash256
-import it.unica.tcs.lib.Hash.Ripmed160
-import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.Hash.Ripemd160
 
 /**
  * This class contains custom validation rules. 
@@ -77,7 +74,7 @@ import it.unica.tcs.lib.Hash.Sha256
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
+//	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem
@@ -194,7 +191,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	
 	@Check
-	def void checkInterpretExp(Expression exp) {
+	def void checkInterpretExp(ScriptExpression exp) {
 		
 //		println(":::::::::::::::::::::::::::::::::::::::")
 //		println('''exp:              «exp»''')
@@ -234,7 +231,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				switch (value) {
 					Hash160: 	BitcoinTMFactory.eINSTANCE.createHash160Type.value+":"+BitcoinUtils.encode(value.bytes)
 					Hash256: 	BitcoinTMFactory.eINSTANCE.createHash256Type.value+":"+BitcoinUtils.encode(value.bytes)
-					Ripmed160: 	BitcoinTMFactory.eINSTANCE.createRipmed160Type.value+":"+BitcoinUtils.encode(value.bytes)
+					Ripemd160: 	BitcoinTMFactory.eINSTANCE.createRipemd160Type.value+":"+BitcoinUtils.encode(value.bytes)
 					Sha256: 	BitcoinTMFactory.eINSTANCE.createSha256Type.value+":"+BitcoinUtils.encode(value.bytes)
 					String: 	'"'+value+'"' 
 					default: 	value.toString

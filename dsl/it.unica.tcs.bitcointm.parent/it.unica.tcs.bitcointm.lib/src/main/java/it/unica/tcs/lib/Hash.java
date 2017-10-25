@@ -26,8 +26,8 @@ public abstract class Hash {
 		}
 	}
 	
-	public static final class Ripmed160 extends Hash {
-		public Ripmed160(byte[] bytes) {
+	public static final class Ripemd160 extends Hash {
+		public Ripemd160(byte[] bytes) {
 			super(bytes);
 		}
 	}

@@ -5,8 +5,8 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
-import it.unica.tcs.bitcoinTM.ProtocolExpression
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
@@ -17,7 +17,6 @@ import it.unica.tcs.lib.utils.ObjectUtils
 import it.unica.tcs.utils.CompilerUtils
 import java.io.File
 import java.util.List
-import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -139,11 +138,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return getTransactionFromFactory(txRef.tx.name, txRef.actualParams)
 	}
 	
-	def public getTransactionFromFactory(String name, EList<?> actualParams) {
-		return getTransactionFromFactory(name, actualParams.map[x|x as ProtocolExpression])
-	}
-	
-	def public getTransactionFromFactory(String name, List<ProtocolExpression> actualParams) {
+	def public getTransactionFromFactory(String name, List<Expression> actualParams) {
 		'''TransactionFactory.tx_«name»(«actualParams.compileActualParams»)'''
 	}	
 }
