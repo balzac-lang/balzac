@@ -8,10 +8,10 @@ import com.google.inject.Inject
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.eclipse.xtext.conversion.ValueConverterException
-import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
+import org.eclipse.xtext.conversion.impl.AbstractValueConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class NumberValueConverter extends AbstractLexerBasedConverter<Integer> {
+class NumberValueConverter extends AbstractValueConverter<Integer> {
 
 	@Inject IntUnderscoreValueConverter intConverter
 	@Inject IntHexUnderscoreValueConverter hexConverter
@@ -65,4 +65,9 @@ class NumberValueConverter extends AbstractLexerBasedConverter<Integer> {
 			throw new ValueConverterException("Couldn't convert input '" + string + "' to an int value.", node, null);
 		}
 	}
+	
+	override toString(Integer value) throws ValueConverterException {
+		return value.toString
+	}
+	
 }

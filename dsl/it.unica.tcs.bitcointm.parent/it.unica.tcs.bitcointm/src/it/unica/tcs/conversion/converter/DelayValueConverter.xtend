@@ -7,10 +7,10 @@ package it.unica.tcs.conversion.converter
 import com.google.inject.Inject
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.xtext.conversion.ValueConverterException
-import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
+import org.eclipse.xtext.conversion.impl.AbstractValueConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
+class DelayValueConverter extends AbstractValueConverter<Integer> {
 
 	@Inject private IntUnderscoreValueConverter intConverter
 	@Inject private ASTUtils astUtils
@@ -69,6 +69,10 @@ class DelayValueConverter extends AbstractLexerBasedConverter<Integer> {
 	
 	private def int convertDays(int days) {
 		convertHours(days*24) 
+	}
+	
+	override toString(Integer value) throws ValueConverterException {
+		return value.toString
 	}
 	
 }
