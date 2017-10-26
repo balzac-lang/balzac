@@ -16,9 +16,10 @@ import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash160Literal
+import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.Hash256Literal
-import it.unica.tcs.bitcoinTM.HashType
+import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
@@ -38,6 +39,7 @@ import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
+import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
 import it.unica.tcs.bitcoinTM.ScriptComparison
@@ -48,6 +50,7 @@ import it.unica.tcs.bitcoinTM.Send
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
+import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignOp
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -133,7 +136,19 @@ auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, HashType t1, HashType t2) {
+auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Hash160Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Hash256Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Ripemd160Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
     EcoreUtil::copy(t1)
 }
 
@@ -1019,13 +1034,13 @@ from {
     
     // hash the bytes
     if (hash instanceof Hash160)
-	    result = BitcoinUtils.hash160(expResult)
+	    result = BitcoinUtils.hash(expResult, it.unica.tcs.lib.Hash.Hash160)
     else if (hash instanceof Hash256)
-	    result = BitcoinUtils.hash256(expResult)
+	    result = BitcoinUtils.hash(expResult, it.unica.tcs.lib.Hash.Hash256)
     else if (hash instanceof Ripemd160)
-	    result = BitcoinUtils.ripemd160(expResult)
+	    result = BitcoinUtils.hash(expResult, it.unica.tcs.lib.Hash.Ripemd160)
     else if (hash instanceof Sha256)
-	    result = BitcoinUtils.sha256(expResult)
+	    result = BitcoinUtils.hash(expResult, it.unica.tcs.lib.Hash.Sha256)
 	else {
 		fail 
 		error "Unexpecter instance "+hash.class 

@@ -4,6 +4,12 @@
 
 package it.unica.tcs.lib.utils;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 
 import org.bitcoinj.core.DumpedPrivateKey;
@@ -14,7 +20,6 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptOpCodes;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 
 import com.google.inject.Inject;
@@ -69,7 +74,32 @@ public class BitcoinUtils {
 	
 	
 	
-	
+	public static <T extends Hash> T hash(Object input, Class<T> clazz) {
+		checkArgument(input instanceof Integer || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);
+		
+		String methodName = null;
+		if (clazz.equals(Hash160.class)) {
+			methodName = "hash160";
+		}
+		else if (clazz.equals(Hash256.class)) {
+			methodName = "hash256";
+		}
+		else if (clazz.equals(Ripemd160.class)) {
+			methodName = "ripemd160";
+		}
+		else if (clazz.equals(Sha256.class)) {
+			methodName = "sha256";
+		}
+		else throw new IllegalArgumentException("unexpected class "+clazz);
+
+		try {
+			Method method = BitcoinUtils.class.getMethod(methodName, input.getClass());
+			checkState(clazz.equals(method.getReturnType()));
+			return clazz.cast(method.invoke(null, input));
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 	
 	public static Hash160 hash160(byte[] bytes) {
 		return new Hash160(Utils.sha256hash160(bytes));
@@ -91,23 +121,90 @@ public class BitcoinUtils {
         return new Ripemd160(ripmemdHash);        
 	}
 	
-	public static Hash160 hash160(Object obj) {
-		return hash160(toScript(obj).getProgram());
+	public static Hash160 hash160(Hash obj) {
+		return hash160(obj.getBytes());
+	}
+	
+	public static Hash256 hash256(Hash obj) {
+		return hash256(obj.getBytes());
+	}
+	
+	public static Ripemd160 ripemd160(Hash obj) {
+		return ripemd160(obj.getBytes());
+	}
+	
+	public static Sha256 sha256(Hash obj) {
+		return sha256(obj.getBytes());
 	}
 
-	public static Hash256 hash256(Object obj) {
-		return hash256(toScript(obj).getProgram());
+	public static Hash160 hash160(String obj) {
+		return hash160(obj.getBytes(Charset.forName("UTF-8")));
 	}
 	
-	public static Ripemd160 ripemd160(Object obj) {
-		return ripemd160(toScript(obj).getProgram());
+	public static Hash256 hash256(String obj) {
+		return hash256(obj.getBytes(Charset.forName("UTF-8")));
 	}
 	
-	public static Sha256 sha256(Object obj) {
-		return sha256(toScript(obj).getProgram());
+	public static Ripemd160 ripemd160(String obj) {
+		return ripemd160(obj.getBytes(Charset.forName("UTF-8")));
 	}
+	
+	public static Sha256 sha256(String obj) {
+		return sha256(obj.getBytes(Charset.forName("UTF-8")));
+	}
+	
+	public static Hash160 hash160(Boolean obj) {
+		return hash160(obj ? TRUE : FALSE);
+	}
+	
+	public static Hash256 hash256(Boolean obj) {
+		return hash256(obj ? TRUE : FALSE);
+	}
+	
+	public static Ripemd160 ripemd160(Boolean obj) {
+		return ripemd160(obj ? TRUE : FALSE);
+	}
+	
+	public static Sha256 sha256(Boolean obj) {
+		return sha256(obj ? TRUE : FALSE);
+	}
+	
+	public static Hash160 hash160(Integer obj) {
+		byte[] bytes = getIntegerBytes(obj);
+		return hash160(bytes);
+	}
+
+	public static Hash256 hash256(Integer obj) {
+		byte[] bytes = getIntegerBytes(obj);
+		return hash256(bytes);
+	}
+	
+	public static Ripemd160 ripemd160(Integer obj) {
+		byte[] bytes = getIntegerBytes(obj);
+		return ripemd160(bytes);
+	}
+	
+	public static Sha256 sha256(Integer obj) {
+		byte[] bytes = getIntegerBytes(obj);
+		return sha256(bytes);
+	}
+	
+	private static byte[] getIntegerBytes(Integer n) {
+		if (n==0) return ZERO;
+		if (n==-1) return NEGATIVE_ONE;
+		if (1<=n && n<=16) return Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(n), false));
+		return new ScriptBuilder().number(n).build().getChunks().get(0).data;	// get the data part of the push operation
+	}
+
+	private static final byte[] FALSE = new byte[]{};
+	private static final byte[] NEGATIVE_ONE = Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false));
+	private static final byte[] TRUE = Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE, false));;
+	private static final byte[] ZERO = FALSE;
+	
+	
 	
 	public static Script toScript(Object obj) {
+		
 		if (obj instanceof Integer)
 			return new ScriptBuilder().number((Integer) obj).build();
 		
@@ -118,8 +215,7 @@ public class BitcoinUtils {
 			return new ScriptBuilder().data(((Hash) obj).getBytes()).build();
 
 		else if (obj instanceof Boolean) {
-			if ((Boolean) obj) new ScriptBuilder().number(ScriptOpCodes.OP_TRUE).build();
-			else new ScriptBuilder().op(ScriptOpCodes.OP_FALSE).build();
+			return ((Boolean) obj)? new ScriptBuilder().addTrue().build(): new ScriptBuilder().addFalse().build();
 		}
 		
 		throw new IllegalArgumentException();

@@ -2,6 +2,8 @@ package it.unica.tcs.lib;
 
 import java.util.Arrays;
 
+import it.unica.tcs.lib.utils.BitcoinUtils;
+
 public abstract class Hash {
 
 	private final byte[] bytes;
@@ -14,9 +16,18 @@ public abstract class Hash {
 		return bytes;
 	}
 	
+	public String getBytesAsString() {
+		return BitcoinUtils.encode(bytes);
+	}
+	
+	abstract public String getType();
+	
 	public static final class Hash160 extends Hash {
 		public Hash160(byte[] bytes) {
 			super(bytes);
+		}
+		public String getType() { 
+			return "hash160";
 		}
 	}
 	
@@ -24,17 +35,26 @@ public abstract class Hash {
 		public Hash256(byte[] bytes) {
 			super(bytes);
 		}
+		public String getType() { 
+			return "hash256";
+		}
 	}
 	
 	public static final class Ripemd160 extends Hash {
 		public Ripemd160(byte[] bytes) {
 			super(bytes);
 		}
+		public String getType() { 
+			return "ripemd:";
+		}
 	}
 	
 	public static final class Sha256 extends Hash {
 		public Sha256(byte[] bytes) {
 			super(bytes);
+		}
+		public String getType() { 
+			return "sha256";
 		}
 	}
 
@@ -58,6 +78,10 @@ public abstract class Hash {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return getType()+":"+BitcoinUtils.encode(bytes);
+	}
 	
 	public static void main(String[] args) {
 		System.out.println(new Hash160(new byte[]{}).equals(new byte[]{}));

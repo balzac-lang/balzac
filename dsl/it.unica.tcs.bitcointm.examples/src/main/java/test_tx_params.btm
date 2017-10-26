@@ -17,6 +17,6 @@ transaction T2 {
 }
  
 transaction T3 {
-	input = T1(ripemd160("5") ): "5"
+	input = T1(hash160("5")): "4"
 	output = 0: ""
 }
