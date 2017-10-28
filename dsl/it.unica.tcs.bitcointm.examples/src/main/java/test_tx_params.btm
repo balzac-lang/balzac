@@ -17,6 +17,16 @@ transaction T2 {
 }
  
 transaction T3 {
-	input = T1(hash160("5")): "4"
+	input = T1(hash160("5")): "5"
 	output = 0: ""
 }
+
+transaction T4(n:string) {
+	input = T1(hash160(n)): n
+	output = 0.5 BTC : fun(a:int) . a==42
+}
+
+transaction T5 {
+	input = T4("32"): 44  
+	output = 0: ""
+} 

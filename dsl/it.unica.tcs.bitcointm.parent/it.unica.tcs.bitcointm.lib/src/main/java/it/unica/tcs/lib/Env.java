@@ -74,7 +74,7 @@ public class Env implements EnvI<Env> {
 	public Env addVariable(String name, Class<?> type) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(type, "'type' cannot be null");
-		checkArgument(!hasVariable(name) || type.equals(variablesType.get(name)), "'"+name+"' is already associated with class '"+variablesType.get(name)+"'");
+		checkArgument(!hasVariable(name) || type.equals(getType(name)), "'"+name+"' is already associated with class '"+variablesType.get(name)+"'");
 		variablesType.put(name, type);
 		return this;
 	}
@@ -93,8 +93,8 @@ public class Env implements EnvI<Env> {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(value, "'value' cannot be null");
 		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
-		checkArgument(variablesType.get(name).isInstance(value), "'"+name+"' is associated with class '"+variablesType.get(name)+"', but 'value' is object of class '"+value.getClass()+"'");
-		checkArgument(!variablesBinding.containsKey(name), "'"+name+"' is already associated with value '"+variablesBinding.get(name)+"'");
+		checkArgument(getType(name).isInstance(value), "'"+name+"' is associated with class '"+getType(name)+"', but 'value' is object of class '"+value.getClass()+"'");
+		checkArgument(isFree(name), "'"+name+"' is already associated with value '"+variablesBinding.get(name)+"'");
 		variablesBinding.put(name, value);
 		return this;
 	}

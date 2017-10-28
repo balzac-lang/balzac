@@ -71,6 +71,7 @@ import it.unica.tcs.bitcoinTM.VersigOp
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
+import java.util.Map
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -97,7 +98,7 @@ judgments {
 		error "Cannot type " + stringRep(exp)
 		source exp
 		
-	interpret |- ExpressionI expression ~> output Object
+	interpret |- ExpressionI expression |> Map<Parameter,Object> rho ~> output Object
 	simplify  |= ExpressionI expression ~> output ExpressionI
 }
 
@@ -252,15 +253,19 @@ from {
 	if (!input.isPlaceholder) {		
 		// the body of the redeemed transaction is well typed
 		var inputTx = input.txRef.tx
-		G |- substitutions |> inputTx : var Type t1
+		G |- substitutions |> inputTx : var Type t1		// eventual tx parameters have type BasicType
 	
 		// all the input expressions are well typed and the type is basic
 		for (var i=0; i<input.exps.size; i++) {
 			var exp = input.exps.get(i)
-			G |- substitutions |> exp : var Type texp
 			
-			if (inputTx instanceof UserTransactionDeclaration)
+			if (inputTx instanceof UserTransactionDeclaration) {
+				G |- substitutions |> exp : var Type texp	// type can be inferred by the "invocation" of inputTx
 				G.add(exp,texp)		// store the type for further checks (see below)
+			}
+			else {
+				G |- substitutions |> exp : var BasicType texp
+			}
 		}
 	
 		if (inputTx instanceof UserTransactionDeclaration) {
@@ -269,6 +274,8 @@ from {
 			for (var i=0; i<input.txRef.actualParams.size; i++) {
 				var actualParam = input.txRef.actualParams.get(i)
 				var formalParam = inputTx.params.get(i)
+				
+				{formalParam.paramType instanceof BasicType}	// true by rule for UserTransactionDeclaration
 				
 				// all the actual parameters are well typed and the type is basic
 				G |- substitutions |> actualParam : var Type actualParamType
@@ -314,7 +321,7 @@ from {
 		p.paramType = paramType		// and in the AST
 	}
 
-	val int value = interpret(satoshis).first as Integer
+	val int value = interpret(satoshis, newHashMap).first as Integer
 	
 	var expectedType = 
 		if (value==0) {
@@ -804,41 +811,48 @@ from {
  * Expression Interpreter
  * 
  */
+
+rule InterpretVariableReference
+	G |- VariableReference v |> Map<Parameter, Object> rho ~> Object res
+from {
+	{rho.containsKey(v.ref)}
+	res = rho.get(v.ref)
+}
   
 axiom InterpretNumberLiteral
-    G |- NumberLiteral number ~> number.value
+    G |- NumberLiteral number |> Map<Parameter, Object> rho ~> number.value
 
 axiom InterpretStringLiteral
-    G |- StringLiteral str ~> str.value
+    G |- StringLiteral str |> Map<Parameter,Object> rho ~> str.value
 
 axiom InterpretBooleanLiteral
-    G |- BooleanLiteral bool ~> bool.^true
+    G |- BooleanLiteral bool |> Map<Parameter,Object> rho ~> bool.^true
 
 axiom InterpretHash160Literal
-    G |- Hash160Literal hash ~> new it.unica.tcs.lib.Hash.Hash160(hash.value)
+    G |- Hash160Literal hash |> Map<Parameter,Object> rho ~> new it.unica.tcs.lib.Hash.Hash160(hash.value)
 
 axiom InterpretHash256Literal
-    G |- Hash256Literal hash ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
+    G |- Hash256Literal hash |> Map<Parameter,Object> rho ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
 
 axiom InterpretRipemd160Literal
-    G |- Ripemd160Literal hash ~> new it.unica.tcs.lib.Hash.Ripemd160(hash.value)
+    G |- Ripemd160Literal hash |> Map<Parameter,Object> rho ~> new it.unica.tcs.lib.Hash.Ripemd160(hash.value)
 
 axiom InterpretSha256Literal
-    G |- Sha256Literal hash ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
+    G |- Sha256Literal hash |> Map<Parameter,Object> rho ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
 
 rule InterpretMinus
-    G |- ScriptMinus minus ~> Integer result
+    G |- ScriptMinus minus |> Map<Parameter,Object> rho ~> Integer result
 from {
-    G |- minus.left ~> var Integer leftResult
-    G |- minus.right ~> var Integer rightResult
+    G |- minus.left |> rho ~> var Integer leftResult
+    G |- minus.right |> rho ~> var Integer rightResult
     result = leftResult.intValue - rightResult.intValue
 }
 
 rule InterpretPlus
-    G |- ScriptPlus plus ~> Object result
+    G |- ScriptPlus plus |> Map<Parameter,Object> rho ~> Object result
 from {
-    G |- plus.left ~> var Object leftResult
-    G |- plus.right ~> var Object rightResult
+    G |- plus.left |> rho ~> var Object leftResult
+    G |- plus.right |> rho ~> var Object rightResult
     
     if (leftResult instanceof String || rightResult instanceof String) {
         var leftString = leftResult.toString
@@ -853,52 +867,52 @@ from {
 }
 
 rule InterpretArithmeticSigned
-    G |- ScriptArithmeticSigned signed ~> Integer result
+    G |- ScriptArithmeticSigned signed |> Map<Parameter,Object> rho ~> Integer result
 from {
-    G |- signed.exp ~> var Integer expResult
+    G |- signed.exp |> rho ~> var Integer expResult
     result = -(expResult)
 }
 
 rule InterpretAnd
-    G |- AndScriptExpression and ~> Boolean result
+    G |- AndScriptExpression and |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- and.left ~> var Boolean leftResult
+    G |- and.left |> rho ~> var Boolean leftResult
     
     if (leftResult == false) {
     	result = false
     }
     else {
-	    G |- and.right ~> var Boolean rightResult
+	    G |- and.right |> rho ~> var Boolean rightResult
 	    result = leftResult.booleanValue && rightResult.booleanValue    	
     }    
 }
 
 rule InterpretOr
-    G |- OrScriptExpression orExp ~> Boolean result
+    G |- OrScriptExpression orExp |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- orExp.left ~> var Boolean leftResult
+    G |- orExp.left |> rho ~> var Boolean leftResult
     
     if (leftResult == true) {
     	result = true
     }
     else {
-	    G |- orExp.right ~> var Boolean rightResult
+	    G |- orExp.right |> rho ~> var Boolean rightResult
 	    result = leftResult.booleanValue || rightResult.booleanValue 
     }    
 }
 
 rule InterpretBooleanNegation
-    G |- ScriptBooleanNegation neg ~> Boolean result
+    G |- ScriptBooleanNegation neg |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- neg.exp ~> var Boolean expResult
+    G |- neg.exp |> rho ~> var Boolean expResult
     result = !expResult
 }
 
 rule InterpretComparison
-    G |- ScriptComparison comparison ~> Boolean result
+    G |- ScriptComparison comparison |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- comparison.left ~> var Comparable<Object> leftResult
-    G |- comparison.right ~> var Object rightResult
+    G |- comparison.left |> rho ~> var Comparable<Object> leftResult
+    G |- comparison.right |> rho ~> var Object rightResult
     
     result = switch(comparison.op) {
     		case ">=": leftResult >= rightResult
@@ -916,12 +930,12 @@ from {
 }
 
 rule InterpretEquals
-    G |- ScriptEquals comparison ~> Boolean result
+    G |- ScriptEquals comparison |> Map<Parameter,Object> rho ~> Boolean result
 from {
 	
 	{
-	    G |- comparison.left ~> var Object leftResult
-	    G |- comparison.right ~> var Object rightResult
+	    G |- comparison.left |> rho ~> var Object leftResult
+	    G |- comparison.right |> rho ~> var Object rightResult
 	    
 	    var areEqual = leftResult==rightResult
 	    
@@ -979,25 +993,25 @@ from {
 }
 
 rule InterpretIfThenElse
-    G |- IfThenElse stmt ~> Object result
+    G |- IfThenElse stmt |> Map<Parameter,Object> rho ~> Object result
 from {
-    G |- stmt.^if ~> var Boolean ifCondition
+    G |- stmt.^if |> rho ~> var Boolean ifCondition
     
     if (ifCondition) {
-        G |- stmt.then ~> var Object thenResult
+        G |- stmt.then |> rho ~> var Object thenResult
         result = thenResult
     }
     else {
-        G |- stmt.^else ~> var Object elseResult
+        G |- stmt.^else |> rho ~> var Object elseResult
         result = elseResult
     }
 }
 
 rule InterpretMin
-    G |- Min stmt ~> Integer result
+    G |- Min stmt |> Map<Parameter,Object> rho ~> Integer result
 from {
-    G |- stmt.left ~> var Integer leftRes
-    G |- stmt.right ~> var Integer rightRes
+    G |- stmt.left |> rho ~> var Integer leftRes
+    G |- stmt.right |> rho ~> var Integer rightRes
     
     if (leftRes<=rightRes)
         result = leftRes
@@ -1006,10 +1020,10 @@ from {
 }
 
 rule InterpretMax
-    G |- Max stmt ~> Integer result
+    G |- Max stmt |> Map<Parameter,Object> rho ~> Integer result
 from {
-    G |- stmt.left ~> var Integer leftRes
-    G |- stmt.right ~> var Integer rightRes
+    G |- stmt.left |> rho ~> var Integer leftRes
+    G |- stmt.right |> rho ~> var Integer rightRes
     
     if (leftRes>=rightRes)
         result = leftRes
@@ -1018,19 +1032,19 @@ from {
 }
 
 rule InterpretBetween
-    G |- Between stmt ~> Boolean result
+    G |- Between stmt |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- stmt.value ~> var Integer valueRes
-    G |- stmt.left ~> var Integer leftRes
-    G |- stmt.right ~> var Integer rightRes
+    G |- stmt.value |> rho ~> var Integer valueRes
+    G |- stmt.left |> rho ~> var Integer leftRes
+    G |- stmt.right |> rho ~> var Integer rightRes
     result = leftRes<=valueRes && valueRes<rightRes
 }
 
 rule InterpretHash
-    G |- Hash hash ~> it.unica.tcs.lib.Hash result
+    G |- Hash hash |> Map<Parameter,Object> rho ~> it.unica.tcs.lib.Hash result
 from {
 
-    G |- hash.value ~> var Object expResult
+    G |- hash.value |> rho ~> var Object expResult
     
     // hash the bytes
     if (hash instanceof Hash160)
@@ -1049,9 +1063,9 @@ from {
 }
 
 rule InterpretSize
-    G |- Size size ~> Integer result
+    G |- Size size |> Map<Parameter,Object> rho ~> Integer result
 from {
-	G |- size.value ~> var Integer res
+	G |- size.value |> rho ~> var Integer res
 	
 	if (res==0) 
 		result=0

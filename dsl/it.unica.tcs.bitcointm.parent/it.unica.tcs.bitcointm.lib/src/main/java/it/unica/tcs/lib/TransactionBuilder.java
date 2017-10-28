@@ -11,10 +11,13 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Coin;
@@ -22,6 +25,8 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
+
+import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 import it.unica.tcs.lib.utils.TablePrinter;
@@ -38,7 +43,8 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private final List<Output> outputs = new ArrayList<>();
 	private long locktime = UNSET_LOCKTIME;
 	private final Env env = new Env();
-	private final Map<String,Consumer<Object>> variableHooks = new HashMap<>();
+	
+	private final Map<Set<String>,Consumer<Map<String,Object>>> variablesHook = new HashMap<>();
 	
 	public TransactionBuilder(NetworkParametersWrapper params) {
 		this.params = params;
@@ -94,15 +100,24 @@ public class TransactionBuilder implements ITransactionBuilder {
 			checkState(!out.getScript().hasVariable(name), "output script "+out.getScript()+" use variable '"+name+"'");			
 		}
 		env.removeVariable(name);
-		variableHooks.remove(name);
+		variablesHook.remove(name);
 		return this;
 	}
 	
 	@Override
 	public TransactionBuilder bindVariable(String name, Object value) {
 		env.bindVariable(name, value);
-		if (variableHooks.containsKey(name))
-			variableHooks.get(name).accept(value);
+		Iterator<Set<String>> it = variablesHook.keySet().iterator();
+		while(it.hasNext()) {
+			Set<String> variables = it.next();
+			boolean allBound = variables.stream().allMatch(this::isBound);
+			if (allBound) {
+				Map<String,Object> values = variables.stream().collect(Collectors.toMap(v->v, v->getValue(v)));
+				Consumer<Map<String,Object>> hook = variablesHook.get(variables);
+				hook.accept(values);	// execute the hook
+				it.remove();			// remove the hook
+			}
+		}
 		return this;
 	}
 	
@@ -114,12 +129,22 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @param hook the consumer
 	 * @return this builder
 	 */
-	public TransactionBuilder addHookToVariableBinding(String name, Consumer<Object> hook) {
-		checkNotNull(name, "'name' cannot be null");
+	public TransactionBuilder addHookToVariableBinding(Set<String> names, Consumer<Map<String,Object>> hook) {
+		checkNotNull(names, "'name' cannot be null");
 		checkNotNull(hook, "'hook' cannot be null");
-		checkArgument(hasVariable(name), "'name' is not a variable");
-		variableHooks.put(name, hook);
+		for (String name : names) {
+			checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+			checkArgument(isFree(name), "'"+name+"' is not a free");
+		}
+		checkArgument(!variablesHook.containsKey(names), "an hook for variables "+names+" is already defined");
+		variablesHook.put(names, hook);
 		return this;
+	}
+	
+	public boolean hasHook(String name, String... names) {
+		checkNotNull(name, "'name' cannot be null");
+		checkNotNull(names, "'names' cannot be null");
+		return variablesHook.containsKey(Sets.union(Sets.newHashSet(name), Sets.newHashSet(names)));
 	}
 
 	@Override
@@ -509,7 +534,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		result = prime * result + ((inputs == null) ? 0 : inputs.hashCode());
 		result = prime * result + (int) (locktime ^ (locktime >>> 32));
 		result = prime * result + ((outputs == null) ? 0 : outputs.hashCode());
-		result = prime * result + ((variableHooks == null) ? 0 : variableHooks.hashCode());
+		result = prime * result + ((variablesHook == null) ? 0 : variablesHook.hashCode());
 		return result;
 	}
 
@@ -539,10 +564,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 				return false;
 		} else if (!outputs.equals(other.outputs))
 			return false;
-		if (variableHooks == null) {
-			if (other.variableHooks != null)
+		if (variablesHook == null) {
+			if (other.variablesHook != null)
 				return false;
-		} else if (!variableHooks.equals(other.variableHooks))
+		} else if (!variablesHook.equals(other.variablesHook))
 			return false;
 		return true;
 	}

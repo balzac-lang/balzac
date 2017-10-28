@@ -4,7 +4,10 @@
 
 package it.unica.tcs.utils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bitcoinj.core.Address;
@@ -31,6 +34,7 @@ import it.unica.tcs.bitcoinTM.Hash256Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
+import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.RelativeTime;
 import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
@@ -42,6 +46,7 @@ import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
+import it.unica.tcs.bitcoinTM.VariableReference;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -58,6 +63,22 @@ public class ASTUtils {
 	@Inject private BitcoinUtils bitcoinUtils;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 	
+	public Set<String> getTxVariables(ExpressionI exp) {
+        Set<String> refs = 
+        		EcoreUtil2.getAllContentsOfType(exp, VariableReference.class)
+        		.stream()
+    			.filter(ref -> ref.eContainer() instanceof TransactionDeclaration)
+    			.map(v -> v.getRef().getName())
+    			.collect(Collectors.toSet());
+    
+        return refs;
+	}
+	
+	public boolean hasTxVariables(ExpressionI exp) {
+        return !getTxVariables(exp).isEmpty();
+	}
+	
+	
 	public <T extends ExpressionI> T interpretAndSimplify(T exp) {
 		return interpretSafe(simplifySafe(exp));
 	}
@@ -71,9 +92,13 @@ public class ASTUtils {
 			return (T) simplified.getFirst();
 	}
 	
-	@SuppressWarnings("unchecked")
 	public <T extends ExpressionI> T interpretSafe(T exp) {
-		Result<Object> interpreted = typeSystem.interpret(exp);
+		return interpretSafe(exp, new HashMap<>());
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends ExpressionI> T interpretSafe(T exp, Map<Parameter,Object> rho) {
+		Result<Object> interpreted = typeSystem.interpret(exp, rho);
 		if (interpreted.failed()) 
 			return exp;
 		else {

@@ -39,6 +39,7 @@ import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
+import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
 import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
@@ -54,7 +55,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
 import org.eclipse.xtext.naming.QualifiedName
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescription
@@ -65,7 +65,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.lib.Hash.Ripemd160
+import it.unica.tcs.compiler.CompileException
 
 /**
  * This class contains custom validation rules. 
@@ -211,7 +211,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		
 //		var resSimplify = exp.simplify					// simplify && || + - 
-		var resInterpret = exp.simplifySafe.interpret	// simplify if possible, then interpret
+		var resInterpret = exp.simplifySafe.interpret(newHashMap)	// simplify if possible, then interpret
 		
 		var container = exp.eContainer
 		var index = 
@@ -323,22 +323,29 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check(NORMAL)
 	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
 		
-		val txB = t.compileTransaction
-
-		if (txB.isReady) {
-			val txId = txB.toTransaction.hashAsString
-			
-			if (txId !== null) {
-				val isMined = bitcoinClient.isMined(txId)
+		try {
+			val txB = t.compileTransaction
+			if (txB.isReady) {
+				val txId = txB.toTransaction.hashAsString
 				
-				if (isMined)
-					info('''The transaction is already on the blockchain with id «txId»''', 
-						t,
-						BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
-					);
+				if (txId !== null) {
+					val isMined = bitcoinClient.isMined(txId)
+					
+					if (isMined)
+						info('''The transaction is already on the blockchain with id «txId»''', 
+							t,
+							BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+						);
+				}
+				
 			}
-			
 		}
+		catch (CompileException e) {
+			info('''Compile error. Cannot check if the transaction is already mined.''', 
+				t,
+				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+			);
+		}		
 		
 	}
 	
@@ -762,7 +769,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (inputTx instanceof UserTransactionDeclaration) {
                 var index = in.outpoint
                 var output = inputTx.body.outputs.get(index) 
-                var value = output.value.exp.interpret.first as Integer
+                var value = output.value.exp.interpret(newHashMap).first as Integer
                 amount+=value
             }
             else if (inputTx instanceof SerialTransactionDeclaration){
@@ -774,7 +781,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         
         for (output : tx.body.outputs) {
-            var value = output.value.exp.interpret.first as Integer
+            var value = output.value.exp.interpret(newHashMap).first as Integer
             amount-=value
         }
 
@@ -809,11 +816,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return true
         }
 
-		println('''correctlySpendsOutput: «NodeModelUtils.findActualNodeFor(tx).text.trim»''');
-		println(txBuilder.toString)
-		
         for (var i=0; i<tx.body.inputs.size; i++) {
 
+			println('''correctlySpendsOutput: «tx.name».in[«i»]''');
+			println(txBuilder.toString)
+			
             var Script inScript = null
             var Script outScript = null
             
@@ -847,7 +854,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	                    «IF outScript.isPayToScriptHash»
 	                    REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
 	                    REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
-						«ENDIF»''',
+						«ENDIF»
+						''',
 	                    tx.body,
 	                    BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
 	                    i
@@ -866,8 +874,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 					i	
 				)
             }
-            
-
         }
         return true
     }
@@ -875,7 +881,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkPositiveOutValue(Output output) {
     	
-    	var value = output.value.exp.interpret.getFirst as Integer
+    	var value = output.value.exp.interpret(newHashMap).first as Integer
     	var script = output.script
     	
     	if (script.isOpReturn && value>0) {

@@ -14,7 +14,6 @@ import it.unica.tcs.bitcoinTM.ScriptExpression
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
@@ -34,9 +33,9 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import java.util.Map
 import org.eclipse.xtext.EcoreUtil2
 
-import static com.google.common.base.Preconditions.*
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 class TransactionCompiler {
@@ -89,32 +88,52 @@ class TransactionCompiler {
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
+	    		val parentTxFormalparams = (input.txRef.tx as UserTransactionDeclaration).params
 	    		
 				println('''«tx.name»: parent tx «input.txRef.tx.name», v=«parentTx.variables», fv=«parentTx.freeVariables»''')
 	    		
 	    		// set eventual variables
 				for (var j=0; j<input.txRef.actualParams.size; j++) {
-					val formalP = (input.txRef.tx as UserTransactionDeclaration).params.get(j)
+					val formalP = parentTxFormalparams.get(j)
 					val actualP = input.txRef.actualParams.get(j)
 					
-					val value = actualP.interpretSafe
-					
 					if (parentTx.hasVariable(formalP.name)) { // unused free-variables have been removed 
-						if (value instanceof Literal) {
-							println('''«tx.name»: setting value «value.interpret.first» for variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
-							parentTx.bindVariable(formalP.name, value.interpret.first)
+						
+						// interpret the actual parameter
+						val actualPvalue = actualP.interpretSafe
+					
+						// if the evaluation is a literal, set the parent variable
+						if (actualPvalue instanceof Literal) {
+							println('''«tx.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
+							parentTx.bindVariable(formalP.name, actualPvalue.interpret(newHashMap).first)
 						}
-						else if (value instanceof VariableReference) {
-							val name = value.ref.name
-							println('''«tx.name»: setting hook for variable '«name»': variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
-							checkState(tb.hasVariable(name) && tb.isFree(name))
-							tb.addHookToVariableBinding(name, [v|
-								println('''executing hook for variable '«name»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
+						// it the evaluation contains some tx variables, create an hook
+						else {
+							// get the tx variables present within this actual parameter
+							val fvs = actualPvalue.getTxVariables
+							
+							println('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
+							
+							// this hook will be executed when all the tx variables will have been bound
+							// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
+							tb.addHookToVariableBinding(fvs, [ values |
+								println('''executing hook for variables '«fvs»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
+
+								// create a rho for the evaluation
+								val Map<Parameter,Object> rho = newHashMap
+								for(fp : parentTxFormalparams) {
+									rho.put( fp, values.get(fp.name) )	
+								}
+								// re-interpret actualP
+								val actualPvalue2 = actualP.interpretSafe(rho)
+								
+								if (actualPvalue2 instanceof Literal)
+									throw new CompileException("expecting an evaluation to Literal")
+								
+								val v = actualP.interpret(rho).first
 								parentTx.bindVariable(formalP.name, v)
 							])
 						}
-						else
-							throw new CompileException
 					}
 				}
 	    		
@@ -136,7 +155,7 @@ class TransactionCompiler {
     	// outputs
     	for (output : tx.body.outputs) {
     		val outScript = output.compileOutput
-    		val satoshis = output.value.exp.interpret.first as Integer
+    		val satoshis = output.value.exp.interpret(newHashMap).first as Integer
     		tb.addOutput(outScript, satoshis)
     	}
     	
@@ -266,13 +285,8 @@ class TransactionCompiler {
 	 * Compile an input expression. It must not have free variables
 	 */
     def private InputScript compileInputExpression(ScriptExpression exp) {
-        var refs = EcoreUtil2.getAllContentsOfType(exp, VariableReference)
-        			.filter[ref|ref.eContainer instanceof TransactionDeclaration]
-        
         // the altstack is used only by VariableReference(s)
-        if (!refs.empty)
-        	throw new CompileException("The given expression must not have free variables.")
-        
-        new InputScriptImpl().append(exp.compileExpression(new Context)) as InputScript
+		var ctx = new Context
+        new InputScriptImpl().append(exp.compileExpression(ctx)) as InputScript
     }
 }

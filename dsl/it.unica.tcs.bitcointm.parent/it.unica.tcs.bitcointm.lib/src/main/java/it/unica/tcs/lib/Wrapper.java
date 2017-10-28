@@ -15,6 +15,9 @@ public interface Wrapper<T> extends Serializable {
 
 	public T get();
 	
+	public static NetworkParametersWrapper MAIN = NetworkParametersWrapper.wrap(MainNetParams.get());
+	public static NetworkParametersWrapper TESTNET = NetworkParametersWrapper.wrap(TestNet3Params.get());
+	
 	public interface NetworkParametersWrapper extends Wrapper<NetworkParameters> {
 		public static NetworkParametersWrapper wrap(NetworkParameters obj) {
 			final boolean isTest = obj instanceof TestNet3Params;
