@@ -8,7 +8,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApiFactory;
-import com.sulacosoft.bitcoindconnector4j.core.BitcoindConnector4JException;
 import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
@@ -33,7 +32,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
 		try {
 			this.api = BitcoindApiFactory.createConnection(address, port, protocol, user, password);
 		}
-		catch (BitcoindConnector4JException e) {
+		catch (Exception e) {
 			logger.warn("Unable to create a BitcoinApi object. Error: {}", e.getMessage());
 		}
 	}

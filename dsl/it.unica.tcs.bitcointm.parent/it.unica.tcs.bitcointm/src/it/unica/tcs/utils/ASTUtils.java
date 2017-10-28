@@ -63,12 +63,12 @@ public class ASTUtils {
 	@Inject private BitcoinUtils bitcoinUtils;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 	
-	public Set<String> getTxVariables(ExpressionI exp) {
-        Set<String> refs = 
+	public Set<Parameter> getTxVariables(ExpressionI exp) {
+        Set<Parameter> refs = 
         		EcoreUtil2.getAllContentsOfType(exp, VariableReference.class)
         		.stream()
-    			.filter(ref -> ref.eContainer() instanceof TransactionDeclaration)
-    			.map(v -> v.getRef().getName())
+    			.filter(v -> v.getRef().eContainer() instanceof TransactionDeclaration)
+    			.map(v -> v.getRef())
     			.collect(Collectors.toSet());
     
         return refs;

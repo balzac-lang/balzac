@@ -392,7 +392,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				}
 			}
 			
-			checkState(sb.getFreeVariables().size()==0, "script cannot have free variables: "+sb.toString());
+			checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
 			
 			byte[] outScript;
 			if (txInput.isCoinBase()) {

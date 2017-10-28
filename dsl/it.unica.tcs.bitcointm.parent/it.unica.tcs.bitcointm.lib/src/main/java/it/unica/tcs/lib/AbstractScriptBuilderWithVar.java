@@ -158,8 +158,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
 		for (ScriptChunk chunk : getChunks()) {
 
-			if (isFreeVariable(chunk)) {
-				String name = getFreeVariableName(chunk);
+			if (isVariable(chunk)) {
+				String name = getVariableName(chunk);
 				Object obj = getValue(name);
 				Class<?> expectedClass = getType(name);
 
@@ -247,18 +247,27 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	public <U extends AbstractScriptBuilderWithVar<U>> T append(AbstractScriptBuilderWithVar<U> append) {
 		for (ScriptChunk ch : append.getChunks()) {
 			
-			if (isFreeVariable(ch)) {
+			if (isVariable(ch)) {
 				// merge free variables
-				String name = getFreeVariableName(ch);
+				String name = getVariableName(ch);
+
+				// check they are consistent
 				if (hasVariable(name)) {
-					// check they are consistent
 					checkState(getType(name).equals(append.getType(name)), 
-							"Inconsitent state: free variable '%s' is bound to '%s' (this) and '%s' (append)",
+							"Inconsitent state: variable '%s' is bound to type '%s' (this) and type '%s' (append)",
 							name, this.getType(name), append.getType(name));
+					
+					if (isBound(name) && append.isBound(name)) {
+						checkState(getValue(name).equals(append.getValue(name)), 
+								"Inconsitent state: variable '%s' is bound to value '%s' (this) and value '%s' (append)",
+								name, this.getValue(name), append.getValue(name));
+					}
 				}
-				else {
-					this.addVariable(name, append.getType(name));
-				}
+				
+				this.addVariable(name, append.getType(name));
+				if (!isBound(name) && append.isBound(name)) {
+					this.bindVariable(name, append.getValue(name));
+				}				
 			}
 			else if (isSignature(ch)) {
 				// merge signatures
@@ -315,15 +324,15 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return ch.data != null && new String(ch.data).startsWith(SIGNATURE_PREFIX);
 	}
 	
-	private static boolean isFreeVariable(ScriptChunk ch) {
+	private static boolean isVariable(ScriptChunk ch) {
 		return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX);
 	}
 	
-	private static boolean isFreeVariable(ScriptChunk ch, String name) {
+	private static boolean isVariable(ScriptChunk ch, String name) {
 		return ch.data != null && new String(ch.data).equals(FREEVAR_PREFIX+name);
 	}
 	
-	private static String getFreeVariableName(ScriptChunk ch) {
+	private static String getVariableName(ScriptChunk ch) {
 		return new String(ch.data).substring(FREEVAR_PREFIX.length());
 	}
 	
@@ -352,8 +361,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			str.append("]");
 			str.append(" ");
 		}
-		else if (isFreeVariable(ch)) {
-			String name = getFreeVariableName(ch);
+		else if (isVariable(ch)) {
+			String name = getVariableName(ch);
 			str.append("[");
 			str.append("var");
 			str.append(",");
@@ -477,7 +486,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		while(it.hasNext()) {
 			ScriptChunk next = it.next();
 			
-			if (isFreeVariable(next, name)) {
+			if (isVariable(next, name)) {
 				it.remove();
 			}
 		}

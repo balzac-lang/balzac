@@ -27,29 +27,29 @@ public class Env implements EnvI<Env> {
 	@Override
 	public boolean isFree(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		return !isBound(name);
 	}
 
 	@Override
 	public boolean isBound(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		return variablesBinding.containsKey(name);
 	}
 
 	@Override
 	public Class<?> getType(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		return variablesType.get(name);
 	}
 	
 	@Override
 	public Object getValue(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
-		checkArgument(isBound(name), "'"+name+"' is not bounded");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
+		checkArgument(isBound(name), "'%s' is not bound", name);
 		return variablesBinding.get(name);
 	}
 	
@@ -57,7 +57,7 @@ public class Env implements EnvI<Env> {
 	public Object getValueOrDefault(String name, Object defaultValue) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(defaultValue, "'defaultValue' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		return isBound(name)? getValue(name): defaultValue;
 	}
 	
@@ -82,7 +82,7 @@ public class Env implements EnvI<Env> {
 	@Override
 	public Env removeVariable(String name) {
 		checkNotNull(name, "'name' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		variablesType.remove(name);
 		variablesBinding.remove(name);
 		return this;
@@ -92,7 +92,7 @@ public class Env implements EnvI<Env> {
 	public Env bindVariable(String name, Object value) {
 		checkNotNull(name, "'name' cannot be null");
 		checkNotNull(value, "'value' cannot be null");
-		checkArgument(hasVariable(name), "'"+name+"' is not a variable");
+		checkArgument(hasVariable(name), "'%s' is not a variable", name);
 		checkArgument(getType(name).isInstance(value), "'"+name+"' is associated with class '"+getType(name)+"', but 'value' is object of class '"+value.getClass()+"'");
 		checkArgument(isFree(name), "'"+name+"' is already associated with value '"+variablesBinding.get(name)+"'");
 		variablesBinding.put(name, value);

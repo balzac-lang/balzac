@@ -111,23 +111,25 @@ class TransactionCompiler {
 						else {
 							// get the tx variables present within this actual parameter
 							val fvs = actualPvalue.getTxVariables
-							
+							val fvsNames = fvs.map[p|p.name].toSet
 							println('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
 							
 							// this hook will be executed when all the tx variables will have been bound
 							// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
-							tb.addHookToVariableBinding(fvs, [ values |
-								println('''executing hook for variables '«fvs»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
+							tb.addHookToVariableBinding(fvsNames, [ values |
+								println('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
+								println('''«tx.name»: values «values»''')
 
 								// create a rho for the evaluation
 								val Map<Parameter,Object> rho = newHashMap
-								for(fp : parentTxFormalparams) {
+								for(fp : tx.params) {
 									rho.put( fp, values.get(fp.name) )	
 								}
+								println('''rho «rho»''')
 								// re-interpret actualP
 								val actualPvalue2 = actualP.interpretSafe(rho)
 								
-								if (actualPvalue2 instanceof Literal)
+								if (!(actualPvalue2 instanceof Literal))
 									throw new CompileException("expecting an evaluation to Literal")
 								
 								val v = actualP.interpret(rho).first
