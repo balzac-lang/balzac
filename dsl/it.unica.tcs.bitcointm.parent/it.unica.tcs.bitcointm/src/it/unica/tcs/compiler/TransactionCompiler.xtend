@@ -37,6 +37,7 @@ import java.util.Map
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import java.nio.file.attribute.UserDefinedFileAttributeView
 
 class TransactionCompiler {
 	
@@ -88,7 +89,10 @@ class TransactionCompiler {
     		}
     		else {    			
 	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
-	    		val parentTxFormalparams = (input.txRef.tx as UserTransactionDeclaration).params
+	    		val parentTxFormalparams = 
+	    			if (input.txRef.tx instanceof UserTransactionDeclaration) 
+	    				(input.txRef.tx as UserTransactionDeclaration).params
+	    			else newArrayList
 	    		
 				println('''«tx.name»: parent tx «input.txRef.tx.name», v=«parentTx.variables», fv=«parentTx.freeVariables»''')
 	    		

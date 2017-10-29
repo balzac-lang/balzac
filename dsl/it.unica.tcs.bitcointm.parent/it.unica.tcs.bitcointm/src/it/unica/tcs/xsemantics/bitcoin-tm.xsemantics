@@ -153,6 +153,22 @@ auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
     EcoreUtil::copy(t1)
 }
 
+auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
+    unify(substitutions,t2,t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
+    unify(substitutions,t2,t1)
+}
+
+auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
+    EcoreUtil::copy(t1)
+}
+
 auxiliary unify(TypeSubstitutions substitutions, StringType t1, StringType t2) {
     EcoreUtil::copy(t1)
 }
