@@ -724,9 +724,6 @@ from {
 		// all the actual parameters are well type and the type is basic
 		G |- substitutions |> actualParam : var Type actualParamType
 
-		println(actualParamType)
-		println(formalParam.paramType)
-		
 		// the actual param type must be unifiable with the formal param type
 		unify(substitutions, actualParamType, formalParam.paramType)
 	}
@@ -899,7 +896,7 @@ from {
     }
     else {
 	    G |- and.right |> rho ~> var Boolean rightResult
-	    result = leftResult.booleanValue && rightResult.booleanValue    	
+	    result = rightResult.booleanValue    	
     }    
 }
 
@@ -913,7 +910,7 @@ from {
     }
     else {
 	    G |- orExp.right |> rho ~> var Boolean rightResult
-	    result = leftResult.booleanValue || rightResult.booleanValue 
+	    result = rightResult.booleanValue 
     }    
 }
 
@@ -952,7 +949,7 @@ from {
 	{
 	    G |- comparison.left |> rho ~> var Object leftResult
 	    G |- comparison.right |> rho ~> var Object rightResult
-	    
+	    	    	    
 	    var areEqual = leftResult==rightResult
 	    
 	    result = switch(comparison.op) {

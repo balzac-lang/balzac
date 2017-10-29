@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -93,10 +94,10 @@ public class BitcoinUtils {
 		else throw new IllegalArgumentException("unexpected class "+clazz);
 
 		try {
-			Method method = BitcoinUtils.class.getMethod(methodName, input.getClass());
+			Method method = MethodUtils.getMatchingMethod(BitcoinUtils.class, methodName, input.getClass());
 			checkState(clazz.equals(method.getReturnType()));
 			return clazz.cast(method.invoke(null, input));
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new IllegalStateException(e);
 		}
 	}
