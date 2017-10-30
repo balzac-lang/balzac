@@ -140,10 +140,6 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		return (T) this;
 	}
 	
-	public int size() {
-		return super.getChunks().size();
-	}
-	
 	public int signatureSize() {
 		return signatures.size();
 	}

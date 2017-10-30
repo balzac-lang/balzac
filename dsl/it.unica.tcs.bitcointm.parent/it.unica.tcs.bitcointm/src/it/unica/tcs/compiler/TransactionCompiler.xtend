@@ -282,7 +282,7 @@ class TransactionCompiler {
             redeemScript.op(OP_TOALTSTACK)
         }
         
-        redeemScript.append(script.exp.compileExpression(ctx)) as P2SHOutputScript
+        redeemScript.append(script.exp.compileExpression(ctx)).optimize() as P2SHOutputScript
 	}
 	
 	
