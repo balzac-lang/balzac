@@ -69,6 +69,7 @@ import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.bitcoinTM.VersigOp
 import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
 import java.util.Map
@@ -80,6 +81,7 @@ system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 validatorExtends AbstractBitcoinTMValidator
 
 inject LambdaUtils lambdaUtils
+inject ASTUtils astUtils
 
 auxiliary {
 	notoccur(Type type, Type other)
@@ -99,7 +101,6 @@ judgments {
 		source exp
 		
 	interpret |- ExpressionI expression |> Map<Parameter,Object> rho ~> output Object
-	simplify  |= ExpressionI expression ~> output ExpressionI
 }
 
 /*
@@ -889,29 +890,54 @@ from {
 rule InterpretAnd
     G |- AndScriptExpression and |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- and.left |> rho ~> var Boolean leftResult
-    
-    if (leftResult == false) {
-    	result = false
-    }
-    else {
+	{
+	    G |- and.left |> rho ~> var Boolean leftResult
+	    
+	    if (leftResult == false) {
+	    	result = false
+	    }
+	    else {
+		    G |- and.right |> rho ~> var Boolean rightResult
+		    result = rightResult.booleanValue    	
+	    }
+	} or {
 	    G |- and.right |> rho ~> var Boolean rightResult
-	    result = rightResult.booleanValue    	
-    }    
+	    
+	    if (rightResult == false) {
+	    	result = false
+	    }
+	    else {
+		    G |- and.left |> rho ~> var Boolean leftResult
+		    result = leftResult.booleanValue    	
+	    }
+		
+	}   
 }
 
 rule InterpretOr
     G |- OrScriptExpression orExp |> Map<Parameter,Object> rho ~> Boolean result
 from {
-    G |- orExp.left |> rho ~> var Boolean leftResult
-    
-    if (leftResult == true) {
-    	result = true
+	{
+	    G |- orExp.left |> rho ~> var Boolean leftResult
+	    
+	    if (leftResult == true) {
+	    	result = true
+	    }
+	    else {
+		    G |- orExp.right |> rho ~> var Boolean rightResult
+		    result = rightResult.booleanValue 
+	    }
+    } or {
+    	G |- orExp.right |> rho ~> var Boolean rightResult
+	    
+	    if (rightResult == true) {
+	    	result = true
+	    }
+	    else {
+		    G |- orExp.left |> rho ~> var Boolean leftResult
+		    result = leftResult.booleanValue 
+	    }
     }
-    else {
-	    G |- orExp.right |> rho ~> var Boolean rightResult
-	    result = rightResult.booleanValue 
-    }    
 }
 
 rule InterpretBooleanNegation
@@ -1088,81 +1114,6 @@ from {
 	}
 }
 
-
-/*
- * AST simplifier (TODO)
- */
-axiom SimplifyExpressionI
-	G |= ExpressionI obj ~> obj
-	
-//rule SimplifyAnd
-//    G |= AndExpression exp ~> Expression result
-//from {
-//	{
-//	    G |- exp.left ~> var Boolean leftResult
-//	    {leftResult == true}	    
-//	    G |= exp.right ~> result
-//	} or {
-//	    G |- exp.right ~> var Boolean rightResult
-//	    {rightResult == true}	    
-//	    G |= exp.left ~> result
-//	} or {
-//		var newExp = BitcoinTMFactory::eINSTANCE.createAndExpression
-//		newExp.left = simplifySafe(exp.left)
-//		newExp.right = simplifySafe(exp.right)
-//	}
-//}
-//
-//rule SimplifyOr
-//    G |= OrExpression exp ~> Expression result
-//from {
-//	{
-//	    G |- exp.left ~> var Boolean leftResult
-//	    {leftResult == false}	    
-//	    G |= exp.right ~> result
-//	} or {
-//	    G |- exp.right ~> var Boolean rightResult
-//	    {rightResult == false}	    
-//	    G |= exp.left ~> result
-//	} or {
-//		exp.left = simplifySafe(exp.left)
-//		exp.right = simplifySafe(exp.right)
-//	}
-//}
-//
-//rule SimplifyPlus
-//    G |= Plus exp ~> Expression result
-//from {
-//	{
-//	    G |- exp.left ~> var Integer leftResult
-//	    {leftResult == 0}
-//	    G |= exp.right ~> result    
-//	} or {
-//	    G |- exp.right ~> var Integer rightResult
-//	    {rightResult == 0}	    
-//	    G |= exp.left ~> result
-//	} or {
-//		exp.left = simplifySafe(exp.left)
-//		exp.right = simplifySafe(exp.right)
-//	}
-//}
-//
-//rule SimplifyMinus
-//    G |= Minus exp ~> Expression result
-//from {
-//	{
-//	    G |- exp.left ~> var Integer leftResult
-//	    {leftResult == 0}	    
-//	    G |= exp.right ~> result
-//	} or {
-//	    G |- exp.right ~> var Integer rightResult
-//	    {rightResult == 0}	    
-//	    G |= exp.left ~> result
-//	} or {
-//		exp.left = simplifySafe(exp.left)
-//		exp.right = simplifySafe(exp.right)
-//	}
-//}
 
 /*
  * 

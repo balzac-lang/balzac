@@ -211,7 +211,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		
 		
 //		var resSimplify = exp.simplify					// simplify && || + - 
-		var resInterpret = exp.simplifySafe.interpret(newHashMap)	// simplify if possible, then interpret
+		var resInterpret = exp.interpret(newHashMap)		// simplify if possible, then interpret
+		
 		
 		var container = exp.eContainer
 		var index = 

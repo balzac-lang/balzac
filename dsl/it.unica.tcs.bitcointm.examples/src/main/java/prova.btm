@@ -21,7 +21,7 @@ transaction T {
 		0.00000546 BTC:		fun(n) . n=="screen";
 		546:				fun(x:signature, y:signature) . x==y; 
 		550:				fun(y:signature) . false;
-		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b 
+		550:				fun(y2, n2: int, b:bool) . versig(kB; y2) && 2==n2 && b
 	]
 }
  
@@ -57,11 +57,11 @@ transaction Th {
 			ripemd160(secret)==ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
 			hash160(secret)==hash160:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
 			hash160(secret)==ripemd160(sha256(secret)) && 
-			hash256("mario")==sha256(sha256("mario" )) &&
+			hash256("mario")==sha256(sha256("mario")) &&
 			hash160("")==ripemd160(sha256(""))&&
 			hash160("")==ripemd160(sha256("")) && 
 			hash160("")==hash160("") && 
-			secret!=secret 
+			secret==secret 
 } 
 
 transaction Th1 {  

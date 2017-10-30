@@ -31,6 +31,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
+import it.unica.tcs.bitcoinTM.Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
@@ -78,20 +79,6 @@ public class ASTUtils {
         return !getTxVariables(exp).isEmpty();
 	}
 	
-	
-	public <T extends ExpressionI> T interpretAndSimplify(T exp) {
-		return interpretSafe(simplifySafe(exp));
-	}
-	
-	@SuppressWarnings("unchecked")
-	public <T extends ExpressionI> T simplifySafe(T exp) {
-		Result<ExpressionI> simplified = typeSystem.simplify(exp);
-		if (simplified.failed()) 
-			return exp;
-		else
-			return (T) simplified.getFirst();
-	}
-	
 	public <T extends ExpressionI> T interpretSafe(T exp) {
 		return interpretSafe(exp, new HashMap<>());
 	}
@@ -102,6 +89,9 @@ public class ASTUtils {
 		if (interpreted.failed()) 
 			return exp;
 		else {
+			if (exp instanceof Literal)
+				return exp;
+			
 			Object value = interpreted.getFirst();
 			if (value instanceof Integer) {
 				NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
@@ -183,15 +173,15 @@ public class ASTUtils {
 	public boolean isP2PKH(Script script) {
         boolean onlyOneSignatureParam = 
         		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
-        boolean onlyOnePubkey = (interpretAndSimplify(script.getExp()) instanceof Versig) 
-        		&& ((Versig) interpretAndSimplify(script.getExp())).getPubkeys().size() == 1;
+        boolean onlyOnePubkey = (interpretSafe(script.getExp()) instanceof Versig) 
+        		&& ((Versig) interpretSafe(script.getExp())).getPubkeys().size() == 1;
 
         return onlyOneSignatureParam && onlyOnePubkey;
     }
 
 	public boolean isOpReturn(Script script) {
         boolean noParam = script.getParams().size() == 0;
-        boolean onlyString = interpretAndSimplify(script.getExp()) instanceof StringLiteral;
+        boolean onlyString = interpretSafe(script.getExp()) instanceof StringLiteral;
         return noParam && onlyString;
     }
 

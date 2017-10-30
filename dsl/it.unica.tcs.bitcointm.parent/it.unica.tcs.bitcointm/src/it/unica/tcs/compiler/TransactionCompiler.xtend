@@ -37,7 +37,6 @@ import java.util.Map
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import java.nio.file.attribute.UserDefinedFileAttributeView
 
 class TransactionCompiler {
 	
@@ -187,7 +186,7 @@ class TransactionCompiler {
         	/*
         	 * P2PKH
         	 */
-        	var sig = input.exps.get(0).simplifySafe as Signature
+        	var sig = input.exps.get(0) as Signature
             var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
             
             var sb = sig.compileInputExpression
@@ -236,7 +235,7 @@ class TransactionCompiler {
         var outScript = output.script
 
         if (outScript.isP2PKH) {
-            var versig = outScript.exp.simplifySafe as Versig
+            var versig = outScript.exp as Versig
             var pk = BitcoinUtils.wifToECKey(versig.pubkeys.get(0).value, output.networkParams).toAddress(output.networkParams)
 
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */

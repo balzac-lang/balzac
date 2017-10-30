@@ -56,7 +56,7 @@ class ScriptExpressionCompiler {
     @Inject private extension ASTUtils astUtils
     
 	def ScriptBuilder2 compileExpression(ScriptExpression exp, Context ctx) {
-        return exp.simplifySafe.interpretSafe.compileExpressionInternal(ctx)
+        return exp.interpretSafe.compileExpressionInternal(ctx)
     }
 
 	// default
