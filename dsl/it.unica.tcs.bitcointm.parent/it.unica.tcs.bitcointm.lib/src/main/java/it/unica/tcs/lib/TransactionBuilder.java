@@ -29,6 +29,10 @@ import org.bitcoinj.script.Script;
 import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import it.unica.tcs.lib.script.InputScript;
+import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.script.P2SHInputScript;
+import it.unica.tcs.lib.script.P2SHOutputScript;
 import it.unica.tcs.lib.utils.TablePrinter;
 
 public class TransactionBuilder implements ITransactionBuilder {

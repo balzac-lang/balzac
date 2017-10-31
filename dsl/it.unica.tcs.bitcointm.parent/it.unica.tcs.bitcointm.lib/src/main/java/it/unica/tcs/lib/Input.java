@@ -6,6 +6,8 @@ package it.unica.tcs.lib;
 
 import java.io.Serializable;
 
+import it.unica.tcs.lib.script.InputScript;
+
 import static com.google.common.base.Preconditions.*;
 
 /*

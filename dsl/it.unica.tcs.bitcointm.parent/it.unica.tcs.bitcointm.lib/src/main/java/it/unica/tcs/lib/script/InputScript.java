@@ -1,4 +1,4 @@
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.script;
 
 import org.bitcoinj.script.Script;
 

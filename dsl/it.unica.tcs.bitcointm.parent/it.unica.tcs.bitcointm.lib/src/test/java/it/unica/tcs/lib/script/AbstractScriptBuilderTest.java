@@ -1,4 +1,4 @@
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.script;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,9 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import static org.bitcoinj.script.ScriptOpCodes.*;
 import org.junit.Test;
+
+import it.unica.tcs.lib.script.AbstractScriptBuilder;
+import it.unica.tcs.lib.script.ScriptBuilder2;
 
 public class AbstractScriptBuilderTest {
 

@@ -17,6 +17,8 @@ import org.junit.Test;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 import it.unica.tcs.lib.Wrapper.SigHashWrapper;
+import it.unica.tcs.lib.script.InputScriptImpl;
+import it.unica.tcs.lib.script.ScriptBuilder2;
 import it.unica.tcs.lib.utils.ObjectUtils;
 
 public class ScriptBuilder2Test {

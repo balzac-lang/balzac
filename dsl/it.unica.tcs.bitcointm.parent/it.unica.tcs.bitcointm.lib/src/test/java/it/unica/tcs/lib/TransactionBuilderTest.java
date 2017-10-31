@@ -10,6 +10,10 @@ import org.junit.Test;
 import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import it.unica.tcs.lib.script.InputScript;
+import it.unica.tcs.lib.script.InputScriptImpl;
+import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.script.P2SHOutputScript;
 
 public class TransactionBuilderTest {
 

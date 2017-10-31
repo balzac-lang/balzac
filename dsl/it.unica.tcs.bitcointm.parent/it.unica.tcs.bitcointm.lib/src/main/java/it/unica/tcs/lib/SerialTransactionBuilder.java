@@ -10,6 +10,10 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.script.Script;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import it.unica.tcs.lib.script.InputScriptImpl;
+import it.unica.tcs.lib.script.OpReturnOutputScript;
+import it.unica.tcs.lib.script.P2PKHOutputScript;
+import it.unica.tcs.lib.script.P2SHOutputScript;
 
 public class SerialTransactionBuilder implements ITransactionBuilder {
 

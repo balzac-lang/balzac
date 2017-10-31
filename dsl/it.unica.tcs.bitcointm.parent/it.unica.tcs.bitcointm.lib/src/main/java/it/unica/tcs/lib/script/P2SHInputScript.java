@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.script;
 
 import org.bitcoinj.script.Script;
 import static com.google.common.base.Preconditions.checkState;

@@ -5,6 +5,7 @@
 package it.unica.tcs.lib;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import it.unica.tcs.lib.script.InputScript;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {
 	
