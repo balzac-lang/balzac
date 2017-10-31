@@ -3,6 +3,7 @@ package it.unica.tcs.lib;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -32,6 +33,8 @@ public class BitcoinUtilsFactory {
 				builder.bind(String.class).annotatedWith(Names.named("bitcoind.protocol")).toInstance("http");
 				builder.bind(String.class).annotatedWith(Names.named("bitcoind.user")).toInstance("bitcoin");
 				builder.bind(String.class).annotatedWith(Names.named("bitcoind.password")).toInstance("L4mbWnzC35BNrmTJ");
+				builder.bind(Integer.class).annotatedWith(Names.named("bitcoind.timeout")).toInstance(3);
+				builder.bind(TimeUnit.class).annotatedWith(Names.named("bitcoind.timeunit")).toInstance(TimeUnit.SECONDS);
 			}
 		};
 		this.injector = Guice.createInjector(defaultModule).createChildInjector(modules);
@@ -57,7 +60,8 @@ public class BitcoinUtilsFactory {
 		BitcoinUtilsFactory lib = BitcoinUtilsFactory.create();
 		
 		RPCBitcoinClient client = lib.injector.getInstance(RPCBitcoinClient.class);
-		BitcoindApi api = ((RPCBitcoinClient)client).api;
+		
+		BitcoindApi api = ((RPCBitcoinClient)client).getApi();
 		
 		System.out.println("Best block count: " + client.getBlockCount());
 		System.out.println("Get raw transaction: " + client.getRawTransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));

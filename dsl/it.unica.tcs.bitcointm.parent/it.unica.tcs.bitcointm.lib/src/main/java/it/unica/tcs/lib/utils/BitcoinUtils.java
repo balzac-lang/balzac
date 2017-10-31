@@ -17,50 +17,19 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
-
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
 import it.unica.tcs.lib.Hash.Ripemd160;
 import it.unica.tcs.lib.Hash.Sha256;
-import it.unica.tcs.lib.client.BitcoinClientException;
-import it.unica.tcs.lib.client.BitcoinClientI;
-import it.unica.tcs.lib.client.TransactionNotFoundException;
 
-@Singleton
 public class BitcoinUtils {
 
-	@Inject private BitcoinClientI bitcoin;
-
-	public Transaction getTransactionByIdOrHex(String txString, NetworkParameters params) throws BitcoinClientException {
-		Transaction tx;
-		try {
-			tx = new Transaction(params, decode(txString));
-		}
-		catch (Exception e) {
-			try {
-				tx = getTransaction(txString, params);
-			}
-			catch (Exception e1) {
-				throw new BitcoinClientException(e1) ;
-			}
-		}
-		return tx;
-	}
-	
-	public Transaction getTransaction(String txid, NetworkParameters params) throws TransactionNotFoundException {
-		byte[] payloadBytes = decode(bitcoin.getRawTransaction(txid));
-		return new Transaction(params, payloadBytes);
-	}
-	
 	public static ECKey wifToECKey(String wif, NetworkParameters params) {
 		return DumpedPrivateKey.fromBase58(params, wif).getKey();
 	}
@@ -72,8 +41,6 @@ public class BitcoinUtils {
 	public static byte[] decode(String chars) {
 		return Utils.HEX.decode(chars);
 	}
-	
-	
 	
 	public static <T extends Hash> T hash(Object input, Class<T> clazz) {
 		checkArgument(input instanceof Integer || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);

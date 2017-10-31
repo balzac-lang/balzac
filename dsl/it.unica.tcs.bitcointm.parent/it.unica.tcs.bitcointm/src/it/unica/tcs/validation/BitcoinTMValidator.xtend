@@ -41,7 +41,6 @@ import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
-import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -65,7 +64,9 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.compiler.CompileException
+import it.unica.tcs.lib.client.BitcoinClientException
+import it.unica.tcs.lib.client.TransactionNotFoundException
+import org.bitcoinj.core.VerificationException
 
 /**
  * This class contains custom validation rules. 
@@ -79,8 +80,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem
     @Inject private extension ASTUtils    
-    @Inject private extension BitcoinUtils bitcoinUtils
-    @Inject private extension BitcoinClientI bitcoinClient
+//    @Inject private extension BitcoinUtils bitcoinUtils
+//    @Inject private extension BitcoinClientI bitcoinClient
     @Inject private extension TransactionCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
@@ -321,48 +322,55 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	
-	@Check(NORMAL)
-	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
-		
-		try {
-			val txB = t.compileTransaction
-			if (txB.isReady) {
-				val txId = txB.toTransaction.hashAsString
-				
-				if (txId !== null) {
-					val isMined = bitcoinClient.isMined(txId)
-					
-					if (isMined)
-						info('''The transaction is already on the blockchain with id «txId»''', 
-							t,
-							BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
-						);
-				}
-				
-			}
-		}
-		catch (CompileException e) {
-			info('''Compile error. Cannot check if the transaction is already mined.''', 
-				t,
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
-			);
-		}		
-		
-	}
-	
-	@Check
-	def void checkSerialTransactionIsMined(SerialTransactionDeclaration t) {
-		
-		val tx = bitcoinUtils.getTransactionByIdOrHex(if (t.bytes!==null) t.bytes else t.id, t.networkParams);
-		var txId = tx.hashAsString
-		val isMined = bitcoinClient.isMined(txId)
-		
-		if (!isMined)
-			info('''The transaction «txId» is not mined''', 
-				t,
-				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
-			);
-	}
+//	@Check(NORMAL)
+//	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
+//		
+//		try {
+//			val txB = t.compileTransaction
+//			if (txB.isReady) {
+//				val txId = txB.toTransaction.hashAsString
+//				
+//				if (txId !== null) {
+//					val isMined = bitcoinClient.isMined(txId)
+//					
+//					if (isMined)
+//						info('''The transaction is already on the blockchain with id «txId»''', 
+//							t,
+//							BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+//						);
+//				}
+//				
+//			}
+//		}
+//		catch (CompileException e) {
+//			info('''Compile error. Cannot check if the transaction is already mined.''', 
+//				t,
+//				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+//			);
+//		}
+//		catch (ConnectionError e) {
+//			val model = EcoreUtil.getRootContainer(t);
+//			warning('''Online checks are disabled. An error occurred communicating with the server.''', 
+//				t,
+//				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+//			);
+//		}	
+//		
+//	}
+//	
+//	@Check
+//	def void checkSerialTransactionIsMined(SerialTransactionDeclaration t) {
+//		
+//		val tx = bitcoinUtils.getTransactionByIdOrHex(if (t.bytes!==null) t.bytes else t.id, t.networkParams);
+//		var txId = tx.hashAsString
+//		val isMined = bitcoinClient.isMined(txId)
+//		
+//		if (!isMined)
+//			info('''The transaction «txId» is not mined''', 
+//				t,
+//				BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME
+//			);
+//	}
 	
 	
     @Check
@@ -524,27 +532,34 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSerialTransaction(SerialTransactionDeclaration tx) {
 		
-		var ValidationResult validationResult;
-		
-		if (tx.bytes!==null) {			
-	        if (!(validationResult=tx.bytes.isValidTransaction(tx.networkParams)).ok) {
-				error(
-					'''The string does not represent a valid transaction. Details: «validationResult.message»''',
-					tx,
-					BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__BYTES
-				);
-			}
+		try {
+			val txJ = 
+				if (tx.bytes!==null) new Transaction(tx.networkParams, BitcoinUtils.decode(tx.bytes))
+				else tx.id.getTransactionById(tx.networkParams)
+			
+			txJ.verify
+		} 
+		catch (BitcoinClientException e) {
+			error(
+				'''Unable to fetch the transaction from id «tx.id»''',
+				tx,
+				null
+			);
 		}
-		else if (tx.id!==null) {
-			if (!(validationResult=tx.id.isValidTransaction(tx.networkParams)).ok) {
-				error(
-					'''The string does not represent a valid transaction id. Details: «validationResult.message»''',
-					tx,
-					BitcoinTMPackage.Literals.SERIAL_TRANSACTION_DECLARATION__ID
-				);
-			}
+		catch (TransactionNotFoundException e) {
+			error(
+				'''Cannot find transaction from id «tx.id»''',
+				tx,
+				null
+			);	
 		}
-		
+		catch (VerificationException e) {
+			error(
+				'''Transaction is invalid. Details: «e.message»''',
+				tx,
+				null
+			);				
+		}
 	}
 	
 	@Check(CheckType.NORMAL)

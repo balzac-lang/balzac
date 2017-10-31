@@ -37,6 +37,7 @@ import java.util.Map
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.lib.client.BitcoinClientException
 
 class TransactionCompiler {
 	
@@ -44,7 +45,6 @@ class TransactionCompiler {
 	@Inject private extension BitcoinTMTypeSystem typeSystem
     @Inject private extension ASTUtils astUtils
 	@Inject private extension ScriptExpressionCompiler expGenerator
-//	@Inject private extension Optimizer optimizer
     @Inject private extension CompilerUtils
     
     def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
@@ -53,7 +53,12 @@ class TransactionCompiler {
 				ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.bytes);
 			}
 			else {
-				ITransactionBuilder.fromSerializedTransaction(tx.networkParams, bitcoin.getRawTransaction(tx.id));
+				try {
+					ITransactionBuilder.fromSerializedTransaction(tx.networkParams, bitcoin.getRawTransaction(tx.id));
+				}
+				catch (BitcoinClientException e) {
+					throw new CompileException("Unable to fetch the transaction from its ID. "+e.message)
+				}
 			}
 		println()
 		println('''::: Compiling '«tx.name»' ''')

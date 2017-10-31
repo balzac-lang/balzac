@@ -53,6 +53,8 @@ import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
 import it.unica.tcs.lib.Hash.Ripemd160;
 import it.unica.tcs.lib.Hash.Sha256;
+import it.unica.tcs.lib.client.BitcoinClientI;
+import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
@@ -61,7 +63,7 @@ import it.xsemantics.runtime.Result;
 @Singleton
 public class ASTUtils {
 	
-	@Inject private BitcoinUtils bitcoinUtils;
+	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 	
 	public Set<Parameter> getTxVariables(ExpressionI exp) {
@@ -327,21 +329,11 @@ public class ASTUtils {
 		throw new IllegalStateException();
 	}
 	
-
-	
-		
-	public ValidationResult isValidTransaction(String txString, NetworkParameters params) {
-		
-		try {
-			Transaction tx = bitcoinUtils.getTransactionByIdOrHex(txString, params);
-			tx.verify();
-			return ValidationResult.VALIDATION_OK;
-		}
-		catch (Exception e) {
-			return new ValidationResult(false, e.getMessage());				
-		}
+	public Transaction getTransactionById(String txid, NetworkParameters params) throws TransactionNotFoundException {
+		byte[] payloadBytes = BitcoinUtils.decode(bitcoin.getRawTransaction(txid));
+		return new Transaction(params, payloadBytes);
 	}
-	
+
 	public long getOutputAmount(String txString, NetworkParameters params, int index) {
 		try {
 			Transaction tx = new Transaction(params, BitcoinUtils.decode(txString));
