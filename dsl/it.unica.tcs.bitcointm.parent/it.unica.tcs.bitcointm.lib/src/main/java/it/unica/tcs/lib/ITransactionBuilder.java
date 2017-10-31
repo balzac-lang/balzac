@@ -13,7 +13,7 @@ import org.bitcoinj.core.Utils;
 
 import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 
-public interface ITransactionBuilder extends EnvI<ITransactionBuilder>, Serializable {
+public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, Serializable {
 
 	/**
 	 * Check that this transaction builder is ready to be converted using {@link #toTransaction(NetworkParameters)}.

@@ -3,7 +3,7 @@ package it.unica.tcs.lib;
 import java.io.Serializable;
 import java.util.Collection;
 
-public interface EnvI<T extends EnvI<T>> extends Serializable {
+public interface EnvI<T,ENV extends EnvI<T,ENV>> extends Serializable {
 
 	/**
 	 * Return true if the given {@code name} is a variable.
@@ -38,7 +38,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param name the variable name
 	 * @return the type of the variable
 	 */
-	public Class<?> getType(String name);
+	public Class<? extends T> getType(String name);
 	
 	/**
 	 * Return the value of the variable {@code name}.
@@ -47,7 +47,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param name the variable name
 	 * @return the value associated to the variable
 	 */
-	public Object getValue(String name);
+	public T getValue(String name);
 	
 	/**
 	 * Return the value of the variable {@code name}, casted to the given class.
@@ -56,7 +56,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param clazz the expected class of the object
 	 * @return
 	 */
-	public <E> E getValue(String name, Class<E> clazz);
+	public <A extends T> A getValue(String name, Class<A> clazz);
 
 	/**
 	 * Return the value of the variable {@code name}.
@@ -66,7 +66,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param defaultValue a default value if the variable is unbound 
 	 * @return the value associated to the variable
 	 */
-	public Object getValueOrDefault(String name, Object defaultValue);
+	public T getValueOrDefault(String name, T defaultValue);
 	
 	/**
 	 * Add a variable.
@@ -75,7 +75,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param type the expected type of the actual value for the variable
 	 * @return this class
 	 */
-	public T addVariable(String name, Class<?> type);
+	public ENV addVariable(String name, Class<? extends T> type);
 	
 	/**
 	 * Remove a variable.
@@ -83,7 +83,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 * @param name the name of the variable
 	 * @return this class
 	 */
-	public T removeVariable(String name);
+	public ENV removeVariable(String name);
 	
 	
 	/**
@@ -97,7 +97,7 @@ public interface EnvI<T extends EnvI<T>> extends Serializable {
 	 *             transaction, or if the provided value is an not instance of
 	 *             the expected class of the free variable.
 	 */
-	public T bindVariable(String name, Object value);
+	public ENV bindVariable(String name, T value);
 	
 	/**
 	 * Return an immutable collection of the all variables (free or not).

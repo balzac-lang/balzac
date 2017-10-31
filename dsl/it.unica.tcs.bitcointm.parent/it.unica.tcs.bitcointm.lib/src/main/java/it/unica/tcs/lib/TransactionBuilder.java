@@ -42,7 +42,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
 	private long locktime = UNSET_LOCKTIME;
-	private final Env env = new Env();
+	private final Env<Object> env = new Env<>();
 	
 	private final Map<Set<String>,Consumer<Map<String,Object>>> variablesHook = new HashMap<>();
 	
@@ -446,7 +446,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		sb.append("\n\n");
 	}
 	
-	private static void addVariables(StringBuilder sb, EnvI<?> env) {
+	private static void addVariables(StringBuilder sb, EnvI<Object,?> env) {
 		TablePrinter tp = new TablePrinter("Variables", new String[]{"Name", "Type", "Binding"}, "No variables");
 		for (String name : new TreeSet<>(env.getVariables())) {
 			tp.addRow(
@@ -514,7 +514,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 		sb.append("\n\n");
 	}
 	
-	private static List<String> getCompactVariables(EnvI<?> env) {
+	private static List<String> getCompactVariables(EnvI<Object,?> env) {
 		List<String> res = new ArrayList<>();
 		Collection<String> variables = new TreeSet<>(env.getVariables());
 		

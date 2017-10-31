@@ -42,13 +42,13 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
 	extends AbstractScriptBuilder<T> 
-	implements EnvI<T> {
+	implements EnvI<Object,T> {
 
 	private static final long serialVersionUID = 1L;
 	private static final String SIGNATURE_PREFIX = "\u03C3"; 	// σ
 	private static final String FREEVAR_PREFIX = "\u03F0"; 		// ϰ;
 	
-	private final Env env = new Env();
+	private final Env<Object> env = new Env<>();
 	
 	protected final Map<String, SignatureUtil> signatures = new HashMap<>();
 	

@@ -8,7 +8,7 @@ public class EnvTest {
 
 	@Test
 	public void test_empty() {
-		Env env = new Env();
+		Env<Object> env = new Env<Object>();
 		String name = "any";
 		
 		assertFalse(env.hasVariable(name));
@@ -51,7 +51,7 @@ public class EnvTest {
 
 	@Test
 	public void test_add() {
-		Env env = new Env();
+		Env<Object> env = new Env<Object>();
 		String name = "any";
 		
 		env.addVariable(name, Integer.class);
@@ -98,7 +98,7 @@ public class EnvTest {
 	
 	@Test
 	public void test_clear() {
-		Env env = new Env();
+		Env<Object> env = new Env<Object>();
 		String name = "any";
 		String name2 = "any2";
 				
@@ -120,6 +120,19 @@ public class EnvTest {
 		assertEquals(0, env.getVariables().size());
 		assertEquals(0, env.getFreeVariables().size());
 		assertEquals(0, env.getBoundVariables().size());
+	}
+	
+	@Test
+	public void test_type() {
+		Env<Number> env = new Env<Number>();
+		
+		env.addVariable("a", Integer.class);
+		env.addVariable("b", Long.class);
+		env.addVariable("c", Float.class);
+
+		assertEquals(Integer.class, env.getType("a"));
+		assertEquals(Long.class, env.getType("b"));
+		assertEquals(Float.class, env.getType("c"));
 	}
 	
 }
