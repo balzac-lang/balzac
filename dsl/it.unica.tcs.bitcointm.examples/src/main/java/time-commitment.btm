@@ -71,12 +71,12 @@ participant Alice {
 //	put T_commitA {input = T_fundsA: sig kA }
 //	-> send (do sig T_payDepositA kA to Bob)
 //		
-	key kA = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
+	key kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 }
 
 participant Bob {
 	t
-	key kB = "cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ"
+	key kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 }
 
 //

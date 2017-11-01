@@ -8,8 +8,8 @@ serial transaction prova = txid:ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab
 
 participant Alice { 
 	t
-	key k = "cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC"	// 1.95 BTC
-	key k1 = "cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4"
+	key k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
+	key k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 }
 
 transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468

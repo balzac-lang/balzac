@@ -37,7 +37,7 @@ Network:
  * keys
  */
 KeyDeclaration: 
-	{KeyDeclaration} "key" name=ID "=" (value=STRING | placeholder?="_");
+	{KeyDeclaration} "key" name=ID "=" (value=WIF | placeholder?="_");
 	
 /*
  * transactions
@@ -265,15 +265,15 @@ terminal INT_HEX returns ecore::EInt:
 terminal INT returns ecore::EInt:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
-terminal BASE58: 
-	'base58:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+terminal WIF: 
+	'wif:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
 terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXID:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::EInt: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd

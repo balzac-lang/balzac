@@ -10,12 +10,13 @@ import it.unica.tcs.conversion.converter.HashValueConverter
 import it.unica.tcs.conversion.converter.IntUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
+import it.unica.tcs.conversion.converter.WIFValueConverter
 import org.eclipse.xtext.common.services.DefaultTerminalConverters
 import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
+import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
-import org.eclipse.xtext.conversion.ValueConverterException
 
 class BitcoinTMConverterService extends DefaultTerminalConverters {
 	
@@ -24,6 +25,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	@Inject private TimestampValueConverter timestampTerminalConverter;
 	@Inject private IntUnderscoreValueConverter intTerminalConverter;
 	@Inject private DelayValueConverter delayConverter;
+	@Inject private WIFValueConverter wifConverter;
 		
 	@ValueConverter(rule = "Number")
     def IValueConverter<Integer> getNumberConverter() {
@@ -81,6 +83,10 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 				string.substring(4)
 			}
         }
-	}	
-	
+	}
+		
+	@ValueConverter(rule = "WIF")
+    def IValueConverter<String> getWIF() {
+        return wifConverter
+	}
 }
