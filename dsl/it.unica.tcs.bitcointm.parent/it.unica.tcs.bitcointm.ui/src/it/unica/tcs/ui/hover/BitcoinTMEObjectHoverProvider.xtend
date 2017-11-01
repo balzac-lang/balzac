@@ -79,7 +79,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 			    hex          = «pvtEC.privateKeyAsHex»
 			    
 			Public key
-				base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
+			    base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
 			    hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
 			    hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
 			</pre>
