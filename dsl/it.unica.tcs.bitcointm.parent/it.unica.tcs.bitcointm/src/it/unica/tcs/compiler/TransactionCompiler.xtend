@@ -38,6 +38,7 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.lib.client.BitcoinClientException
+import it.unica.tcs.bitcoinTM.KeyLiteral
 
 class TransactionCompiler {
 	
@@ -77,8 +78,8 @@ class TransactionCompiler {
     	
     	// free variables
     	for (param : tx.params) {
-    		println('''freevar «param.name» : «param.paramType»''')
-    		tb.addVariable(param.name, param.paramType.convertType)
+    		println('''freevar «param.name» : «param.type»''')
+    		tb.addVariable(param.name, param.type.convertType)
     	} 		
     	
     	// inputs
@@ -192,7 +193,7 @@ class TransactionCompiler {
         	 * P2PKH
         	 */
         	var sig = input.exps.get(0) as Signature
-            var pubkey = sig.key.value.privateKeyToPubkeyBytes(input.networkParams)
+            var pubkey = sig.key.interpretSafe(KeyLiteral).value.privateWifToPubkeyBytes(input.networkParams)
             
             var sb = sig.compileInputExpression
             sb.data(pubkey)
@@ -241,7 +242,8 @@ class TransactionCompiler {
 
         if (outScript.isP2PKH) {
             var versig = outScript.exp as Versig
-            var pk = BitcoinUtils.wifToECKey(versig.pubkeys.get(0).value, output.networkParams).toAddress(output.networkParams)
+            var wif = versig.pubkeys.get(0).interpretSafe(KeyLiteral).value
+            var pk = BitcoinUtils.wifToECKey(wif, output.networkParams).toAddress(output.networkParams)
 
             /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
             new P2PKHOutputScript(pk)

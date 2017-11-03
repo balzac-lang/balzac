@@ -38,7 +38,7 @@ class CompilerUtils {
 	}
 	
 	def String compileFormalParams(List<Parameter> formalParams) {
-		formalParams.map[p|p.paramType.compileType+" "+p.name].join(", ")
+		formalParams.map[p|p.type.compileType+" "+p.name].join(", ")
     }
 	
 	def String compileType(Type type) {

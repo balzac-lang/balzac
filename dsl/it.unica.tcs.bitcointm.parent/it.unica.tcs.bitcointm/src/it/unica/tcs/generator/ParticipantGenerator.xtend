@@ -64,9 +64,9 @@ class ParticipantGenerator extends AbstractGenerator {
 		public class Participant_«participant.name» extends Participant {
 			
 			private static Participant_«participant.name» instance = new Participant_«participant.name»();
-			«FOR k:participant.keys»
-			private static ECKey «k.name» = wifToECKey("«k.value»", «k.compileNetworkParams»); 
-			«ENDFOR»
+«««			«FOR k:participant.keys»
+«««			private static ECKey «k.name» = wifToECKey("«k.value»", «k.compileNetworkParams»); 
+«««			«ENDFOR»
 			
 			private Participant_«participant.name»() {
 				super(Participant_«participant.name».class.getName());
@@ -99,7 +99,7 @@ class ParticipantGenerator extends AbstractGenerator {
 		private static class Process_«decl.name» implements Process {
 			
 			«FOR p:decl.params»
-			private «p.paramType.compileType» «p.name»;
+			private «p.type.compileType» «p.name»;
 			«ENDFOR»
 			
 			private Process_«decl.name»(«decl.params.compileFormalParams») {

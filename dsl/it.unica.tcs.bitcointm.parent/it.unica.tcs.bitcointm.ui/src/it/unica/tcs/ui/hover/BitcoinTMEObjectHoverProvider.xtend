@@ -7,18 +7,20 @@ package it.unica.tcs.ui.hover
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.IntType
-import it.unica.tcs.bitcoinTM.KeyDeclaration
-import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TypeVariable
+import it.unica.tcs.bitcoinTM.Variable
+import it.unica.tcs.bitcoinTM.VariableDeclaration
+import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.bitcoinTM.KeyType
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -51,8 +53,8 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getLabel(obj)
 	}
 
-	dispatch def String getLabelInternal(Parameter p) {
-		return p.name+" : "+p.paramType?.toStringType
+	dispatch def String getLabelInternal(Variable p) {
+		return p.name+" : "+p.type?.toStringType
 	}
 	
 
@@ -70,12 +72,13 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getDocumentation(obj)
 	}
 	
-	def dispatch String getDocumentationInternal(KeyDeclaration pvt) '''
-		«IF !pvt.isPlaceholder»
-			«val pvtEC = BitcoinUtils.wifToECKey(pvt.value, pvt.networkParams)»
+	def dispatch String getDocumentationInternal(VariableDeclaration pvt) '''
+		«IF pvt.value instanceof KeyLiteral»
+			«val wif = (pvt.value as KeyLiteral).value» 
+			«val pvtEC = BitcoinUtils.wifToECKey(wif, pvt.networkParams)»
 			<pre>
 			Private key
-			    base58 (wif) = «pvt.value»
+			    base58 (wif) = «wif»
 			    hex          = «pvtEC.privateKeyAsHex»
 			    
 			Public key
@@ -117,6 +120,10 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	}
 	
 	dispatch def String toStringType(SignatureType type) {
+		return type.value.literal
+	}
+	
+	dispatch def String toStringType(KeyType type) {
 		return type.value.literal
 	}
 	

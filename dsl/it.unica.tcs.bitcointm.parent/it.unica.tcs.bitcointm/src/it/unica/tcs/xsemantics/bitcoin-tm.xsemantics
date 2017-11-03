@@ -51,7 +51,6 @@ import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Sha256Type
-import it.unica.tcs.bitcoinTM.SignOp
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
@@ -67,7 +66,6 @@ import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.bitcoinTM.VersigOp
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
@@ -75,6 +73,10 @@ import java.math.BigInteger
 import java.util.Map
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
+import it.unica.tcs.bitcoinTM.KeyType
+import it.unica.tcs.bitcoinTM.VariableDeclaration
+import it.unica.tcs.bitcoinTM.KeyLiteral
+import org.bitcoinj.core.DumpedPrivateKey
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -84,8 +86,6 @@ inject LambdaUtils lambdaUtils
 inject ASTUtils astUtils
 
 auxiliary {
-	notoccur(Type type, Type other)
-        error stringRep(type) + " occurs in " + stringRep(other)
         
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
     
@@ -96,7 +96,7 @@ auxiliary {
 
 judgments {
 
-	type |- TypeSubstitutions substitutions |> Typeable exp : output Type
+	typeExpression |- TypeSubstitutions substitutions |> Typeable exp : output Type
 		error "Cannot type " + stringRep(exp)
 		source exp
 		
@@ -106,12 +106,6 @@ judgments {
 /*
  * auxiliary functions
  */
-
-auxiliary notoccur(Type type, Type other) { true }
-
-auxiliary notoccur(TypeVariable variable, TypeVariable other) {
-    variable.value != other.value
-}
 
 auxiliary typesubstitution(TypeSubstitutions substitutions, Type type) {
     type
@@ -178,6 +172,10 @@ auxiliary unify(TypeSubstitutions substitutions, BooleanType t1, BooleanType t2)
     EcoreUtil::copy(t1)
 }
 
+auxiliary unify(TypeSubstitutions substitutions, KeyType t1, KeyType t2) {
+    EcoreUtil::copy(t1)
+}
+
 auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
     EcoreUtil::copy(t1)
 }
@@ -223,9 +221,9 @@ rule UserTransactionDeclaration
 from {
 	
 	for (p : tx.params) {
-		G |- substitutions |> p : var Type paramType
-		G.add(p, paramType)			// store the type in the environment
-		p.paramType = paramType		// and in the AST
+		G |- substitutions |> p : var Type type
+		G.add(p, type)			// store the type in the environment
+		p.type = type		// and in the AST
 	}
 	
 	// transaction body is well typed
@@ -233,8 +231,8 @@ from {
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : tx.params) {
-		p.paramType = typesubstitution(substitutions, p.paramType)
-		{p.paramType instanceof BasicType}
+		p.type = typesubstitution(substitutions, p.type)
+		{p.type instanceof BasicType}
 	}
 }
 
@@ -292,13 +290,13 @@ from {
 				var actualParam = input.txRef.actualParams.get(i)
 				var formalParam = inputTx.params.get(i)
 				
-				{formalParam.paramType instanceof BasicType}	// true by rule for UserTransactionDeclaration
+				{formalParam.type instanceof BasicType}	// true by rule for UserTransactionDeclaration
 				
 				// all the actual parameters are well typed and the type is basic
 				G |- substitutions |> actualParam : var Type actualParamType
 				
 				// the actual param type must be unifiable with the formal param type
-				unify(substitutions, actualParamType, formalParam.paramType)
+				unify(substitutions, actualParamType, formalParam.type)
 			}
 			
 			// check the actual parameters type match the formal ones (Script)
@@ -309,7 +307,7 @@ from {
 				var outputParam = outputScript.params.get(i)
 				
 				var inputExpType = G.get(inputExp) as Type		// retrieve the type from G
-				var outputParamType = outputParam.paramType 
+				var outputParamType = outputParam.type 
 				
 				G.decrement(inputExp)					// remove the type from G
 				
@@ -333,9 +331,9 @@ from {
 	
 	var script = _output.script
 	for (p : script.params) {
-		G |- substitutions |> p : var Type paramType
-		G.add(p, paramType)			// store the type in the environment
-		p.paramType = paramType		// and in the AST
+		G |- substitutions |> p : var Type type
+		G.add(p, type)			// store the type in the environment
+		p.type = type		// and in the AST
 	}
 
 	val int value = interpret(satoshis, newHashMap).first as Integer
@@ -352,8 +350,8 @@ from {
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : script.params) {
-		p.paramType = typesubstitution(substitutions, p.paramType)
-		{p.paramType instanceof BasicType}
+		p.type = typesubstitution(substitutions, p.type)
+		{p.type instanceof BasicType}
 	}
 }
 
@@ -362,11 +360,33 @@ rule Parameter
 	G |- TypeSubstitutions substitutions |> Parameter p : Type type
 from {
 	{
-		p.paramType !== null
-		type = EcoreUtil.copy(p.paramType)
+		p.type !== null
+		type = EcoreUtil.copy(p.type)
 	}
 	or {
 		type = lambdaUtils.createFreshTypeVariable
+	}
+}
+
+rule VariableDeclaration
+	G |- TypeSubstitutions substitutions |> VariableDeclaration v : Type type
+from {
+	G |- substitutions |> v.value: var Type expType
+	
+	expType = typesubstitution(substitutions, expType)
+
+	if (!(expType instanceof BasicType)) {
+		fail
+			error "basic type expected"
+			source v.value			
+	}
+	
+	if (v.type !== null) {
+		{v.type.class.equals(expType.class)}
+		type = EcoreUtil.copy(v.type)
+	}
+	else {
+		type = expType
 	}
 }
 
@@ -394,15 +414,15 @@ axiom Ripemd160Literal
 axiom Sha256Literal
 	G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
 
-axiom Signature
-	G |- TypeSubstitutions substitutions |> Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
-
+axiom KeyLiteral
+	G |- TypeSubstitutions substitutions |> KeyLiteral key : BitcoinTMFactory::eINSTANCE.createKeyType
 
 rule VariableReference
 	G |- TypeSubstitutions substitutions |> VariableReference varRef : Type type
 from {
-	type = typesubstitution(substitutions, EcoreUtil.copy(env(G, varRef.ref, Type)))
-	varRef.ref.paramType = EcoreUtil.copy(type)	// set the param type, useful just for the ui
+	G |- substitutions |> varRef.ref: type	
+	type = typesubstitution(substitutions, type)
+	varRef.ref.type = EcoreUtil.copy(type)	// set the param type, useful just for the ui
 }
 
 rule Minus
@@ -431,7 +451,7 @@ from {
 	
     {
     	type = BitcoinTMFactory::eINSTANCE.createStringType
-		// the terms type must be unifiable with int type
+		// the terms type must be unifiable with string type
 		unify(substitutions, leftType, type)
 		unify(substitutions, rightType, type)
 	}
@@ -543,6 +563,14 @@ from {
 rule VerSig
 	G |- TypeSubstitutions substitutions |> Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
+	var keyType = BitcoinTMFactory::eINSTANCE.createKeyType
+	
+	for (k : versig.pubkeys) {
+		G |- substitutions |> k : var Type t
+		t = typesubstitution(substitutions, t)
+		unify(substitutions, t, keyType)
+	}
+
 	var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
 	
 	for (s : versig.signatures) {
@@ -550,6 +578,16 @@ from {
 		t = typesubstitution(substitutions, t)
 		unify(substitutions, t, sigType)
 	}
+}
+
+rule Signature
+	G |- TypeSubstitutions substitutions |> Signature s : BitcoinTMFactory::eINSTANCE.createSignatureType
+from {
+	var keyType = BitcoinTMFactory::eINSTANCE.createKeyType
+
+	G |- substitutions |> s.key : var Type t
+	t = typesubstitution(substitutions, t)
+	unify(substitutions, t, keyType)
 }
 
 rule Hash160
@@ -670,6 +708,10 @@ from {
 rule ParticipantDeclaration
 	G |- TypeSubstitutions substitutions |> ParticipantDeclaration p : Type t
 from {
+	for (v : p.variables) {
+		G |- substitutions |> v : t	
+	}
+	
 	for (d : p.defs) {
 		G |- substitutions |> d : t	
 	}
@@ -681,9 +723,9 @@ rule ProcessDeclaration
 	G |- TypeSubstitutions substitutions |> ProcessDeclaration p : Type t
 from {
 	for (param : p.params) {
-		G |- substitutions |> param : var Type paramType
-		G.add(param, paramType)			// store the type in the environment 
-		param.paramType = paramType		// and in the AST
+		G |- substitutions |> param : var Type type
+		G.add(param, type)			// store the type in the environment 
+		param.type = type		// and in the AST
 	}
 
 	// process is well typed
@@ -691,8 +733,8 @@ from {
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (param : p.params) {
-		param.paramType = typesubstitution(substitutions, param.paramType)
-		{param.paramType instanceof BasicType}
+		param.type = typesubstitution(substitutions, param.type)
+		{param.type instanceof BasicType}
 	}
 }
  
@@ -726,7 +768,7 @@ from {
 		G |- substitutions |> actualParam : var Type actualParamType
 
 		// the actual param type must be unifiable with the formal param type
-		unify(substitutions, actualParamType, formalParam.paramType)
+		unify(substitutions, actualParamType, formalParam.type)
 	}
 }
 
@@ -789,27 +831,27 @@ from {
 /*
  * ProtocolExpressions
  */
-rule SignOp
-    G |- TypeSubstitutions substitutions |> SignOp sig : BitcoinTMFactory::eINSTANCE.createSignatureType
-from {
-	G |- substitutions |> sig.tx : var Type t
-	t = typesubstitution(substitutions, t)
-	unify(substitutions, t, BitcoinTMFactory::eINSTANCE.createTransactionType)
-}
-
-rule VersigOp	// same as before, but check for transaction to be well-typed
-	G |- TypeSubstitutions substitutions |> VersigOp versig : BitcoinTMFactory::eINSTANCE.createBooleanType
-from {
-	G |- substitutions |> versig.tx : var TransactionType t
-	
-	var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
-	
-	for (s : versig.signatures) {
-		G |- substitutions |> s : var Type t1
-		t1 = typesubstitution(substitutions, t1)
-		unify(substitutions, t1, sigType)
-	}
-}
+//rule SignOp
+//    G |- TypeSubstitutions substitutions |> SignOp sig : BitcoinTMFactory::eINSTANCE.createSignatureType
+//from {
+//	G |- substitutions |> sig.tx : var Type t
+//	t = typesubstitution(substitutions, t)
+//	unify(substitutions, t, BitcoinTMFactory::eINSTANCE.createTransactionType)
+//}
+//
+//rule VersigOp	// same as before, but check for transaction to be well-typed
+//	G |- TypeSubstitutions substitutions |> VersigOp versig : BitcoinTMFactory::eINSTANCE.createBooleanType
+//from {
+//	G |- substitutions |> versig.tx : var TransactionType t
+//	
+//	var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
+//	
+//	for (s : versig.signatures) {
+//		G |- substitutions |> s : var Type t1
+//		t1 = typesubstitution(substitutions, t1)
+//		unify(substitutions, t1, sigType)
+//	}
+//}
 
 rule ProtocolTransactionReference
     G |- TypeSubstitutions substitutions |> ProtocolTransactionReference txRef : BitcoinTMFactory::eINSTANCE.createTransactionType
@@ -829,8 +871,13 @@ from {
 rule InterpretVariableReference
 	G |- VariableReference v |> Map<Parameter, Object> rho ~> Object res
 from {
-	{rho.containsKey(v.ref)}
-	res = rho.get(v.ref)
+	if (v.ref instanceof Parameter) {
+		{rho.containsKey(v.ref)}
+		res = rho.get(v.ref)		
+	}
+	else if (v.ref instanceof VariableDeclaration) {
+		G |- (v.ref as VariableDeclaration).value |> rho ~> res
+	}
 }
   
 axiom InterpretNumberLiteral
@@ -853,6 +900,10 @@ axiom InterpretRipemd160Literal
 
 axiom InterpretSha256Literal
     G |- Sha256Literal hash |> Map<Parameter,Object> rho ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
+
+axiom InterpretKeyLiteral
+    G |- KeyLiteral key |> Map<Parameter,Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+
 
 rule InterpretMinus
     G |- ScriptMinus minus |> Map<Parameter,Object> rho ~> Integer result

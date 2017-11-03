@@ -7,11 +7,12 @@
  */
 package it.unica.tcs.scoping
 
-import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.VariableDeclaration
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -20,7 +21,6 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
-import it.unica.tcs.bitcoinTM.Receive
 
 /**
  * This class contains custom scoping description.
@@ -35,47 +35,55 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	/**
 	 * utils: get a scope for the given clazz type within the whole document
 	 */
-	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
-		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
-		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
-		return Scopes.scopeFor(candidates);									// return the scope
-	}
+//	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
+//		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
+//		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
+//		return Scopes.scopeFor(candidates);									// return the scope
+//	}
 
 
 	/*
 	 * free-names resolution
 	 */
-	def IScope scope_Parameter(EObject ctx, EReference ref) {
-//		println("Resolving variable: "+ref.name)
-		return getDeclaredVariables(ctx.eContainer);
-	}
-		
-	//utils: recursively get all free-names declarations until Script definition
-	def dispatch IScope getDeclaredVariables(EObject cont) {
-		return getDeclaredVariables(cont.eContainer);
+	def IScope scope_Variable(EObject v, EReference ref) {
+		println("Resolving variable: "+v)
+		return getScopeForParameters(v.eContainer);		
 	}
 	
-	def dispatch IScope getDeclaredVariables(Script obj) {
+	//utils: recursively get all free-names declarations until Script definition
+	def dispatch IScope getScopeForParameters(EObject cont) {
+		return getScopeForParameters(cont.eContainer);
+	}
+	
+	def dispatch IScope getScopeForParameters(Script obj) {
+		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
 		return Scopes.scopeFor(
 			obj.params,
-			getDeclaredVariables(obj.eContainer)
+			getScopeForParameters(obj.eContainer)
 		);
 	}
 	
-	def dispatch IScope getDeclaredVariables(Receive obj) {
+	def dispatch IScope getScopeForParameters(Receive obj) {
 		return Scopes.scopeFor(
 			newArrayList(obj.^var),
-			getDeclaredVariables(obj.eContainer)
+			getScopeForParameters(obj.eContainer)
 		);
 	}
 
-	def dispatch IScope getDeclaredVariables(UserTransactionDeclaration obj) {
-		return Scopes.scopeFor(obj.params); 	// stop recursion
+	def dispatch IScope getScopeForParameters(UserTransactionDeclaration obj) {
+		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.name»''')
+		return Scopes.scopeFor(
+			obj.params,
+			getScopeForVariableDeclarations(obj.eContainer)
+		); 	// stop recursion
 	}	
 
-	def dispatch IScope getDeclaredVariables(SerialTransactionDeclaration obj) {
-		return Scopes.scopeFor(newArrayList); 	// stop recursion
-	}	
+	def dispatch IScope getScopeForParameters(SerialTransactionDeclaration obj) {
+		return Scopes.scopeFor(
+			newArrayList,
+			getScopeForVariableDeclarations(obj.eContainer)
+		); 	// stop recursion
+	}
 
 	
 	
@@ -85,33 +93,28 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	 * use the same name for a key, the qualified name should be used
 	 * (e.g. <code>Alice.k</code>)</p>
 	 */
-	def IScope scope_KeyDeclaration(EObject ctx, EReference ref) {
+	def IScope getScopeForVariableDeclarations(EObject ctx) {
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var participants = EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration);
 		
-		val keysOccurrences = 	// a map for storing the number of occurrences of a key name 
-								// (if > 1, more than one participant is using that name)
-			EcoreUtil2.getAllContentsOfType(root, KeyDeclaration)		// all the keys declarations
-			.groupBy[k|k.name]											// group by name within a map String -> List<Key>
-			.entrySet													// to set
-			.map[e|e.key->e.value.size]									// convert to String -> N
-			.toMap([e|e.key],[e|e.value]);								// convert to a Map 
+//		val varsOccurrences = 	// a map for storing the number of occurrences of a key name 
+//								// (if > 1, more than one participant is using that name)
+//			EcoreUtil2.getAllContentsOfType(root, VariableDeclaration)	// all the keys declarations
+//			.groupBy[k|k.name]											// group by name within a map String -> List<Key>
+//			.entrySet													// to set
+//			.map[e|e.key->e.value.size]									// convert to String -> N
+//			.toMap([e|e.key],[e|e.value]);								// convert to a Map 
 		
-		val List<KeyDeclaration> candidates = newArrayList 
+		val List<VariableDeclaration> candidates = newArrayList 
 		for (p : participants) {
-			candidates.addAll(p.keys)
+			candidates.addAll(p.variables)
 		}
 		
 		Scopes.scopeFor(
 			candidates, 
-			[KeyDeclaration k|
-				if (keysOccurrences.get(k.name)>1) {
-					val participantName = (k.eContainer as ParticipantDeclaration).name
-					QualifiedName.create(participantName, k.name)				
-				}
-				else {
-					QualifiedName.create(k.name)
-				}			
+			[VariableDeclaration k|
+				val participantName = (k.eContainer as ParticipantDeclaration).name
+				QualifiedName.create(participantName, k.name)				
 			], 
 			Scopes.scopeFor(newArrayList))
 	}

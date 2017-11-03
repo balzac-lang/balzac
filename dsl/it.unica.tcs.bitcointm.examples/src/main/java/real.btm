@@ -8,29 +8,29 @@ serial transaction prova = txid:ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab
 
 participant Alice { 
 	t
-	key k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
-	key k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-}
+	let k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
+	let k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+} 
 
 transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468
-	input = [ 
-		utxo1: sig k; 
-		utxo2: sig k 
+	input = [
+		utxo1: sig Alice.k;
+		utxo2: sig Alice.k 
 	] 
-	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma)
+	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(Alice.k; sigma)
 	
 }
  
 transaction T1 { // id: 3168215d8c988d910fe48d7707e074d95c45d19c8138d0bbe7b05c91446a638a
-	input = T : sig k
-	output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(k; sigma) && hash160(secret)==hash160:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
+	input = T : sig Alice.k
+	output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(Alice.k; sigma) && hash160(secret)==hash160:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
 } 
  
 transaction T2 { // id: 17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845
-	input = T1 : sig k "bart"
+	input = T1 : sig Alice.k "bart"
 	output = [
-		1.95BTC - 0.003BTC: fun(sigma) . versig(k; sigma);
+		1.95BTC - 0.003BTC: fun(sigma) . versig(Alice.k; sigma);
 		0 : "it works!"
 	]
 }  
-
+   

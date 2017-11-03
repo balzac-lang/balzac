@@ -30,15 +30,13 @@ Declaration:
   TransactionDeclaration
 | ParticipantDeclaration; 
 
-Network:
-	{Network} "network" (testnet?="testnet" | "mainnet");
+Network: {Network} "network" (testnet?="testnet" | "mainnet");
 
 /*
  * keys
  */
-KeyDeclaration: 
-	{KeyDeclaration} "key" name=ID "=" (value=WIF | placeholder?="_");
-	
+// KeyDeclaration: "key" name=ID "=" (value=WIF | placeholder?="_");
+
 /*
  * transactions
  */
@@ -88,9 +86,16 @@ TransactionReference:
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
 
-Parameter:
-	name=ID (":" paramType=ParameterType)?;
 
+Variable:
+	Parameter | VariableDeclaration
+;
+
+Parameter:
+	name=ID (":" type=ParameterType)?;
+
+VariableDeclaration:
+	"let" name=ID (":" type=ParameterType)? "=" value=Literal;
 
 
 ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
@@ -128,6 +133,7 @@ ScriptAtomic returns ScriptExpression:
     '(' ScriptExpression ')' 
 |   Literal 
 |   VariableReference
+
 |   Signature 
 |	Versig 
 |	Hash 
@@ -138,13 +144,14 @@ ScriptAtomic returns ScriptExpression:
 |   Size
 |	AfterTimeLock;
 
-VariableReference: ref=[Parameter];
+VariableReference: ref=[Variable|QualifiedName];
 
 Literal:
 	NumberLiteral 
 |	StringLiteral
 |	BooleanLiteral
-|	HashLiteral;
+|	HashLiteral
+|	KeyLiteral;
 
 HashLiteral:
 	Hash160Literal
@@ -160,13 +167,14 @@ Hash160Literal: value=HASH_160;
 Hash256Literal: value=HASH_256;
 Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
+KeyLiteral: value=WIF;
 
 IfThenElse:
 	'if' if=ScriptExpression
 	"then" then=ScriptAtomic
 	'else' else=ScriptAtomic;
 
-Signature: "sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)?;
+Signature: "sig" key=(Literal|VariableReference) (modifier=Modifier)?;
 
 enum Modifier: 
 	AIAO 
@@ -178,7 +186,7 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+		pubkeys+=(Literal|VariableReference) ("," pubkeys+=(Literal|VariableReference))* ";"
 		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
 	")";
 
@@ -206,6 +214,7 @@ BasicType:
 	{IntType} value=IntTypeEnum 
 |	{StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
+|   {KeyType} value=KeyTypeEnum
 |   {SignatureType} value=SignatureTypeEnum
 |   {TransactionType} value=TransactionTypeEnum
 |	HashType;
@@ -221,19 +230,20 @@ TypeVariable:
 	value=ID;
 
 enum IntTypeEnum: int;
+enum StringTypeEnum: string;
+enum BoolTypeEnum: bool | boolean;
+enum KeyTypeEnum: key;
+enum SignatureTypeEnum: signature;
+enum TransactionTypeEnum: transaction;
 enum Hash160TypeEnum: hash160;
 enum Hash256TypeEnum: hash256;
 enum Ripemd160TypeEnum: ripemd160;
 enum Sha256TypeEnum: sha256;
-enum StringTypeEnum: string;
-enum BoolTypeEnum: bool | boolean;
-enum SignatureTypeEnum: signature;
-enum TransactionTypeEnum: transaction;
 
 Typeable:
   TransactionDeclaration
 | TransactionBody
-| Parameter
+| Variable
 | Input
 | Output 
 | ParticipantDeclaration
@@ -298,7 +308,7 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
  * Endpoints contracts
  */
 ParticipantDeclaration: 'participant' name=ID '{' 
-	(process=Process)? & (keys+=KeyDeclaration | defs+=ProcessDeclaration)*
+	(process=Process)? & (variables+=VariableDeclaration | /*keys+=KeyDeclaration |*/ defs+=ProcessDeclaration)*
 '}';
 
 
@@ -328,7 +338,7 @@ NextProcess returns Process:
 | '(' Process ')'
 ;
 
-Prefix:	(Ask|Put|Send|Receive|Assert|Tau) ('.' next=NextProcess)?;
+Prefix:	(Ask|Put|Send|Receive|Assert|Tau) (';' next=NextProcess)?;
 
 Tau: {Tau} 't';
 
@@ -384,14 +394,14 @@ Atomic returns Expression:
 |   Literal 
 |   VariableReference
 |	Hash 
-|	SignOp		// signature operation, returns bytes or string 
-|	VersigOp		// versig operation, returns boolean
+//|	SignOp		// signature operation, returns bytes or string 
+//|	VersigOp	// versig operation, returns boolean
 ;
 
-SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
-VersigOp: "versig" "(" 
-		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* ")" 
-		"using" tx=ProtocolTransactionReference;
+//SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
+//VersigOp: "versig" "(" 
+//		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
+//		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* ")" 
+//		"using" tx=ProtocolTransactionReference;
 		
 		

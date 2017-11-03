@@ -8,19 +8,19 @@ transaction T {
 	output = 1 BTC - 10:
 		fun(flag, sig1, sig2) . 
 			if (flag)
-			then after block 50 : (versig(kLenny; sig2) && versig(kAlice,kBob; sig1))
-			else versig(kAlice,kBob; sig1,sig2)
+			then after block 50 : (versig(Alice.kL; sig2) && versig(Alice.kA,Alice.kB; sig1))
+			else versig(Alice.kA,Alice.kB; sig1,sig2)
 }
 
 transaction T_1 {
-	input = T: true sig kAlice sig kLenny
+	input = T: true sig Alice.kA sig Alice.kL
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50
 }
 
 transaction T_2 {
-	input = T: false sig kAlice sig kBob
+	input = T: false sig Alice.kA sig Alice.kB
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50
@@ -28,8 +28,8 @@ transaction T_2 {
 
 participant Alice {
 	t
-	key kAlice = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	key kBob = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-	key kLenny = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+	let kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	let kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+	let kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 }
 

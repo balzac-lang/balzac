@@ -38,8 +38,8 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 
 	protected String stringRep(Parameter parameter) {
 		return parameter.getName()
-				+ ((parameter.getParamType()) != null ? " : "
-						+ string(parameter.getParamType()) : "");
+				+ ((parameter.getType()) != null ? " : "
+						+ string(parameter.getType()) : "");
 	}
 	
 	protected String stringRep(VariableReference variable) {

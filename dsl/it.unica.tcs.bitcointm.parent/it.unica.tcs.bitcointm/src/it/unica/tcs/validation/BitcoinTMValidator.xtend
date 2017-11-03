@@ -13,9 +13,9 @@ import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
+import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
-import it.unica.tcs.bitcoinTM.KeyDeclaration
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
@@ -26,7 +26,6 @@ import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
-import it.unica.tcs.bitcoinTM.ScriptExpression
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -34,6 +33,7 @@ import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.VariableDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
@@ -41,6 +41,8 @@ import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.client.BitcoinClientException
+import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -48,6 +50,7 @@ import java.util.HashSet
 import java.util.Set
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
+import org.bitcoinj.core.VerificationException
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -64,9 +67,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.lib.client.BitcoinClientException
-import it.unica.tcs.lib.client.TransactionNotFoundException
-import org.bitcoinj.core.VerificationException
 
 /**
  * This class contains custom validation rules. 
@@ -128,7 +128,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		if (references.size==0)
 			warning("Unused variable '"+param.name+"'.", 
 				param,
-				BitcoinTMPackage.Literals.PARAMETER__NAME
+				BitcoinTMPackage.Literals.VARIABLE__NAME
 			);			
 	}
 
@@ -192,7 +192,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	
 	@Check
-	def void checkInterpretExp(ScriptExpression exp) {
+	def void checkInterpretExp(ExpressionI exp) {
 		
 //		println(":::::::::::::::::::::::::::::::::::::::")
 //		println('''exp:              «exp»''')
@@ -210,6 +210,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return
 		}
 		
+		if (exp instanceof VariableReference) {
+			// VariableReference(s) which refer to a VariableDeclaration are interpreted as their right-part interpretation.
+			// It's not useful to show that.
+			return;
+		}
 		
 //		var resSimplify = exp.simplify					// simplify && || + - 
 		var resInterpret = exp.interpret(newHashMap)		// simplify if possible, then interpret
@@ -389,13 +394,14 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
     @Check
-	def void checkProcessDeclarationNameIsUnique(ProcessDeclaration t) {
+	def void checkDeclarationNameIsUnique(ProcessDeclaration t) {
 		
 		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);		// within a participant
 		for (other: EcoreUtil2.getAllContentsOfType(container, ProcessDeclaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
-				error("Duplicated name '"+other.name+"'.", 
+				error("Duplicated name '"+other.name+"'.",
+					t,
 					BitcoinTMPackage.Literals.PROCESS_DECLARATION__NAME
 				);
 			}
@@ -403,14 +409,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkProcessDeclarationNameIsUnique(KeyDeclaration t) {
+	def void checkDeclarationNameIsUnique(VariableDeclaration t) {
 		
 		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);
-		for (other: EcoreUtil2.getAllContentsOfType(container, KeyDeclaration)){
+		for (other: EcoreUtil2.getAllContentsOfType(container, VariableDeclaration)){
 			
 			if (t!=other && t.getName.equals(other.name)) {
-				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.KEY_DECLARATION__NAME
+				error("Duplicated name '"+other.name+"'.",
+					t, 
+					BitcoinTMPackage.Literals.VARIABLE__NAME
 				);
 			}
 		}
@@ -432,31 +439,31 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.VERSIG__SIGNATURES
 			);
 		}
-		
-		for(var i=0; i<versig.pubkeys.size; i++) {
-			var k = versig.pubkeys.get(i)
-			
-			if (k.isPlaceholder) {
-				error("Cannot compute the public key.", 
-					versig,
-					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
-					i
-				);
-			}
-		}		
+//		
+//		for(var i=0; i<versig.pubkeys.size; i++) {
+//			var k = versig.pubkeys.get(i)
+//			
+//			if ((k instanceof KeyDeclaration) && k.isPlaceholder) {
+//				error("Cannot compute the public key.", 
+//					versig,
+//					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
+//					i
+//				);
+//			}
+//		}
 	}
 	
-	@Check
-	def void checkSign(Signature sig) {
-		var k = sig.key
-		
-		if (k.isPlaceholder) {
-			error("The referred private key is not declared.", 
-				sig,
-				BitcoinTMPackage.Literals.SIGNATURE__KEY
-			);
-		}
-	}
+//	@Check
+//	def void checkSign(Signature sig) {
+//		var k = sig.key
+//		
+//		if (k.isPlaceholder) {
+//			error("The referred private key is not declared.", 
+//				sig,
+//				BitcoinTMPackage.Literals.SIGNATURE__KEY
+//			);
+//		}
+//	}
 	
 	@Check
 	def void checkOutputWithoutSignatures(Output output) {
@@ -470,47 +477,47 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		]	
 	}
 	
-	@Check
-	def void checkKeyDeclaration(KeyDeclaration keyDecl) {
-		
-		var pvtKey = keyDecl.value;
-		
-		var pvtErr = false;
-		var ValidationResult validationResult;
-		
-		/*
-		 * WiF format: 	[1 byte version][32 bytes key][1 byte compression (optional)][4 bytes checksum] 
-		 * Length:		36 o 38 bytes (without/with compression)
-		 */
-		if (pvtKey!==null && pvtKey.length!=52) {
-			error("Invalid key length.", 
-				keyDecl,
-				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
-			)
-			pvtErr = true
-		}
-		
-		/*
-		 * Check if the encoding is valid (like the checksum bytes)
-		 */
-		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isBase58WithChecksum).ok) {
-			error('''Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
-				keyDecl,
-				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE			)
-			pvtErr = true
-		}		
-		
-		/*
-		 * Check if the declarations reflect the network declaration
-		 */
-		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isValidPrivateKey(keyDecl.networkParams)).ok) {
-			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
-				keyDecl,
-				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
-			)
-			pvtErr = true
-		}
-	}
+//	@Check
+//	def void checkKeyDeclaration(KeyL keyDecl) {
+//		
+//		var pvtKey = keyDecl.value;
+//		
+//		var pvtErr = false;
+//		var ValidationResult validationResult;
+//		
+//		/*
+//		 * WiF format: 	[1 byte version][32 bytes key][1 byte compression (optional)][4 bytes checksum] 
+//		 * Length:		36 o 38 bytes (without/with compression)
+//		 */
+//		if (pvtKey!==null && pvtKey.length!=52) {
+//			error("Invalid key length.", 
+//				keyDecl,
+//				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
+//			)
+//			pvtErr = true
+//		}
+//		
+//		/*
+//		 * Check if the encoding is valid (like the checksum bytes)
+//		 */
+//		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isBase58WithChecksum).ok) {
+//			error('''Invalid encoding of the private key. The string must represent a valid bitcon address in WiF format. Details: «validationResult.message»''',
+//				keyDecl,
+//				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE			)
+//			pvtErr = true
+//		}		
+//		
+//		/*
+//		 * Check if the declarations reflect the network declaration
+//		 */
+//		if (!pvtErr && pvtKey !== null && !(validationResult=pvtKey.isValidPrivateKey(keyDecl.networkParams)).ok) {
+//			error('''The address it is not compatible with the network declaration (default is testnet). Details: «validationResult.message»''',
+//				keyDecl,
+//				BitcoinTMPackage.Literals.KEY_DECLARATION__VALUE
+//			)
+//			pvtErr = true
+//		}
+//	}
 	
 	
 	@Check
@@ -522,7 +529,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 					error(
 						"Duplicate parameter name '"+p.params.get(j).name+"'.", 
 						p.params.get(j),
-						BitcoinTMPackage.Literals.PARAMETER__NAME, j
+						BitcoinTMPackage.Literals.VARIABLE__NAME, j
 					);
 				}
 			}
@@ -574,11 +581,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		 */
 		for (param: tx.params) {
 //			var param = tbody.params.get(i)
-			if (param.paramType instanceof SignatureType) {
+			if (param.type instanceof SignatureType) {
 				error(
                     "Signature parameters are not allowed yet.",
                     param,
-                    BitcoinTMPackage.Literals.PARAMETER__NAME
+                    BitcoinTMPackage.Literals.VARIABLE__NAME
                 );
 			    hasError = hasError || true
 			}

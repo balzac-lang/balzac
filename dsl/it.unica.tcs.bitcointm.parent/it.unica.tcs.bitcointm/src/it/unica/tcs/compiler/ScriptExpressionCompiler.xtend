@@ -13,10 +13,12 @@ import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
+import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
@@ -30,6 +32,7 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.VariableDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.script.ScriptBuilder2
@@ -85,7 +88,7 @@ class ScriptExpressionCompiler {
     }
     
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
-		var wif = stmt.key.value
+		var wif = stmt.key.interpretSafe(KeyLiteral).value
 		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
         var hashType = stmt.modifier.toHashType
         var anyoneCanPay = stmt.modifier.toAnyoneCanPay
@@ -107,39 +110,46 @@ class ScriptExpressionCompiler {
          * 
          */
         var param = varRef.ref
-        var isTxParam = param.eContainer instanceof TransactionDeclaration 
         
-        if (isTxParam) {
-        	return new ScriptBuilder2().addVariable(param.name, param.paramType.convertType)
+        if (param instanceof VariableDeclaration) {
+        	return param.value.compileExpression(ctx)
         }
-        else {
-        	val sb = new ScriptBuilder2()
-	        val pos = ctx.altstack.get(param).position
-			var count = ctx.altstack.get(param).occurrences
-	
-	        if(pos === null) throw new CompileException;
-	
-	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+        else if (param instanceof Parameter) {
+        	
+	        var isTxParam = param.eContainer instanceof TransactionDeclaration 
 	        
-	        if (count==1) {
-	        	// this is the last usage of the variable
-	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
-	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-	        	}
-	        	
-		        if (ctx.altstack.size - pos> 0)
-		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-	        	
+	        if (isTxParam) {
+	        	return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
 	        }
 	        else {
-	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
-		        sb.op(OP_DUP).op(OP_TOALTSTACK)
-	
-		        if (ctx.altstack.size - pos - 1 > 0)
-		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+	        	val sb = new ScriptBuilder2()
+		        val pos = ctx.altstack.get(param).position
+				var count = ctx.altstack.get(param).occurrences
+		
+		        if(pos === null) throw new CompileException;
+		
+		        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+		        
+		        if (count==1) {
+		        	// this is the last usage of the variable
+		        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+		        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+		        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
+		        	}
+		        	
+			        if (ctx.altstack.size - pos> 0)
+			            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+		        	
+		        }
+		        else {
+		        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
+			        sb.op(OP_DUP).op(OP_TOALTSTACK)
+		
+			        if (ctx.altstack.size - pos - 1 > 0)
+			            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+		        }
+		        return sb
 	        }
-	        return sb
         }
     }
 
@@ -263,15 +273,21 @@ class ScriptExpressionCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
-            sb.data(stmt.pubkeys.get(0).value.privateKeyToPubkeyBytes(stmt.networkParams))
+            val pubkey = stmt.pubkeys.get(0).interpretSafe(KeyLiteral)
+            sb.data(pubkey.value.privateWifToPubkeyBytes(stmt.networkParams))
             sb.op(OP_CHECKSIG)
         } else {
             val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
-            stmt.pubkeys.forEach[k|sb.data(k.value.privateKeyToPubkeyBytes(stmt.networkParams))]
+            stmt.pubkeys.forEach[k|
+            	val pubkey = k.interpretSafe(KeyLiteral)
+	            sb.data(pubkey.value.privateWifToPubkeyBytes(stmt.networkParams))
+            ]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
     }
+    
+    
 }

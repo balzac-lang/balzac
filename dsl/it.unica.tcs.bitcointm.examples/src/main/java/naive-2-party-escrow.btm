@@ -20,28 +20,28 @@ network testnet
  
 participant Alice {
 	t
-	key kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	key kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-	key kC = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+	let kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	let kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+	let kC = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 }
 
 transaction TA {
 	input = _
-	output = 1BTC: fun(x). versig(kA; x) 
+	output = 1BTC: fun(x). versig(Alice.kA; x) 
 }
 
 transaction T {
-	input = TA: sig kA
-	output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
+	input = TA: sig Alice.kA
+	output = 1BTC - 15: fun(sigA, sigB). versig(Alice.kA, Alice.kB; sigA, sigB)
 }
 
 // finalize A
 transaction TA_finalize {
-	input = T: sig kA sig kB 
-	output = 1BTC - 16: fun(x). versig(kA; x)
+	input = T: sig Alice.kA sig Alice.kB 
+	output = 1BTC - 16: fun(x). versig(Alice.kA; x)
 }
 // or B
 transaction TB_finalize {
-	input = T: sig kA sig kB 
-	output = 1BTC - 16: fun(x). versig(kB; x)
+	input = T: sig Alice.kA sig Alice.kB 
+	output = 1BTC - 16: fun(x). versig(Alice.kB; x)
 }

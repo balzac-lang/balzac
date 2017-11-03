@@ -22,6 +22,7 @@ import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
+import static com.google.common.base.Preconditions.*;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -31,6 +32,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
+import it.unica.tcs.bitcoinTM.KeyLiteral;
 import it.unica.tcs.bitcoinTM.Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
@@ -70,8 +72,9 @@ public class ASTUtils {
         Set<Parameter> refs = 
         		EcoreUtil2.getAllContentsOfType(exp, VariableReference.class)
         		.stream()
-    			.filter(v -> v.getRef().eContainer() instanceof TransactionDeclaration)
-    			.map(v -> v.getRef())
+        		.filter(v -> v.getRef() instanceof Parameter)
+        		.map(v -> (Parameter) v.getRef())
+    			.filter(v -> v.eContainer() instanceof TransactionDeclaration)
     			.collect(Collectors.toSet());
     
         return refs;
@@ -81,12 +84,25 @@ public class ASTUtils {
         return !getTxVariables(exp).isEmpty();
 	}
 	
+	
+	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Class<T> expectedType) {
+		return interpretSafe(exp, new HashMap<>(), expectedType);
+	}
+	
+	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<Parameter,Object> rho, Class<T> expectedType) {
+		ExpressionI res = interpretSafe(exp, rho);
+		checkState(expectedType.isInstance(res), "expected type "+expectedType+", got "+res.getClass());
+		return expectedType.cast(res);
+	}
+	
 	public <T extends ExpressionI> T interpretSafe(T exp) {
+		// returns the same type of exp
 		return interpretSafe(exp, new HashMap<>());
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <T extends ExpressionI> T interpretSafe(T exp, Map<Parameter,Object> rho) {
+		// returns the same type of exp
 		Result<Object> interpreted = typeSystem.interpret(exp, rho);
 		if (interpreted.failed()) 
 			return exp;
@@ -128,6 +144,11 @@ public class ASTUtils {
 	    	else if (value instanceof Sha256) {
 	    		Sha256Literal res = BitcoinTMFactory.eINSTANCE.createSha256Literal();
 	    		res.setValue(((Sha256) value).getBytes());
+	    		return (T) res;    		
+	    	}
+	    	else if (value instanceof DumpedPrivateKey) {
+	    		KeyLiteral res = BitcoinTMFactory.eINSTANCE.createKeyLiteral();
+	    		res.setValue(((DumpedPrivateKey) value).toBase58());
 	    		return (T) res;    		
 	    	}
 	    	else {
@@ -174,7 +195,7 @@ public class ASTUtils {
 
 	public boolean isP2PKH(Script script) {
         boolean onlyOneSignatureParam = 
-        		script.getParams().size() == 1 && script.getParams().get(0).getParamType() instanceof SignatureType;
+        		script.getParams().size() == 1 && script.getParams().get(0).getType() instanceof SignatureType;
         boolean onlyOnePubkey = (interpretSafe(script.getExp()) instanceof Versig) 
         		&& ((Versig) interpretSafe(script.getExp())).getPubkeys().size() == 1;
 
@@ -286,7 +307,7 @@ public class ASTUtils {
 		return pubkeyAddr;
 	}
 	
-	public byte[] privateKeyToPubkeyBytes(String wif, NetworkParameters params) {
+	public byte[] privateWifToPubkeyBytes(String wif, NetworkParameters params) {
 		return DumpedPrivateKey.fromBase58(params, wif).getKey().getPubKey();
 	}
 
