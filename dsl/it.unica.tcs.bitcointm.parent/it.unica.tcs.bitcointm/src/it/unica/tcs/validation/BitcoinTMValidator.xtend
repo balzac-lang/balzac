@@ -453,17 +453,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //		}
 	}
 	
-//	@Check
-//	def void checkSign(Signature sig) {
-//		var k = sig.key
-//		
-//		if (k.isPlaceholder) {
-//			error("The referred private key is not declared.", 
-//				sig,
-//				BitcoinTMPackage.Literals.SIGNATURE__KEY
-//			);
-//		}
-//	}
+	@Check
+	def void checkSign(Signature sig) {
+		var k = sig.key
+		
+		if (k instanceof VariableReference) {
+			if (k.ref instanceof Parameter)
+				error("Cannot use parametric key.", 
+					sig,
+					BitcoinTMPackage.Literals.SIGNATURE__KEY
+				);
+		}
+	}
 	
 	@Check
 	def void checkOutputWithoutSignatures(Output output) {

@@ -182,9 +182,12 @@ public class BitcoinUtils {
 		else if (obj instanceof Hash)
 			return new ScriptBuilder().data(((Hash) obj).getBytes()).build();
 
-		else if (obj instanceof Boolean) {
+		else if (obj instanceof Boolean)
 			return ((Boolean) obj)? new ScriptBuilder().addTrue().build(): new ScriptBuilder().addFalse().build();
-		}
+		
+		else if (obj instanceof DumpedPrivateKey)
+			return new ScriptBuilder().data(((DumpedPrivateKey) obj).getKey().getPubKey()).build();
+			
 		
 		throw new IllegalArgumentException();
 	}

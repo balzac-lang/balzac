@@ -39,6 +39,7 @@ import org.eclipse.xtext.EcoreUtil2
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.lib.client.BitcoinClientException
 import it.unica.tcs.bitcoinTM.KeyLiteral
+import org.bitcoinj.core.DumpedPrivateKey
 
 class TransactionCompiler {
 	
@@ -242,11 +243,34 @@ class TransactionCompiler {
 
         if (outScript.isP2PKH) {
             var versig = outScript.exp as Versig
-            var wif = versig.pubkeys.get(0).interpretSafe(KeyLiteral).value
-            var pk = BitcoinUtils.wifToECKey(wif, output.networkParams).toAddress(output.networkParams)
-
-            /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-            new P2PKHOutputScript(pk)
+            
+            var res = versig.pubkeys.get(0).interpretSafe
+            
+            if (res instanceof KeyLiteral) {
+	            var wif = res.value
+	            var pkHash = BitcoinUtils.wifToECKey(wif, output.networkParams).pubKeyHash
+	
+	            /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+	            val sb = new P2PKHOutputScript()
+	            sb.op(OP_DUP)
+	              .op(OP_HASH160)
+	              .data(pkHash)
+	              .op(OP_EQUALVERIFY)
+	              .op(OP_CHECKSIG)
+	            return sb            	
+            }
+            else if (res instanceof VariableReference) {
+            	val sb = new P2PKHOutputScript()
+	            sb.op(OP_DUP)
+	              .op(OP_HASH160)
+	              .addVariable(res.ref.name, DumpedPrivateKey)
+	              .op(OP_EQUALVERIFY)
+	              .op(OP_CHECKSIG)
+	            return sb
+            }
+            else
+            	throw new CompileException("unexpected result "+res)
+            	
         } else if (outScript.isP2SH) {
             
             // get the redeem script to serialize

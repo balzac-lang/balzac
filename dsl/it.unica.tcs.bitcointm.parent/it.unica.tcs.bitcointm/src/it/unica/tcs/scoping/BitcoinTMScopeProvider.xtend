@@ -46,7 +46,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	 * free-names resolution
 	 */
 	def IScope scope_Variable(EObject v, EReference ref) {
-		println("Resolving variable: "+v)
+//		println("Resolving variable: "+v)
 		return getScopeForParameters(v.eContainer);		
 	}
 	
@@ -56,7 +56,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 	
 	def dispatch IScope getScopeForParameters(Script obj) {
-		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
+//		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
 		return Scopes.scopeFor(
 			obj.params,
 			getScopeForParameters(obj.eContainer)
@@ -71,7 +71,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def dispatch IScope getScopeForParameters(UserTransactionDeclaration obj) {
-		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.name»''')
+//		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.name»''')
 		return Scopes.scopeFor(
 			obj.params,
 			getScopeForVariableDeclarations(obj.eContainer)

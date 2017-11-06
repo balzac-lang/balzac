@@ -27,6 +27,8 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 import it.unica.tcs.generator.ExpressionGenerator
 import it.unica.tcs.lib.Hash.Ripemd160
+import org.bitcoinj.core.DumpedPrivateKey
+import it.unica.tcs.bitcoinTM.KeyType
 
 @Singleton
 class CompilerUtils {
@@ -70,12 +72,13 @@ class CompilerUtils {
     
 	def Class<?> convertType(Type type) {
     	if(type instanceof IntType) return Integer
+    	if(type instanceof StringType) return String
+    	if(type instanceof BooleanType) return Boolean
     	if(type instanceof Hash160Type) return Hash160
     	if(type instanceof Hash256Type) return Hash256
     	if(type instanceof Ripemd160Type) return Ripemd160
     	if(type instanceof Sha256Type) return Sha256
-    	if(type instanceof StringType) return String
-    	if(type instanceof BooleanType) return Boolean
+		if(type instanceof KeyType) return DumpedPrivateKey
     	if(type instanceof SignatureType) return typeof(byte[])
     	
     	throw new CompileException("Unexpected type "+type.class.simpleName)

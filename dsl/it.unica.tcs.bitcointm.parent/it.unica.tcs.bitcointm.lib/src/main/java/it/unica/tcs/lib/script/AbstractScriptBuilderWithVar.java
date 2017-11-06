@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
@@ -530,7 +531,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {
-		checkArgument(Integer.class.equals(type) || String.class.equals(type) || Boolean.class.equals(type) || Hash.class.isAssignableFrom(type), "invalid type "+type);
+		checkArgument(Integer.class.equals(type) || String.class.equals(type) || Boolean.class.equals(type) || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type), "invalid type "+type);
 		addVariableChunk(name);
 		env.addVariable(name, type);
 		return (T) this;
