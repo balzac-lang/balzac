@@ -31,7 +31,6 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.VariableDeclaration
 import it.unica.tcs.bitcoinTM.VariableReference
@@ -319,7 +318,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__NAME,
+					BitcoinTMPackage.Literals.VARIABLE__NAME,
 					IssueCodes.TRANSACTION_DECLARATION__DUPLICATED_NAME
 				);
 			}
@@ -647,7 +646,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     def boolean checkInputTransactionParams(Input input) {
 
-        var inputTx = input.txRef.tx
+        var inputTx = input.txRef.ref
         if (inputTx instanceof UserTransactionDeclaration) {
             
             if (inputTx.params.size!=input.txRef.actualParams.size) {
@@ -667,7 +666,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         var outIndex = input.outpoint
         var int numOfOutputs
-        var inputTx = input.txRef.tx
+        var inputTx = input.txRef.ref
         
         if (inputTx instanceof SerialTransactionDeclaration) {
             numOfOutputs = inputTx.compileTransaction.outputs.size
@@ -688,7 +687,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean checkInputExpressions(Input input) {
-        var inputTx = input.txRef.tx
+        var inputTx = input.txRef.ref
         var outputIdx = input.outpoint
 		
 		if (inputTx instanceof UserTransactionDeclaration) {
@@ -720,7 +719,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else {
             
-            var refTx = input.txRef.tx.compileTransaction.toTransaction()
+            var refTx = (input.txRef.ref as TransactionDeclaration).compileTransaction.toTransaction()
                         
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
             	if (input.redeemScript===null) {
@@ -765,7 +764,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean checkInputsAreUnique(Input inputA, Input inputB) {
-        if (inputA.txRef.tx==inputB.txRef.tx && 
+        if (inputA.txRef.ref==inputB.txRef.ref && 
             inputA.outpoint==inputB.outpoint
         ) {
             error(
@@ -789,7 +788,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var amount = 0L
         
         for (in : tx.body.inputs) {
-        	var inputTx = in.txRef.tx
+        	var inputTx = in.txRef.ref
             if (inputTx instanceof UserTransactionDeclaration) {
                 var index = in.outpoint
                 var output = inputTx.body.outputs.get(index) 
@@ -1004,7 +1003,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	val tx = EcoreUtil2.getContainerOfType(after, TransactionDeclaration);
     	
     	// all the txs pointing to tx
-    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), TransactionReference).filter[v|v.tx==tx]
+    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), VariableReference).filter[v|v.ref==tx]
     	
     	// all these txs have to define the timelock
     	for (ref : txReferences) {
@@ -1065,7 +1064,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			    	
 			    	if (timesPerTx.size==0) {
 			    		error(
-			                '''Transaction does not define a relative timelock for transaction «ref.tx.name»''',
+			                '''Transaction does not define a relative timelock for transaction «ref.ref.name»''',
 			                body,
 			                BitcoinTMPackage.Literals.TRANSACTION_BODY__TLOCK
 			            );

@@ -135,7 +135,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	}
 	
 	def public getTransactionFromFactory(TransactionReference txRef) {
-		return getTransactionFromFactory(txRef.tx.name, txRef.actualParams)
+		return getTransactionFromFactory(txRef.ref.name, txRef.actualParams)
 	}
 	
 	def public getTransactionFromFactory(String name, List<Expression> actualParams) {

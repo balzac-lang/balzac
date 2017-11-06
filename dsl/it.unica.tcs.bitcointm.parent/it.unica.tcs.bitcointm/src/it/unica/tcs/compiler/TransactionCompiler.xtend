@@ -40,6 +40,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.lib.client.BitcoinClientException
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import org.bitcoinj.core.DumpedPrivateKey
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 class TransactionCompiler {
 	
@@ -94,13 +95,13 @@ class TransactionCompiler {
     			tb.addInput(inScript)
     		}
     		else {    			
-	    		val parentTx = input.txRef.tx.compileTransaction	// recursive call
+	    		val parentTx = (input.txRef.ref as TransactionDeclaration).compileTransaction	// recursive call
 	    		val parentTxFormalparams = 
-	    			if (input.txRef.tx instanceof UserTransactionDeclaration) 
-	    				(input.txRef.tx as UserTransactionDeclaration).params
+	    			if (input.txRef.ref instanceof UserTransactionDeclaration) 
+	    				(input.txRef.ref as UserTransactionDeclaration).params
 	    			else newArrayList
 	    		
-				println('''«tx.name»: parent tx «input.txRef.tx.name», v=«parentTx.variables», fv=«parentTx.freeVariables»''')
+				println('''«tx.name»: parent tx «input.txRef.ref.name», v=«parentTx.variables», fv=«parentTx.freeVariables»''')
 	    		
 	    		// set eventual variables
 				for (var j=0; j<input.txRef.actualParams.size; j++) {
@@ -114,7 +115,7 @@ class TransactionCompiler {
 					
 						// if the evaluation is a literal, set the parent variable
 						if (actualPvalue instanceof Literal) {
-							println('''«tx.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
+							println('''«tx.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «input.txRef.ref.name»''')
 							parentTx.bindVariable(formalP.name, actualPvalue.interpret(newHashMap).first)
 						}
 						// it the evaluation contains some tx variables, create an hook
@@ -122,12 +123,12 @@ class TransactionCompiler {
 							// get the tx variables present within this actual parameter
 							val fvs = actualPvalue.getTxVariables
 							val fvsNames = fvs.map[p|p.name].toSet
-							println('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «input.txRef.tx.name»''')
+							println('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «input.txRef.ref.name»''')
 							
 							// this hook will be executed when all the tx variables will have been bound
 							// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
 							tb.addHookToVariableBinding(fvsNames, [ values |
-								println('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «input.txRef.tx.name»''')
+								println('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «input.txRef.ref.name»''')
 								println('''«tx.name»: values «values»''')
 
 								// create a rho for the evaluation
@@ -186,7 +187,7 @@ class TransactionCompiler {
     def private InputScript compileInput(Input input, ITransactionBuilder parentTx) {
 
         var outIdx = input.outpoint
-        var inputTx = input.txRef.tx
+        var inputTx = input.txRef.ref
         
         
         if (parentTx.getOutputs().get(outIdx).script.isP2PKH) {

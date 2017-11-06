@@ -80,7 +80,7 @@ RelativeTime:
 	value=Delay "from" tx=[TransactionDeclaration];
 
 TransactionReference:
-	tx=[TransactionDeclaration] 
+	ref=[TransactionDeclaration] 
 	("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Script:
@@ -216,7 +216,6 @@ BasicType:
 |   {BooleanType} value=BoolTypeEnum
 |   {KeyType} value=KeyTypeEnum
 |   {SignatureType} value=SignatureTypeEnum
-|   {TransactionType} value=TransactionTypeEnum
 |	HashType;
 
 HashType:
@@ -234,7 +233,6 @@ enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum KeyTypeEnum: key;
 enum SignatureTypeEnum: signature;
-enum TransactionTypeEnum: transaction;
 enum Hash160TypeEnum: hash160;
 enum Hash256TypeEnum: hash256;
 enum Ripemd160TypeEnum: ripemd160;

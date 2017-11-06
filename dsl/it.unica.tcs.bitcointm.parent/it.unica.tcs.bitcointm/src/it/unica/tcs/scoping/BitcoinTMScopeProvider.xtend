@@ -74,18 +74,15 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 //		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.name»''')
 		return Scopes.scopeFor(
 			obj.params,
-			getScopeForVariableDeclarations(obj.eContainer)
+			obj.eContainer.getScopeForVariableDeclarations(IScope.NULLSCOPE)
 		); 	// stop recursion
 	}	
 
 	def dispatch IScope getScopeForParameters(SerialTransactionDeclaration obj) {
-		return Scopes.scopeFor(
-			newArrayList,
-			getScopeForVariableDeclarations(obj.eContainer)
-		); 	// stop recursion
+		obj.eContainer.getScopeForVariableDeclarations(IScope.NULLSCOPE)
+		// stop recursion
 	}
 
-	
 	
 	/**
 	 * Key declarations are resolved within the same resource (file).
@@ -93,7 +90,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	 * use the same name for a key, the qualified name should be used
 	 * (e.g. <code>Alice.k</code>)</p>
 	 */
-	def IScope getScopeForVariableDeclarations(EObject ctx) {
+	def IScope getScopeForVariableDeclarations(EObject ctx, IScope outerScope) {
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var participants = EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration);
 		
@@ -116,6 +113,6 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 				val participantName = (k.eContainer as ParticipantDeclaration).name
 				QualifiedName.create(participantName, k.name)				
 			], 
-			Scopes.scopeFor(newArrayList))
+			outerScope)
 	}
 }

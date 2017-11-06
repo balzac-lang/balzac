@@ -26,7 +26,7 @@ transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(Bob.kB; si
 transaction T_funds(k:key) { 
 	input = _ 
 	output = 20 BTC: fun(sigma) . versig(k; sigma)
-} 
+}
 
 /*
  * commit
@@ -91,13 +91,7 @@ transaction T_payDepositB {
 	after block 45 
 }
 
-transaction T_payDeposit(k:key, secret:string) {
-    input = T_commit(hash160(secret), k): sig Alice.kA sig Bob.kB ""
- 	output = 10 BTC - 10: fun(sigma) . versig(Bob.kB; sigma)
-	after block 45 
-}
-
-/*o,
+/*
  * compute
  */
 transaction T_compute {

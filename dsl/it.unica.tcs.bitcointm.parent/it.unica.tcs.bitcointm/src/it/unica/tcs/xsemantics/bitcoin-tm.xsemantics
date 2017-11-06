@@ -59,7 +59,6 @@ import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Tau
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
@@ -180,11 +179,6 @@ auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, TransactionType t1, TransactionType t2) {
-    EcoreUtil::copy(t1)
-}
-
-
 auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
     substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
@@ -209,7 +203,7 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
  */
 
 rule SerialTransactionDeclaration
-	G |- TypeSubstitutions substitutions |> SerialTransactionDeclaration tx : Type t
+	G |- TypeSubstitutions substitutions |> SerialTransactionDeclaration tx : Type type
 from {}
 
 /**
@@ -265,9 +259,10 @@ rule Input
 	G |- TypeSubstitutions substitutions |> Input input : Type t
 from {
 	
-	if (!input.isPlaceholder) {		
+	if (!input.isPlaceholder) {
+		
 		// the body of the redeemed transaction is well typed
-		var inputTx = input.txRef.tx
+		var inputTx = input.txRef.ref
 		G |- substitutions |> inputTx : var Type t1		// eventual tx parameters have type BasicType
 	
 		// all the input expressions are well typed and the type is basic
@@ -422,7 +417,8 @@ rule VariableReference
 from {
 	G |- substitutions |> varRef.ref: type	
 	type = typesubstitution(substitutions, type)
-	varRef.ref.type = EcoreUtil.copy(type)	// set the param type, useful just for the ui
+
+	varRef.ref.type = EcoreUtil.copy(type)  // set the param type, useful just for the ui
 }
 
 rule Minus
@@ -795,7 +791,6 @@ from {
 	for (txRef : ask.txRefs) {
 		G |- substitutions |> txRef : var Type t
 		t = typesubstitution(substitutions, t)
-		unify(substitutions, t, BitcoinTMFactory::eINSTANCE.createTransactionType)
 	}
 }
 
@@ -854,7 +849,7 @@ from {
 //}
 
 rule ProtocolTransactionReference
-    G |- TypeSubstitutions substitutions |> ProtocolTransactionReference txRef : BitcoinTMFactory::eINSTANCE.createTransactionType
+    G |- TypeSubstitutions substitutions |> ProtocolTransactionReference txRef : Type t
 from {
 	if (txRef.substitution!==null) {
 		G |- substitutions |> txRef.substitution: var Type t1
