@@ -18,6 +18,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
@@ -111,9 +112,9 @@ public class ASTUtils {
 				return exp;
 			
 			Object value = interpreted.getFirst();
-			if (value instanceof Integer) {
+			if (value instanceof Long) {
 				NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
-	    		res.setValue((Integer) value);
+	    		res.setValue((Long) value);
 	    		return (T) res;
 	    	}
 	    	else if (value instanceof String) {
@@ -224,13 +225,13 @@ public class ASTUtils {
     			.count()>0;
     }
 	
-    public int getAbsolute(Tlock tlock) {
+    public long getAbsolute(Tlock tlock) {
     	return tlock.getTimes().stream()
     			.filter(x -> x instanceof AbsoluteTime)
     			.collect(Collectors.toList()).get(0).getValue();
     }
     
-    public int getRelative(Tlock tlock, TransactionDeclaration tx) {
+    public long getRelative(Tlock tlock, TransactionDeclaration tx) {
     	return tlock.getTimes().stream()
     			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
     			.collect(Collectors.toList()).get(0).getValue();
@@ -278,7 +279,7 @@ public class ASTUtils {
     	return isRelative(time) && !isRelativeBlock(time);   
 	}
     
-    public int setRelativeDate(int i) {
+    public long setRelativeDate(int i) {
     	// true if the 22th bit is UNSET
     	int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
     	return i | mask;
@@ -343,9 +344,19 @@ public class ASTUtils {
 			
 		if (list.size()==0)	// network undeclared, assume testnet
 			return TestNet3Params.get();	
+
+		if (list.size()==1) {
+			Network net = list.get(0);
 			
-		if (list.size()==1)
-			return list.get(0).isTestnet()? TestNet3Params.get(): MainNetParams.get();
+			if (net.isTestnet())
+				return TestNet3Params.get();
+			
+			if (net.isMainnet())
+				return MainNetParams.get();
+			
+			if (net.isRegtest())
+				return RegTestParams.get();
+		}
 			
 		throw new IllegalStateException();
 	}

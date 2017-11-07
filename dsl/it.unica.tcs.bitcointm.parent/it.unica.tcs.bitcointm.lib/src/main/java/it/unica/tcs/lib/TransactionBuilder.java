@@ -277,7 +277,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 *             if the output script free variables are not contained within
 	 *             this tx free variables.
 	 */
-	public TransactionBuilder addOutput(OutputScript outputScript, int satoshis) {
+	public TransactionBuilder addOutput(OutputScript outputScript, long satoshis) {
 		checkArgument(getFreeVariables().containsAll(outputScript.getFreeVariables()), "the output script contains free-variables "+outputScript.getFreeVariables()+", but the transactions only contains "+getFreeVariables());
 		for (String fv : outputScript.getFreeVariables()) {
 			checkArgument(outputScript.getType(fv).equals(getType(fv)), "input script variable '"+fv+"' is of type "+outputScript.getType(fv)+" while the tx variable is of type "+getType(fv));

@@ -7,7 +7,7 @@ package it.unica.tcs.conversion
 import com.google.inject.Inject
 import it.unica.tcs.conversion.converter.DelayValueConverter
 import it.unica.tcs.conversion.converter.HashValueConverter
-import it.unica.tcs.conversion.converter.IntUnderscoreValueConverter
+import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
 import it.unica.tcs.conversion.converter.WIFValueConverter
@@ -23,12 +23,12 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	@Inject private NumberValueConverter numberValueConverter;
 	@Inject private HashValueConverter hashConverter;
 	@Inject private TimestampValueConverter timestampTerminalConverter;
-	@Inject private IntUnderscoreValueConverter intTerminalConverter;
+	@Inject private LongUnderscoreValueConverter longTerminalConverter;
 	@Inject private DelayValueConverter delayConverter;
 	@Inject private WIFValueConverter wifConverter;
 		
 	@ValueConverter(rule = "Number")
-    def IValueConverter<Integer> getNumberConverter() {
+    def IValueConverter<Long> getNumberConverter() {
         return numberValueConverter
 	}
 	
@@ -53,17 +53,17 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	}
 
 	@ValueConverter(rule = "TIMESTAMP")
-    def IValueConverter<Integer> getTimestampConverter() {
+    def IValueConverter<Long> getTimestampConverter() {
         return timestampTerminalConverter
 	}	
 
-	@ValueConverter(rule = "INT")
-    def IValueConverter<Integer> getIntConverter() {
-        return intTerminalConverter
+	@ValueConverter(rule = "LONG")
+    def IValueConverter<Long> getLongConverter() {
+        return longTerminalConverter
 	}
 		
 	@ValueConverter(rule = "Delay")
-    def IValueConverter<Integer> getDelay() {
+    def IValueConverter<Long> getDelay() {
         return delayConverter
 	}
 	
@@ -89,4 +89,5 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     def IValueConverter<String> getWIF() {
         return wifConverter
 	}
+	
 }

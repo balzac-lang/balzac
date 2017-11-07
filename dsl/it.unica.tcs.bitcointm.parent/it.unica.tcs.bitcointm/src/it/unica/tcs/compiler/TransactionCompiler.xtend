@@ -150,7 +150,7 @@ class TransactionCompiler {
 					}
 				}
 	    		
-	    		val outIndex = input.outpoint
+	    		val outIndex = new Long(input.outpoint).intValue
 	    		val inScript = input.compileInput(parentTx)
 	    		
 	    		// relative timelock
@@ -168,7 +168,7 @@ class TransactionCompiler {
     	// outputs
     	for (output : tx.body.outputs) {
     		val outScript = output.compileOutput
-    		val satoshis = output.value.exp.interpret(newHashMap).first as Integer
+    		val satoshis = output.value.exp.interpret(newHashMap).first as Long
     		tb.addOutput(outScript, satoshis)
     	}
     	
@@ -186,7 +186,7 @@ class TransactionCompiler {
 
     def private InputScript compileInput(Input input, ITransactionBuilder parentTx) {
 
-        var outIdx = input.outpoint
+        var outIdx = new Long(input.outpoint).intValue
         var inputTx = input.txRef.ref
         
         

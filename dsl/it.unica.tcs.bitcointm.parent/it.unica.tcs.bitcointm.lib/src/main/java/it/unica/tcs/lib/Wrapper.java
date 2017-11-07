@@ -1,12 +1,11 @@
 package it.unica.tcs.lib;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.Serializable;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 
 
@@ -17,15 +16,20 @@ public interface Wrapper<T> extends Serializable {
 	
 	public static NetworkParametersWrapper MAIN = NetworkParametersWrapper.wrap(MainNetParams.get());
 	public static NetworkParametersWrapper TESTNET = NetworkParametersWrapper.wrap(TestNet3Params.get());
+	public static NetworkParametersWrapper REGTEST = NetworkParametersWrapper.wrap(RegTestParams.get());
 	
 	public interface NetworkParametersWrapper extends Wrapper<NetworkParameters> {
 		public static NetworkParametersWrapper wrap(NetworkParameters obj) {
 			final boolean isTest = obj instanceof TestNet3Params;
-			checkState(isTest || obj instanceof MainNetParams);
+			final boolean isMainnet = obj instanceof MainNetParams;
+			final boolean isRegtest = obj instanceof RegTestParams;
 			return new NetworkParametersWrapper() {
 				@Override
 				public NetworkParameters get() {
-					return isTest? TestNet3Params.get(): MainNetParams.get();
+					if (isMainnet) return MainNetParams.get();
+					if (isTest) return TestNet3Params.get();
+					if (isRegtest) return RegTestParams.get();
+					throw new IllegalStateException();
 				}
 				private static final long serialVersionUID = 1L;
 			};

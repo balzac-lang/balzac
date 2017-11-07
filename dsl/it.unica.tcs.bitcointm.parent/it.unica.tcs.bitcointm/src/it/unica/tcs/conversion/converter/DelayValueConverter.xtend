@@ -10,12 +10,12 @@ import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractValueConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class DelayValueConverter extends AbstractValueConverter<Integer> {
+class DelayValueConverter extends AbstractValueConverter<Long> {
 
 	@Inject private IntUnderscoreValueConverter intConverter
 	@Inject private ASTUtils astUtils
 	
-	override Integer toValue(String string, INode node) {
+	override Long toValue(String string, INode node) {
 		
 		if (string.contains("minutes")) {
 			try {
@@ -47,7 +47,7 @@ class DelayValueConverter extends AbstractValueConverter<Integer> {
 		else if (string.contains("blocks")) {
 			try {
 				var b = Short.valueOf(intConverter.toValue(string.replaceAll("\\s*blocks",""),node).toString)
-				return Integer.valueOf(b);
+				return Long.valueOf(b);
 			}
 			catch (NumberFormatException e) {
 				throw new ValueConverterException("The given value '"+string+"' is too large.", node, e);
@@ -71,7 +71,7 @@ class DelayValueConverter extends AbstractValueConverter<Integer> {
 		convertHours(days*24) 
 	}
 	
-	override toString(Integer value) throws ValueConverterException {
+	override toString(Long value) throws ValueConverterException {
 		return value.toString
 	}
 	

@@ -11,10 +11,10 @@ import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractValueConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class NumberValueConverter extends AbstractValueConverter<Integer> {
+class NumberValueConverter extends AbstractValueConverter<Long> {
 
-	@Inject IntUnderscoreValueConverter intConverter
-	@Inject IntHexUnderscoreValueConverter hexConverter
+	@Inject LongUnderscoreValueConverter intConverter
+	@Inject LONGHEXValueConverter hexConverter
 
 	val patternS = 
 			"((?<intpart>\\d([\\d_]*[\\d]+)?)(\\.(?<decpart>\\d([\\d_]*[\\d]+)?))?(\\s*(?<btcpart>BTC)?))"
@@ -24,7 +24,7 @@ class NumberValueConverter extends AbstractValueConverter<Integer> {
 	val Pattern pattern = Pattern.compile(patternS);
 	val ONE_BTC_SATOSHI = 100_000_000
 
-	override Integer toValue(String string, INode node) {
+	override Long toValue(String string, INode node) {
 		
 		val Matcher matcher = pattern.matcher(string);
 		
@@ -66,7 +66,7 @@ class NumberValueConverter extends AbstractValueConverter<Integer> {
 		}
 	}
 	
-	override toString(Integer value) throws ValueConverterException {
+	override toString(Long value) throws ValueConverterException {
 		return value.toString
 	}
 	

@@ -30,7 +30,7 @@ Declaration:
   TransactionDeclaration
 | ParticipantDeclaration; 
 
-Network: {Network} "network" (testnet?="testnet" | "mainnet");
+Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
 /*
  * keys
@@ -58,7 +58,7 @@ TransactionBody: {TransactionBody} "{"
 
 
 Input:
-	txRef=TransactionReference ("@" outpoint=INT)? ":" (exps+=ScriptAtomic)+ ("["redeemScript=Script"]")?;
+	txRef=TransactionReference ("@" outpoint=LONG)? ":" (exps+=ScriptAtomic)+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -74,7 +74,7 @@ Tlock: times+=Time ("&&" times+=Time)*;
 Time: AbsoluteTime | RelativeTime;
 
 AbsoluteTime:
-	block?="block" value=INT | date?="date" value=TIMESTAMP;
+	block?="block" value=LONG | date?="date" value=TIMESTAMP;
 
 RelativeTime:
 	value=Delay "from" tx=[TransactionDeclaration];
@@ -202,7 +202,6 @@ Between: "between" "(" value=ScriptExpression "," left=ScriptExpression":" right
 Size: "size" "(" value=ScriptExpression ")";
 AfterTimeLock: "after" timelock=Time ":" continuation=ScriptAtomic;
 
-
 ParameterType returns Type:
 	BasicType;
 
@@ -253,24 +252,24 @@ Typeable:
 | ExpressionI
 ;
 
-Number returns ecore::EInt:
-	INT ('.' INT)? "BTC"?
-|	INT_HEX;
+Number returns ecore::ELong:
+	LONG ('.' LONG)? "BTC"?
+|	LONG_HEX;
 
-Delay returns ecore::EInt:
+Delay returns ecore::ELong:
 	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
 
-MinutesDelay returns ecore::EInt: INT "minutes";
-HoursDelay   returns ecore::EInt: INT "hours";
-DayDelay     returns ecore::EInt: INT "days";
-BlockDelay   returns ecore::EInt: INT "blocks";
+MinutesDelay returns ecore::ELong: LONG "minutes";
+HoursDelay   returns ecore::ELong: LONG "hours";
+DayDelay     returns ecore::ELong: LONG "days";
+BlockDelay   returns ecore::ELong: LONG "blocks";
 
-terminal INT_HEX returns ecore::EInt:
+terminal LONG_HEX returns ecore::ELong:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
-@Override	
-terminal INT returns ecore::EInt:
+
+terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
 terminal WIF: 
@@ -283,7 +282,7 @@ terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'
 terminal TXID:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
-terminal TIMESTAMP returns ecore::EInt: 
+terminal TIMESTAMP returns ecore::ELong: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
 	("T" HOUR ":" MINUTE 					// THH:mm
 		(":" SECOND 						// :ss
@@ -356,6 +355,8 @@ ProtocolIfThenElse:
 'then' then=NextProcess 
 (=> 'else' else=NextProcess)?;
 
+@Override
+terminal INT returns ecore::EInt: LONG;
 
 ProtocolTransactionReference:
 	txRef=TransactionReference (substitution=TransactionBody)?;
@@ -402,4 +403,27 @@ Atomic returns Expression:
 //		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* ")" 
 //		"using" tx=ProtocolTransactionReference;
 		
-		
+
+
+//Regtest:
+//	'regtest' '{'		
+//		intructions+=Instruction
+//	'}';
+//
+//Instruction:
+//	MineBlocks | MineBlocks | SendTransaction;
+//
+//MineBlocks:
+//	'mine' n=INT 'blocks';
+//	
+//SendTransaction:
+//	'send' tx=[TransactionReference];
+//
+//ChargeKeys:
+//	"charge" keys+=[VariableDeclaration]  ;
+//
+//GetBalance:
+//	"balanceof" key=[VariableDeclaration];
+//
+//
+//		

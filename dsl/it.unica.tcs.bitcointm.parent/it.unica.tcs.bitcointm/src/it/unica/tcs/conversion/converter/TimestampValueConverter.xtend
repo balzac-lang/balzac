@@ -14,9 +14,9 @@ import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class TimestampValueConverter extends AbstractLexerBasedConverter<Integer> {
+class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
 
-	override Integer toValue(String s, INode node) {
+	override Long toValue(String s, INode node) {
 
 		var OffsetDateTime date = null;
 			
@@ -44,6 +44,6 @@ class TimestampValueConverter extends AbstractLexerBasedConverter<Integer> {
 				The format must be like '2011-12-03' '2011-12-03T10:15', '2011-12-03T10:15:00', or '2011-12-03T10:15:30+01:00'", node, null);
 		}
 		else
-			return Long.valueOf(date.toEpochSecond).intValue
+			return Long.valueOf(date.toEpochSecond)
 	}
 }

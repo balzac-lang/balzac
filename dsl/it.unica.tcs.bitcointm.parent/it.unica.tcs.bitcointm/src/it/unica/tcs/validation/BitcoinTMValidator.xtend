@@ -691,7 +691,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var outputIdx = input.outpoint
 		
 		if (inputTx instanceof UserTransactionDeclaration) {
-            var outputScript = inputTx.body.outputs.get(outputIdx).script;
+            var outputScript = inputTx.body.outputs.get(new Long(outputIdx).intValue).script;
             
             var numOfExps = input.exps.size
             var numOfParams = outputScript.params.size
@@ -790,13 +790,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         for (in : tx.body.inputs) {
         	var inputTx = in.txRef.ref
             if (inputTx instanceof UserTransactionDeclaration) {
-                var index = in.outpoint
+                var index = in.outpoint.intValue
                 var output = inputTx.body.outputs.get(index) 
-                var value = output.value.exp.interpret(newHashMap).first as Integer
+                var value = output.value.exp.interpret(newHashMap).first as Long
                 amount+=value
             }
             else if (inputTx instanceof SerialTransactionDeclaration){
-                var index = in.outpoint
+                var index = in.outpoint.intValue
                 var txbody = inputTx.bytes
                 var value = txbody.getOutputAmount(tx.networkParams, index)
                 amount+=value
@@ -804,7 +804,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         
         for (output : tx.body.outputs) {
-            var value = output.value.exp.interpret(newHashMap).first as Integer
+            var value = output.value.exp.interpret(newHashMap).first as Long
             amount-=value
         }
 
@@ -904,7 +904,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkPositiveOutValue(Output output) {
     	
-    	var value = output.value.exp.interpret(newHashMap).first as Integer
+    	var value = output.value.exp.interpret(newHashMap).first as Long
     	var script = output.script
     	
     	if (script.isOpReturn && value>0) {

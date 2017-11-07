@@ -18,7 +18,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
 	private static final long serialVersionUID = 1L;
 	private final Map<String,Class<? extends T>> variablesType = new HashMap<>();
 	private final Map<String,T> variablesBinding = new HashMap<>();
-	
+		
 	@Override
 	public boolean hasVariable(String name) {
 		return variablesType.containsKey(name);

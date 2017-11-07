@@ -55,6 +55,8 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Declaration"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Network">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/testnet"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/mainnet"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/regtest"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionDeclaration/name"/>
