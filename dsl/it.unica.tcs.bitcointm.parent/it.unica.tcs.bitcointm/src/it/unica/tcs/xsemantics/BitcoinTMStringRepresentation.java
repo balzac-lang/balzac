@@ -11,14 +11,14 @@ import java.util.Map.Entry;
 
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.BooleanType;
+import it.unica.tcs.bitcoinTM.DeclarationLeft;
+import it.unica.tcs.bitcoinTM.DeclarationReference;
 import it.unica.tcs.bitcoinTM.IntType;
-import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.StringType;
 import it.unica.tcs.bitcoinTM.Type;
 import it.unica.tcs.bitcoinTM.TypeVariable;
-import it.unica.tcs.bitcoinTM.VariableReference;
 import it.xsemantics.runtime.StringRepresentation;
 
 /**
@@ -36,13 +36,13 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 		return "'" + stringConstant.getValue() + "'";
 	}
 
-	protected String stringRep(Parameter parameter) {
+	protected String stringRep(DeclarationLeft parameter) {
 		return parameter.getName()
 				+ ((parameter.getType()) != null ? " : "
 						+ string(parameter.getType()) : "");
 	}
 	
-	protected String stringRep(VariableReference variable) {
+	protected String stringRep(DeclarationReference variable) {
 		return variable.getRef().getName();
 	}
 

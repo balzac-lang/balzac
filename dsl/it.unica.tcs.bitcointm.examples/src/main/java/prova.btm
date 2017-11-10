@@ -8,8 +8,8 @@ transaction ALFA {
 		1 BTC: fun(n) . n==42;			// P2SH
 		1 BTC: fun(y) . versig(Alice.kA; y);	// P2PKH
 		0 BTC: "DATA"					// OP_RETURN 
-	]
-}
+	] 
+} 
 
 //transaction ALFA_serial = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f5050000000017a914a3f8ae3c775711c597ef7fdcfd5c3bfc2b6c47c4870000000000000000066a044441544100000000"
 serial transaction ALFA_serial = hex:01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000
@@ -21,7 +21,7 @@ transaction T {
 		0.00000546 BTC:		fun(n) . n=="screen";
 		546:				fun(x:signature, y:signature) . x==y;
 		550:				fun(y:signature) . false;
-		550:				fun(y2, n2: int, b:bool) . versig(Bob.kB; y2) && 2==n2 && b
+		550:				fun(y2, n2: int, b:bool) . versig(Alice.kA, Bob.kB; y2) && 2==n2 && b
 	]
 }
  
@@ -90,7 +90,7 @@ transaction A2 {
 transaction A3 {
 	input = Th : "secret"
 	output = 0: ""
-	after 380 days from Th
+	after 380 days from Th 
 }
 
 transaction A4 {
@@ -99,7 +99,7 @@ transaction A4 {
 	after block 499_999_999
 }
  
-transaction test(p) {
+transaction test(p) { 
 	input = Th : (""+p)
 	output = 1000: fun(secret:string). p==secret 
 	after block 499_999_999

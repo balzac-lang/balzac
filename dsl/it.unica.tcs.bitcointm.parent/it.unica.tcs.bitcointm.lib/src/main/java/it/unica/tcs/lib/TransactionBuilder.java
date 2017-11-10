@@ -134,8 +134,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 	 * @return this builder
 	 */
 	public TransactionBuilder addHookToVariableBinding(Set<String> names, Consumer<Map<String,Object>> hook) {
-		checkNotNull(names, "'name' cannot be null");
+		checkNotNull(names, "'names' cannot be null");
 		checkNotNull(hook, "'hook' cannot be null");
+		checkArgument(!names.isEmpty(), "cannot add an hook for an empty set of variables");
 		for (String name : names) {
 			checkArgument(hasVariable(name), "'"+name+"' is not a variable");
 			checkArgument(isFree(name), "'"+name+"' is not a free");

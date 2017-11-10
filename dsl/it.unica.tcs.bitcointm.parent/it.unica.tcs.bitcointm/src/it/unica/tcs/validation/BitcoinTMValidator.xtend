@@ -13,6 +13,9 @@ import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
+import it.unica.tcs.bitcoinTM.Declaration
+import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
@@ -20,8 +23,7 @@ import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
@@ -31,17 +33,14 @@ import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionLiteral
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
-import it.unica.tcs.bitcoinTM.VariableDeclaration
-import it.unica.tcs.bitcoinTM.VariableReference
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
-import it.unica.tcs.lib.client.BitcoinClientException
-import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
@@ -98,7 +97,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //		logger.error("--- ERROR TEST --- ")
 //		logger.fatal("--- FATAL TEST --- ")
 		
-		var tbody = tx.body
+		var tbody = tx.right.value as TransactionBody
 		var inputs = tbody.inputs
 		var outputs = tbody.outputs
 		
@@ -120,14 +119,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 */
 	
 	@Check
-	def void checkUnusedParameters(Parameter param){
+	def void checkUnusedParameters(DeclarationLeft param){
 
+		if (!(param.eContainer instanceof Script))
+			return;
+		
 		var references = EcoreUtil.UsageCrossReferencer.find(param, param.eResource());
 		// var references = EcoreUtil2.getAllContentsOfType(script.exp, VariableReference).filter[v|v.ref==p].size 
 		if (references.size==0)
 			warning("Unused variable '"+param.name+"'.", 
 				param,
-				BitcoinTMPackage.Literals.VARIABLE__NAME
+				BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME
 			);			
 	}
 
@@ -209,8 +211,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return
 		}
 		
-		if (exp instanceof VariableReference) {
-			// VariableReference(s) which refer to a VariableDeclaration are interpreted as their right-part interpretation.
+		if (exp instanceof DeclarationReference) {
+			// references which refer to a declaration are interpreted as their right-part interpretation.
 			// It's not useful to show that.
 			return;
 		}
@@ -310,22 +312,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-	@Check
-	def void checkTransactionDeclarationNameIsUnique(TransactionDeclaration t) {
-		
-		var root = EcoreUtil2.getRootContainer(t);
-		for (other: EcoreUtil2.getAllContentsOfType(root, TransactionDeclaration)){
-			
-			if (t!=other && t.getName.equals(other.name)) {
-				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.VARIABLE__NAME,
-					IssueCodes.TRANSACTION_DECLARATION__DUPLICATED_NAME
-				);
-			}
-		}
-	}
-	
-	
 //	@Check(NORMAL)
 //	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
 //		
@@ -377,26 +363,32 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //	}
 	
 	
-    @Check
-	def void checkDeclarationNameIsUnique(ParticipantDeclaration t) {
+	@Check
+	def void checkTransactionDeclarationNameIsUnique(Declaration t) {
+		
+		if (t instanceof ProcessDeclaration)
+			return
 		
 		var root = EcoreUtil2.getRootContainer(t);
-		for (other: EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration)){
+		val allDeclarations = EcoreUtil2.getAllContentsOfType(root, Declaration)
+		val allDeclarationsNoPart = allDeclarations.filter[d|!(d.eContainer instanceof Participant)]
+		
+		for (other: allDeclarationsNoPart){
 			
-			if (t!=other && t.getName.equals(other.name)) {
-				error("Duplicated name '"+other.name+"'.", 
-					BitcoinTMPackage.Literals.PARTICIPANT_DECLARATION__NAME,
-					IssueCodes.PARTICIPANT_DECLARATION__DUPLICATED_NAME
+			if (t!=other && t.left.name.equals(other.left.name)) {
+				error("Duplicated name '"+other.left.name+"'.", 
+					BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME
 				);
 			}
 		}
 	}
 	
     @Check
-	def void checkDeclarationNameIsUnique(ProcessDeclaration t) {
+	def void checkProcessDeclarationNameIsUnique(ProcessDeclaration t) {
 		
-		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);		// within a participant
-		for (other: EcoreUtil2.getAllContentsOfType(container, ProcessDeclaration)){
+		var container = EcoreUtil2.getContainerOfType(t, Participant);
+		
+		for (other: EcoreUtil2.getAllContentsOfType(container, ProcessDeclaration)){	// within a participant
 			
 			if (t!=other && t.getName.equals(other.name)) {
 				error("Duplicated name '"+other.name+"'.",
@@ -405,23 +397,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				);
 			}
 		}
-	}
-	
-	@Check
-	def void checkDeclarationNameIsUnique(VariableDeclaration t) {
 		
-		var container = EcoreUtil2.getContainerOfType(t, ParticipantDeclaration);
-		for (other: EcoreUtil2.getAllContentsOfType(container, VariableDeclaration)){
+		for (other: EcoreUtil2.getAllContentsOfType(container, Declaration)){			// within a participant
 			
-			if (t!=other && t.getName.equals(other.name)) {
-				error("Duplicated name '"+other.name+"'.",
-					t, 
-					BitcoinTMPackage.Literals.VARIABLE__NAME
+			if (t!=other && t.getName.equals(other.left.name)) {
+				error("Duplicated name '"+other.left.name+"'.",
+					t,
+					BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME
 				);
 			}
 		}
 	}
-    	
 	
 	@Check
 	def void checkVerSig(Versig versig) {
@@ -456,8 +442,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	def void checkSign(Signature sig) {
 		var k = sig.key
 		
-		if (k instanceof VariableReference) {
-			if (k.ref instanceof Parameter)
+		if (k instanceof DeclarationReference) {
+			if (k.ref.eContainer instanceof TransactionDeclaration)
 				error("Cannot use parametric key.", 
 					sig,
 					BitcoinTMPackage.Literals.SIGNATURE__KEY
@@ -529,7 +515,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 					error(
 						"Duplicate parameter name '"+p.params.get(j).name+"'.", 
 						p.params.get(j),
-						BitcoinTMPackage.Literals.VARIABLE__NAME, j
+						BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME, j
 					);
 				}
 			}
@@ -539,27 +525,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkSerialTransaction(SerialTransactionDeclaration tx) {
 		
+		val tbody = tx.right.value as TransactionLiteral
+		
 		try {
-			val txJ = 
-				if (tx.bytes!==null) new Transaction(tx.networkParams, BitcoinUtils.decode(tx.bytes))
-				else tx.id.getTransactionById(tx.networkParams)
-			
+			val txJ = new Transaction(tx.networkParams, BitcoinUtils.decode(tbody.value))
 			txJ.verify
 		} 
-		catch (BitcoinClientException e) {
-			error(
-				'''Unable to fetch the transaction from id «tx.id»''',
-				tx,
-				null
-			);
-		}
-		catch (TransactionNotFoundException e) {
-			error(
-				'''Cannot find transaction from id «tx.id»''',
-				tx,
-				null
-			);	
-		}
 		catch (VerificationException e) {
 			error(
 				'''Transaction is invalid. Details: «e.message»''',
@@ -572,20 +543,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check(CheckType.NORMAL)
 	def void checkUserDefinedTx(UserTransactionDeclaration tx) {
 
-		var tbody = tx.body		
+		val tbody = tx.right.value as TransactionBody
 		var hasError = false;
 //		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
 		
 		/*
 		 * Check transaction parameters
 		 */
-		for (param: tx.params) {
+		for (param: tx.left.params) {
 //			var param = tbody.params.get(i)
 			if (param.type instanceof SignatureType) {
 				error(
                     "Signature parameters are not allowed yet.",
                     param,
-                    BitcoinTMPackage.Literals.VARIABLE__NAME
+                    BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME
                 );
 			    hasError = hasError || true
 			}
@@ -653,7 +624,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	            error(
                     "The number of expressions does not match the number of parameters.",
                     input.txRef,
-                    BitcoinTMPackage.Literals.TRANSACTION_REFERENCE__ACTUAL_PARAMS
+                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS
                 );
                 return false
             }
@@ -666,13 +637,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         var outIndex = input.outpoint
         var int numOfOutputs
-        var inputTx = input.txRef.ref
+        var inputTx = input.txRef.ref.eContainer as TransactionDeclaration
         
         if (inputTx instanceof SerialTransactionDeclaration) {
             numOfOutputs = inputTx.compileTransaction.outputs.size
         }
         else if (inputTx instanceof UserTransactionDeclaration){
-            numOfOutputs = inputTx.body.outputs.size
+            numOfOutputs = (inputTx.right.value as TransactionBody).outputs.size
         }
         
         if (outIndex>=numOfOutputs) {
@@ -687,11 +658,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean checkInputExpressions(Input input) {
-        var inputTx = input.txRef.ref
+        var inputTx = input.txRef.ref.eContainer as TransactionDeclaration
         var outputIdx = input.outpoint
 		
 		if (inputTx instanceof UserTransactionDeclaration) {
-            var outputScript = inputTx.body.outputs.get(new Long(outputIdx).intValue).script;
+            var outputScript = (inputTx.right.value as TransactionBody).outputs.get(new Long(outputIdx).intValue).script;
             
             var numOfExps = input.exps.size
             var numOfParams = outputScript.params.size
@@ -719,7 +690,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else {
             
-            var refTx = (input.txRef.ref as TransactionDeclaration).compileTransaction.toTransaction()
+            var refTx = inputTx.compileTransaction.toTransaction()
                         
             if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
             	if (input.redeemScript===null) {
@@ -733,12 +704,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             	}
             	else {
             		// free variables are not allowed
-            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, VariableReference)) {
+            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
             			if (v.ref.eContainer instanceof UserTransactionDeclaration) {
             				error(
 			                    "Cannot reference transaction parameters from the redeem script.",
 			                    v,
-			                    BitcoinTMPackage.Literals.VARIABLE_REFERENCE__REF
+			                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
 			                );
             			}
             		}
@@ -785,43 +756,43 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
     def boolean checkFee(UserTransactionDeclaration tx) {
         
-        var amount = 0L
-        
-        for (in : tx.body.inputs) {
-        	var inputTx = in.txRef.ref
-            if (inputTx instanceof UserTransactionDeclaration) {
-                var index = in.outpoint.intValue
-                var output = inputTx.body.outputs.get(index) 
-                var value = output.value.exp.interpret(newHashMap).first as Long
-                amount+=value
-            }
-            else if (inputTx instanceof SerialTransactionDeclaration){
-                var index = in.outpoint.intValue
-                var txbody = inputTx.bytes
-                var value = txbody.getOutputAmount(tx.networkParams, index)
-                amount+=value
-            }
-        }
-        
-        for (output : tx.body.outputs) {
-            var value = output.value.exp.interpret(newHashMap).first as Long
-            amount-=value
-        }
-
-        if (amount==0) {
-            warning("Fees are zero.",
-                tx,
-                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
-            );
-        }
-        
-        if (amount<0) {
-            error("The transaction spends more than expected.",
-                tx,
-                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
-            );
-            return false;
-        }
+//        var amount = 0L
+//        
+//        for (in : tx.body.inputs) {
+//        	var inputTx = in.txRef.ref
+//            if (inputTx instanceof UserTransactionDeclaration) {
+//                var index = in.outpoint.intValue
+//                var output = inputTx.body.outputs.get(index) 
+//                var value = output.value.exp.interpret(newHashMap).first as Long
+//                amount+=value
+//            }
+//            else if (inputTx instanceof SerialTransactionDeclaration){
+//                var index = in.outpoint.intValue
+//                var txbody = inputTx.bytes
+//                var value = txbody.getOutputAmount(tx.networkParams, index)
+//                amount+=value
+//            }
+//        }
+//        
+//        for (output : tx.body.outputs) {
+//            var value = output.value.exp.interpret(newHashMap).first as Long
+//            amount-=value
+//        }
+//
+//        if (amount==0) {
+//            warning("Fees are zero.",
+//                tx,
+//                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
+//            );
+//        }
+//        
+//        if (amount<0) {
+//            error("The transaction spends more than expected.",
+//                tx,
+//                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
+//            );
+//            return false;
+//        }
         
         return true;
     }
@@ -829,19 +800,24 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def boolean correctlySpendsOutput(UserTransactionDeclaration tx) {
         
 		var txBuilder = tx.compileTransaction
-
-		 if (!txBuilder.isReady) {
+		val tbody = tx.right.value as TransactionBody
+		
+		if (!txBuilder.isReady) {
         	info(
 				'''Cannot check if these inputs are correctly spending their outputs''',
-				tx.body,
+				tx.right.value,
 				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS						
 			)
 			return true
         }
 
-        for (var i=0; i<tx.body.inputs.size; i++) {
+		if (txBuilder.isCoinbase) {
+			return true
+		}
 
-			println('''correctlySpendsOutput: «tx.name».in[«i»]''');
+        for (var i=0; i<tbody.inputs.size; i++) {
+
+			println('''correctlySpendsOutput: «tx.left.name».in[«i»]''');
 			println(txBuilder.toString)
 			
             var Script inScript = null
@@ -879,20 +855,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	                    REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
 						«ENDIF»
 						''',
-	                    tx.body,
+	                    tbody,
 	                    BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS, 
 	                    i
 	                );
 	            } catch(Exception e) {
 	                error('''Something went wrong: see error for details''',
-							tx.body.eContainer,
-							tx.body.eContainingFeature)
+							tbody.eContainer,
+							tbody.eContainingFeature)
 					e.printStackTrace
 	            }
             }
             else {
             	info('''Cannot check if these inputs are correctly spending their outputs.''',
-					tx.body,
+					tbody,
 					BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS,
 					i	
 				)
@@ -929,8 +905,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      */
     @Check
     def void checkJustOneOpReturn(UserTransactionDeclaration tx) {
-    	var tbody = tx.body
-    	
+    	val tbody = tx.right.value as TransactionBody
+		
     	var boolean[] error = newBooleanArrayOfSize(tbody.outputs.size);
     	    	
 		for (var i=0; i<tbody.outputs.size-1; i++) {
@@ -1003,7 +979,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	val tx = EcoreUtil2.getContainerOfType(after, TransactionDeclaration);
     	
     	// all the txs pointing to tx
-    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), VariableReference).filter[v|v.ref==tx]
+    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), DeclarationReference).filter[v|v.ref==tx]
     	
     	// all these txs have to define the timelock
     	for (ref : txReferences) {

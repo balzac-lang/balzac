@@ -4,6 +4,8 @@
 
 package it.unica.tcs.utils;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +25,14 @@ import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
-import static com.google.common.base.Preconditions.*;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
+import it.unica.tcs.bitcoinTM.DeclarationLeft;
+import it.unica.tcs.bitcoinTM.DeclarationReference;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
@@ -38,7 +41,6 @@ import it.unica.tcs.bitcoinTM.Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
-import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.RelativeTime;
 import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
@@ -50,7 +52,6 @@ import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
-import it.unica.tcs.bitcoinTM.VariableReference;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -69,28 +70,37 @@ public class ASTUtils {
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 	
-	public Set<Parameter> getTxVariables(ExpressionI exp) {
-        Set<Parameter> refs = 
-        		EcoreUtil2.getAllContentsOfType(exp, VariableReference.class)
+	public Set<DeclarationLeft> getTxVariables(ExpressionI exp) {
+        Set<DeclarationLeft> refs = 
+        		EcoreUtil2.getAllContentsOfType(exp.eContainer(), DeclarationReference.class)
         		.stream()
-        		.filter(v -> v.getRef() instanceof Parameter)
-        		.map(v -> (Parameter) v.getRef())
-    			.filter(v -> v.eContainer() instanceof TransactionDeclaration)
+        		.map( v -> v.getRef() )
+    			.filter(this::isTxParameter)
     			.collect(Collectors.toSet());
     
         return refs;
 	}
 	
+	
+	public boolean isTxParameter(DeclarationLeft p) {
+		/* 
+		 * TransacionDeclaration (Declaration) 
+		 * -> left  (DeclarationLeft)
+		 * 		-> params (List<DeclarationLeft>)
+		 * -> right (DeclarationRight)
+		 */
+		return (p.eContainer().eContainer() instanceof TransactionDeclaration);
+	}
+	
 	public boolean hasTxVariables(ExpressionI exp) {
         return !getTxVariables(exp).isEmpty();
 	}
-	
-	
+
 	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Class<T> expectedType) {
 		return interpretSafe(exp, new HashMap<>(), expectedType);
 	}
 	
-	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<Parameter,Object> rho, Class<T> expectedType) {
+	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<DeclarationLeft,Object> rho, Class<T> expectedType) {
 		ExpressionI res = interpretSafe(exp, rho);
 		checkState(expectedType.isInstance(res), "expected type "+expectedType+", got "+res.getClass());
 		return expectedType.cast(res);
@@ -102,7 +112,7 @@ public class ASTUtils {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends ExpressionI> T interpretSafe(T exp, Map<Parameter,Object> rho) {
+	public <T extends ExpressionI> T interpretSafe(T exp, Map<DeclarationLeft,Object> rho) {
 		// returns the same type of exp
 		Result<Object> interpreted = typeSystem.interpret(exp, rho);
 		if (interpreted.failed()) 
@@ -187,7 +197,7 @@ public class ASTUtils {
 //    }
 	
 	public boolean isCoinbase(UserTransactionDeclaration tx) {
-		return isCoinbase(tx.getBody());
+		return isCoinbase(((TransactionBody) tx.getRight().getValue()));
 	}
 	
 	public boolean isCoinbase(TransactionBody tx) {

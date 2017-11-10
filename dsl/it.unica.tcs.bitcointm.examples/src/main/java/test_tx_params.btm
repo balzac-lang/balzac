@@ -8,25 +8,26 @@ transaction T {
 
 transaction T1(x:hash160) {
 	input = T: 5
-	output = 1 BTC : fun(a:string) . hash160(a)==x
-}
+	output = 1 BTC : fun(a:string) . hash160(a)==x  
+} 
 
-//transaction T2 {
-//	input = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
-//	output = 0: ""
-//}
-// 
-//transaction T3 {
-//	input = T1(hash160("5")): "5"
-//	output = 0: ""
-//}
+transaction T2 { 
+	input = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
+	output = 0: ""
+}
+ 
+transaction T3 {
+	input = T1(hash160("5")): "5"  
+	output = 0: ""
+}
  
 transaction T4(n:string) {
 	input = T1(hash160(n)): n
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
-transaction T5 {     
+transaction T5 {      
 	input = T4("32"): 42 
-	output = 0: ""
+	output = 0: "" 
 } 
+ 

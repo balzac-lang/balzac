@@ -7,12 +7,12 @@
  */
 package it.unica.tcs.scoping
 
-import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
-import it.unica.tcs.bitcoinTM.VariableDeclaration
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -35,23 +35,24 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	/**
 	 * utils: get a scope for the given clazz type within the whole document
 	 */
-//	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
-//		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
-//		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
-//		return Scopes.scopeFor(candidates);									// return the scope
-//	}
+	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
+		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
+		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
+		return Scopes.scopeFor(candidates);									// return the scope
+	}
 
 
 	/*
 	 * free-names resolution
 	 */
-	def IScope scope_Variable(EObject v, EReference ref) {
+	def IScope scope_DeclarationLeft(EObject v, EReference ref) {
 //		println("Resolving variable: "+v)
 		return getScopeForParameters(v.eContainer);		
 	}
 	
 	//utils: recursively get all free-names declarations until Script definition
 	def dispatch IScope getScopeForParameters(EObject cont) {
+//		println("skipping: "+cont)
 		return getScopeForParameters(cont.eContainer);
 	}
 	
@@ -71,15 +72,19 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	}
 
 	def dispatch IScope getScopeForParameters(UserTransactionDeclaration obj) {
-//		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.name»''')
+//		println('''adding params: [«obj.left.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.left.name»''')
 		return Scopes.scopeFor(
-			obj.params,
-			obj.eContainer.getScopeForVariableDeclarations(IScope.NULLSCOPE)
+			obj.left.params,
+			obj.eContainer.getScopeForVariableDeclarations(
+				getIScopeForAllContentsOfClass(obj, DeclarationLeft)
+			)
 		); 	// stop recursion
 	}	
 
 	def dispatch IScope getScopeForParameters(SerialTransactionDeclaration obj) {
-		obj.eContainer.getScopeForVariableDeclarations(IScope.NULLSCOPE)
+		obj.eContainer.getScopeForVariableDeclarations(
+			getIScopeForAllContentsOfClass(obj, DeclarationLeft)			
+		)
 		// stop recursion
 	}
 
@@ -92,7 +97,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	 */
 	def IScope getScopeForVariableDeclarations(EObject ctx, IScope outerScope) {
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
-		var participants = EcoreUtil2.getAllContentsOfType(root, ParticipantDeclaration);
+		var participants = EcoreUtil2.getAllContentsOfType(root, Participant);
 		
 //		val varsOccurrences = 	// a map for storing the number of occurrences of a key name 
 //								// (if > 1, more than one participant is using that name)
@@ -102,15 +107,17 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 //			.map[e|e.key->e.value.size]									// convert to String -> N
 //			.toMap([e|e.key],[e|e.value]);								// convert to a Map 
 		
-		val List<VariableDeclaration> candidates = newArrayList 
+		val List<DeclarationLeft> candidates = newArrayList 
 		for (p : participants) {
-			candidates.addAll(p.variables)
+			candidates.addAll(p.variables.map[a|a.left])
 		}
 		
+
 		Scopes.scopeFor(
 			candidates, 
-			[VariableDeclaration k|
-				val participantName = (k.eContainer as ParticipantDeclaration).name
+			[DeclarationLeft k|
+				val participantName = EcoreUtil2.getContainerOfType(k, Participant).name
+//				println('''adding variable: «k.name» from participant «participantName» ''')
 				QualifiedName.create(participantName, k.name)				
 			], 
 			outerScope)

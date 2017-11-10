@@ -36,7 +36,7 @@ class RawTransactionGenerator extends AbstractGenerator {
 		'''
 		«FOR tx:txs»
 			«val txBuilder = tx.compileTransaction»
-			transaction «tx.name»
+			transaction «tx.left.name»
 			«txBuilder.toString»			
 			
 			«IF txBuilder.isReady»

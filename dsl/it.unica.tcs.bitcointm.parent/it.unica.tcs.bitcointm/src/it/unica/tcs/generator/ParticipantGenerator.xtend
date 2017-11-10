@@ -5,13 +5,20 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.Ask
+import it.unica.tcs.bitcoinTM.Check
 import it.unica.tcs.bitcoinTM.Choice
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Parallel
-import it.unica.tcs.bitcoinTM.ParticipantDeclaration
+import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
+import it.unica.tcs.bitcoinTM.Put
+import it.unica.tcs.bitcoinTM.Receive
+import it.unica.tcs.bitcoinTM.Send
+import it.unica.tcs.bitcoinTM.Tau
+import it.unica.tcs.utils.CompilerUtils
 import java.io.File
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -19,14 +26,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
-
-import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.bitcoinTM.Tau
-import it.unica.tcs.bitcoinTM.Assert
-import it.unica.tcs.bitcoinTM.Send
-import it.unica.tcs.bitcoinTM.Receive
-import it.unica.tcs.bitcoinTM.Ask
-import it.unica.tcs.bitcoinTM.Put
 
 class ParticipantGenerator extends AbstractGenerator {
 	
@@ -42,13 +41,13 @@ class ParticipantGenerator extends AbstractGenerator {
 		var package = packageDecl.fullyQualifiedName.append(subpackage);
 		var packagePath = package.toString(File.separator) ;
 		
-		for (participant : resource.allContents.toIterable.filter(ParticipantDeclaration)) {
+		for (participant : resource.allContents.toIterable.filter(Participant)) {
 			
             fsa.generateFile(packagePath + File.separator + '''Participant_«participant.name».java''', participant.compileParticipant(package.toString))
         }
 	}
 	
-	def private compileParticipant(ParticipantDeclaration participant, String ^package) {
+	def private compileParticipant(Participant participant, String ^package) {
 		
 		'''
 		package «^package»;
@@ -186,7 +185,7 @@ class ParticipantGenerator extends AbstractGenerator {
 		'''
 	}
 
-	def private dispatch String compilePrefix(Assert ass) {
+	def private dispatch String compilePrefix(Check ass) {
 		'''
 		«IF ass.exp.compileExpression=="true"»
 			check();

@@ -5,12 +5,12 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.TransactionReference
 import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.ObjectUtils
@@ -55,7 +55,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		public class TransactionFactory {
 			
 			«FOR tx : txs»
-			public static ITransactionBuilder tx_«tx.name»(«tx.compileTxParameters») {
+			public static ITransactionBuilder tx_«tx.left.name»(«tx.compileTxParameters») {
 				«tx.compileTxBody»
 			}
 			
@@ -65,10 +65,11 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	}
 	
 	def private dispatch compileTxParameters(SerialTransactionDeclaration tx) ''''''
-	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.params.compileFormalParams»'''
+	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.left.params.compileFormalParams»'''
 	
 	def private dispatch compileTxBody(SerialTransactionDeclaration tx) '''
-		return ITransactionBuilder.fromSerializedTransaction(«tx.compileNetworkParams», "«tx.bytes»");
+		«val txBuilder = tx.compileTransaction»
+		return ObjectUtils.deserializeObjectFromStringQuietly("«ObjectUtils.serializeObjectToString(txBuilder)»", ITransactionBuilder.class);
 	'''
 	
 	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
@@ -91,7 +92,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 «««				inScript = (InputScript) new InputScriptImpl().number(42);
 «««				((CoinbaseTransactionBuilder)tb).addInput(inScript);
 «««			«ELSE»
-«««				parentTx = «getTransactionFromFactory(input.txRef.tx.name, input.txRef.actualParams)»;
+«««				parentTx = «getTransactionFromFactory(input.txRef.tx.left.name, input.txRef.actualParams)»;
 «««				outIndex = «inputB.outIndex»;
 «««				inScript = (InputScript) new InputScriptImpl("«inputB.script.serialize»");
 «««				«IF (tx.body.tlock!==null && tx.body.tlock.containsRelative(tx))»
@@ -134,8 +135,8 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return getTransactionFromFactory(tx.txRef)
 	}
 	
-	def public getTransactionFromFactory(TransactionReference txRef) {
-		return getTransactionFromFactory(txRef.ref.name, txRef.actualParams)
+	def public getTransactionFromFactory(DeclarationReference txRef) {
+		return getTransactionFromFactory(txRef.ref.name, txRef.actualParams.map[l|l as Expression])
 	}
 	
 	def public getTransactionFromFactory(String name, List<Expression> actualParams) {

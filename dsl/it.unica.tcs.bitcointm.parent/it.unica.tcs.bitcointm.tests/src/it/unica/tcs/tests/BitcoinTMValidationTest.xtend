@@ -63,7 +63,7 @@ class BitcoinTMValidationTest {
 		
 		validatorHelper.assertError(
 			result.eResource, 
-			BitcoinTMFactory.eINSTANCE.createParticipantDeclaration.eClass, 
+			BitcoinTMFactory.eINSTANCE.createParticipant.eClass, 
 			IssueCodes.PARTICIPANT_DECLARATION__DUPLICATED_NAME
 		)
 	}

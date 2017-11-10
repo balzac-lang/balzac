@@ -9,13 +9,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.bitcoinTM.DeclarationLeft;
 import it.unica.tcs.bitcoinTM.Type;
 
 public class TypeSubstitutions {
 	protected Map<String, Type> substitutions = new HashMap<>();
 	
-	protected Map<Parameter, Type> support = new HashMap<>();
+	protected Map<DeclarationLeft, Type> support = new HashMap<>();
 
     public void reset() {
         substitutions.clear();

@@ -19,7 +19,7 @@ import it.unica.tcs.bitcoinTM.Minus
 import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.VariableReference
+import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.lib.utils.BitcoinUtils
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import it.unica.tcs.bitcoinTM.Div
@@ -93,7 +93,7 @@ class ExpressionGenerator {
 		'''Utils.HEX.decode("«BitcoinUtils.encode(exp.value)»")'''
 	}
 	
-	def private dispatch String compileExpressionInternal(VariableReference exp) {
+	def private dispatch String compileExpressionInternal(DeclarationReference exp) {
 		exp.ref.name
 	}
 }

@@ -30,6 +30,9 @@
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//SignatureTypeEnum">
       <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//SignatureTypeEnum/signature"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//TransactionTypeEnum">
+      <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//TransactionTypeEnum/transaction"/>
+    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="BitcoinTM.ecore#//Hash160TypeEnum">
       <genEnumLiterals ecoreEnumLiteral="BitcoinTM.ecore#//Hash160TypeEnum/hash160"/>
     </genEnums>
@@ -52,31 +55,26 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Import">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Import/importedNamespace"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Declaration"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Element"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Network">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/testnet"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/mainnet"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Network/regtest"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionDeclaration/name"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Declaration">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Declaration/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Declaration/right"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//UserTransactionDeclaration">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//UserTransactionDeclaration/params"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//UserTransactionDeclaration/body"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//DeclarationLeft">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//DeclarationLeft/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationLeft/params"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationLeft/type"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//SerialTransactionDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SerialTransactionDeclaration/isSerial"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SerialTransactionDeclaration/bytes"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SerialTransactionDeclaration/id"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//DeclarationRight">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationRight/value"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionBody">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/inputs"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiIn"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/outputs"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiOut"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/tlock"/>
-    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Expression"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Input">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txRef"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Input/outpoint"/>
@@ -104,27 +102,17 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//RelativeTime">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//RelativeTime/tx"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionReference">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/ref"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionReference/actualParams"/>
-    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Script">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Script/lambda"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Script/params"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Script/exp"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Variable">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Variable/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Variable/type"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Parameter"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//VariableDeclaration">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableDeclaration/value"/>
-    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ExpressionI"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//ScriptExpression"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//VariableReference">
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//VariableReference/ref"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//CommonAtomic"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//DeclarationReference">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationReference/ref"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationReference/actualParams"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Literal"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//HashLiteral">
@@ -145,6 +133,9 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Sha256Literal"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyLiteral">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyLiteral/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionLiteral">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionLiteral/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//IfThenElse">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//IfThenElse/if"/>
@@ -193,11 +184,11 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TypeVariable/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//Typeable"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//ParticipantDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//ParticipantDeclaration/name"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/process"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/variables"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ParticipantDeclaration/defs"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Participant">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Participant/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Participant/process"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Participant/variables"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Participant/defs"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ProcessDeclaration">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//ProcessDeclaration/name"/>
@@ -230,8 +221,8 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Receive/var"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Receive/p"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Assert">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Assert/exp"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Check">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Check/exp"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ProtocolIfThenElse">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ProtocolIfThenElse/exp"/>
@@ -242,7 +233,45 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ProtocolTransactionReference/txRef"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ProtocolTransactionReference/substitution"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Expression"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Regtest">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Regtest/intructions"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Instruction">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Instruction/next"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//MineBlocks">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//MineBlocks/n"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//SendTransaction">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//SendTransaction/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Confirmations">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Confirmations/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//GetBalance">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//GetBalance/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//IsMined">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//IsMined/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Assert">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Assert/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Substitution">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/tx"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/substitutions"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//UserTransactionDeclaration"/>
+    <genClasses ecoreClass="BitcoinTM.ecore#//SerialTransactionDeclaration">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SerialTransactionDeclaration/isSerial"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionBody">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/inputs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiIn"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/outputs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiOut"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/tlock"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//OrScriptExpression">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrScriptExpression/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrScriptExpression/right"/>
@@ -286,6 +315,9 @@
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//KeyType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//KeyType/value"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionType/value"/>
     </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//SignatureType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SignatureType/value"/>

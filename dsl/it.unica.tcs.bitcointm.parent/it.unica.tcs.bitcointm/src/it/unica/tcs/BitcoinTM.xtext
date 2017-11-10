@@ -15,7 +15,7 @@ PackageDeclaration:
     'package' name=QualifiedName
     	imports+=Import*
 		net=Network?
-		declarations+=Declaration*
+		declarations+=Element*
 ;
 
 QualifiedName: ID ('.' ID)*;
@@ -26,39 +26,64 @@ Import:
 QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
-Declaration: 
+Element: 
   TransactionDeclaration
-| ParticipantDeclaration; 
+| Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
-/*
- * keys
- */
-// KeyDeclaration: "key" name=ID "=" (value=WIF | placeholder?="_");
 
 /*
- * transactions
+ * generic declarations
  */
-TransactionDeclaration:
-	UserTransactionDeclaration | SerialTransactionDeclaration
-;
+Declaration:
+	"let" left=DeclarationLeft "=" right=DeclarationRight;
 
-UserTransactionDeclaration:
-	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? body=TransactionBody;
+DeclarationLeft:
+	name=ID 
+	("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")?
+	(":" type=DeclarationType)?;
 
-SerialTransactionDeclaration:
-	isSerial?='serial' 'transaction' name=ID '=' (bytes=TXSERIAL | id=TXID);
+DeclarationLeftNoTypeNoParam returns DeclarationLeft:	// same as DeclarationLeft, but does not permit type nor params
+	name=ID;
 	
-TransactionBody: {TransactionBody} "{"
+DeclarationLeftNoType returns DeclarationLeft:	// same as DeclarationLeft, but does not permit type
+	name=ID
+	("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")?;
+
+DeclarationLeftNoParams returns DeclarationLeft:
+	name=ID 
+	(":" type=DeclarationType)?;	// name (: type)?
+
+DeclarationRight:
+	value=Expression;
+
+/*
+ * transactions (special case of Declaration)
+ */
+TransactionDeclaration returns Declaration:
+	UserTransactionDeclaration | SerialTransactionDeclaration;
+
+UserTransactionDeclaration returns TransactionDeclaration:
+	{UserTransactionDeclaration} "transaction" left=DeclarationLeftNoType right=DeclarationRightTx;
+
+SerialTransactionDeclaration returns TransactionDeclaration:
+	{SerialTransactionDeclaration} isSerial?='serial' 'transaction' left=DeclarationLeftNoTypeNoParam '=' right=DeclarationRightTxSerial;
+
+DeclarationRightTx returns DeclarationRight:
+	value=TransactionBody;
+
+DeclarationRightTxSerial returns DeclarationRight:
+	value=TransactionLiteral;
+
+TransactionBody returns Expression: {TransactionBody} "{"
 	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
 	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
 	("after" tlock=Tlock)?
 "}";
 
-
 Input:
-	txRef=TransactionReference ("@" outpoint=LONG)? ":" (exps+=ScriptAtomic)+ ("["redeemScript=Script"]")?;
+	txRef=DeclarationReference ("@" outpoint=LONG)? ":" exps+=ScriptAtomic+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -71,31 +96,19 @@ BitcoinValue:
 
 Tlock: times+=Time ("&&" times+=Time)*;
 
-Time: AbsoluteTime | RelativeTime;
+Time: AbsoluteTime | RelativeTime
+;
 
 AbsoluteTime:
 	block?="block" value=LONG | date?="date" value=TIMESTAMP;
 
 RelativeTime:
-	value=Delay "from" tx=[TransactionDeclaration];
-
-TransactionReference:
-	ref=[TransactionDeclaration] 
-	("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+	value=Delay "from" tx=[DeclarationLeft|QualifiedName];
 
 Script:
-	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
+	(lambda?="fun"  "(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")" ".")? exp=ScriptExpression;
 
 
-Variable:
-	Parameter | VariableDeclaration
-;
-
-Parameter:
-	name=ID (":" type=ParameterType)?;
-
-VariableDeclaration:
-	"let" name=ID (":" type=ParameterType)? "=" value=Literal;
 
 
 ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
@@ -131,34 +144,39 @@ ScriptPrefixed returns ScriptExpression:
 
 ScriptAtomic returns ScriptExpression:
     '(' ScriptExpression ')' 
-|   Literal 
-|   VariableReference
+|   CommonAtomic
 
 |   Signature 
 |	Versig 
-|	Hash 
 |	IfThenElse 
 |	Min 
 |   Max
 |   Between
 |   Size
-|	AfterTimeLock;
+|	AfterTimeLock
+;
 
-VariableReference: ref=[Variable|QualifiedName];
+
+CommonAtomic:
+	Literal | DeclarationReference | Hash;
+
+DeclarationReference: 
+	ref=[DeclarationLeft|QualifiedName]
+	( => "("(actualParams+=CommonAtomic ("," actualParams+=CommonAtomic)*)?")")?;		// within ScriptExpressions
 
 Literal:
 	NumberLiteral 
 |	StringLiteral
 |	BooleanLiteral
 |	HashLiteral
-|	KeyLiteral;
+|	KeyLiteral
+|	TransactionLiteral;
 
 HashLiteral:
 	Hash160Literal
 |	Hash256Literal
 |	Ripemd160Literal
-|	Sha256Literal
-;
+|	Sha256Literal;
 
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
@@ -168,13 +186,14 @@ Hash256Literal: value=HASH_256;
 Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
 KeyLiteral: value=WIF;
+TransactionLiteral: value=(TXSERIAL|TXID);
 
 IfThenElse:
 	'if' if=ScriptExpression
 	"then" then=ScriptAtomic
 	'else' else=ScriptAtomic;
 
-Signature: "sig" key=(Literal|VariableReference) (modifier=Modifier)?;
+Signature: "sig" key=CommonAtomic (modifier=Modifier)?;
 
 enum Modifier: 
 	AIAO 
@@ -186,7 +205,7 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=(Literal|VariableReference) ("," pubkeys+=(Literal|VariableReference))* ";"
+		pubkeys+=CommonAtomic ("," pubkeys+=CommonAtomic)* ";"
 		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
 	")";
 
@@ -202,7 +221,7 @@ Between: "between" "(" value=ScriptExpression "," left=ScriptExpression":" right
 Size: "size" "(" value=ScriptExpression ")";
 AfterTimeLock: "after" timelock=Time ":" continuation=ScriptAtomic;
 
-ParameterType returns Type:
+DeclarationType returns Type:
 	BasicType;
 
 Type:
@@ -214,6 +233,7 @@ BasicType:
 |	{StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
 |   {KeyType} value=KeyTypeEnum
+|   {TransactionType} value=TransactionTypeEnum
 |   {SignatureType} value=SignatureTypeEnum
 |	HashType;
 
@@ -232,18 +252,20 @@ enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum KeyTypeEnum: key;
 enum SignatureTypeEnum: signature;
+enum TransactionTypeEnum: transaction;
 enum Hash160TypeEnum: hash160;
 enum Hash256TypeEnum: hash256;
 enum Ripemd160TypeEnum: ripemd160;
 enum Sha256TypeEnum: sha256;
 
 Typeable:
-  TransactionDeclaration
-| TransactionBody
-| Variable
+	Model
+| Declaration
+| DeclarationLeft
+| DeclarationRight
 | Input
 | Output 
-| ParticipantDeclaration
+| Participant
 | ProcessDeclaration
 | ProcessReference
 | Process
@@ -279,8 +301,8 @@ terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'
 terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXID:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXSERIAL:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXID returns ecore::EString:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL returns ecore::EString:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::ELong: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
@@ -304,12 +326,11 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 /*
  * Endpoints contracts
  */
-ParticipantDeclaration: 'participant' name=ID '{' 
-	(process=Process)? & (variables+=VariableDeclaration | /*keys+=KeyDeclaration |*/ defs+=ProcessDeclaration)*
+Participant: 'participant' name=ID '{'
+	(process=Process)? & (variables+=Declaration | defs+=ProcessDeclaration)*
 '}';
 
-
-ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
+ProcessDeclaration: 'process' name=ID ("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")? '=' process=Process;
 ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Process:
@@ -335,7 +356,7 @@ NextProcess returns Process:
 | '(' Process ')'
 ;
 
-Prefix:	(Ask|Put|Send|Receive|Assert|Tau) (';' next=NextProcess)?;
+Prefix:	(Ask|Put|Send|Receive|Check|Tau) (';' next=NextProcess)?;
 
 Tau: {Tau} 't';
 
@@ -346,9 +367,9 @@ Put: 'put' (
 	  	txRefs+=ProtocolTransactionReference
 		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}');
 
-Send: 'send' message=Expression 'to' p=[ParticipantDeclaration];
-Receive: 'receive' var=Parameter 'from' p=[ParticipantDeclaration];
-Assert:	'check' exp=Expression;
+Send: 'send' message=Expression 'to' p=[Participant];
+Receive: 'receive' var=DeclarationLeftNoParams 'from' p=[Participant];
+Check:	'check' exp=Expression;
 
 ProtocolIfThenElse: 
 'if' exp=Expression 
@@ -359,7 +380,7 @@ ProtocolIfThenElse:
 terminal INT returns ecore::EInt: LONG;
 
 ProtocolTransactionReference:
-	txRef=TransactionReference (substitution=TransactionBody)?;
+	txRef=DeclarationReference (substitution=TransactionBody)?;
 
 Expression:
     OrExpression;
@@ -390,9 +411,7 @@ Prefixed returns Expression:
 
 Atomic returns Expression:
     '(' Expression ')' 
-|   Literal 
-|   VariableReference
-|	Hash 
+|   CommonAtomic
 //|	SignOp		// signature operation, returns bytes or string 
 //|	VersigOp	// versig operation, returns boolean
 ;
@@ -405,25 +424,35 @@ Atomic returns Expression:
 		
 
 
-//Regtest:
-//	'regtest' '{'		
-//		intructions+=Instruction
-//	'}';
-//
-//Instruction:
-//	MineBlocks | MineBlocks | SendTransaction;
-//
-//MineBlocks:
-//	'mine' n=INT 'blocks';
-//	
-//SendTransaction:
-//	'send' tx=[TransactionReference];
-//
-//ChargeKeys:
-//	"charge" keys+=[VariableDeclaration]  ;
-//
-//GetBalance:
-//	"balanceof" key=[VariableDeclaration];
-//
-//
-//		
+Regtest:
+	'regtest' '{'		
+		intructions+=Instruction
+	'}';
+
+Instruction:
+	(MineBlocks | SendTransaction)
+	(";" next=Instruction)?;
+
+MineBlocks:
+	'mine' n=Number 'blocks';
+	
+SendTransaction:
+	'send' '(' exp=Expression ')';
+
+Confirmations:
+	"confirmations" '(' exp=Expression ')';
+
+GetBalance:
+	'balance' '(' exp=Expression ')';
+
+IsMined:
+	'isMined' '(' exp=Expression ')';
+
+Assert:
+	'assert' '(' exp=Expression ')';
+
+Substitution:
+	tx=Expression substitutions+=Expression;	
+
+
+	
