@@ -301,8 +301,8 @@ terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'
 terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXID returns ecore::EString:      'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXSERIAL returns ecore::EString:  'hex:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXID returns ecore::EString:      'txid:' ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL returns ecore::EString:  'tx:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::ELong: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd

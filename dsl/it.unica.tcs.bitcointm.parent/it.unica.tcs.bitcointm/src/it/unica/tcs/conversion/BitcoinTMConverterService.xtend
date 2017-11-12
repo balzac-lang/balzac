@@ -73,7 +73,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     def IValueConverter<String> getTXID() {
         return new AbstractLexerBasedConverter<String>() {
 			override toValue(String string, INode node) throws ValueConverterException {
-				val id = string.substring(5)
+				val id = string.split(":").get(1)
 				
 				try {
 					return bitcoin.getRawTransaction(id);
@@ -87,10 +87,10 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	}
 	
 	@ValueConverter(rule = "TXSERIAL")
-    def IValueConverter<String> getHEX() {
+    def IValueConverter<String> getTX() {
         return new AbstractLexerBasedConverter<String>() {
 			override toValue(String string, INode node) throws ValueConverterException {
-				string.substring(4)
+				string.split(":").get(1)
 			}
         }
 	}
