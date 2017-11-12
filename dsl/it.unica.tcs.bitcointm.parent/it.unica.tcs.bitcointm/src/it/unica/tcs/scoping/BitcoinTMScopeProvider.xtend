@@ -8,6 +8,7 @@
 package it.unica.tcs.scoping
 
 import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.GlobalDeclaration
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
@@ -63,10 +64,21 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		);
 	}
 	
+	
 	def dispatch IScope getScopeForParameters(Receive obj) {
 		return Scopes.scopeFor(
 			newArrayList(obj.^var),
 			getScopeForParameters(obj.eContainer)
+		);
+	}
+
+	def dispatch IScope getScopeForParameters(GlobalDeclaration obj) {
+//		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
+		return Scopes.scopeFor(
+			obj.left.params,
+			obj.eContainer.getScopeForVariableDeclarations(
+				getIScopeForAllContentsOfClass(obj, DeclarationLeft)
+			)
 		);
 	}
 

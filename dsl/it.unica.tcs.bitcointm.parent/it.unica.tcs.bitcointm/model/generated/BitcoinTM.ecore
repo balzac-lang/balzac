@@ -316,6 +316,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="substitutions" upperBound="-1"
         eType="#//Expression" containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GlobalDeclaration" eSuperTypes="#//Declaration"/>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration"/>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionBody" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"

@@ -260,6 +260,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/tx"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/substitutions"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//GlobalDeclaration"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionBody">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/inputs"/>

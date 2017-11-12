@@ -28,7 +28,7 @@ QualifiedNameWithWildcard:
 
 Element: 
   "transaction" TransactionDeclaration | 
-  Declaration | 
+  GlobalDeclaration | 
   "participant" Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
@@ -36,6 +36,10 @@ Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?
 /*
  * generic declarations
  */
+
+GlobalDeclaration returns Declaration:
+	{GlobalDeclaration} "let" left=DeclarationLeft "=" right=DeclarationRight;
+ 
 Declaration:
 	"let" left=DeclarationLeft "=" right=DeclarationRight;
 
