@@ -59,6 +59,20 @@ class TransactionCompiler {
 		println('''«txBuilder.toTransaction»''')
 		return txBuilder			
 	}
+	
+	def dispatch ITransactionBuilder compileTransaction(TransactionLiteral tx) {
+    	println('''::: Compiling transaction literal «tx.value»''')
+		val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.value);
+		return txBuilder			
+	}
+	
+	def dispatch ITransactionBuilder compileTransaction(DeclarationReference ref) {
+    	
+    	if (ref.ref.eContainer instanceof TransactionDeclaration) {
+    		return compileTransaction(ref.ref.eContainer as TransactionDeclaration)
+    	}
+    	throw new CompileException('''ref «ref» does not refer to a transaction''')
+	}
     
     def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
    	
@@ -91,65 +105,63 @@ class TransactionCompiler {
     			/*
     			 * compile parent transaction
     			 */  	
-    			val parentTx = (input.txRef.ref.eContainer as TransactionDeclaration)
-	    		val parentTxCompiled = parentTx.compileTransaction	// recursive call
-	    		println('''parent compiled «parentTx.left.name», v=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
+    			val parentTx = input.txRef.interpretSafe
+    			val parentTxCompiled = parentTx.compileTransaction	// recursive call
+	    		println('''parent compiled vars=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
 	    		
-	    		// free parameters of the parent transaction
-	    		val parentTxFormalparams = 
-	    			if (parentTx instanceof UserTransactionDeclaration) parentTx.left.params
-	    			else if (parentTx instanceof SerialTransactionDeclaration) newArrayList
-	    			else throw new CompileException("Unexpected state. parentTx class "+parentTx.class)
-	    		
-				println('''«tx.left.name»: parent tx «input.txRef.ref.name», v=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
-	    		
-	    		/*
-	    		 * iterate over the formal parameters, in order to set the corresponding value
-	    		 */
-				for (var j=0; j<input.txRef.actualParams.size; j++) {
-					val formalP = parentTxFormalparams.get(j)
-					val actualP = input.txRef.actualParams.get(j)
-					
-					if (parentTxCompiled.hasVariable(formalP.name)) { // unused free-variables have been removed 
+	    		if (parentTx instanceof DeclarationReference) {
+	    			
+	    			val parentTx2 = parentTx.ref.eContainer as UserTransactionDeclaration
+	    			val parentTxFormalparams = parentTx2.left.params
+	    			
+		    		/*
+		    		 * iterate over the actual parameters, in order to set the corresponding values
+		    		 */
+					for (var j=0; j<parentTx.actualParams.size; j++) {
+						val formalP = parentTxFormalparams.get(j)
+						val actualP = parentTx.actualParams.get(j)
 						
-						// interpret the actual parameter
-						val actualPvalue = actualP.interpretSafe
-					
-						// if the evaluation is a literal, set the parent variable
-						if (actualPvalue instanceof Literal) {
-							println('''«tx.left.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «input.txRef.ref.name»''')
-							parentTxCompiled.bindVariable(formalP.name, actualPvalue.interpret(newHashMap).first)
-						}
-						// it the evaluation contains some tx variables, create an hook
-						else {
-							// get the tx variables present within this actual parameter
-							val fvs = actualPvalue.getTxVariables
-							val fvsNames = fvs.map[p|p.name].toSet
-							println('''«tx.left.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «input.txRef.ref.name»''')
+						if (parentTxCompiled.hasVariable(formalP.name)) { // unused free-variables have been removed 
 							
-							// this hook will be executed when all the tx variables will have been bound
-							// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
-							tb.addHookToVariableBinding(fvsNames, [ values |
-								println('''«tx.left.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «input.txRef.ref.name»''')
-								println('''«tx.left.name»: values «values»''')
-
-								// create a rho for the evaluation
-								val Map<DeclarationLeft,Object> rho = newHashMap
-								for(fp : tx.left.params) {
-									rho.put( fp, values.get(fp.name) )	
-								}
-								println('''rho «rho»''')
-								// re-interpret actualP
-								val actualPvalue2 = actualP.interpretSafe(rho)
+							// interpret the actual parameter
+							val actualPvalue = actualP.interpretSafe
+						
+							// if the evaluation is a literal, set the parent variable
+							if (actualPvalue instanceof Literal) {
+								println('''«tx.left.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «parentTx.ref.name»''')
+								parentTxCompiled.bindVariable(formalP.name, actualPvalue.interpret(newHashMap).first)
+							}
+							// it the evaluation contains some tx variables, create an hook
+							else {
+								// get the tx variables present within this actual parameter
+								val fvs = actualPvalue.getTxVariables
+								val fvsNames = fvs.map[p|p.name].toSet
+								println('''«tx.left.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTx.ref.name»''')
 								
-								if (!(actualPvalue2 instanceof Literal))
-									throw new CompileException("expecting an evaluation to Literal")
-								
-								val v = actualP.interpret(rho).first
-								parentTxCompiled.bindVariable(formalP.name, v)
-							])
+								// this hook will be executed when all the tx variables will have been bound
+								// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
+								tb.addHookToVariableBinding(fvsNames, [ values |
+									println('''«tx.left.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTx.ref.name»''')
+									println('''«tx.left.name»: values «values»''')
+	
+									// create a rho for the evaluation
+									val Map<DeclarationLeft,Object> rho = newHashMap
+									for(fp : tx.left.params) {
+										rho.put( fp, values.get(fp.name) )	
+									}
+									println('''rho «rho»''')
+									// re-interpret actualP
+									val actualPvalue2 = actualP.interpretSafe(rho)
+									
+									if (!(actualPvalue2 instanceof Literal))
+										throw new CompileException("expecting an evaluation to Literal")
+									
+									val v = actualP.interpret(rho).first
+									parentTxCompiled.bindVariable(formalP.name, v)
+								])
+							}
 						}
-					}
+	    			}
 				}
 	    		
 	    		val outIndex = new Long(input.outpoint).intValue
@@ -189,8 +201,6 @@ class TransactionCompiler {
     def private InputScript compileInput(Input input, ITransactionBuilder parentTx) {
 
         var outIdx = new Long(input.outpoint).intValue
-        var inputTx = input.txRef.ref.eContainer as TransactionDeclaration
-        
         
         if (parentTx.getOutputs().get(outIdx).script.isP2PKH) {
         	/*
@@ -206,11 +216,14 @@ class TransactionCompiler {
             return new InputScriptImpl().append(sb) as InputScript
         }
         else if (parentTx.getOutputs().get(outIdx).script.isP2SH) {
+        	
+        	var inputTx = input.txRef.interpretSafe
+        	
         	/*
         	 * P2SH
         	 */
         	val redeemScript = 
-	        	if (inputTx instanceof SerialTransactionDeclaration) {
+	        	if (inputTx instanceof TransactionLiteral) {
 	        		// get the redeem script from the AST (specified by the user)
 	                val s = input.redeemScript.getRedeemScript
 	                
@@ -219,7 +232,7 @@ class TransactionCompiler {
 		            
 		            s
 	        	}
-	        	else if (inputTx instanceof UserTransactionDeclaration) {
+	        	else if (inputTx instanceof DeclarationReference) {
 	        		parentTx.getOutputs.get(outIdx).script as P2SHOutputScript
 	        	}
 	        	else 

@@ -377,6 +377,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			
 			if (t!=other && t.left.name.equals(other.left.name)) {
 				error("Duplicated name '"+other.left.name+"'.", 
+					t.left,
 					BitcoinTMPackage.Literals.DECLARATION_LEFT__NAME
 				);
 			}
@@ -545,13 +546,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 		val tbody = tx.right.value as TransactionBody
 		var hasError = false;
-//		println('''--- transaction «(tbody.eContainer as TransactionDeclaration).name»---''')
 		
 		/*
 		 * Check transaction parameters
 		 */
 		for (param: tx.left.params) {
-//			var param = tbody.params.get(i)
 			if (param.type instanceof SignatureType) {
 				error(
                     "Signature parameters are not allowed yet.",
@@ -578,8 +577,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				)
 				
 		    hasError = hasError || !valid
-//		    println('''input «input»''')
-//		    println('''hasError «hasError»''')
 		}
 		
 		if(hasError) return;  // interrupt the check
@@ -587,20 +584,20 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * pairwise verify that inputs are unique
 		 */
-		for (var i=0; i<tbody.inputs.size-1; i++) {
-			for (var j=i+1; j<tbody.inputs.size; j++) {
-				
-				var inputA = tbody.inputs.get(i)
-				var inputB = tbody.inputs.get(j)
-				
-				// these checks need to be executed in this order
-				var areValid = checkInputsAreUnique(inputA, inputB)
-				
-				hasError = hasError || !areValid
-			}
-		}
-		
-		if(hasError) return;  // interrupt the check
+//		for (var i=0; i<tbody.inputs.size-1; i++) {
+//			for (var j=i+1; j<tbody.inputs.size; j++) {
+//				
+//				var inputA = tbody.inputs.get(i)
+//				var inputB = tbody.inputs.get(j)
+//				
+//				// these checks need to be executed in this order
+//				var areValid = checkInputsAreUnique(inputA, inputB)
+//				
+//				hasError = hasError || !areValid
+//			}
+//		}
+//		
+//		if(hasError) return;  // interrupt the check
 
 		/*
 		 * Verify that the fees are positive
@@ -617,10 +614,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     def boolean checkInputTransactionParams(Input input) {
 
-        var inputTx = input.txRef.ref
-        if (inputTx instanceof UserTransactionDeclaration) {
+        var inputTx = input.txRef.interpretSafe
+        
+        if (inputTx instanceof DeclarationReference) {
             
-            if (inputTx.params.size!=input.txRef.actualParams.size) {
+            if (inputTx.ref.params.size!=inputTx.actualParams.size) {
 	            error(
                     "The number of expressions does not match the number of parameters.",
                     input.txRef,
@@ -637,13 +635,18 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         var outIndex = input.outpoint
         var int numOfOutputs
-        var inputTx = input.txRef.ref.eContainer as TransactionDeclaration
+        var inputTx = input.txRef.interpretSafe
         
-        if (inputTx instanceof SerialTransactionDeclaration) {
-            numOfOutputs = inputTx.compileTransaction.outputs.size
+        if (inputTx instanceof TransactionLiteral) {
+			numOfOutputs = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value)).outputs.size
         }
-        else if (inputTx instanceof UserTransactionDeclaration){
-            numOfOutputs = (inputTx.right.value as TransactionBody).outputs.size
+        else if (inputTx instanceof DeclarationReference) {
+        
+        	var tx = inputTx.ref.eContainer
+        
+	        if (tx instanceof UserTransactionDeclaration){
+	            numOfOutputs = (tx.right.value as TransactionBody).outputs.size
+	        }	        
         }
         
         if (outIndex>=numOfOutputs) {
@@ -658,101 +661,109 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     def boolean checkInputExpressions(Input input) {
-        var inputTx = input.txRef.ref.eContainer as TransactionDeclaration
+
         var outputIdx = input.outpoint
-		
-		if (inputTx instanceof UserTransactionDeclaration) {
-            var outputScript = (inputTx.right.value as TransactionBody).outputs.get(new Long(outputIdx).intValue).script;
-            
-            var numOfExps = input.exps.size
-            var numOfParams = outputScript.params.size
-            
-            if (numOfExps!=numOfParams) {
-                error(
-                    "The number of expressions does not match the number of parameters.",
-                    input,
-                    BitcoinTMPackage.Literals.INPUT__EXPS
-                );
-                return false
-            }
-            
-            if (input.redeemScript!==null) {
-                error(
-                    "You must not specify the redeem script when referring to a user-defined transaction.",
-                    input.redeemScript,
-                    BitcoinTMPackage.Literals.INPUT__EXPS,
-                    input.exps.size-1
-                );
-                return false
-            }
-            
-            return true
-        }
-        else {
-            
-            var refTx = inputTx.compileTransaction.toTransaction()
-                        
-            if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
-            	if (input.redeemScript===null) {
-            		error(
-	                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
+		var inputTx = input.txRef.interpretSafe
+        
+        switch(inputTx) {
+        	
+        	TransactionLiteral: {
+        		
+        		val refTx = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value))
+        		if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
+	            	if (input.redeemScript===null) {
+	            		error(
+		                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
+		                    input,
+		                    BitcoinTMPackage.Literals.INPUT__EXPS,
+		                    input.exps.size-1
+		                );
+		                return false	
+	            	}
+	            	else {
+	            		// free variables are not allowed
+	            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
+	            			if (v.ref.eContainer instanceof UserTransactionDeclaration) {
+	            				error(
+				                    "Cannot reference transaction parameters from the redeem script.",
+				                    v,
+				                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
+				                );
+	            			}
+	            		}
+	            	}
+	            	
+	                
+	            }
+	            
+	            if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
+	                input.redeemScript!==null
+	            ) {
+	                error(
+	                    "The pointed output is not a P2SH output. You must not specify the redeem script.",
 	                    input,
 	                    BitcoinTMPackage.Literals.INPUT__EXPS,
 	                    input.exps.size-1
 	                );
-	                return false	
-            	}
-            	else {
-            		// free variables are not allowed
-            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
-            			if (v.ref.eContainer instanceof UserTransactionDeclaration) {
-            				error(
-			                    "Cannot reference transaction parameters from the redeem script.",
-			                    v,
-			                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
-			                );
-            			}
-            		}
-            	}
-            	
-                
-            }
-            
-            if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-                input.redeemScript!==null
-            ) {
-                error(
-                    "The pointed output is not a P2SH output. You must not specify the redeem script.",
-                    input,
-                    BitcoinTMPackage.Literals.INPUT__EXPS,
-                    input.exps.size-1
-                );
-                return false
-            }
+	                return false
+	            }
+        	}
+
+        	DeclarationReference: {
+				val refTx = inputTx.ref.eContainer
+				if (refTx instanceof UserTransactionDeclaration) {
+		            var outputScript = (refTx.right.value as TransactionBody).outputs.get(new Long(outputIdx).intValue).script;
+		            
+		            var numOfExps = input.exps.size
+		            var numOfParams = outputScript.params.size
+		            
+		            if (numOfExps!=numOfParams) {
+		                error(
+		                    "The number of expressions does not match the number of parameters.",
+		                    input,
+		                    BitcoinTMPackage.Literals.INPUT__EXPS
+		                );
+		                return false
+		            }
+		            
+		            if (input.redeemScript!==null) {
+		                error(
+		                    "You must not specify the redeem script when referring to a user-defined transaction.",
+		                    input.redeemScript,
+		                    BitcoinTMPackage.Literals.INPUT__EXPS,
+		                    input.exps.size-1
+		                );
+		                return false
+		            }
+		            
+		            return true
+		        }
+        	}
         }
+		
         
         return true
     }
     
-    def boolean checkInputsAreUnique(Input inputA, Input inputB) {
-        if (inputA.txRef.ref==inputB.txRef.ref && 
-            inputA.outpoint==inputB.outpoint
-        ) {
-            error(
-                "You cannot redeem the output twice.",
-                inputA,
-                BitcoinTMPackage.Literals.INPUT__TX_REF
-            );
-        
-            error(
-                "You cannot redeem the output twice.",
-                inputB,
-                BitcoinTMPackage.Literals.INPUT__TX_REF
-            );
-            return false
-        }
-        return true
-    }
+//    def boolean checkInputsAreUnique(Input inputA, Input inputB) {
+//        if (inputA.txRef.ref==inputB.txRef.ref && 
+//            inputA.outpoint==inputB.outpoint
+//        ) {
+//            error(
+//                "You cannot redeem the output twice.",
+//                inputA,
+//                BitcoinTMPackage.Literals.INPUT__TX_REF
+//            );
+//        
+//            error(
+//                "You cannot redeem the output twice.",
+//                inputB,
+//                BitcoinTMPackage.Literals.INPUT__TX_REF
+//            );
+//            return false
+//        }
+//        return true
+//    }
 	
     def boolean checkFee(UserTransactionDeclaration tx) {
         

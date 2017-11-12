@@ -7,28 +7,30 @@ package it.unica.tcs.utils
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
+import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IntType
+import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Network
-import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
+import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.compiler.CompileException
+import it.unica.tcs.generator.ExpressionGenerator
 import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
+import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
 import java.util.List
+import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.Transaction
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.generator.ExpressionGenerator
-import it.unica.tcs.lib.Hash.Ripemd160
-import org.bitcoinj.core.DumpedPrivateKey
-import it.unica.tcs.bitcoinTM.KeyType
 
 @Singleton
 class CompilerUtils {
@@ -79,6 +81,7 @@ class CompilerUtils {
     	if(type instanceof Ripemd160Type) return Ripemd160
     	if(type instanceof Sha256Type) return Sha256
 		if(type instanceof KeyType) return DumpedPrivateKey
+    	if(type instanceof TransactionType) return Transaction
     	if(type instanceof SignatureType) return typeof(byte[])
     	
     	throw new CompileException("Unexpected type "+type.class.simpleName)
