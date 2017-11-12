@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-import it.unica.tcs.bitcoinTM.AfterTimeLock 
+import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Ask
 import it.unica.tcs.bitcoinTM.BasicType
@@ -53,7 +53,6 @@ import it.unica.tcs.bitcoinTM.ScriptEquals
 import it.unica.tcs.bitcoinTM.ScriptMinus
 import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.Send
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Sha256Type
@@ -64,12 +63,11 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Tau
 import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionLiteral
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
@@ -77,12 +75,12 @@ import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
 import java.util.Map
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import org.eclipse.emf.ecore.EObject
-import it.unica.tcs.bitcoinTM.TransactionLiteral
-import org.bitcoinj.core.Transaction
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -240,6 +238,8 @@ from {
 	type = unify(substitutions, leftType, rightType)
 	
 	failIfNotBasic(type, decl.left)
+	
+	decl.left.type = type	// store the type in the AST
 }
 
 rule DeclarationLeft
@@ -269,19 +269,12 @@ from {
 }
 
 
-rule SerialTransactionDeclaration
-	G |- TypeSubstitutions substitutions |> SerialTransactionDeclaration tx : TransactionType type
-from {
-	type = BitcoinTMFactory::eINSTANCE.createTransactionType
-	G.add(tx.left, type)
-}
-
 /**
  * Type check a user defined transactions:
  * - all the parameters are well typed and the type is basic (not generic)
  */
-rule UserTransactionDeclaration
-	G |- TypeSubstitutions substitutions |> UserTransactionDeclaration tx : TransactionType type
+rule TransactionDeclaration
+	G |- TypeSubstitutions substitutions |> TransactionDeclaration tx : TransactionType type
 from {
 	
 	type = BitcoinTMFactory::eINSTANCE.createTransactionType
@@ -303,6 +296,8 @@ from {
 		failIfNotBasic(ptype, p)
 	}
 	G.add(tx.left, type)
+	
+	tx.left.type = type
 }
 
 /*
@@ -363,59 +358,48 @@ from {
 				
 				var inputTx = inputTxRef.eContainer as TransactionDeclaration
 		
-				if (inputTx instanceof SerialTransactionDeclaration) {
-					// all the input expressions are well typed and the type is basic
-					for (var i=0; i<input.exps.size; i++) {
-						var exp = input.exps.get(i)
-						G |- substitutions |> exp : var Type texp	// type can be inferred by the "invocation" of inputTx
-						texp = typesubstitution(substitutions, texp)
-						failIfNotBasic(texp, exp)
-					}
-				} else if (inputTx instanceof UserTransactionDeclaration) {
+				// check the actual parameters type match the formal ones (Transaction)
+				for (var i=0; i<inputTxRef.actualParams.size; i++) {
+					var actualParam = inputTxRef.actualParams.get(i)
+					var formalParam = inputTx.left.params.get(i)
 					
-					// check the actual parameters type match the formal ones (Transaction)
-					for (var i=0; i<inputTxRef.actualParams.size; i++) {
-						var actualParam = inputTxRef.actualParams.get(i)
-						var formalParam = inputTx.left.params.get(i)
-						
-						// get formal parameter type
-						var formalParamType = env(G, formalParam, Type)
-						// apply eventual substitutions to get the basic type
-						formalParamType = typesubstitution(substitutions, formalParamType)
-						// ensure it's basic
-						failIfNotBasic(formalParamType, formalParam)
-						
-						// all the actual parameters are well typed
-						G |- substitutions |> actualParam : var Type actualParamType
-						// apply eventual substitutions
-						actualParamType = typesubstitution(substitutions, actualParamType)
-						
-						// the actual param type must be unifiable with the formal param type
-						unify(substitutions, actualParamType, formalParamType)
-					}
+					// get formal parameter type
+					var formalParamType = env(G, formalParam, Type)
+					// apply eventual substitutions to get the basic type
+					formalParamType = typesubstitution(substitutions, formalParamType)
+					// ensure it's basic
+					failIfNotBasic(formalParamType, formalParam)
 					
-					// check the actual parameters type match the formal ones (Script)
-					var outputIndex = input.outpoint
-					var outputScript = (inputTx.right.value as TransactionBody).outputs.get(new Long(outputIndex).intValue).script
-					for (var i=0; i<input.exps.size; i++) {
-						var inputExp = input.exps.get(i)
-						var outputParam = outputScript.params.get(i)
-						
-						// get formal parameter type
-						var formalParamType = env(G, outputParam, Type)
-						// apply eventual substitutions to get the basic type
-						formalParamType = typesubstitution(substitutions, formalParamType)
-						// ensure it's basic
-						failIfNotBasic(formalParamType, outputParam)
-						
-						// all the actual parameters are well typed
-						G |- substitutions |> inputExp : var Type actualParamType
-						// apply eventual substitutions
-						actualParamType = typesubstitution(substitutions, actualParamType)
-						
-						// the actual param type must be unifiable with the formal param type
-						unify(substitutions, actualParamType, formalParamType)
-					}
+					// all the actual parameters are well typed
+					G |- substitutions |> actualParam : var Type actualParamType
+					// apply eventual substitutions
+					actualParamType = typesubstitution(substitutions, actualParamType)
+					
+					// the actual param type must be unifiable with the formal param type
+					unify(substitutions, actualParamType, formalParamType)
+				}
+				
+				// check the actual parameters type match the formal ones (Script)
+				var outputIndex = input.outpoint
+				var outputScript = (inputTx.right.value as TransactionBody).outputs.get(new Long(outputIndex).intValue).script
+				for (var i=0; i<input.exps.size; i++) {
+					var inputExp = input.exps.get(i)
+					var outputParam = outputScript.params.get(i)
+					
+					// get formal parameter type
+					var formalParamType = env(G, outputParam, Type)
+					// apply eventual substitutions to get the basic type
+					formalParamType = typesubstitution(substitutions, formalParamType)
+					// ensure it's basic
+					failIfNotBasic(formalParamType, outputParam)
+					
+					// all the actual parameters are well typed
+					G |- substitutions |> inputExp : var Type actualParamType
+					// apply eventual substitutions
+					actualParamType = typesubstitution(substitutions, actualParamType)
+					
+					// the actual param type must be unifiable with the formal param type
+					unify(substitutions, actualParamType, formalParamType)
 				}
 			}
 		}
@@ -1254,7 +1238,7 @@ from {
 	    G |- substitutions |> p: var Type t
 	}
 	
-	for (p: EcoreUtil2.getAllContentsOfType(model, TransactionDeclaration)) {
+	for (p: EcoreUtil2.getAllContentsOfType(model, Declaration)) {
 	    G |- substitutions |> p: var Type t
 	}
 }

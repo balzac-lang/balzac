@@ -36,7 +36,6 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration"/>
   <eClassifiers xsi:type="ecore:EClass" name="Expression" eSuperTypes="#//ExpressionI"/>
   <eClassifiers xsi:type="ecore:EClass" name="Input" eSuperTypes="#//Typeable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="txRef" eType="#//CommonAtomic"
@@ -317,10 +316,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="substitutions" upperBound="-1"
         eType="#//Expression" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="UserTransactionDeclaration" eSuperTypes="#//TransactionDeclaration"/>
-  <eClassifiers xsi:type="ecore:EClass" name="SerialTransactionDeclaration" eSuperTypes="#//TransactionDeclaration">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isSerial" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration"/>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionBody" eSuperTypes="#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="inputs" upperBound="-1"
         eType="#//Input" containment="true"/>

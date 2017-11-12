@@ -27,11 +27,11 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Element: 
-  TransactionDeclaration
-| Participant; 
+  "transaction" TransactionDeclaration | 
+  Declaration | 
+  "participant" Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
-
 
 /*
  * generic declarations
@@ -61,14 +61,9 @@ DeclarationRight:
 /*
  * transactions (special case of Declaration)
  */
+
 TransactionDeclaration returns Declaration:
-	UserTransactionDeclaration | SerialTransactionDeclaration;
-
-UserTransactionDeclaration returns TransactionDeclaration:
-	{UserTransactionDeclaration} "transaction" left=DeclarationLeftNoType right=DeclarationRightTx;
-
-SerialTransactionDeclaration returns TransactionDeclaration:
-	{SerialTransactionDeclaration} isSerial?='serial' 'transaction' left=DeclarationLeftNoTypeNoParam '=' right=DeclarationRightTxSerial;
+	{TransactionDeclaration} left=DeclarationLeftNoType right=DeclarationRightTx;
 
 DeclarationRightTx returns DeclarationRight:
 	value=TransactionBody;
@@ -326,7 +321,7 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 /*
  * Endpoints contracts
  */
-Participant: 'participant' name=ID '{'
+Participant: name=ID '{'
 	(process=Process)? & (variables+=Declaration | defs+=ProcessDeclaration)*
 '}';
 

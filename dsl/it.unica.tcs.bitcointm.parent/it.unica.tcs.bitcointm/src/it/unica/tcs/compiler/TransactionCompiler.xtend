@@ -5,6 +5,7 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Input
@@ -13,13 +14,11 @@ import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.ScriptExpression
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionLiteral
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
@@ -49,32 +48,35 @@ class TransactionCompiler {
 	@Inject private extension ScriptExpressionCompiler expGenerator
     @Inject private extension CompilerUtils
     
-    def dispatch ITransactionBuilder compileTransaction(SerialTransactionDeclaration tx) {
+    def dispatch ITransactionBuilder compileTransaction(Declaration tx) {
     	
-    	val hex = (tx.right.value as TransactionLiteral).value
-    	
-    	val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, hex);
-		println()
 		println('''::: Compiling '«tx.left.name»' ''')
-		println('''«txBuilder.toTransaction»''')
+		println()
+    	val hex = tx.right.value.interpretSafe
+    	
+    	if (hex instanceof TransactionLiteral) {
+	    	val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, hex.value);
+			println('''«txBuilder.toTransaction»''')
+			return txBuilder			
+    	}
+    	throw new CompileException('''expected TransactionLiteral, got «hex.class»''')    	
+	}
+	
+	def dispatch ITransactionBuilder compileTransaction(TransactionLiteral tx) {    	
+    	val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.value);
 		return txBuilder			
 	}
 	
-	def dispatch ITransactionBuilder compileTransaction(TransactionLiteral tx) {
-    	println('''::: Compiling transaction literal «tx.value»''')
-		val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.value);
-		return txBuilder			
-	}
 	
 	def dispatch ITransactionBuilder compileTransaction(DeclarationReference ref) {
     	
     	if (ref.ref.eContainer instanceof TransactionDeclaration) {
-    		return compileTransaction(ref.ref.eContainer as TransactionDeclaration)
+    		return compileTransaction(ref.ref.eContainer as Declaration)
     	}
     	throw new CompileException('''ref «ref» does not refer to a transaction''')
 	}
     
-    def dispatch ITransactionBuilder compileTransaction(UserTransactionDeclaration tx) {
+    def dispatch ITransactionBuilder compileTransaction(TransactionDeclaration tx) {
    	
     	println()
 		println('''::: Compiling '«tx.left.name»' ''')
@@ -111,7 +113,7 @@ class TransactionCompiler {
 	    		
 	    		if (parentTx instanceof DeclarationReference) {
 	    			
-	    			val parentTx2 = parentTx.ref.eContainer as UserTransactionDeclaration
+	    			val parentTx2 = parentTx.ref.eContainer as TransactionDeclaration
 	    			val parentTxFormalparams = parentTx2.left.params
 	    			
 		    		/*

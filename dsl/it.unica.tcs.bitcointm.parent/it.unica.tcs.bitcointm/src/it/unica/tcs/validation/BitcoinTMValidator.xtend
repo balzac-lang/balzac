@@ -28,13 +28,11 @@ import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionLiteral
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.Hash.Hash160
@@ -89,7 +87,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	 * INFO
 	 */	
 	@Check
-	def void checkSingleElementArray(UserTransactionDeclaration tx) {
+	def void checkSingleElementArray(TransactionDeclaration tx) {
 		
 //		logger.trace("--- TRACE TEST --- ")
 //		logger.info ("--- INFO  TEST --- ")
@@ -313,7 +311,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 //	@Check(NORMAL)
-//	def void checkUserTransactionIsMined(UserTransactionDeclaration t) {
+//	def void checkUserTransactionIsMined(TransactionDeclaration t) {
 //		
 //		try {
 //			val txB = t.compileTransaction
@@ -524,12 +522,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkSerialTransaction(SerialTransactionDeclaration tx) {
-		
-		val tbody = tx.right.value as TransactionLiteral
+	def void checkSerialTransaction(TransactionLiteral tx) {
 		
 		try {
-			val txJ = new Transaction(tx.networkParams, BitcoinUtils.decode(tbody.value))
+			val txJ = new Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 			txJ.verify
 		} 
 		catch (VerificationException e) {
@@ -542,7 +538,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check(CheckType.NORMAL)
-	def void checkUserDefinedTx(UserTransactionDeclaration tx) {
+	def void checkUserDefinedTx(TransactionDeclaration tx) {
 
 		val tbody = tx.right.value as TransactionBody
 		var hasError = false;
@@ -644,7 +640,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         	var tx = inputTx.ref.eContainer
         
-	        if (tx instanceof UserTransactionDeclaration){
+	        if (tx instanceof TransactionDeclaration){
 	            numOfOutputs = (tx.right.value as TransactionBody).outputs.size
 	        }	        
         }
@@ -683,7 +679,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	            	else {
 	            		// free variables are not allowed
 	            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
-	            			if (v.ref.eContainer instanceof UserTransactionDeclaration) {
+	            			if (v.ref.eContainer instanceof TransactionDeclaration) {
 	            				error(
 				                    "Cannot reference transaction parameters from the redeem script.",
 				                    v,
@@ -711,7 +707,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         	DeclarationReference: {
 				val refTx = inputTx.ref.eContainer
-				if (refTx instanceof UserTransactionDeclaration) {
+				if (refTx instanceof TransactionDeclaration) {
 		            var outputScript = (refTx.right.value as TransactionBody).outputs.get(new Long(outputIdx).intValue).script;
 		            
 		            var numOfExps = input.exps.size
@@ -765,13 +761,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //        return true
 //    }
 	
-    def boolean checkFee(UserTransactionDeclaration tx) {
+    def boolean checkFee(TransactionDeclaration tx) {
         
 //        var amount = 0L
 //        
 //        for (in : tx.body.inputs) {
 //        	var inputTx = in.txRef.ref
-//            if (inputTx instanceof UserTransactionDeclaration) {
+//            if (inputTx instanceof TransactionDeclaration) {
 //                var index = in.outpoint.intValue
 //                var output = inputTx.body.outputs.get(index) 
 //                var value = output.value.exp.interpret(newHashMap).first as Long
@@ -808,7 +804,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         return true;
     }
     
-    def boolean correctlySpendsOutput(UserTransactionDeclaration tx) {
+    def boolean correctlySpendsOutput(TransactionDeclaration tx) {
         
 		var txBuilder = tx.compileTransaction
 		val tbody = tx.right.value as TransactionBody
@@ -915,7 +911,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
      * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
      */
     @Check
-    def void checkJustOneOpReturn(UserTransactionDeclaration tx) {
+    def void checkJustOneOpReturn(TransactionDeclaration tx) {
     	val tbody = tx.right.value as TransactionBody
 		
     	var boolean[] error = newBooleanArrayOfSize(tbody.outputs.size);

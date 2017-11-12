@@ -52,7 +52,6 @@ import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
 import it.unica.tcs.bitcoinTM.TransactionLiteral;
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -202,7 +201,7 @@ public class ASTUtils {
 //    			.allMatch(ASTUtils::isRelativeDate);
 //    }
 	
-	public boolean isCoinbase(UserTransactionDeclaration tx) {
+	public boolean isCoinbase(TransactionDeclaration tx) {
 		return isCoinbase(((TransactionBody) tx.getRight().getValue()));
 	}
 	

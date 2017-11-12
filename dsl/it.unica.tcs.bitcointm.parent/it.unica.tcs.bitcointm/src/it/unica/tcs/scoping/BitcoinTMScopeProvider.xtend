@@ -11,8 +11,7 @@ import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -71,7 +70,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		);
 	}
 
-	def dispatch IScope getScopeForParameters(UserTransactionDeclaration obj) {
+	def dispatch IScope getScopeForParameters(TransactionDeclaration obj) {
 //		println('''adding params: [«obj.left.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.left.name»''')
 		return Scopes.scopeFor(
 			obj.left.params,
@@ -81,14 +80,6 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		); 	// stop recursion
 	}	
 
-	def dispatch IScope getScopeForParameters(SerialTransactionDeclaration obj) {
-		obj.eContainer.getScopeForVariableDeclarations(
-			getIScopeForAllContentsOfClass(obj, DeclarationLeft)			
-		)
-		// stop recursion
-	}
-
-	
 	/**
 	 * Key declarations are resolved within the same resource (file).
 	 * <p>Keys are declared within a participant. If two participants

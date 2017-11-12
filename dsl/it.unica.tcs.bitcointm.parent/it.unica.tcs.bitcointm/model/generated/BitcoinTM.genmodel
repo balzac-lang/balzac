@@ -73,7 +73,6 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//DeclarationRight">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationRight/value"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Expression"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Input">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txRef"/>
@@ -261,10 +260,7 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/tx"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Substitution/substitutions"/>
     </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//UserTransactionDeclaration"/>
-    <genClasses ecoreClass="BitcoinTM.ecore#//SerialTransactionDeclaration">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//SerialTransactionDeclaration/isSerial"/>
-    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//TransactionDeclaration"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//TransactionBody">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//TransactionBody/inputs"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//TransactionBody/isMultiIn"/>

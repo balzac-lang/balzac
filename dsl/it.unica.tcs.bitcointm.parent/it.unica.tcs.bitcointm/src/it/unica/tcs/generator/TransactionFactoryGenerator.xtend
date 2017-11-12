@@ -9,9 +9,7 @@ import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
-import it.unica.tcs.bitcoinTM.SerialTransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.UserTransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.ObjectUtils
 import it.unica.tcs.utils.CompilerUtils
@@ -64,15 +62,9 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		'''
 	}
 	
-	def private dispatch compileTxParameters(SerialTransactionDeclaration tx) ''''''
-	def private dispatch compileTxParameters(UserTransactionDeclaration tx) '''«tx.left.params.compileFormalParams»'''
+	def private compileTxParameters(TransactionDeclaration tx) '''«tx.left.params.compileFormalParams»'''
 	
-	def private dispatch compileTxBody(SerialTransactionDeclaration tx) '''
-		«val txBuilder = tx.compileTransaction»
-		return ObjectUtils.deserializeObjectFromStringQuietly("«ObjectUtils.serializeObjectToString(txBuilder)»", ITransactionBuilder.class);
-	'''
-	
-	def private dispatch compileTxBody(UserTransactionDeclaration tx) '''
+	def private compileTxBody(TransactionDeclaration tx) '''
 		«val txBuilder = tx.compileTransaction»
 		return ObjectUtils.deserializeObjectFromStringQuietly("«ObjectUtils.serializeObjectToString(txBuilder)»", ITransactionBuilder.class);
 «««		TransactionBuilder tb = new «IF txBuilder.isCoinbase»CoinbaseTransactionBuilder«ELSE»TransactionBuilder«ENDIF»(«tx.compileNetworkParams»);
