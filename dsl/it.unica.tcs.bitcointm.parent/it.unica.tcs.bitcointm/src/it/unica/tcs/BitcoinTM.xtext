@@ -45,22 +45,22 @@ Declaration:
 
 DeclarationLeft:
 	name=ID 
-	("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")?
+	("(" (params+=Parameter ("," params+=Parameter)*)? ")")?
 	(":" type=DeclarationType)?;
-
-DeclarationLeftNoTypeNoParam returns DeclarationLeft:	// same as DeclarationLeft, but does not permit type nor params
-	name=ID;
 	
 DeclarationLeftNoType returns DeclarationLeft:	// same as DeclarationLeft, but does not permit type
 	name=ID
-	("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")?;
+	("(" (params+=Parameter ("," params+=Parameter)*)? ")")?;
 
-DeclarationLeftNoParams returns DeclarationLeft:
+Parameter:
 	name=ID 
 	(":" type=DeclarationType)?;	// name (: type)?
 
 DeclarationRight:
 	value=Expression;
+
+Referrable:
+	Parameter | DeclarationLeft;
 
 /*
  * transactions (special case of Declaration)
@@ -71,9 +71,6 @@ TransactionDeclaration returns Declaration:
 
 DeclarationRightTx returns DeclarationRight:
 	value=TransactionBody;
-
-DeclarationRightTxSerial returns DeclarationRight:
-	value=TransactionLiteral;
 
 TransactionBody returns Expression: {TransactionBody} "{"
 	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
@@ -105,7 +102,7 @@ RelativeTime:
 	value=Delay "from" tx=[DeclarationLeft|QualifiedName];
 
 Script:
-	(lambda?="fun"  "(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")" ".")? exp=ScriptExpression;
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
 
 
 
@@ -160,7 +157,7 @@ CommonAtomic:
 	Literal | DeclarationReference | Hash;
 
 DeclarationReference: 
-	ref=[DeclarationLeft|QualifiedName]
+	ref=[Referrable|QualifiedName]
 	( => "("(actualParams+=CommonAtomic ("," actualParams+=CommonAtomic)*)?")")?;		// within ScriptExpressions
 
 Literal:
@@ -262,6 +259,7 @@ Typeable:
 | Declaration
 | DeclarationLeft
 | DeclarationRight
+| Parameter
 | Input
 | Output 
 | Participant
@@ -329,7 +327,7 @@ Participant: name=ID '{'
 	(process=Process)? & (variables+=Declaration | defs+=ProcessDeclaration)*
 '}';
 
-ProcessDeclaration: 'process' name=ID ("(" (params+=DeclarationLeftNoParams ("," params+=DeclarationLeftNoParams)*)? ")")? '=' process=Process;
+ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
 ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Process:
@@ -367,7 +365,7 @@ Put: 'put' (
 		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}');
 
 Send: 'send' message=Expression 'to' p=[Participant];
-Receive: 'receive' var=DeclarationLeftNoParams 'from' p=[Participant];
+Receive: 'receive' var=Parameter 'from' p=[Participant];
 Check:	'check' exp=Expression;
 
 ProtocolIfThenElse: 

@@ -21,6 +21,7 @@ import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
@@ -43,6 +44,7 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.bitcoinTM.DeclarationLeft
 
 /*
  * EXPRESSIONS
@@ -114,55 +116,65 @@ class ScriptExpressionCompiler {
          * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
          * 
          */
-        var ref = varRef.ref.eContainer
+        var ref = varRef.ref
+        var refContainer = ref.eContainer
         
-        if (ref instanceof Script) {
-        	// script parameter
-        	val param = varRef.ref
-        	val sb = new ScriptBuilder2()
-	        val pos = ctx.altstack.get(param).position
-			var count = ctx.altstack.get(param).occurrences
-	
-	        if(pos === null) throw new CompileException;
-	
-	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-	        
-	        if (count==1) {
-	        	// this is the last usage of the variable
-	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
-	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-	        	}
-	        	
-		        if (ctx.altstack.size - pos> 0)
-		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-	        	
-	        }
-	        else {
-	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
-		        sb.op(OP_DUP).op(OP_TOALTSTACK)
-	
-		        if (ctx.altstack.size - pos - 1 > 0)
-		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
-	        }
-	        return sb
-        }
-        else if (ref.eContainer instanceof TransactionDeclaration) {
-        	// transaction parameter
-        	val param = varRef.ref
-        	return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
-        }
-        else if (ref instanceof Declaration) {
-        	val value = ref.right.value.interpretSafe
+        if (ref instanceof Parameter) {
         	
-        	if (value instanceof Literal) {
-	        	return value.compileExpression(ctx)        		
-        	}
+	        if (refContainer instanceof Script) {
+	        	// script parameter
+	        	val param = varRef.ref
+	        	val sb = new ScriptBuilder2()
+		        val pos = ctx.altstack.get(param).position
+				var count = ctx.altstack.get(param).occurrences
+		
+		        if(pos === null) throw new CompileException;
+		
+		        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+		        
+		        if (count==1) {
+		        	// this is the last usage of the variable
+		        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+		        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+		        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
+		        	}
+		        	
+			        if (ctx.altstack.size - pos> 0)
+			            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+		        	
+		        }
+		        else {
+		        	ctx.altstack.put(ref, AltStackEntry.of(pos, count-1))
+			        sb.op(OP_DUP).op(OP_TOALTSTACK)
+		
+			        if (ctx.altstack.size - pos - 1 > 0)
+			            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+		        }
+		        return sb
+	        }
+	        else if (refContainer instanceof TransactionDeclaration) {
+	        	// transaction parameter
+	        	return new ScriptBuilder2().addVariable(ref.name, ref.type.convertType)
+	        }
         	else 
-        		throw new CompileException('''the right part of declaration «ref.left.name» does not evaluate to Literal value''')
+    			throw new CompileException('''unexpected class «refContainer»''')
+        }
+        else if (ref instanceof DeclarationLeft) {
+        	
+        	if (refContainer instanceof Declaration) {        		
+	        	val value = refContainer.right.value.interpretSafe
+	        	
+	        	if (value instanceof Literal) {
+		        	return value.compileExpression(ctx)        		
+	        	}
+	        	else 
+	        		throw new CompileException('''the right part of declaration «ref.name» does not evaluate to Literal value''')
+        	}	        
+        	else 
+    			throw new CompileException('''unexpected class «refContainer»''')        	
         }
         else 
-    		throw new CompileException('''unexpected ref «ref.class»''')
+    		throw new CompileException('''unexpected class «ref.class»''')
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Hash160 hash, Context ctx) {

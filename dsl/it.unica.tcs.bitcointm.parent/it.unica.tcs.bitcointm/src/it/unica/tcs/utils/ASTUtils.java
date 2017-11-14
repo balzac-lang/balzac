@@ -31,7 +31,6 @@ import com.google.inject.Singleton;
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
-import it.unica.tcs.bitcoinTM.DeclarationLeft;
 import it.unica.tcs.bitcoinTM.DeclarationReference;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
@@ -41,6 +40,8 @@ import it.unica.tcs.bitcoinTM.Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
+import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.bitcoinTM.Referrable;
 import it.unica.tcs.bitcoinTM.RelativeTime;
 import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
@@ -70,19 +71,27 @@ public class ASTUtils {
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMTypeSystem typeSystem;
 	
-	public Set<DeclarationLeft> getTxVariables(ExpressionI exp) {
-        Set<DeclarationLeft> refs = 
+	public String getName(Referrable ref) {
+		if (ref instanceof Parameter)
+			return ((Parameter) ref).getName();
+		if (ref instanceof Parameter)
+			return ((Parameter) ref).getName();
+		throw new IllegalStateException("Unexpected class "+ref.getClass());
+	}
+	
+	public Set<Parameter> getTxVariables(ExpressionI exp) {
+        Set<Parameter> refs = 
         		EcoreUtil2.getAllContentsOfType(exp.eContainer(), DeclarationReference.class)
         		.stream()
         		.map( v -> v.getRef() )
     			.filter(this::isTxParameter)
+    			.map( r -> (Parameter) r )
     			.collect(Collectors.toSet());
     
         return refs;
 	}
 	
-	
-	public boolean isTxParameter(DeclarationLeft p) {
+	public boolean isTxParameter(Referrable p) {
 		/* 
 		 * TransacionDeclaration (Declaration) 
 		 * -> left  (DeclarationLeft)
@@ -100,7 +109,7 @@ public class ASTUtils {
 		return interpretSafe(exp, new HashMap<>(), expectedType);
 	}
 	
-	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<DeclarationLeft,Object> rho, Class<T> expectedType) {
+	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<Referrable,Object> rho, Class<T> expectedType) {
 		ExpressionI res = interpretSafe(exp, rho);
 		checkState(expectedType.isInstance(res), "expected type "+expectedType+", got "+res.getClass());
 		return expectedType.cast(res);
@@ -112,7 +121,7 @@ public class ASTUtils {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends ExpressionI> T interpretSafe(T exp, Map<DeclarationLeft,Object> rho) {
+	public <T extends ExpressionI> T interpretSafe(T exp, Map<Referrable,Object> rho) {
 		// returns the same type of exp
 		if (exp instanceof Literal)
 			return exp;

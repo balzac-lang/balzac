@@ -4,30 +4,32 @@
 
 package it.unica.tcs.generator
 
+import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.AndExpression
-import it.unica.tcs.bitcoinTM.BooleanLiteral
-import it.unica.tcs.bitcoinTM.HashLiteral
-import it.unica.tcs.bitcoinTM.NumberLiteral
-import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
+import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
 import it.unica.tcs.bitcoinTM.Comparison
+import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
+import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.Minus
+import it.unica.tcs.bitcoinTM.NumberLiteral
+import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.utils.ASTUtils
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
-import it.unica.tcs.bitcoinTM.Div
 
 @Singleton
 class ExpressionGenerator {
 	
-//	@Inject private extension BitcoinTMTypeSystem
+	@Inject private extension ASTUtils
 	
 	def String compileExpression(Expression exp) {
 		compileExpressionInternal(exp/*.interpretSafe*/)

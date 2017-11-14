@@ -81,6 +81,8 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.Referrable
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -105,7 +107,7 @@ judgments {
 		error "Cannot type " + stringRep(exp)
 		source exp
 		
-	interpret |- ExpressionI expression |> Map<DeclarationLeft,Object> rho ~> output Object
+	interpret |- ExpressionI expression |> Map<Referrable,Object> rho ~> output Object
 }
 
 /*
@@ -225,6 +227,19 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
  * Type system rules
  */
 
+rule Parameter
+	G |- TypeSubstitutions substitutions |> Parameter p : Type type
+from {
+	{
+		p.type !== null
+		type = EcoreUtil.copy(p.type)
+	}
+	or {
+		type = lambdaUtils.createFreshTypeVariable
+	}
+	G.add(p, type)
+}
+
 rule Declaration
 	G |- TypeSubstitutions substitutions |> Declaration decl : Type type
 from {
@@ -239,20 +254,32 @@ from {
 	
 	failIfNotBasic(type, decl.left)
 	
+	// all the parameters should have a basic type (generic types are not allowed)
+	for (p : decl.left.params) {
+		var ptype = env(G, p, Type)
+		ptype = typesubstitution(substitutions, ptype)
+		failIfNotBasic(ptype, p)
+	}
+	
 	decl.left.type = type	// store the type in the AST
 }
 
 rule DeclarationLeft
-	G |- TypeSubstitutions substitutions |> DeclarationLeft p : Type type
+	G |- TypeSubstitutions substitutions |> DeclarationLeft d : Type type
 from {
+	// type all the actual parameters
+	for (param : d.params) {
+		G |- substitutions |> param : var Type paramType
+	}
+
 	{
-		p.type !== null
-		type = EcoreUtil.copy(p.type)
+		d.type !== null
+		type = EcoreUtil.copy(d.type)
 	}
 	or {
 		type = lambdaUtils.createFreshTypeVariable
 	}
-	G.add(p, type)
+	G.add(d, type)
 }
 
 rule DeclarationRight
@@ -266,6 +293,30 @@ rule DeclarationReference
 from {
 	type = env(G, varRef.ref, Type)						// reference type
 	type = typesubstitution(substitutions, type)		// apply substitutions
+	
+	val ref = varRef.ref
+	if (ref instanceof DeclarationLeft) {
+		// check the actual parameters type match the formal ones
+		for (var i=0; i<varRef.actualParams.size; i++) {
+			var actualParam = varRef.actualParams.get(i)
+			var formalParam = ref.params.get(i)
+			
+			// get formal parameter type
+			var formalParamType = env(G, formalParam, Type)
+			// apply eventual substitutions to get the basic type
+			formalParamType = typesubstitution(substitutions, formalParamType)
+			// ensure it's basic
+			failIfNotBasic(formalParamType, formalParam)
+			
+			// all the actual parameters are well typed
+			G |- substitutions |> actualParam : var Type actualParamType
+			// apply eventual substitutions
+			actualParamType = typesubstitution(substitutions, actualParamType)
+			
+			// the actual param type must be unifiable with the formal param type
+			unify(substitutions, actualParamType, formalParamType)
+		}
+	}
 }
 
 
@@ -273,32 +324,17 @@ from {
  * Type check a user defined transactions:
  * - all the parameters are well typed and the type is basic (not generic)
  */
-rule TransactionDeclaration
-	G |- TypeSubstitutions substitutions |> TransactionDeclaration tx : TransactionType type
-from {
-	
-	type = BitcoinTMFactory::eINSTANCE.createTransactionType
-	
-	for (p : tx.left.params) {
-		G |- substitutions |> p : var Type paramType
-		G.add(p, paramType)			// store the type in the environment
-	}
-	
-	// transaction body is well typed and type is TransactionType
-	G |- substitutions |> tx.right : var Type bodyType
-	bodyType = typesubstitution(substitutions, bodyType)
-	unify(substitutions, type, bodyType)
-	
-	// all the parameters should have a basic type (generic types are not allowed)
-	for (p : tx.left.params) {
-		var ptype = env(G, p, Type)
-		ptype = typesubstitution(substitutions, ptype)
-		failIfNotBasic(ptype, p)
-	}
-	G.add(tx.left, type)
-	
-	tx.left.type = type
-}
+//rule TransactionDeclaration
+//	G |- TypeSubstitutions substitutions |> TransactionDeclaration tx : TransactionType type
+//from {
+//	
+//	type = BitcoinTMFactory::eINSTANCE.createTransactionType
+//
+//	// type like a normal declaration	
+//	G |- substitutions |> tx as Declaration : var Type tmpType
+//	tmpType = typesubstitution(substitutions, tmpType)
+//	unify(substitutions, type, tmpType)
+//}
 
 /*
  * - all the inputs are well typed
@@ -929,7 +965,7 @@ from {
  */
 
 rule InterpretDeclarationReference
-	G |- DeclarationReference v |> Map<DeclarationLeft, Object> rho ~> Object res
+	G |- DeclarationReference v |> Map<Referrable, Object> rho ~> Object res
 from {
 	{
 		val decl = v.ref.eContainer as Declaration
@@ -942,35 +978,35 @@ from {
 }
   
 axiom InterpretNumberLiteral
-    G |- NumberLiteral number |> Map<DeclarationLeft, Object> rho ~> number.value
+    G |- NumberLiteral number |> Map<Referrable, Object> rho ~> number.value
 
 axiom InterpretStringLiteral
-    G |- StringLiteral str |> Map<DeclarationLeft,Object> rho ~> str.value
+    G |- StringLiteral str |> Map<Referrable, Object> rho ~> str.value
 
 axiom InterpretBooleanLiteral
-    G |- BooleanLiteral bool |> Map<DeclarationLeft,Object> rho ~> bool.^true
+    G |- BooleanLiteral bool |> Map<Referrable, Object> rho ~> bool.^true
 
 axiom InterpretHash160Literal
-    G |- Hash160Literal hash |> Map<DeclarationLeft,Object> rho ~> new it.unica.tcs.lib.Hash.Hash160(hash.value)
+    G |- Hash160Literal hash |> Map<Referrable, Object> rho ~> new it.unica.tcs.lib.Hash.Hash160(hash.value)
 
 axiom InterpretHash256Literal
-    G |- Hash256Literal hash |> Map<DeclarationLeft,Object> rho ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
+    G |- Hash256Literal hash |> Map<Referrable, Object> rho ~> new it.unica.tcs.lib.Hash.Hash256(hash.value)
 
 axiom InterpretRipemd160Literal
-    G |- Ripemd160Literal hash |> Map<DeclarationLeft,Object> rho ~> new it.unica.tcs.lib.Hash.Ripemd160(hash.value)
+    G |- Ripemd160Literal hash |> Map<Referrable, Object> rho ~> new it.unica.tcs.lib.Hash.Ripemd160(hash.value)
 
 axiom InterpretSha256Literal
-    G |- Sha256Literal hash |> Map<DeclarationLeft,Object> rho ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
+    G |- Sha256Literal hash |> Map<Referrable, Object> rho ~> new it.unica.tcs.lib.Hash.Sha256(hash.value)
 
 axiom InterpretKeyLiteral
-    G |- KeyLiteral key |> Map<DeclarationLeft,Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+    G |- KeyLiteral key |> Map<Referrable, Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
 
 axiom InterpretTransactionLiteral
-    G |- TransactionLiteral tx |> Map<DeclarationLeft,Object> rho ~> new Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> new Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
 
 rule InterpretMinus
-    G |- ScriptMinus minus |> Map<DeclarationLeft,Object> rho ~> Long result
+    G |- ScriptMinus minus |> Map<Referrable, Object> rho ~> Long result
 from {
     G |- minus.left |> rho ~> var Long leftResult
     G |- minus.right |> rho ~> var Long rightResult
@@ -978,7 +1014,7 @@ from {
 }
 
 rule InterpretPlus
-    G |- ScriptPlus plus |> Map<DeclarationLeft,Object> rho ~> Object result
+    G |- ScriptPlus plus |> Map<Referrable, Object> rho ~> Object result
 from {
     G |- plus.left |> rho ~> var Object leftResult
     G |- plus.right |> rho ~> var Object rightResult
@@ -996,14 +1032,14 @@ from {
 }
 
 rule InterpretArithmeticSigned
-    G |- ScriptArithmeticSigned signed |> Map<DeclarationLeft,Object> rho ~> Long result
+    G |- ScriptArithmeticSigned signed |> Map<Referrable, Object> rho ~> Long result
 from {
     G |- signed.exp |> rho ~> var Long expResult
     result = -(expResult)
 }
 
 rule InterpretAnd
-    G |- AndScriptExpression and |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- AndScriptExpression and |> Map<Referrable, Object> rho ~> Boolean result
 from {
 	{
 	    G |- and.left |> rho ~> var Boolean leftResult
@@ -1030,7 +1066,7 @@ from {
 }
 
 rule InterpretOr
-    G |- OrScriptExpression orExp |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- OrScriptExpression orExp |> Map<Referrable, Object> rho ~> Boolean result
 from {
 	{
 	    G |- orExp.left |> rho ~> var Boolean leftResult
@@ -1056,14 +1092,14 @@ from {
 }
 
 rule InterpretBooleanNegation
-    G |- ScriptBooleanNegation neg |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- ScriptBooleanNegation neg |> Map<Referrable, Object> rho ~> Boolean result
 from {
     G |- neg.exp |> rho ~> var Boolean expResult
     result = !expResult
 }
 
 rule InterpretComparison
-    G |- ScriptComparison comparison |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- ScriptComparison comparison |> Map<Referrable, Object> rho ~> Boolean result
 from {
     G |- comparison.left |> rho ~> var Comparable<Object> leftResult
     G |- comparison.right |> rho ~> var Object rightResult
@@ -1084,7 +1120,7 @@ from {
 }
 
 rule InterpretEquals
-    G |- ScriptEquals comparison |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- ScriptEquals comparison |> Map<Referrable, Object> rho ~> Boolean result
 from {
 	
 	{
@@ -1147,7 +1183,7 @@ from {
 }
 
 rule InterpretIfThenElse
-    G |- IfThenElse stmt |> Map<DeclarationLeft,Object> rho ~> Object result
+    G |- IfThenElse stmt |> Map<Referrable, Object> rho ~> Object result
 from {
     G |- stmt.^if |> rho ~> var Boolean ifCondition
     
@@ -1162,7 +1198,7 @@ from {
 }
 
 rule InterpretMin
-    G |- Min stmt |> Map<DeclarationLeft,Object> rho ~> Long result
+    G |- Min stmt |> Map<Referrable, Object> rho ~> Long result
 from {
     G |- stmt.left |> rho ~> var Long leftRes
     G |- stmt.right |> rho ~> var Long rightRes
@@ -1174,7 +1210,7 @@ from {
 }
 
 rule InterpretMax
-    G |- Max stmt |> Map<DeclarationLeft,Object> rho ~> Long result
+    G |- Max stmt |> Map<Referrable, Object> rho ~> Long result
 from {
     G |- stmt.left |> rho ~> var Long leftRes
     G |- stmt.right |> rho ~> var Long rightRes
@@ -1186,7 +1222,7 @@ from {
 }
 
 rule InterpretBetween
-    G |- Between stmt |> Map<DeclarationLeft,Object> rho ~> Boolean result
+    G |- Between stmt |> Map<Referrable, Object> rho ~> Boolean result
 from {
     G |- stmt.value |> rho ~> var Long valueRes
     G |- stmt.left |> rho ~> var Long leftRes
@@ -1195,7 +1231,7 @@ from {
 }
 
 rule InterpretHash
-    G |- Hash hash |> Map<DeclarationLeft,Object> rho ~> it.unica.tcs.lib.Hash result
+    G |- Hash hash |> Map<Referrable, Object> rho ~> it.unica.tcs.lib.Hash result
 from {
 
     G |- hash.value |> rho ~> var Object expResult
@@ -1217,7 +1253,7 @@ from {
 }
 
 rule InterpretSize
-    G |- Size size |> Map<DeclarationLeft,Object> rho ~> Long result
+    G |- Size size |> Map<Referrable, Object> rho ~> Long result
 from {
 	G |- size.value |> rho ~> var Long res
 	

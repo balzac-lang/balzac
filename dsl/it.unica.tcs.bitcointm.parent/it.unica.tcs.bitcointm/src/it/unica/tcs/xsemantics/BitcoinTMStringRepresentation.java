@@ -14,6 +14,7 @@ import it.unica.tcs.bitcoinTM.BooleanType;
 import it.unica.tcs.bitcoinTM.DeclarationLeft;
 import it.unica.tcs.bitcoinTM.DeclarationReference;
 import it.unica.tcs.bitcoinTM.IntType;
+import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.StringType;
@@ -42,8 +43,14 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 						+ string(parameter.getType()) : "");
 	}
 	
-	protected String stringRep(DeclarationReference variable) {
-		return variable.getRef().getName();
+	protected String stringRep(Parameter parameter) {
+		return parameter.getName()
+				+ ((parameter.getType()) != null ? " : "
+						+ string(parameter.getType()) : "");
+	}
+
+	protected String stringRep(DeclarationReference ref) {
+		return stringRep(ref.getRef());
 	}
 
 	protected String stringRep(TypeSubstitutions substitutions) {

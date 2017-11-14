@@ -76,8 +76,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMTypeSystem
     @Inject private extension ASTUtils    
-//    @Inject private extension BitcoinUtils bitcoinUtils
-//    @Inject private extension BitcoinClientI bitcoinClient
     @Inject private extension TransactionCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
@@ -614,7 +612,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         if (inputTx instanceof DeclarationReference) {
             
-            if (inputTx.ref.params.size!=inputTx.actualParams.size) {
+            if ((inputTx.ref as DeclarationLeft).params.size!=inputTx.actualParams.size) {
 	            error(
                     "The number of expressions does not match the number of parameters.",
                     input.txRef,

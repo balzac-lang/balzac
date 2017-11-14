@@ -70,9 +70,14 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationLeft/params"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationLeft/type"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Parameter">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Parameter/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Parameter/type"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//DeclarationRight">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//DeclarationRight/value"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//Referrable"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Expression"/>
     <genClasses ecoreClass="BitcoinTM.ecore#//Input">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Input/txRef"/>

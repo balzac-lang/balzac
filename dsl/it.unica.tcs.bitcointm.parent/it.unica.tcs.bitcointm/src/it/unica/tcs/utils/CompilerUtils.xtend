@@ -7,13 +7,13 @@ package it.unica.tcs.utils
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Network
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -41,7 +41,7 @@ class CompilerUtils {
 		actualParams.map[e|e.compileExpression].join(",")
 	}
 	
-	def String compileFormalParams(List<DeclarationLeft> formalParams) {
+	def String compileFormalParams(List<Parameter> formalParams) {
 		formalParams.map[p|p.type.compileType+" "+p.name].join(", ")
     }
 	

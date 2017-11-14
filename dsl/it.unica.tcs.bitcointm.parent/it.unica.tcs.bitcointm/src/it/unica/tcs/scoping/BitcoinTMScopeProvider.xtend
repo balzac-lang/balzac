@@ -7,12 +7,12 @@
  */
 package it.unica.tcs.scoping
 
+import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.GlobalDeclaration
+import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -30,67 +30,48 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  */
 class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 
-//	@Inject private extension IQualifiedNameProvider	
 
-	/**
-	 * utils: get a scope for the given clazz type within the whole document
-	 */
+	def IScope scope_Referrable(DeclarationReference v, EReference ref) {
+//		println("Resolving variable: "+v)
+		getScopeForParameters(v,
+			getScopeForParticipantDeclarations(v, 
+				getIScopeForAllContentsOfClass(v, DeclarationLeft)
+			)
+		)
+	}
+
 	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
 		return Scopes.scopeFor(candidates);									// return the scope
 	}
-
-
-	/*
-	 * free-names resolution
-	 */
-	def IScope scope_DeclarationLeft(EObject v, EReference ref) {
-//		println("Resolving variable: "+v)
-		return getScopeForParameters(v.eContainer);		
-	}
 	
 	//utils: recursively get all free-names declarations until Script definition
-	def dispatch IScope getScopeForParameters(EObject cont) {
+	def static dispatch IScope getScopeForParameters(EObject cont, IScope outer) {
 //		println("skipping: "+cont)
-		return getScopeForParameters(cont.eContainer);
+		return getScopeForParameters(cont.eContainer, outer);
 	}
 	
-	def dispatch IScope getScopeForParameters(Script obj) {
+	def static dispatch IScope getScopeForParameters(Script obj, IScope outer) {
 //		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
 		return Scopes.scopeFor(
 			obj.params,
-			getScopeForParameters(obj.eContainer)
+			getScopeForParameters(obj.eContainer, outer)
 		);
 	}
 	
-	
-	def dispatch IScope getScopeForParameters(Receive obj) {
+	def static dispatch IScope getScopeForParameters(Receive obj, IScope outer) {
 		return Scopes.scopeFor(
 			newArrayList(obj.^var),
-			getScopeForParameters(obj.eContainer)
+			getScopeForParameters(obj.eContainer, outer)
 		);
 	}
 
-	def dispatch IScope getScopeForParameters(GlobalDeclaration obj) {
+	def static dispatch IScope getScopeForParameters(Declaration obj, IScope outer) {
 //		println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
-		return Scopes.scopeFor(
-			obj.left.params,
-			obj.eContainer.getScopeForVariableDeclarations(
-				getIScopeForAllContentsOfClass(obj, DeclarationLeft)
-			)
-		);
+		return Scopes.scopeFor(obj.left.params, outer);
+		// stop recursion
 	}
-
-	def dispatch IScope getScopeForParameters(TransactionDeclaration obj) {
-//		println('''adding params: [«obj.left.params.map[p|p.name+":"+p.type].join(",")»] from tx «obj.left.name»''')
-		return Scopes.scopeFor(
-			obj.left.params,
-			obj.eContainer.getScopeForVariableDeclarations(
-				getIScopeForAllContentsOfClass(obj, DeclarationLeft)
-			)
-		); 	// stop recursion
-	}	
 
 	/**
 	 * Key declarations are resolved within the same resource (file).
@@ -98,7 +79,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 	 * use the same name for a key, the qualified name should be used
 	 * (e.g. <code>Alice.k</code>)</p>
 	 */
-	def IScope getScopeForVariableDeclarations(EObject ctx, IScope outerScope) {
+	def static IScope getScopeForParticipantDeclarations(EObject ctx, IScope outerScope) {
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var participants = EcoreUtil2.getAllContentsOfType(root, Participant);
 		

@@ -6,12 +6,12 @@ package it.unica.tcs.compiler
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.ScriptExpression
 import it.unica.tcs.bitcoinTM.Signature
@@ -130,7 +130,7 @@ class TransactionCompiler {
 						
 							// if the evaluation is a literal, set the parent variable
 							if (actualPvalue instanceof Literal) {
-								println('''«tx.left.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «parentTx.ref.name»''')
+								println('''«tx.left.name»: setting value «actualPvalue.interpret(newHashMap).first» for variable '«formalP.name»' of parent tx «parentTx2.left.name»''')
 								parentTxCompiled.bindVariable(formalP.name, actualPvalue.interpret(newHashMap).first)
 							}
 							// it the evaluation contains some tx variables, create an hook
@@ -138,16 +138,16 @@ class TransactionCompiler {
 								// get the tx variables present within this actual parameter
 								val fvs = actualPvalue.getTxVariables
 								val fvsNames = fvs.map[p|p.name].toSet
-								println('''«tx.left.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTx.ref.name»''')
+								println('''«tx.left.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTx2.left.name»''')
 								
 								// this hook will be executed when all the tx variables will have been bound
 								// 'values' contains the bound values, we are now able to evaluate 'actualPvalue' 
 								tb.addHookToVariableBinding(fvsNames, [ values |
-									println('''«tx.left.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTx.ref.name»''')
+									println('''«tx.left.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTx2.left.name»''')
 									println('''«tx.left.name»: values «values»''')
 	
 									// create a rho for the evaluation
-									val Map<DeclarationLeft,Object> rho = newHashMap
+									val Map<Referrable,Object> rho = newHashMap
 									for(fp : tx.left.params) {
 										rho.put( fp, values.get(fp.name) )	
 									}
@@ -325,7 +325,7 @@ class TransactionCompiler {
         // build the redeem script to serialize
         var redeemScript = new P2SHOutputScript()
         for (var i=script.params.size-1; i>=0; i--) {
-            val DeclarationLeft p = script.params.get(i)
+            val p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, DeclarationReference).filter[v|v.ref==p].size 
             
             ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size, numberOfRefs))    // update the context

@@ -6,7 +6,7 @@ package it.unica.tcs.compiler;
 
 import java.util.HashMap;
 
-import it.unica.tcs.bitcoinTM.DeclarationLeft;
+import it.unica.tcs.bitcoinTM.Parameter;
 
 /**
  * Everything that is relevant to achieve the compilation.
@@ -15,7 +15,7 @@ public class Context {
 	public AltStack altstack = new AltStack();
 }
 
-class AltStack extends HashMap<DeclarationLeft, AltStackEntry>{
+class AltStack extends HashMap<Parameter, AltStackEntry>{
 	private static final long serialVersionUID = 1L;
 }
 

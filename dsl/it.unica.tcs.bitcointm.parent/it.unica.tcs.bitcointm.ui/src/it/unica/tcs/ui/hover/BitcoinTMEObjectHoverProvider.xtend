@@ -26,6 +26,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
+import it.unica.tcs.bitcoinTM.Parameter
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -62,6 +63,9 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return p.name+" : "+p.type?.toStringType
 	}
 	
+	dispatch def String getLabelInternal(Parameter p) {
+		return p.name+" : "+p.type?.toStringType
+	}
 
 	// base case getFirstLineInternal
 	def String getFirstLineInternal(EObject obj) {

@@ -12,6 +12,7 @@ import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.ObjectUtils
+import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import java.io.File
 import java.util.List
@@ -27,7 +28,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 	@Inject private extension IQualifiedNameProvider	
 	@Inject private extension TransactionCompiler	
 	@Inject private extension CompilerUtils
-//	@Inject private extension ASTUtils
+	@Inject private extension ASTUtils
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		
