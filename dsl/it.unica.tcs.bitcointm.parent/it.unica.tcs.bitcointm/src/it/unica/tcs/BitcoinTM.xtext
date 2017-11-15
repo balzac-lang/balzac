@@ -16,6 +16,7 @@ PackageDeclaration:
     	imports+=Import*
 		net=Network?
 		declarations+=Element*
+		regtest=Regtest?
 ;
 
 QualifiedName: ID ('.' ID)*;
@@ -116,7 +117,10 @@ ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
  * script expressions
  */
 ScriptExpression:
-    OrScriptExpression;
+    Substitution;
+
+Substitution returns ScriptExpression:
+	OrScriptExpression (({Substitution.left=current} => '|~') right=OrScriptExpression)*;
 
 OrScriptExpression returns ScriptExpression:
 	AndScriptExpression (({OrScriptExpression.left=current} => '||' ) right=AndScriptExpression)*;
@@ -226,6 +230,7 @@ DeclarationType returns Type:
 
 Type:
 	BasicType 
+|	VoidType
 |	TypeVariable;
 
 BasicType:
@@ -237,15 +242,18 @@ BasicType:
 |   {SignatureType} value=SignatureTypeEnum
 |	HashType;
 
+VoidType:
+	{VoidType} value=VoidTypeEnum;
+
 HashType:
 	{Hash160Type} value=Hash160TypeEnum
 |	{Hash256Type} value=Hash256TypeEnum
 |	{Ripemd160Type} value=Ripemd160TypeEnum
-|	{Sha256Type} value=Sha256TypeEnum
-;
+|	{Sha256Type} value=Sha256TypeEnum;
 
 TypeVariable:
 	value=ID;
+
 
 enum IntTypeEnum: int;
 enum StringTypeEnum: string;
@@ -257,6 +265,7 @@ enum Hash160TypeEnum: hash160;
 enum Hash256TypeEnum: hash256;
 enum Ripemd160TypeEnum: ripemd160;
 enum Sha256TypeEnum: sha256;
+enum VoidTypeEnum: void;
 
 Typeable:
 	Model
@@ -273,6 +282,7 @@ Typeable:
 | Prefix
 | ProtocolTransactionReference
 | ExpressionI
+| Regtest
 | Instruction
 ;
 
@@ -386,43 +396,6 @@ ProtocolTransactionReference:
 
 Expression:
     ScriptExpression;
-//
-//OrExpression returns Expression:
-//	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
-//
-//AndExpression returns Expression:
-//	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
-//
-//Comparison returns Expression:
-//    Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
-//
-//Equals returns Expression:
-//    Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
-// 
-//Addition returns Expression:
-//    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
-//
-//Multiply returns Expression:
-//    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*; 
-//
-//
-//Prefixed returns Expression:
-//    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
-//    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
-//    Atomic;
-//
-//Atomic returns Expression:
-//    '(' Expression ')' 
-//|   CommonAtomic
-//|	SignOp		// signature operation, returns bytes or string 
-//|	VersigOp	// versig operation, returns boolean
-//;
-
-//SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
-//VersigOp: "versig" "(" 
-//		pubkeys+=[KeyDeclaration|QualifiedName] ("," pubkeys+=[KeyDeclaration|QualifiedName])* ";"
-//		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* ")" 
-//		"using" tx=ProtocolTransactionReference;
 		
 
 
@@ -432,13 +405,14 @@ Regtest:
 	'}';
 
 Instruction:
-	Assert;
+	Assert
+|	Confirmations
+|	GetBalance
+|	IsMined
+;
 
-MineBlocks:
-	'mine' n=Number 'blocks';
-	
-SendTransaction:
-	'send' '(' exp=Expression ')';
+Assert:
+	'assert' '(' exp=Expression ')';
 
 Confirmations:
 	"confirmations" '(' exp=Expression ')';
@@ -449,11 +423,11 @@ GetBalance:
 IsMined:
 	'isMined' '(' exp=Expression ')';
 
-Assert:
-	'assert' '(' exp=Expression ')';
-
-Substitution:
-	tx=Expression substitutions+=Expression;	
+MineBlocks:
+	'mine' n=Number 'blocks';
+	
+SendTransaction:
+	'send' '(' exp=Expression ')';
 
 
 	

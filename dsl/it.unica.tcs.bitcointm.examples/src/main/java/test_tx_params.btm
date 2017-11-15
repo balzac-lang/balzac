@@ -58,4 +58,8 @@ transaction B {
 		A2: 42
 	]
 	output = 0: "" 
-} 
+}
+
+regtest {
+	assert(A1(inTx)==A2)
+}

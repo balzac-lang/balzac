@@ -5,6 +5,7 @@
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Ask
+import it.unica.tcs.bitcoinTM.Assert
 import it.unica.tcs.bitcoinTM.BasicType
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
@@ -12,11 +13,13 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Check
 import it.unica.tcs.bitcoinTM.Choice
+import it.unica.tcs.bitcoinTM.Confirmations
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.DeclarationRight
 import it.unica.tcs.bitcoinTM.ExpressionI
+import it.unica.tcs.bitcoinTM.GetBalance
 import it.unica.tcs.bitcoinTM.Hash
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash160Literal
@@ -27,6 +30,7 @@ import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
+import it.unica.tcs.bitcoinTM.IsMined
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Max
@@ -45,6 +49,7 @@ import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Referrable
+import it.unica.tcs.bitcoinTM.Regtest
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.Ripemd160Type
@@ -63,6 +68,7 @@ import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
+import it.unica.tcs.bitcoinTM.Substitution
 import it.unica.tcs.bitcoinTM.Tau
 import it.unica.tcs.bitcoinTM.TransactionBody
 import it.unica.tcs.bitcoinTM.TransactionDeclaration
@@ -73,13 +79,13 @@ import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import java.math.BigInteger
 import java.util.Map
 import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -960,6 +966,73 @@ from {
 	}
 }
 
+/*
+ * Instructions
+ */
+ 
+rule Regtest
+    G |- TypeSubstitutions substitutions |> Regtest reg : BitcoinTMFactory::eINSTANCE.createVoidType
+from {
+	for (i : reg.intructions) {
+		G |- substitutions |> i: var Type type
+	}
+}
+ 
+rule Assert
+    G |- TypeSubstitutions substitutions |> Assert cmd : BitcoinTMFactory::eINSTANCE.createVoidType
+from {
+	val boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
+	
+	G |- substitutions |> cmd.exp: var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, boolType)
+}
+ 
+rule Confirmations
+    G |- TypeSubstitutions substitutions |> Confirmations cmd : BitcoinTMFactory::eINSTANCE.createIntType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	G |- substitutions |> cmd.exp: var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, txType)
+}
+
+rule GetBalance
+    G |- TypeSubstitutions substitutions |> GetBalance cmd : BitcoinTMFactory::eINSTANCE.createIntType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	G |- substitutions |> cmd.exp: var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, txType)
+}
+
+rule IsMined
+    G |- TypeSubstitutions substitutions |> IsMined cmd : BitcoinTMFactory::eINSTANCE.createBooleanType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	G |- substitutions |> cmd.exp: var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, txType)
+}
+
+rule Substitution
+    G |- TypeSubstitutions substitutions |> Substitution cmd : BitcoinTMFactory::eINSTANCE.createTransactionType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	G |- substitutions |> cmd.left: var Type type
+	G |- substitutions |> cmd.right: var Type typeS
+
+	type = typesubstitution(substitutions, type)
+	typeS = typesubstitution(substitutions, typeS)
+	
+	unify(substitutions, type, txType)
+	unify(substitutions, typeS, txType)
+}
+
 
 /*
  * 
@@ -1014,31 +1087,26 @@ axiom InterpretKeyLiteral
     G |- KeyLiteral key |> Map<Referrable, Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
 
 axiom InterpretTransactionLiteral
-    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> new Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
-
-
-//rule InterpretTransactionBody
-//    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> Transaction res
-//from {
-//	/*
-//	 * the only way to invoke this rule is by a DeclarationReference.
-//	 * It adds the actual value to rho, so this exp should be closed
-//	 */
-//	val TransactionDeclaration decl = txBody.txDeclaration
-//	val txBuilder = decl.compileTransaction
-//	
-//	for (p : decl.left.params) {
-//		txBuilder.bindVariable(p.name, rho.get(p))
-//	}
-//	
-//	if (!txBuilder.isReady) {
-//		println("ERROR: txbuilder seems to be not ready")
-//		println(txBuilder)
-//	}
-//	
-//	res = txBuilder.toTransaction
-//}
+rule InterpretTransactionBody
+    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
+from {
+	/*
+	 * the only way to invoke this rule is by a DeclarationReference.
+	 * It adds the actual value to rho, so this exp should be closed
+	 */
+	val TransactionDeclaration decl = txBody.txDeclaration
+	val txBuilder = decl.compileTransaction
+	
+	for (p : decl.left.params) {
+		if (rho.containsKey(p)) {			
+			txBuilder.bindVariable(p.name, rho.get(p))
+		}
+	}
+	
+	res = txBuilder
+}
 
 rule InterpretMinus
     G |- ScriptMinus minus |> Map<Referrable, Object> rho ~> Long result
@@ -1096,7 +1164,6 @@ from {
 		    G |- and.left |> rho ~> var Boolean leftResult
 		    result = leftResult.booleanValue    	
 	    }
-		
 	}   
 }
 
@@ -1159,10 +1226,10 @@ rule InterpretEquals
 from {
 	
 	{
-	    G |- comparison.left |> rho ~> var Object leftResult
-	    G |- comparison.right |> rho ~> var Object rightResult
-	    	    	    
-	    var areEqual = leftResult==rightResult
+    	G |- comparison.left |> rho ~> var ITransactionBuilder leftResult
+	    G |- comparison.right |> rho ~> var ITransactionBuilder rightResult
+
+	    var areEqual = ITransactionBuilder.equals(leftResult,rightResult)
 	    
 	    result = switch(comparison.op) {
     		case "==": areEqual
@@ -1175,26 +1242,7 @@ from {
 				error "Unexpected operator "+comparison.op 
 				source comparison
 		}
-	    
-    } or {
-    	// TODO: remove this case
-    	comparison.left instanceof Signature
-    	comparison.right instanceof Signature
-    	// two signs are the same if the key and the modifier are the same
-    	(comparison.left as Signature).key == (comparison.right as Signature).key;
-    	(comparison.left as Signature).modifier == (comparison.right as Signature).modifier;
-    	
-    	result = switch(comparison.op) {
-    		case "==": true
-    		case "!=": false
-    		default: null
-    	}
-    	
-		if (result===null) {
-			fail 
-				error "Unexpecter operator "+comparison.op 
-				source comparison
-		}
+		
     } or {
     	comparison.left instanceof DeclarationReference
     	comparison.right instanceof DeclarationReference
@@ -1214,7 +1262,25 @@ from {
 				error "Unexpecter operator "+comparison.op 
 				source comparison
 		}
-    }    
+		
+    } or {
+	    G |- comparison.left |> rho ~> var Object leftResult
+	    G |- comparison.right |> rho ~> var Object rightResult
+	    	    	    
+	    var areEqual = leftResult==rightResult
+	    
+	    result = switch(comparison.op) {
+    		case "==": areEqual
+    		case "!=": !areEqual
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpected operator "+comparison.op 
+				source comparison
+		}
+    }
 }
 
 rule InterpretIfThenElse
@@ -1310,6 +1376,10 @@ from {
 	}
 	
 	for (p: EcoreUtil2.getAllContentsOfType(model, Declaration)) {
+	    G |- substitutions |> p: var Type t
+	}
+	
+	for (p: EcoreUtil2.getAllContentsOfType(model, Regtest)) {
 	    G |- substitutions |> p: var Type t
 	}
 }

@@ -53,7 +53,6 @@ import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
-import it.unica.tcs.bitcoinTM.TransactionLiteral;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -148,6 +147,10 @@ public class ASTUtils {
 		// returns the same type of exp
 		if (exp instanceof Literal)
 			return exp;
+		
+		if (exp instanceof TransactionBody)
+			return exp;
+		
 
 		Result<Object> interpreted = typeSystem.interpret(exp, rho);
 		if (interpreted.failed()) 
@@ -192,11 +195,6 @@ public class ASTUtils {
 	    	else if (value instanceof DumpedPrivateKey) {
 	    		KeyLiteral res = BitcoinTMFactory.eINSTANCE.createKeyLiteral();
 	    		res.setValue(((DumpedPrivateKey) value).toBase58());
-	    		return (T) res;    		
-	    	}
-	    	else if (value instanceof Transaction) {
-	    		TransactionLiteral res = BitcoinTMFactory.eINSTANCE.createTransactionLiteral();
-	    		res.setValue(BitcoinUtils.encode(((Transaction) value).bitcoinSerialize()));
 	    		return (T) res;    		
 	    	}
 	    	else {
