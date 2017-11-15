@@ -10,6 +10,8 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="declarations" upperBound="-1"
         eType="#//Element" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="regtest" eType="#//Regtest"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Import">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="importedNamespace" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -181,6 +183,9 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Type"/>
   <eClassifiers xsi:type="ecore:EClass" name="BasicType" eSuperTypes="#//Type"/>
+  <eClassifiers xsi:type="ecore:EClass" name="VoidType" eSuperTypes="#//Type">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="#//VoidTypeEnum"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="HashType" eSuperTypes="#//BasicType"/>
   <eClassifiers xsi:type="ecore:EClass" name="TypeVariable" eSuperTypes="#//Type">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -215,6 +220,9 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="Sha256TypeEnum">
     <eLiterals name="sha256" literal="sha256"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="VoidTypeEnum">
+    <eLiterals name="void" literal="void"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Typeable"/>
   <eClassifiers xsi:type="ecore:EClass" name="Participant" eSuperTypes="#//Element #//Typeable">
@@ -284,42 +292,24 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="substitution" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Regtest">
+  <eClassifiers xsi:type="ecore:EClass" name="Regtest" eSuperTypes="#//Typeable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="intructions" upperBound="-1"
         eType="#//Instruction" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Instruction">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="next" eType="#//Instruction"
+  <eClassifiers xsi:type="ecore:EClass" name="Instruction" eSuperTypes="#//Typeable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="MineBlocks" eSuperTypes="#//Instruction">
+  <eClassifiers xsi:type="ecore:EClass" name="Assert" eSuperTypes="#//Instruction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Confirmations" eSuperTypes="#//Instruction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="GetBalance" eSuperTypes="#//Instruction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="IsMined" eSuperTypes="#//Instruction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="MineBlocks">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="n" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SendTransaction" eSuperTypes="#//Instruction">
+  <eClassifiers xsi:type="ecore:EClass" name="SendTransaction">
     <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
         containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Confirmations">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="GetBalance">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="IsMined">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Assert">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
-        containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="Substitution">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tx" eType="#//Expression"
-        containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="substitutions" upperBound="-1"
-        eType="#//Expression" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="GlobalDeclaration" eSuperTypes="#//Declaration"/>
   <eClassifiers xsi:type="ecore:EClass" name="TransactionDeclaration" eSuperTypes="#//Declaration"/>
@@ -331,6 +321,12 @@
         eType="#//Output" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="isMultiOut" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tlock" eType="#//Tlock"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Substitution" eSuperTypes="#//ScriptExpression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//ScriptExpression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//ScriptExpression"
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OrScriptExpression" eSuperTypes="#//ScriptExpression">
