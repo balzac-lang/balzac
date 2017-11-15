@@ -36,6 +36,7 @@ import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parallel
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
@@ -43,6 +44,7 @@ import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
+import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.Ripemd160Type
@@ -63,12 +65,14 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Tau
 import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.TransactionLiteral
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
@@ -80,9 +84,6 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.Referrable
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -90,6 +91,7 @@ validatorExtends AbstractBitcoinTMValidator
 
 inject LambdaUtils lambdaUtils
 inject extension ASTUtils astUtils
+inject extension TransactionCompiler compiler
 
 auxiliary {
         
@@ -475,6 +477,7 @@ from {
 		var ptype = env(G, p, Type)
 		ptype = typesubstitution(substitutions, ptype)
 		failIfNotBasic(ptype, p)
+		p.type = ptype
 	}
 }
 
@@ -538,14 +541,14 @@ from {
 	
     {
        	type = BitcoinTMFactory::eINSTANCE.createIntType
-		// the terms type must be unifiable with string type
+		// the terms type must be unifiable with int type
 		unify(substitutions, leftType, type)
 		unify(substitutions, rightType, type)
 	}
     or
     {
     	type = BitcoinTMFactory::eINSTANCE.createStringType
-		// the terms type must be unifiable with int type
+		// the terms type must be unifiable with string type
 		unify(substitutions, leftType, type)
 		unify(substitutions, rightType, type)
     }
@@ -969,6 +972,15 @@ rule InterpretDeclarationReference
 from {
 	{
 		val decl = v.ref.eContainer as Declaration
+		
+		for (var i=0; i<v.actualParams.size; i++) {
+			val actual = v.actualParams.get(i)
+			val formal = (v.ref as DeclarationLeft).params.get(i)
+			
+			G |- actual |> rho ~> var Object value
+			rho.put(formal, value)	
+		}
+		
 		G |- decl.right.value |> rho ~> res	
 	}
 	or {	// e.g. Script or Tx params
@@ -1004,6 +1016,29 @@ axiom InterpretKeyLiteral
 axiom InterpretTransactionLiteral
     G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> new Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
+
+
+//rule InterpretTransactionBody
+//    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> Transaction res
+//from {
+//	/*
+//	 * the only way to invoke this rule is by a DeclarationReference.
+//	 * It adds the actual value to rho, so this exp should be closed
+//	 */
+//	val TransactionDeclaration decl = txBody.txDeclaration
+//	val txBuilder = decl.compileTransaction
+//	
+//	for (p : decl.left.params) {
+//		txBuilder.bindVariable(p.name, rho.get(p))
+//	}
+//	
+//	if (!txBuilder.isReady) {
+//		println("ERROR: txbuilder seems to be not ready")
+//		println(txBuilder)
+//	}
+//	
+//	res = txBuilder.toTransaction
+//}
 
 rule InterpretMinus
     G |- ScriptMinus minus |> Map<Referrable, Object> rho ~> Long result

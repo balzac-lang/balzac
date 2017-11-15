@@ -26,9 +26,9 @@ import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.ITransactionBuilder
 import java.util.List
 import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.Transaction
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 
@@ -81,7 +81,7 @@ class CompilerUtils {
     	if(type instanceof Ripemd160Type) return Ripemd160
     	if(type instanceof Sha256Type) return Sha256
 		if(type instanceof KeyType) return DumpedPrivateKey
-    	if(type instanceof TransactionType) return Transaction
+    	if(type instanceof TransactionType) return ITransactionBuilder
     	if(type instanceof SignatureType) return typeof(byte[])
     	
     	throw new CompileException("Unexpected type "+type.class.simpleName)

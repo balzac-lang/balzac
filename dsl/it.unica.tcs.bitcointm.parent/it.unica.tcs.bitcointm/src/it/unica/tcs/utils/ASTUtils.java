@@ -4,6 +4,7 @@
 
 package it.unica.tcs.utils;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.HashMap;
@@ -91,15 +92,37 @@ public class ASTUtils {
         return refs;
 	}
 	
+	public boolean isTx(Referrable p) {
+		/* 
+		 * TransacionDeclaration (Declaration) 
+		 * -> left  (DeclarationLeft)
+		 * 		-> name
+		 * 		-> params (List<DeclarationLeft>)
+		 * -> right (DeclarationRight)
+		 */
+		return (p.eContainer() instanceof TransactionDeclaration);
+	}
+
+	public TransactionDeclaration getTxDeclaration(Referrable p) {
+		checkArgument(isTx(p));
+		return (TransactionDeclaration) p.eContainer();
+	}
+	
+	public TransactionDeclaration getTxDeclaration(TransactionBody p) {
+		return (TransactionDeclaration) p.eContainer().eContainer();
+	}
+	
 	public boolean isTxParameter(Referrable p) {
 		/* 
 		 * TransacionDeclaration (Declaration) 
 		 * -> left  (DeclarationLeft)
-		 * 		-> params (List<DeclarationLeft>)
+ 		 * 		-> name
+ 		 * 		-> params (List<DeclarationLeft>)
 		 * -> right (DeclarationRight)
 		 */
 		return (p.eContainer().eContainer() instanceof TransactionDeclaration);
 	}
+	
 	
 	public boolean hasTxVariables(ExpressionI exp) {
         return !getTxVariables(exp).isEmpty();

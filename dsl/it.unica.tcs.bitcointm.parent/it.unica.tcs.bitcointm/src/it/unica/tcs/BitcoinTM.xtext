@@ -125,18 +125,22 @@ AndScriptExpression returns ScriptExpression:
 	ScriptComparison (({AndScriptExpression.left=current} '&&') right=ScriptComparison)*;
 
 ScriptComparison returns ScriptExpression:
-       ScriptEquals (({ScriptComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ScriptEquals)*;
+	ScriptEquals (({ScriptComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ScriptEquals)*;
 
 ScriptEquals returns ScriptExpression:
-       ScritpAddition (({ScriptEquals.left=current} op=("==" | "!=") ) right=ScritpAddition)*;
+	ScritpAddition (({ScriptEquals.left=current} op=("==" | "!=") ) right=ScritpAddition)*;
  
 ScritpAddition returns ScriptExpression:
-    ScriptPrefixed (({ScriptPlus.left=current} '+' | {ScriptMinus.left=current} '-') right=ScriptPrefixed)*; 
+    ScritpMultiply (({ScriptPlus.left=current} '+' | {ScriptMinus.left=current} '-') right=ScritpMultiply)*; 
+
+ScritpMultiply returns ScriptExpression:
+    ScriptPrefixed (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=ScriptPrefixed)*; 
 
 ScriptPrefixed returns ScriptExpression:
     {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
     {ScriptArithmeticSigned} =>"-" exp=ScriptAtomic | /* right associativity */
     ScriptAtomic;
+
 
 ScriptAtomic returns ScriptExpression:
     '(' ScriptExpression ')' 
@@ -269,6 +273,7 @@ Typeable:
 | Prefix
 | ProtocolTransactionReference
 | ExpressionI
+| Instruction
 ;
 
 Number returns ecore::ELong:
@@ -380,38 +385,38 @@ ProtocolTransactionReference:
 	txRef=DeclarationReference (substitution=TransactionBody)?;
 
 Expression:
-    OrExpression;
-
-OrExpression returns Expression:
-	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
-
-AndExpression returns Expression:
-	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
-
-Comparison returns Expression:
-    Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
-
-Equals returns Expression:
-    Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
- 
-Addition returns Expression:
-    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
-
-Multiply returns Expression:
-    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*; 
-
-
-Prefixed returns Expression:
-    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
-    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
-    Atomic;
-
-Atomic returns Expression:
-    '(' Expression ')' 
-|   CommonAtomic
+    ScriptExpression;
+//
+//OrExpression returns Expression:
+//	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
+//
+//AndExpression returns Expression:
+//	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
+//
+//Comparison returns Expression:
+//    Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
+//
+//Equals returns Expression:
+//    Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
+// 
+//Addition returns Expression:
+//    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
+//
+//Multiply returns Expression:
+//    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*; 
+//
+//
+//Prefixed returns Expression:
+//    {BooleanNegation} =>"!" exp=Atomic | /* right associativity */
+//    {ArithmeticSigned} =>"-" exp=Atomic | /* right associativity */
+//    Atomic;
+//
+//Atomic returns Expression:
+//    '(' Expression ')' 
+//|   CommonAtomic
 //|	SignOp		// signature operation, returns bytes or string 
 //|	VersigOp	// versig operation, returns boolean
-;
+//;
 
 //SignOp:	"sig" key=[KeyDeclaration|QualifiedName] (modifier=Modifier)? "of" tx=ProtocolTransactionReference;
 //VersigOp: "versig" "(" 
@@ -422,13 +427,12 @@ Atomic returns Expression:
 
 
 Regtest:
-	'regtest' '{'		
-		intructions+=Instruction
+	{Regtest} 'regtest' '{'		
+		intructions+=Instruction*
 	'}';
 
 Instruction:
-	(MineBlocks | SendTransaction)
-	(";" next=Instruction)?;
+	Assert;
 
 MineBlocks:
 	'mine' n=Number 'blocks';

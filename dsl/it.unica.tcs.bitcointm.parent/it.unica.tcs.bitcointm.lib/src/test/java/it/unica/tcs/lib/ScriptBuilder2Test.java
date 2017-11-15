@@ -62,7 +62,7 @@ public class ScriptBuilder2Test {
 		net.addInput(Input.of(new InputScriptImpl()));
 		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
 		ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
-		
+
 		assertTrue(net.isCoinbase());
 		assertTrue(net2.isCoinbase());
     }

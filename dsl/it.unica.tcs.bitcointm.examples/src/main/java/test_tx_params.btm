@@ -1,6 +1,8 @@
 
 package com.example
 
+let sum(a:int,b:int) = a + b
+
 transaction T {
 	input = _   
 	output = 2 BTC : fun(a:int) . a==5 
@@ -18,7 +20,7 @@ transaction T2 {
  
 transaction T3 {
 	input = T1(hash160("5")): "5"  
-	output = 0: ""
+	output = 0.5 BTC : fun(a:int) . a==42
 }
  
 transaction T4(n:string) {
@@ -27,7 +29,33 @@ transaction T4(n:string) {
 }
 
 transaction T5 {      
-	input = T4("32"): 42 
+	input = [
+		T3: 42;
+		T4("5"): 42
+	]
+	output = 0: "" 
+}
+
+
+transaction inTx {
+	input = _ 
+	output = 0.5 BTC : fun(a:int) . a==44
+}
+
+transaction A1(inTx:transaction) {
+	input = inTx: 44
+	output = 0.5 BTC : fun(a:int) . a==4
+}
+
+transaction A2 {
+	input = inTx: 44
+	output = 0.5 BTC : fun(a:int) . a==4
+}
+
+transaction B {      
+	input = [
+		A1(inTx): 42;
+		A2: 42
+	]
 	output = 0: "" 
 } 
- 

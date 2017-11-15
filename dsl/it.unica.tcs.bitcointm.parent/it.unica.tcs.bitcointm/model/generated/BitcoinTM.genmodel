@@ -300,6 +300,14 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptMinus/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptMinus/right"/>
     </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//ScriptTimes">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptTimes/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptTimes/right"/>
+    </genClasses>
+    <genClasses ecoreClass="BitcoinTM.ecore#//ScriptDiv">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptDiv/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptDiv/right"/>
+    </genClasses>
     <genClasses ecoreClass="BitcoinTM.ecore#//ScriptBooleanNegation">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ScriptBooleanNegation/exp"/>
     </genClasses>
@@ -339,46 +347,6 @@
     <genClasses ecoreClass="BitcoinTM.ecore#//Parallel">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Parallel/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Parallel/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//OrExpression">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//OrExpression/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//AndExpression">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AndExpression/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//AndExpression/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Comparison">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Comparison/left"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Comparison/op"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Comparison/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Equals">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Equals/left"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BitcoinTM.ecore#//Equals/op"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Equals/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Plus">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Plus/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Plus/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Minus">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Minus/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Minus/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Times">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Times/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Times/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//Div">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Div/left"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//Div/right"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//BooleanNegation">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//BooleanNegation/exp"/>
-    </genClasses>
-    <genClasses ecoreClass="BitcoinTM.ecore#//ArithmeticSigned">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BitcoinTM.ecore#//ArithmeticSigned/exp"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

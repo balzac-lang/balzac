@@ -63,6 +63,8 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.bitcoinTM.ScriptTimes
+import it.unica.tcs.bitcoinTM.ScriptDiv
 
 /**
  * This class contains custom validation rules. 
@@ -448,18 +450,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
-	@Check
-	def void checkOutputWithoutSignatures(Output output) {
-		var signs = EcoreUtil2.getAllContentsOfType(output, Signature);
-			
-		signs.forEach[s|
-			error("Signatures are not allowed within output scripts.", 
-				s.eContainer,
-				s.eContainmentFeature
-			);
-		]	
-	}
-	
 //	@Check
 //	def void checkKeyDeclaration(KeyL keyDecl) {
 //		
@@ -519,6 +509,39 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		}
 	}
 	
+	@Check
+	def void checkScriptWithoutMultply(it.unica.tcs.bitcoinTM.Script p) {
+		
+		val exp = p.exp.interpretSafe
+		
+		val times = EcoreUtil2.getAllContentsOfType(exp, ScriptTimes);
+		val divs = EcoreUtil2.getAllContentsOfType(exp, ScriptDiv);
+		var signs = EcoreUtil2.getAllContentsOfType(exp, Signature);
+		
+		times.forEach[t|
+			error(
+				"Multiplications are not permitted within scripts.", 
+				t.eContainer,
+				t.eContainingFeature
+			);
+		]
+		
+		divs.forEach[d|
+			error(
+				"Divisions are not permitted within scripts.", 
+				d.eContainer,
+				d.eContainingFeature
+			);
+		]
+			
+		signs.forEach[s|
+			error("Signatures are not allowed within output scripts.", 
+				s.eContainer,
+				s.eContainmentFeature
+			);
+		]
+	}
+
 	@Check
 	def void checkSerialTransaction(TransactionLiteral tx) {
 		
@@ -612,7 +635,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         if (inputTx instanceof DeclarationReference) {
             
-            if ((inputTx.ref as DeclarationLeft).params.size!=inputTx.actualParams.size) {
+            val ref = inputTx.ref
+            
+            if (ref instanceof DeclarationLeft 
+            	&& (ref as DeclarationLeft).params.size!=inputTx.actualParams.size
+            ) {
 	            error(
                     "The number of expressions does not match the number of parameters.",
                     input.txRef,
@@ -635,13 +662,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			numOfOutputs = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value)).outputs.size
         }
         else if (inputTx instanceof DeclarationReference) {
-        
-        	var tx = inputTx.ref.eContainer
-        
-	        if (tx instanceof TransactionDeclaration){
+	        if (inputTx.ref.isTx){
+	        	val tx = inputTx.ref.txDeclaration
 	            numOfOutputs = (tx.right.value as TransactionBody).outputs.size
-	        }	        
+	        }
+	        else if (inputTx.ref.isTxParameter) {
+	        	return true
+	        }
         }
+        else 
+        	throw new IllegalStateException('''Unexpected class «inputTx»''')
         
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
@@ -657,54 +687,24 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def boolean checkInputExpressions(Input input) {
 
         var outputIdx = input.outpoint
-		var inputTx = input.txRef.interpretSafe
+		var inputTx = input.txRef
         
-        switch(inputTx) {
-        	
+        switch(inputTx) {	
         	TransactionLiteral: {
         		
         		val refTx = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value))
+        		
         		if (refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
-	            	if (input.redeemScript===null) {
-	            		error(
-		                    "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
-		                    input,
-		                    BitcoinTMPackage.Literals.INPUT__EXPS,
-		                    input.exps.size-1
-		                );
-		                return false	
-	            	}
-	            	else {
-	            		// free variables are not allowed
-	            		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
-	            			if (v.ref.eContainer instanceof TransactionDeclaration) {
-	            				error(
-				                    "Cannot reference transaction parameters from the redeem script.",
-				                    v,
-				                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
-				                );
-	            			}
-	            		}
-	            	}
-	            	
-	                
+	            	input.failIfRedeemScriptIsMissing
 	            }
-	            
-	            if (!refTx.getOutput(outputIdx).scriptPubKey.payToScriptHash &&
-	                input.redeemScript!==null
-	            ) {
-	                error(
-	                    "The pointed output is not a P2SH output. You must not specify the redeem script.",
-	                    input,
-	                    BitcoinTMPackage.Literals.INPUT__EXPS,
-	                    input.exps.size-1
-	                );
-	                return false
+	            else {
+	            	input.failIfRedeemScriptIsDefined
 	            }
         	}
 
         	DeclarationReference: {
 				val refTx = inputTx.ref.eContainer
+				
 				if (refTx instanceof TransactionDeclaration) {
 		            var outputScript = (refTx.right.value as TransactionBody).outputs.get(new Long(outputIdx).intValue).script;
 		            
@@ -713,30 +713,78 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		            
 		            if (numOfExps!=numOfParams) {
 		                error(
-		                    "The number of expressions does not match the number of parameters.",
+		                    "The number of inputs does not match the number of parameters expected by the output script.",
 		                    input,
 		                    BitcoinTMPackage.Literals.INPUT__EXPS
 		                );
 		                return false
 		            }
-		            
-		            if (input.redeemScript!==null) {
-		                error(
-		                    "You must not specify the redeem script when referring to a user-defined transaction.",
-		                    input.redeemScript,
-		                    BitcoinTMPackage.Literals.INPUT__EXPS,
-		                    input.exps.size-1
-		                );
-		                return false
-		            }
-		            
+		            input.failIfRedeemScriptIsDefined
+		           
 		            return true
+		        }
+		        else if (
+		        	refTx instanceof Declaration &&
+		        	(refTx as Declaration).right.value instanceof TransactionLiteral
+		        ) {
+		      		
+		      		val tx = (refTx as Declaration).right.value as TransactionLiteral
+		      		val txJ = new Transaction(input.networkParams, BitcoinUtils.decode(tx.value))
+        		
+	        		if (txJ.getOutput(outputIdx).scriptPubKey.payToScriptHash) {
+		            	input.failIfRedeemScriptIsMissing
+		            }
+		            else {
+		            	input.failIfRedeemScriptIsDefined
+		            }
+			        	
 		        }
         	}
         }
 		
         
         return true
+    }
+    
+    
+    def boolean failIfRedeemScriptIsMissing(Input input) {
+    	if (input.redeemScript===null) {
+    		error(
+                "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
+                input,
+                BitcoinTMPackage.Literals.INPUT__EXPS,
+                input.exps.size-1
+            );
+            return false	
+    	}
+    	else {
+    		// free variables are not allowed
+    		var ok = true
+    		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
+    			if (v.ref.eContainer instanceof TransactionDeclaration) {
+    				error(
+	                    "Cannot reference transaction parameters from the redeem script.",
+	                    v,
+	                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
+	                );
+	                ok = false;
+    			}
+    		}    		
+	    	return ok
+    	}
+    }
+    
+    def boolean failIfRedeemScriptIsDefined(Input input) {
+    	if (input.redeemScript!==null) {
+            error(
+                "You must not specify the redeem script when referring to a user-defined transaction.",
+                input.redeemScript,
+                BitcoinTMPackage.Literals.INPUT__EXPS,
+                input.exps.size-1
+            );
+            return false
+        }
+        return true;
     }
     
 //    def boolean checkInputsAreUnique(Input inputA, Input inputB) {

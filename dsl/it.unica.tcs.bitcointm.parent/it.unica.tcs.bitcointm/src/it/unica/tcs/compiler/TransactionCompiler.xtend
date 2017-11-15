@@ -70,8 +70,8 @@ class TransactionCompiler {
 	
 	def dispatch ITransactionBuilder compileTransaction(DeclarationReference ref) {
     	
-    	if (ref.ref.eContainer instanceof TransactionDeclaration) {
-    		return compileTransaction(ref.ref.eContainer as Declaration)
+    	if (ref.ref.isTx) {
+    		return compileTransaction(ref.ref.txDeclaration)
     	}
     	throw new CompileException('''ref «ref» does not refer to a transaction''')
 	}

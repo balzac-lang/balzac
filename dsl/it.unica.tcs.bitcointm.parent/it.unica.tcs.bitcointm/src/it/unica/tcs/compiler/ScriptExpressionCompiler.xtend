@@ -10,6 +10,7 @@ import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Declaration
+import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
@@ -35,7 +36,6 @@ import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.script.ScriptBuilder2
 import it.unica.tcs.utils.ASTUtils
@@ -44,7 +44,6 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.bitcoinTM.DeclarationLeft
 
 /*
  * EXPRESSIONS
@@ -152,7 +151,7 @@ class ScriptExpressionCompiler {
 		        }
 		        return sb
 	        }
-	        else if (refContainer instanceof TransactionDeclaration) {
+	        else if (ref.isTxParameter) {
 	        	// transaction parameter
 	        	return new ScriptBuilder2().addVariable(ref.name, ref.type.convertType)
 	        }
