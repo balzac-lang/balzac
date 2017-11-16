@@ -193,12 +193,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkInterpretExp(ExpressionI exp) {
 		
-//		println(":::::::::::::::::::::::::::::::::::::::")
-//		println('''exp:              «exp»''')
-//		println('''context:          «context.keySet.filter(Expression)»''')
-//		println('''contains paremt:  «context.containsKey(exp.eContainer)»''')
-//		println()		
-		
 		if (context.containsKey(exp.eContainer) 
 			|| exp instanceof Literal
 			|| exp instanceof ScriptArithmeticSigned
@@ -215,9 +209,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return;
 		}
 		
-//		var resSimplify = exp.simplify					// simplify && || + - 
-		var resInterpret = exp.interpret(newHashMap)		// simplify if possible, then interpret
+		if (exp instanceof TransactionBody) {
+			// It's not useful to show that.
+			return;
+		}
 		
+		var resInterpret = exp.interpret(newHashMap)		// simplify if possible, then interpret
 		
 		var container = exp.eContainer
 		var index = 
@@ -588,7 +585,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		for (input: tbody.inputs) {
 			var valid = 
 				input.isPlaceholder || (
-					input.checkInputTransactionParams && 
+//					input.checkInputTransactionParams && 
 					input.checkInputIndex && 
 					input.checkInputExpressions
 				)
@@ -629,28 +626,28 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         hasError = tx.correctlySpendsOutput
 	}
 
-    def boolean checkInputTransactionParams(Input input) {
-
-        var inputTx = input.txRef.interpretSafe
-        
-        if (inputTx instanceof DeclarationReference) {
-            
-            val ref = inputTx.ref
-            
-            if (ref instanceof DeclarationLeft 
-            	&& (ref as DeclarationLeft).params.size!=inputTx.actualParams.size
-            ) {
-	            error(
-                    "The number of expressions does not match the number of parameters.",
-                    input.txRef,
-                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS
-                );
-                return false
-            }
-        }
-        
-        return true
-    }
+//    def boolean checkInputTransactionParams(Input input) {
+//
+//        var inputTx = input.txRef.interpretSafe
+//        
+//        if (inputTx instanceof DeclarationReference) {
+//            
+//            val ref = inputTx.ref
+//            
+//            if (ref instanceof DeclarationLeft 
+//            	&& (ref as DeclarationLeft).params.size!=inputTx.actualParams.size
+//            ) {
+//	            error(
+//                    "The number of expressions does not match the number of parameters.",
+//                    input.txRef,
+//                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS
+//                );
+//                return false
+//            }
+//        }
+//        
+//        return true
+//    }
 	
 	def boolean checkInputIndex(Input input) {
 

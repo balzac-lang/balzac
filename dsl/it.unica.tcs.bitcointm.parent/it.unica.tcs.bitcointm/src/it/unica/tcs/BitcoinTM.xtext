@@ -73,7 +73,7 @@ TransactionDeclaration returns Declaration:
 DeclarationRightTx returns DeclarationRight:
 	value=TransactionBody;
 
-TransactionBody returns Expression: {TransactionBody} "{"
+TransactionBody returns ScriptExpression: {TransactionBody} "{"
 	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
 	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
 	("after" tlock=Tlock)?
@@ -117,10 +117,7 @@ ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
  * script expressions
  */
 ScriptExpression:
-    Substitution;
-
-Substitution returns ScriptExpression:
-	OrScriptExpression (({Substitution.left=current} => '|~') right=OrScriptExpression)*;
+    OrScriptExpression;
 
 OrScriptExpression returns ScriptExpression:
 	AndScriptExpression (({OrScriptExpression.left=current} => '||' ) right=AndScriptExpression)*;
@@ -138,7 +135,10 @@ ScritpAddition returns ScriptExpression:
     ScritpMultiply (({ScriptPlus.left=current} '+' | {ScriptMinus.left=current} '-') right=ScritpMultiply)*; 
 
 ScritpMultiply returns ScriptExpression:
-    ScriptPrefixed (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=ScriptPrefixed)*; 
+    Substitution (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=Substitution)*;
+    
+Substitution returns ScriptExpression:
+	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*;
 
 ScriptPrefixed returns ScriptExpression:
     {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
@@ -158,6 +158,7 @@ ScriptAtomic returns ScriptExpression:
 |   Between
 |   Size
 |	AfterTimeLock
+|	TransactionBody
 ;
 
 
@@ -422,6 +423,9 @@ GetBalance:
 
 IsMined:
 	'isMined' '(' exp=Expression ')';
+
+Redeems:
+	exp=Expression "|=" tx=Expression ("(" outIdx=LONG ")")?;
 
 MineBlocks:
 	'mine' n=Number 'blocks';

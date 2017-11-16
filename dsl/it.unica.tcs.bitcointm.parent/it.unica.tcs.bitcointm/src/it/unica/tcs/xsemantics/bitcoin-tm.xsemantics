@@ -304,6 +304,13 @@ from {
 	
 	val ref = varRef.ref
 	if (ref instanceof DeclarationLeft) {
+		
+		if (varRef.actualParams.size != ref.params.size) {
+			fail 
+				error "Invalid number of actual parameters."
+				source varRef
+		}
+		
 		// check the actual parameters type match the formal ones
 		for (var i=0; i<varRef.actualParams.size; i++) {
 			var actualParam = varRef.actualParams.get(i)
@@ -520,6 +527,22 @@ axiom KeyLiteral
 	
 axiom TransactionLiteral
 	G |- TypeSubstitutions substitutions |> TransactionLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
+
+
+rule Substitution
+    G |- TypeSubstitutions substitutions |> Substitution cmd : BitcoinTMFactory::eINSTANCE.createTransactionType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	G |- substitutions |> cmd.left: var Type type
+	G |- substitutions |> cmd.right: var Type typeS
+
+	type = typesubstitution(substitutions, type)
+	typeS = typesubstitution(substitutions, typeS)
+	
+	unify(substitutions, type, txType)
+	unify(substitutions, typeS, txType)
+}
 
 rule Minus
 	G |- TypeSubstitutions substitutions |> ScriptMinus minus : IntType t
@@ -1018,20 +1041,6 @@ from {
 	unify(substitutions, type, txType)
 }
 
-rule Substitution
-    G |- TypeSubstitutions substitutions |> Substitution cmd : BitcoinTMFactory::eINSTANCE.createTransactionType
-from {
-	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
-	
-	G |- substitutions |> cmd.left: var Type type
-	G |- substitutions |> cmd.right: var Type typeS
-
-	type = typesubstitution(substitutions, type)
-	typeS = typesubstitution(substitutions, typeS)
-	
-	unify(substitutions, type, txType)
-	unify(substitutions, typeS, txType)
-}
 
 
 /*

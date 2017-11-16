@@ -36,7 +36,6 @@ transaction T5 {
 	output = 0: "" 
 }
 
-
 transaction inTx {
 	input = _ 
 	output = 0.5 BTC : fun(a:int) . a==44
@@ -60,6 +59,11 @@ transaction B {
 	output = 0: "" 
 }
 
+let var_T:transaction = {
+	input = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
+}
+
 regtest {
 	assert(A1(inTx)==A2)
+	assert(T<|{} != T)
 }
