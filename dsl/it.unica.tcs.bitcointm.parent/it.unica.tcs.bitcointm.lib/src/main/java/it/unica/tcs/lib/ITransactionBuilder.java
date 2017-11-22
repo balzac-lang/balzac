@@ -14,8 +14,6 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
-
 public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, Serializable {
 
 	/**
@@ -77,7 +75,7 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
 	 * @return the builder
 	 */
 	public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, byte[] bytes) {
-		return new SerialTransactionBuilder(NetworkParametersWrapper.wrap(params), bytes);
+		return new SerialTransactionBuilder(params, bytes);
 	}
 	
 	public static boolean equals(TransactionBuilder a, SerialTransactionBuilder b) {

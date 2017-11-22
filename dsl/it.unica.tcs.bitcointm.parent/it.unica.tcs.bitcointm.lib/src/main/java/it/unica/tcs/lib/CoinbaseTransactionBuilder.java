@@ -4,14 +4,15 @@
 
 package it.unica.tcs.lib;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
+import org.bitcoinj.core.NetworkParameters;
+
 import it.unica.tcs.lib.script.InputScript;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {
 	
 	private static final long serialVersionUID = 1L;
 
-	public CoinbaseTransactionBuilder(NetworkParametersWrapper params) {
+	public CoinbaseTransactionBuilder(NetworkParameters params) {
 		super(params);
 	}
 

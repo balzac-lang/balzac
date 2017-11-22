@@ -1,15 +1,18 @@
 package it.unica.tcs.lib;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.script.Script;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 import it.unica.tcs.lib.script.InputScriptImpl;
 import it.unica.tcs.lib.script.OpReturnOutputScript;
 import it.unica.tcs.lib.script.P2PKHOutputScript;
@@ -21,17 +24,17 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 
 	transient private Transaction tx;
 
-	private final NetworkParametersWrapper params;
+	private NetworkParameters params;
 	private final byte[] bytes;
 
-	public SerialTransactionBuilder(NetworkParametersWrapper params, byte[] bytes) {
+	public SerialTransactionBuilder(NetworkParameters params, byte[] bytes) {
 		this.params = params;
 		this.bytes = bytes;
 	}
 
 	private Transaction getTx() {
 		if (tx == null) {
-			tx = new Transaction(params.get(), bytes);
+			tx = new Transaction(params, bytes);
 		}
 		return tx;
 	}
@@ -172,7 +175,7 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(bytes);
-		result = prime * result + ((params == null) ? 0 : params.get().hashCode());
+		result = prime * result + ((params == null) ? 0 : params.hashCode());
 		return result;
 	}
 
@@ -190,10 +193,20 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 		if (params == null) {
 			if (other.params != null)
 				return false;
-		} else if (!params.get().equals(other.params.get()))
+		} else if (!params.equals(other.params))
 			return false;
 		return true;
 	}
 	
-	
+	// Java serialization
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeUTF(params.getId());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        params = NetworkParameters.fromID(in.readUTF());
+    }
 }

@@ -5,21 +5,45 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.TestNet3Params;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 import it.unica.tcs.lib.script.InputScript;
 import it.unica.tcs.lib.script.InputScriptImpl;
 import it.unica.tcs.lib.script.OutputScript;
 import it.unica.tcs.lib.script.P2SHOutputScript;
+import it.unica.tcs.lib.utils.ObjectUtils;
 
 public class TransactionBuilderTest {
 
+
+	@Test
+    public void test_coinbase_serialization() {
+		CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(MainNetParams.get());
+		net.addInput(Input.of(new InputScriptImpl()));
+		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
+		ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
+
+		assertTrue(net.isCoinbase());
+		assertTrue(net2.isCoinbase());
+    }
+	
+	@Test
+    public void test_tx_serialization() {
+		TransactionBuilder net = new TransactionBuilder(MainNetParams.get());
+		net.addInput(Input.of(new InputScriptImpl()));
+		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
+		ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
+
+		assertTrue(net.isCoinbase());
+		assertTrue(net2.isCoinbase());
+    }
+	
 	@Test
 	public void test() {
-		TransactionBuilder tb = new TransactionBuilder(NetworkParametersWrapper.TESTNET);
+		TransactionBuilder tb = new TransactionBuilder(TestNet3Params.get());
 		tb.addVariable("foo", Integer.class);
 		tb.addVariable("veryLongName", String.class);
 		tb.addVariable("anotherVeryLongName", String.class).bindVariable("anotherVeryLongName", "hihihhihihihihihiihihihi");
@@ -34,7 +58,7 @@ public class TransactionBuilderTest {
 	
 	@Test
 	public void test_addInput() {
-		TransactionBuilder tb = new TransactionBuilder(NetworkParametersWrapper.wrap(MainNetParams.get()));
+		TransactionBuilder tb = new TransactionBuilder(MainNetParams.get());
 		tb.addVariable("foo", Integer.class);
 		
 		Input in = Input.of((InputScript) new InputScriptImpl().number(5).addVariable("foo", String.class), 34);
@@ -49,7 +73,7 @@ public class TransactionBuilderTest {
 	@Test
 	public void test_hook() {
 		
-		TransactionBuilder tb = new TransactionBuilder(NetworkParametersWrapper.TESTNET);
+		TransactionBuilder tb = new TransactionBuilder(TestNet3Params.get());
 		
 		tb.addVariable("a", Integer.class);
 		tb.addVariable("b", String.class);

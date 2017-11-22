@@ -4,69 +4,25 @@
 
 package it.unica.tcs.lib;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.script.Script;
 import org.junit.Test;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
-import it.unica.tcs.lib.Wrapper.SigHashWrapper;
-import it.unica.tcs.lib.script.InputScriptImpl;
 import it.unica.tcs.lib.script.ScriptBuilder2;
-import it.unica.tcs.lib.utils.ObjectUtils;
 
 public class ScriptBuilder2Test {
 
 	/*
 	 * TODO: la classe KeyStore dovrebbe essere mockata
 	 */
-	@Test
-    public void test() {
-		SigHashWrapper wr = SigHashWrapper.wrap(SigHash.ALL);
-		String s = ObjectUtils.serializeObjectToStringQuietly(wr);
-		SigHashWrapper wr2 = ObjectUtils.deserializeObjectFromStringQuietly(s, SigHashWrapper.class);
-		
-		assertEquals(SigHash.ALL, wr.get());
-		assertEquals(SigHash.ALL, wr2.get());
-    }
-	
-	@Test
-    public void test1() {
-		NetworkParametersWrapper net = NetworkParametersWrapper.wrap(TestNet3Params.get());
-		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
-		NetworkParametersWrapper net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, NetworkParametersWrapper.class);
-		
-		assertEquals(TestNet3Params.get(), net.get());
-		assertEquals(TestNet3Params.get(), net2.get());
-    }
-	
-	@Test
-    public void test2() {
-		NetworkParametersWrapper net = NetworkParametersWrapper.wrap(MainNetParams.get());
-		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
-		NetworkParametersWrapper net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, NetworkParametersWrapper.class);
-		
-		assertEquals(MainNetParams.get(), net.get());
-		assertEquals(MainNetParams.get(), net2.get());
-    }
-	
-	@Test
-    public void test3() {
-		CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(NetworkParametersWrapper.wrap(MainNetParams.get()));
-		net.addInput(Input.of(new InputScriptImpl()));
-		String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
-		ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
-
-		assertTrue(net.isCoinbase());
-		assertTrue(net2.isCoinbase());
-    }
-	
 	@Test
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();

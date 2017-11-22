@@ -42,7 +42,6 @@ import it.unica.tcs.lib.Env;
 import it.unica.tcs.lib.EnvI;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.KeyStoreFactory;
-import it.unica.tcs.lib.Wrapper.SigHashWrapper;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
@@ -60,9 +59,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	private static class SignatureUtil implements Serializable {
 		private static final long serialVersionUID = 1L;
 		private final String keyID;
-		private final SigHashWrapper hashType;
+		private final SigHash hashType;
 		private final Boolean anyoneCanPay;
-		public SignatureUtil(String keyID, SigHashWrapper hashType, boolean anyoneCanPay) {
+		public SignatureUtil(String keyID, SigHash hashType, boolean anyoneCanPay) {
 			checkNotNull(keyID);
 			this.keyID = keyID;
 			this.hashType = hashType;
@@ -135,7 +134,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 		checkNotNull(key, "'key' cannot be null");
 		checkNotNull(hashType, "'hashType' cannot be null");
 		String keyID = KeyStoreFactory.getInstance().addKey(key);
-		SignatureUtil sig = new SignatureUtil(keyID, SigHashWrapper.wrap(hashType), anyoneCanPay);
+		SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
 		String mapKey = sig.getUniqueKey();
 		byte[] data = (SIGNATURE_PREFIX+mapKey).getBytes();
 		checkState(data.length<256, "data too long: "+data.length);
@@ -199,7 +198,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				String mapKey = getMapKey(chunk);
 				SignatureUtil sig = this.signatures.get(mapKey);
 				ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
-				SigHash hashType = sig.hashType.get();
+				SigHash hashType = sig.hashType;
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				
 				// check the key is correct when P2PKH
@@ -358,7 +357,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 			str.append(",");
 			str.append(this.signatures.get(mapKey).keyID);
 			str.append(",");
-			str.append(encodeModifier(this.signatures.get(mapKey).hashType.get(), this.signatures.get(mapKey).anyoneCanPay));
+			str.append(encodeModifier(this.signatures.get(mapKey).hashType, this.signatures.get(mapKey).anyoneCanPay));
 			str.append("]");
 			str.append(" ");
 		}

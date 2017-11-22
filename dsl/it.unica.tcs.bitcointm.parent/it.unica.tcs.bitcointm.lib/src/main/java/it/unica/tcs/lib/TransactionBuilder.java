@@ -8,6 +8,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
@@ -29,7 +33,6 @@ import org.bitcoinj.script.Script;
 
 import com.google.common.collect.Sets;
 
-import it.unica.tcs.lib.Wrapper.NetworkParametersWrapper;
 import it.unica.tcs.lib.script.InputScript;
 import it.unica.tcs.lib.script.OutputScript;
 import it.unica.tcs.lib.script.P2SHInputScript;
@@ -42,7 +45,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 
 	private static final long UNSET_LOCKTIME = -1;
 
-	private final NetworkParametersWrapper params;
+	private transient NetworkParameters params;
 	
 	private final List<Input> inputs = new ArrayList<>();
 	private final List<Output> outputs = new ArrayList<>();
@@ -51,7 +54,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	
 	private final Map<Set<String>,Consumer<Map<String,Object>>> variablesHook = new HashMap<>();
 	
-	public TransactionBuilder(NetworkParametersWrapper params) {
+	public TransactionBuilder(NetworkParameters params) {
 		this.params = params;
 	}
 	
@@ -353,7 +356,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	public Transaction toTransaction() {
 		checkState(this.isReady(), "the transaction and all its ancestors are not ready");
 		
-		Transaction tx = new Transaction(params.get());
+		Transaction tx = new Transaction(params);
 		
 		// inputs
 		for (Input input : inputs) {
@@ -361,16 +364,16 @@ public class TransactionBuilder implements ITransactionBuilder {
 			if (!input.hasParentTx()) {
 				// coinbase transaction
 				byte[] script = new byte[]{};	// script will be set later
-				TransactionInput txInput = new TransactionInput(params.get(), tx, script);
+				TransactionInput txInput = new TransactionInput(params, tx, script);
 				tx.addInput(txInput);
 				checkState(txInput.isCoinBase(), "'txInput' is expected to be a coinbase");
 			}
 			else {
 				ITransactionBuilder parentTransaction2 = input.getParentTx().get();
 				Transaction parentTransaction = parentTransaction2.toTransaction();
-				TransactionOutPoint outPoint = new TransactionOutPoint(params.get(), input.getOutIndex(), parentTransaction);
+				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later
-				TransactionInput txInput = new TransactionInput(params.get(), tx, script, outPoint);
+				TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
 				
 				//set checksequenseverify (relative locktime)
 				if (input.getLocktime()==UNSET_LOCKTIME) {
@@ -609,6 +612,18 @@ public class TransactionBuilder implements ITransactionBuilder {
 			return false;
 		return true;
 	}
+	
+    // Java serialization
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeUTF(params.getId());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        params = NetworkParameters.fromID(in.readUTF());
+    }
 }
 
 
