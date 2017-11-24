@@ -44,6 +44,7 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 
 /*
  * EXPRESSIONS
@@ -205,15 +206,31 @@ class ScriptExpressionCompiler {
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AndScriptExpression stmt, Context ctx) {
-        var sb = stmt.left.compileExpression(ctx)
+    	var sb = stmt.left.compileExpression(ctx)
+        sb.op(OP_IF)
         sb.append(stmt.right.compileExpression(ctx))
-        sb.op(OP_BOOLAND)            
+        sb.op(OP_ELSE)	// short circuit
+        val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
+        f.setTrue(false)
+        compileExpression(f,ctx)
+        sb.op(OP_ENDIF)
+//        var sb = stmt.left.compileExpression(ctx)
+//        sb.append(stmt.right.compileExpression(ctx))
+//        sb.op(OP_BOOLAND)            
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(OrScriptExpression stmt, Context ctx) {
-        var sb = stmt.left.compileExpression(ctx)
+    	var sb = stmt.left.compileExpression(ctx)
+        sb.op(OP_IF) // short circuit
+        val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
+        f.setTrue(true)
+        compileExpression(f,ctx)
+        sb.op(OP_ELSE)
         sb.append(stmt.right.compileExpression(ctx))
-        sb.op(OP_BOOLOR)            
+        sb.op(OP_ENDIF)
+//        var sb = stmt.left.compileExpression(ctx)
+//        sb.append(stmt.right.compileExpression(ctx))
+//        sb.op(OP_BOOLOR)            
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptPlus stmt, Context ctx) {

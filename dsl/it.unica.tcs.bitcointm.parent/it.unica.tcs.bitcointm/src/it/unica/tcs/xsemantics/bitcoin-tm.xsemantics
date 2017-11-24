@@ -1024,11 +1024,11 @@ from {
 rule GetBalance
     G |- TypeSubstitutions substitutions |> GetBalance cmd : BitcoinTMFactory::eINSTANCE.createIntType
 from {
-	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	val keyType = BitcoinTMFactory::eINSTANCE.createKeyType
 	
 	G |- substitutions |> cmd.exp: var Type type
 	type = typesubstitution(substitutions, type)
-	unify(substitutions, type, txType)
+	unify(substitutions, type, keyType)
 }
 
 rule IsMined

@@ -108,14 +108,13 @@ Script:
 
 
 
-ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
-	"ε" ScriptExpression | "η" Expression;
-
-
 
 /*
  * script expressions
  */
+ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
+	"ε" ScriptExpression | "η" Expression;
+
 ScriptExpression:
     OrScriptExpression;
 
@@ -401,7 +400,7 @@ Expression:
 
 
 Regtest:
-	{Regtest} 'regtest' '{'		
+	{Regtest} 'regtest' '{'
 		intructions+=Instruction*
 	'}';
 
@@ -424,9 +423,6 @@ GetBalance:
 IsMined:
 	'isMined' '(' exp=Expression ')';
 
-Redeems:
-	exp=Expression "|=" tx=Expression ("(" outIdx=LONG ")")?;
-
 MineBlocks:
 	'mine' n=Number 'blocks';
 	
@@ -434,4 +430,6 @@ SendTransaction:
 	'send' '(' exp=Expression ')';
 
 
+//Redeems returns ScriptExpression:
+//	ScriptPrefixed ("(" inIdx=LONG ")")? (({Redeems.left=current}"|=") right=ScriptPrefixed ("(" outIdx=LONG ")")?)*;
 	
