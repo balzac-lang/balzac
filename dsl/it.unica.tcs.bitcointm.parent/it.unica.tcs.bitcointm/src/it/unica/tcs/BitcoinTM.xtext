@@ -16,7 +16,8 @@ PackageDeclaration:
     	imports+=Import*
 		net=Network?
 		declarations+=Element*
-		regtest=Regtest?
+//		regtest=Regtest?
+		compile=Compile?
 ;
 
 QualifiedName: ID ('.' ID)*;
@@ -80,7 +81,7 @@ TransactionBody returns ScriptExpression: {TransactionBody} "{"
 "}";
 
 Input:
-	txRef=CommonAtomic ("@" outpoint=LONG)? ":" exps+=ScriptAtomic+ ("["redeemScript=Script"]")?;
+	txRef=Expression ("@" outpoint=LONG)? ":" exps+=ScriptAtomic+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -108,12 +109,14 @@ Script:
 
 
 
-
 /*
  * script expressions
  */
 ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
 	"ε" ScriptExpression | "η" Expression;
+
+Expression:
+    ScriptExpression;
 
 ScriptExpression:
     OrScriptExpression;
@@ -137,7 +140,8 @@ ScritpMultiply returns ScriptExpression:
     Substitution (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=Substitution)*;
     
 Substitution returns ScriptExpression:
-	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*;
+	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*
+;
 
 ScriptPrefixed returns ScriptExpression:
     {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
@@ -284,6 +288,7 @@ Typeable:
 | ExpressionI
 | Regtest
 | Instruction
+| Compile
 ;
 
 Number returns ecore::ELong:
@@ -394,8 +399,6 @@ terminal INT returns ecore::EInt: LONG;
 ProtocolTransactionReference:
 	txRef=DeclarationReference (substitution=TransactionBody)?;
 
-Expression:
-    ScriptExpression;
 		
 
 
@@ -432,4 +435,11 @@ SendTransaction:
 
 //Redeems returns ScriptExpression:
 //	ScriptPrefixed ("(" inIdx=LONG ")")? (({Redeems.left=current}"|=") right=ScriptPrefixed ("(" outIdx=LONG ")")?)*;
+	
+	
+	
+	
+Compile:
+	{Compile} "compile" txs+=DeclarationReference*
+;
 	

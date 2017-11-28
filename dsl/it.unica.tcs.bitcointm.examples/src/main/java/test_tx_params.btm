@@ -33,37 +33,41 @@ transaction T5 {
 		T3: 42;
 		T4("5"): 42
 	]
-	output = 0: "" 
+	output = 0: ""   
 }
 
-transaction inTx {
+transaction inTx { 
 	input = _ 
 	output = 0.5 BTC : fun(a:int) . a==44
 }
 
 transaction A1(inTx:transaction) {
 	input = inTx: 44
-	output = 0.5 BTC : fun(a:int) . a==4
+	output = 0.5 BTC : fun(a:int) . a==42
 }
 
 transaction A2 {
 	input = inTx: 44
-	output = 0.5 BTC : fun(a:int) . a==4
+	output = 0.5 BTC : fun(a:int) . a==42
 }
 
-transaction B {      
+transaction B {
 	input = [
-		A1(inTx): 42;
+		A1(inTx): 42; 
 		A2: 42
 	]
-	output = 0: "" 
+	output = 0: ""
 }
 
-let var_T:transaction = {
-	input = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
-}
+let var_T:transaction = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
 
-regtest {
-	assert(A1(inTx)==A2)
-	assert(T<|{} != T)
-}
+
+compile  
+	T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547) 
+	T1(hash160("5"))
+	var_T
+	B
+	A1(inTx)
+	A2
+	
+ 

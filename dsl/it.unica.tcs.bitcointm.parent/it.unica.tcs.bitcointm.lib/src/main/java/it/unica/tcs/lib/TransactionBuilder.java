@@ -232,7 +232,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 	
 	/**
 	 * Add a new transaction input.
-	 * @param tx the parent transaction to redeem.
+	 * @param tx the parent transaction to redeem. TODO
 	 * @param outIndex the index of the output script to redeem.
 	 * @param inputScript the input script that redeem {@code tx} at {@code outIndex}.
 	 * @return this builder.

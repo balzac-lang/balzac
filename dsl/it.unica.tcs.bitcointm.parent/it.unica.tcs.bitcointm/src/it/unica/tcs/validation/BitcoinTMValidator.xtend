@@ -626,34 +626,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         hasError = tx.correctlySpendsOutput
 	}
 
-//    def boolean checkInputTransactionParams(Input input) {
-//
-//        var inputTx = input.txRef.interpretSafe
-//        
-//        if (inputTx instanceof DeclarationReference) {
-//            
-//            val ref = inputTx.ref
-//            
-//            if (ref instanceof DeclarationLeft 
-//            	&& (ref as DeclarationLeft).params.size!=inputTx.actualParams.size
-//            ) {
-//	            error(
-//                    "The number of expressions does not match the number of parameters.",
-//                    input.txRef,
-//                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS
-//                );
-//                return false
-//            }
-//        }
-//        
-//        return true
-//    }
 	
 	def boolean checkInputIndex(Input input) {
 
         var outIndex = input.outpoint
         var int numOfOutputs
-        var inputTx = input.txRef.interpretSafe
+        var inputTx = input.txRef
         
         if (inputTx instanceof TransactionLiteral) {
 			numOfOutputs = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value)).outputs.size
@@ -662,6 +640,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	        if (inputTx.ref.isTx){
 	        	val tx = inputTx.ref.txDeclaration
 	            numOfOutputs = (tx.right.value as TransactionBody).outputs.size
+	        }
+	        else if (inputTx.ref.isTxLiteral){
+	        	val tx = inputTx.ref.getTxLiteral.value
+	            numOfOutputs = new Transaction(input.networkParams, BitcoinUtils.decode(tx)).outputs.size
 	        }
 	        else if (inputTx.ref.isTxParameter) {
 	        	return true
@@ -672,8 +654,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
-                input.eContainer,
-                input.eContainingFeature
+                input,
+                BitcoinTMPackage.Literals.INPUT__TX_REF
             );
             return false
         }
@@ -738,7 +720,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		        }
         	}
         }
-		
         
         return true
     }

@@ -13,6 +13,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Check
 import it.unica.tcs.bitcoinTM.Choice
+import it.unica.tcs.bitcoinTM.Compile
 import it.unica.tcs.bitcoinTM.Confirmations
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
@@ -106,7 +107,7 @@ auxiliary {
     unify(TypeSubstitutions substitutions, Type left, Type right) : Type
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
     
-    failIfNotBasic(Type type, EObject obj)    
+    failIfNotBasic(Type type, EObject obj)        
 }
 
 judgments {
@@ -228,6 +229,7 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     substitutions.add(right.value, fresh)
     fresh
 }
+
 
 
 
@@ -1042,6 +1044,18 @@ from {
 }
 
 
+rule Compile
+    G |- TypeSubstitutions substitutions |> Compile cmd : BitcoinTMFactory::eINSTANCE.createVoidType
+from {
+	val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+	for (tx : cmd.txs) {
+		G |- substitutions |> tx: var Type type
+		type = typesubstitution(substitutions, type)
+		unify(substitutions, type, txType)
+	}
+}
+
 
 /*
  * 
@@ -1357,7 +1371,7 @@ from {
 	    result = BitcoinUtils.hash(expResult, it.unica.tcs.lib.Hash.Sha256)
 	else {
 		fail 
-		error "Unexpecter instance "+hash.class 
+		error "Unexpected instance "+hash.class 
 		source hash
 	}
 }
@@ -1389,6 +1403,10 @@ from {
 	}
 	
 	for (p: EcoreUtil2.getAllContentsOfType(model, Regtest)) {
+	    G |- substitutions |> p: var Type t
+	}
+	
+	for (p: EcoreUtil2.getAllContentsOfType(model, Compile)) {
 	    G |- substitutions |> p: var Type t
 	}
 }

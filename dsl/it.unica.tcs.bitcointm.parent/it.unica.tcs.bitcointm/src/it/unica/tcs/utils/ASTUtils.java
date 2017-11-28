@@ -4,7 +4,6 @@
 
 package it.unica.tcs.utils;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.HashMap;
@@ -32,6 +31,7 @@ import com.google.inject.Singleton;
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
+import it.unica.tcs.bitcoinTM.Declaration;
 import it.unica.tcs.bitcoinTM.DeclarationReference;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
@@ -53,6 +53,7 @@ import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
 import it.unica.tcs.bitcoinTM.TransactionBody;
 import it.unica.tcs.bitcoinTM.TransactionDeclaration;
+import it.unica.tcs.bitcoinTM.TransactionLiteral;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -92,18 +93,18 @@ public class ASTUtils {
 	}
 	
 	public boolean isTx(Referrable p) {
-		/* 
-		 * TransacionDeclaration (Declaration) 
-		 * -> left  (DeclarationLeft)
-		 * 		-> name
-		 * 		-> params (List<DeclarationLeft>)
-		 * -> right (DeclarationRight)
-		 */
 		return (p.eContainer() instanceof TransactionDeclaration);
 	}
-
+	
+	public boolean isTxParameter(Referrable p) {
+		return (p instanceof Parameter) && (p.eContainer().eContainer() instanceof TransactionDeclaration);
+	}
+	
+	public boolean isTxLiteral(Referrable p) {
+		return (p.eContainer() instanceof Declaration) && (((Declaration) p.eContainer()).getRight().getValue() instanceof TransactionLiteral);
+	}
+	
 	public TransactionDeclaration getTxDeclaration(Referrable p) {
-		checkArgument(isTx(p));
 		return (TransactionDeclaration) p.eContainer();
 	}
 	
@@ -111,17 +112,14 @@ public class ASTUtils {
 		return (TransactionDeclaration) p.eContainer().eContainer();
 	}
 	
-	public boolean isTxParameter(Referrable p) {
-		/* 
-		 * TransacionDeclaration (Declaration) 
-		 * -> left  (DeclarationLeft)
- 		 * 		-> name
- 		 * 		-> params (List<DeclarationLeft>)
-		 * -> right (DeclarationRight)
-		 */
-		return (p.eContainer().eContainer() instanceof TransactionDeclaration);
+	public Parameter getTxParameter(Referrable p) {
+		return (Parameter) p;
 	}
-	
+
+	public TransactionLiteral getTxLiteral(Referrable p) {
+		return (TransactionLiteral) ((Declaration) p.eContainer()).getRight().getValue();
+	}
+
 	
 	public boolean hasTxVariables(ExpressionI exp) {
         return !getTxVariables(exp).isEmpty();
