@@ -29,6 +29,7 @@ class RawTransactionGenerator extends AbstractGenerator {
 		var package = resource.allContents.toIterable.filter(PackageDeclaration).get(0)
 		var packagePath = package.fullyQualifiedName.toString(File.separator) ;
         fsa.generateFile(packagePath + File.separator + "transactions", package.compileTransactions)
+        fsa.generateFile('/DEFAULT_ARTIFACT', package.compileTransactions)
 	}
 	
 	def private compileTransactions(PackageDeclaration pkg) {

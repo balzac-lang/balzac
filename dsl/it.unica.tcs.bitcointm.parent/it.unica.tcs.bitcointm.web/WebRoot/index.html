@@ -2,9 +2,18 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta http-equiv="Content-Language" content="en-us">
-	<title>Example Web Editor</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	
+	<title>Bitcoin Transaction Model - Web Editor</title>
+	
 	<link rel="stylesheet" type="text/css" href="xtext/2.11.0/xtext-ace.css"/>
 	<link rel="stylesheet" type="text/css" href="style.css"/>
+	
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
 	<script src="webjars/requirejs/2.3.2/require.min.js"></script>
 	<script type="text/javascript">
 		var baseUrl = window.location.pathname;
@@ -16,14 +25,30 @@
 			paths: {
 				"jquery": "webjars/jquery/2.2.4/jquery.min",
 				"ace/ext/language_tools": "webjars/ace/1.2.3/src/ext-language_tools",
-				"xtext/xtext-ace": "xtext/2.11.0/xtext-ace"
-			}
+				"xtext/xtext-ace": "xtext/2.11.0/xtext-ace",
+// 			    "bootstrap": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/js/bootstrap",
+// 			    "bootstrap-css": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/css/bootstrap"
+			},
+// 			shim: { "bootstrap": [ "jquery" ] }
 		});
 		require(["webjars/ace/1.2.3/src/ace"], function() {
 			require(["xtext/xtext-ace"], function(xtext) {
-				xtext.createEditor({
+				
+				var editor = xtext.createEditor({
 					baseUrl: baseUrl,
 					syntaxDefinition: "xtext-resources/generated/mode-btm"
+				});
+				
+				editor.setValue("package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T");
+// 				editor.setTheme("ace/theme/monokai");
+				
+				$("#compile").click(function() {
+				    editor.xtextServices.generate()
+					    .done(function(result){
+						    $("#result").html(result)
+						    
+					    });
+				    
 				});
 			});
 		});
@@ -31,14 +56,26 @@
 </head>
 <body>
 
-<div class="container">
-	<div class="header">
-		<h1>Example BitcoinTM Web Editor</h1>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header text-center">
+				<h3 class="card-title">Bitcoin Transaction Model - Web Editor</h3>
+			</div>
+			<div class="card-body">
+				<div class="border border-dark mb-3" >
+					<div id="xtext-editor" data-editor-xtext-lang="btm"></div>				
+				</div>
+				<div class="text-center">
+					<button id="compile" type="button" class="btn btn-primary">Compile</button>
+				</div>
+			</div>
+			<div class="card-footer">
+				<pre id="result" class="pre-scrollable">
+			   </pre>
+
+			</div>
+		</div>
 	</div>
-	<div class="content">
-		<div id="xtext-editor" data-editor-xtext-lang="btm"></div>
-	</div>
-</div>
 
 </body>
 </html>
