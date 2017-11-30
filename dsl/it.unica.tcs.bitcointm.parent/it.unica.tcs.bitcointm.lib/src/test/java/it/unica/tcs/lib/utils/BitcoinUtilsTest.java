@@ -21,7 +21,7 @@ public class BitcoinUtilsTest {
 	public void test_hash_refl() {
 		@SuppressWarnings("unchecked")
 		Class<? extends Hash>[] hashClasses = new Class[]{Ripemd160.class, Sha256.class, Hash160.class, Hash256.class};
-		Object[] values = new Object[]{1,"",true,new byte[42], new Ripemd160(new byte[20]), new Hash160(new byte[20]), new Sha256(new byte[32]), new Hash256(new byte[32])};
+		Object[] values = new Object[]{1, 1L,"",true,new byte[42], new Ripemd160(new byte[20]), new Hash160(new byte[20]), new Sha256(new byte[32]), new Hash256(new byte[32])};
 		
 		for (Class<? extends Hash> hashCls : hashClasses) {
 			for (Object v : values) {
@@ -141,7 +141,7 @@ public class BitcoinUtilsTest {
 	
 	@Test
 	public void test_hashes_integers() {
-		for (int i=-100; i<100; i++) {
+		for (long i=-100; i<100; i++) {
 			assertArrayEquals(
 					executeScript(i, Ripemd160.class), 
 					BitcoinUtils.ripemd160(i).getBytes()

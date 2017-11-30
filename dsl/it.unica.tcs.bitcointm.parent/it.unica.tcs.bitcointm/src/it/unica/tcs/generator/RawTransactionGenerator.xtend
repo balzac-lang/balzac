@@ -53,8 +53,11 @@ class RawTransactionGenerator extends AbstractGenerator {
 					txBuilder.bindVariable(formalP.name, actualP)
 				}
 				
+				val tx = txBuilder.toTransaction
+				
 				sb.append("transaction ").append(txDecl.left.name).append("\n")
-				sb.append(BitcoinUtils.encode(txBuilder.toTransaction.bitcoinSerialize)).append("\n").append("\n")
+				sb.append(tx).append("\n")
+				sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
 			]
 			
 		sb.toString

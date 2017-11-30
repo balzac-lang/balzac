@@ -43,14 +43,14 @@ public class ScriptBuilder2Test {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         
-        sb.addVariable("foo", Integer.class);
+        sb.addVariable("foo", Long.class);
         assertTrue(sb.hasVariable("foo"));
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
         
-        sb = sb.bindVariable("foo", 5);
+        sb = sb.bindVariable("foo", 5L);
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getBoundVariables().size());

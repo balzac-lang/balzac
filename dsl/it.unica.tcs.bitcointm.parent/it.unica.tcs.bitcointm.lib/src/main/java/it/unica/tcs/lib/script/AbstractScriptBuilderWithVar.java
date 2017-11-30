@@ -530,7 +530,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 	@SuppressWarnings("unchecked")
 	@Override
 	public T addVariable(String name, Class<?> type) {
-		checkArgument(Integer.class.equals(type) || String.class.equals(type) || Boolean.class.equals(type) || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type), "invalid type "+type);
+		checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type) || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type), "invalid type "+type);
 		addVariableChunk(name);
 		env.addVariable(name, type);
 		return (T) this;

@@ -46,7 +46,7 @@ class CompilerUtils {
     }
 	
 	def String compileType(Type type) {
-    	if(type instanceof IntType) return "Integer"
+    	if(type instanceof IntType) return "Long"
     	if(type instanceof Hash160Type) return "Hash160"
     	if(type instanceof Hash256Type) return "Hash256"
     	if(type instanceof Ripemd160Type) return "Ripemd160"
@@ -73,7 +73,7 @@ class CompilerUtils {
 	}
     
 	def Class<?> convertType(Type type) {
-    	if(type instanceof IntType) return Integer
+    	if(type instanceof IntType) return Long
     	if(type instanceof StringType) return String
     	if(type instanceof BooleanType) return Boolean
     	if(type instanceof Hash160Type) return Hash160

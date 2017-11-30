@@ -212,7 +212,7 @@ class ScriptExpressionCompiler {
         sb.op(OP_ELSE)	// short circuit
         val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
         f.setTrue(false)
-        compileExpression(f,ctx)
+        sb.append(compileExpression(f,ctx))
         sb.op(OP_ENDIF)
 //        var sb = stmt.left.compileExpression(ctx)
 //        sb.append(stmt.right.compileExpression(ctx))
@@ -224,7 +224,7 @@ class ScriptExpressionCompiler {
         sb.op(OP_IF) // short circuit
         val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
         f.setTrue(true)
-        compileExpression(f,ctx)
+        sb.append(compileExpression(f,ctx))
         sb.op(OP_ELSE)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_ENDIF)

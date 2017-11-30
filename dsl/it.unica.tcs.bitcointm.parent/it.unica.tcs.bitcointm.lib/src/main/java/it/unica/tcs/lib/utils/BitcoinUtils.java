@@ -43,7 +43,7 @@ public class BitcoinUtils {
 	}
 	
 	public static <T extends Hash> T hash(Object input, Class<T> clazz) {
-		checkArgument(input instanceof Integer || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);
+		checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);
 		
 		String methodName = null;
 		if (clazz.equals(Hash160.class)) {
@@ -137,27 +137,28 @@ public class BitcoinUtils {
 		return sha256(obj ? TRUE : FALSE);
 	}
 	
-	public static Hash160 hash160(Integer obj) {
+	public static Hash160 hash160(Number obj) {
 		byte[] bytes = getIntegerBytes(obj);
 		return hash160(bytes);
 	}
 
-	public static Hash256 hash256(Integer obj) {
+	public static Hash256 hash256(Number obj) {
 		byte[] bytes = getIntegerBytes(obj);
 		return hash256(bytes);
 	}
 	
-	public static Ripemd160 ripemd160(Integer obj) {
+	public static Ripemd160 ripemd160(Number obj) {
 		byte[] bytes = getIntegerBytes(obj);
 		return ripemd160(bytes);
 	}
 	
-	public static Sha256 sha256(Integer obj) {
+	public static Sha256 sha256(Number obj) {
 		byte[] bytes = getIntegerBytes(obj);
 		return sha256(bytes);
 	}
 	
-	private static byte[] getIntegerBytes(Integer n) {
+	private static byte[] getIntegerBytes(Number n1) {
+		long n = n1.longValue();
 		if (n==0) return ZERO;
 		if (n==-1) return NEGATIVE_ONE;
 		if (1<=n && n<=16) return Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(n), false));
@@ -173,8 +174,8 @@ public class BitcoinUtils {
 	
 	public static Script toScript(Object obj) {
 		
-		if (obj instanceof Integer)
-			return new ScriptBuilder().number((Integer) obj).build();
+		if (obj instanceof Number)
+			return new ScriptBuilder().number(((Number) obj).longValue()).build();
 		
 		else if (obj instanceof String)
 			return new ScriptBuilder().data(((String) obj).getBytes(Charset.forName("UTF-8"))).build();
