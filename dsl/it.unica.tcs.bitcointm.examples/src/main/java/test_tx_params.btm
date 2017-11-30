@@ -20,7 +20,7 @@ transaction T2 {
  
 transaction T3 {
 	input = T1(hash160("5")): "5"  
-	output = 0.5 BTC : fun(a:int) . a==42
+	output = 0.5 BTC : fun(a) . a==42
 }
  
 transaction T4(n:string) {
@@ -61,6 +61,15 @@ transaction B {
 
 let var_T:transaction = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
 
+transaction X(x) {
+	input = _
+	output = 10 BTC: fun(y:int) . x == y
+}
+
+transaction Y(y) {
+	input = X(y+1): 3
+	output = 10 BTC: fun(a:int) . a == y
+}
 
 compile  
 	T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547) 
@@ -68,6 +77,5 @@ compile
 	var_T
 	B
 	A1(inTx)
-	A2
-	
+	A2 
  

@@ -91,7 +91,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="DeclarationReference" eSuperTypes="#//CommonAtomic">
     <eStructuralFeatures xsi:type="ecore:EReference" name="ref" eType="#//Referrable"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="actualParams" upperBound="-1"
-        eType="#//CommonAtomic" containment="true"/>
+        eType="#//Expression" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Literal" eSuperTypes="#//CommonAtomic"/>
   <eClassifiers xsi:type="ecore:EClass" name="HashLiteral" eSuperTypes="#//Literal">

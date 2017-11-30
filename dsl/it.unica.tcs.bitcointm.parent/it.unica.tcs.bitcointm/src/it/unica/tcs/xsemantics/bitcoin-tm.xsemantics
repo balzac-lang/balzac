@@ -269,6 +269,7 @@ from {
 		var ptype = env(G, p, Type)
 		ptype = typesubstitution(substitutions, ptype)
 		failIfNotBasic(ptype, p)
+		p.type = ptype		// store the type in the AST
 	}
 	
 	decl.left.type = type	// store the type in the AST
@@ -277,7 +278,7 @@ from {
 rule DeclarationLeft
 	G |- TypeSubstitutions substitutions |> DeclarationLeft d : Type type
 from {
-	// type all the actual parameters
+	// type all the formal parameters
 	for (param : d.params) {
 		G |- substitutions |> param : var Type paramType
 	}
@@ -335,23 +336,6 @@ from {
 		}
 	}
 }
-
-
-/**
- * Type check a user defined transactions:
- * - all the parameters are well typed and the type is basic (not generic)
- */
-//rule TransactionDeclaration
-//	G |- TypeSubstitutions substitutions |> TransactionDeclaration tx : TransactionType type
-//from {
-//	
-//	type = BitcoinTMFactory::eINSTANCE.createTransactionType
-//
-//	// type like a normal declaration	
-//	G |- substitutions |> tx as Declaration : var Type tmpType
-//	tmpType = typesubstitution(substitutions, tmpType)
-//	unify(substitutions, type, tmpType)
-//}
 
 /*
  * - all the inputs are well typed

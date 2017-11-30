@@ -170,7 +170,7 @@ CommonAtomic:
 
 DeclarationReference: 
 	ref=[Referrable|QualifiedName]
-	( => "("(actualParams+=CommonAtomic ("," actualParams+=CommonAtomic)*)?")")?;		// within ScriptExpressions
+	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;		// within ScriptExpressions
 
 Literal:
 	NumberLiteral 
