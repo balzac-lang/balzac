@@ -6,8 +6,8 @@ package it.unica.btm.time_commitment
 
 participant Alice {
 	t
-//	put T_commitA {input = T_fundsA: sig kA }
-//	-> send (do sig T_payDepositA kA to Bob)
+//	put T_commitA {input = T_fundsA: sig(kA) }
+//	-> send (do sig(T)_payDepositA kA to Bob)
 //		
 	let kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 }
@@ -62,17 +62,17 @@ transaction T_commit(hSecret:hash160, k:key) {
  * open
  */
 transaction T_openA { 
-	input = T_commitA: sig Alice.kA sig Alice.kA "secretA"	// second item is useless
+	input = T_commitA: sig(Alice.kA) sig(Alice.kA) "secretA"	// second item is useless
 	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
 }
 
 transaction T_openB {
-	input = T_commitB: sig Bob.kB sig Bob.kB "secretB"	// second item is useless
+	input = T_commitB: sig(Bob.kB) sig(Bob.kB) "secretB"	// second item is useless
 	output = 10 BTC - 10: fun(sigma) . versig(Bob.kB; sigma)
 }
 
 //transaction T_open(k:key, secret:string) {	// TODO: consider taking tx as parameter
-//	input = T_commit(hash160(secret), k): sig k sig k secret	// second item is useless
+//	input = T_commit(hash160(secret), k): sig(k) sig(k)et	// second item is useless
 //	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
 //}
 
@@ -80,13 +80,13 @@ transaction T_openB {
  * pay deposit
  */
 transaction T_payDepositA {
-    input = T_commitA: sig Alice.kA sig Bob.kB ""
+    input = T_commitA: sig(Alice.kA) sig(Bob.kB) ""
  	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
 	after block 45
 }
 
 transaction T_payDepositB {
-    input = T_commitB: sig Alice.kA sig Bob.kB ""
+    input = T_commitB: sig(Alice.kA) sig(Bob.kB) ""
  	output = 10 BTC - 10: fun(sigma) . versig(Bob.kB; sigma)
 	after block 45 
 }

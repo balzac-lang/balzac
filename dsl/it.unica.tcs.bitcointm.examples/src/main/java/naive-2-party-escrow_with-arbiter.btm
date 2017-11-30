@@ -19,7 +19,7 @@ transaction T {
 }
 
 transaction TA {
-	input = T: sig Alice.kA sig Alice.kC 
+	input = T: sig(Alice.kA) sig(Alice.kC) 
 	output = [
 		4BTC-15: fun(x). versig(Alice.kA; x);
 		6BTC-15: fun(y). versig(Alice.kB; y) 

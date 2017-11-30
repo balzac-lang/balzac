@@ -13,14 +13,14 @@ transaction T {
 }
 
 transaction T_1 {
-	input = T: true sig Alice.kA sig Alice.kL
+	input = T: true sig(Alice.kA) sig(Alice.kL)
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50
 }
 
 transaction T_2 {
-	input = T: false sig Alice.kA sig Alice.kB
+	input = T: false sig(Alice.kA) sig(Alice.kB)
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50

@@ -201,7 +201,7 @@ IfThenElse:
 	"then" then=ScriptAtomic
 	'else' else=ScriptAtomic;
 
-Signature: "sig" key=CommonAtomic (modifier=Modifier)?;
+Signature: "sig" "(" key=CommonAtomic ")" ("[" modifier=Modifier "]")?;
 
 enum Modifier: 
 	AIAO 

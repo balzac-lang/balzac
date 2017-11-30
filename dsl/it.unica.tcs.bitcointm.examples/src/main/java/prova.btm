@@ -29,14 +29,14 @@ transaction T1 {
 	input = [
 		T@0: (0.00000043 BTC);  
 		T@1: if (10+2==12) then "screen" else "xyz";
-		T@2: sig Alice.kA AIAO sig Alice.kA AIAO;
-		T@3: sig Alice.kA AIAO;  
-		T@4: sig Alice.kA AIAO 2 (sig Alice.kA AIAO==sig Alice.kA);
+		T@2: sig(Alice.kA)[AIAO] sig(Alice.kA)[AIAO];
+		T@3: sig(Alice.kA)[AIAO];  
+		T@4: sig(Alice.kA)[AIAO] 2 (sig(Alice.kA)[AIAO]==sig(Alice.kA));
 		
 //		ALFA@0:	42 ;
-//		ALFA@1:	sig kB;
+//		ALFA@1:	sig(kB)[];
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH 
-		ALFA_serial@1:	sig Bob.kB
+		ALFA_serial@1:	sig(Bob.kB)
 	]
 
 	output = [  
