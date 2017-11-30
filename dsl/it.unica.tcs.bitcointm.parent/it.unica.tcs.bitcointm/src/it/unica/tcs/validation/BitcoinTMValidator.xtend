@@ -19,6 +19,7 @@ import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
+import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
@@ -28,6 +29,8 @@ import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
+import it.unica.tcs.bitcoinTM.ScriptDiv
+import it.unica.tcs.bitcoinTM.ScriptTimes
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.TransactionBody
@@ -44,9 +47,12 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 import java.util.HashSet
 import java.util.Set
+import org.bitcoinj.core.AddressFormatException
+import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
 import org.bitcoinj.core.VerificationException
+import org.bitcoinj.core.WrongNetworkException
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -63,13 +69,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.bitcoinTM.ScriptTimes
-import it.unica.tcs.bitcoinTM.ScriptDiv
-import it.unica.tcs.bitcoinTM.KeyLiteral
-import org.bitcoinj.core.DumpedPrivateKey
-import javax.xml.ws.soap.AddressingFeature.Responses
-import org.bitcoinj.core.AddressFormatException
-import org.bitcoinj.core.WrongNetworkException
 
 /**
  * This class contains custom validation rules. 

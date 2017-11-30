@@ -15,6 +15,7 @@ PackageDeclaration:
     'package' name=QualifiedName
     	imports+=Import*
 		net=Network?
+//		server=Server?
 		declarations+=Element*
 //		regtest=Regtest?
 		compile=Compile?
@@ -34,6 +35,14 @@ Element:
   "participant" Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
+
+Server: "server" "{"
+	"address" ":" STRING
+	"port" ":" LONG
+	"user" ":" STRING
+	("password" ":" STRING)?
+	("timeout" ":" LONG)?
+"}";
 
 /*
  * generic declarations
