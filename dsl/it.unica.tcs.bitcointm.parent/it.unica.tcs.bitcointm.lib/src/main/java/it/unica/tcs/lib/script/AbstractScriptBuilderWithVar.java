@@ -18,7 +18,6 @@ import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -202,10 +201,10 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				boolean anyoneCanPay = sig.anyoneCanPay;
 				
 				// check the key is correct when P2PKH
-				Script s = new Script(outScript);
-				if (s.isSentToAddress()) {
-					checkState(Arrays.equals(s.getPubKeyHash(), key.getPubKeyHash()));
-				}
+//				Script s = new Script(outScript);
+//				if (s.isSentToAddress()) {
+//					checkState(Arrays.equals(s.getPubKeyHash(), key.getPubKeyHash()));
+//				}
 				
 				TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
 				Sha256Hash hash = tx.hashForSignature(inputIndex, outScript, (byte) txSig.sighashFlags);

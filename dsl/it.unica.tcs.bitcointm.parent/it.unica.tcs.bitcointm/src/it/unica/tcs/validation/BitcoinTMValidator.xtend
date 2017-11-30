@@ -65,6 +65,11 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 import static org.bitcoinj.script.Script.*
 import it.unica.tcs.bitcoinTM.ScriptTimes
 import it.unica.tcs.bitcoinTM.ScriptDiv
+import it.unica.tcs.bitcoinTM.KeyLiteral
+import org.bitcoinj.core.DumpedPrivateKey
+import javax.xml.ws.soap.AddressingFeature.Responses
+import org.bitcoinj.core.AddressFormatException
+import org.bitcoinj.core.WrongNetworkException
 
 /**
  * This class contains custom validation rules. 
@@ -444,6 +449,27 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 					sig,
 					BitcoinTMPackage.Literals.SIGNATURE__KEY
 				);
+		}
+	}
+	
+	
+	@Check
+	def void checkKeyDeclaration(KeyLiteral k) {
+		
+		try {
+			DumpedPrivateKey.fromBase58(k.networkParams, k.value)
+		}
+		catch (WrongNetworkException e) {
+			error("Key is not valid for the given network.", 
+				k,
+				BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+			)			
+		}
+		catch (AddressFormatException e) {
+			error("Invalid key. "+e.message, 
+				k,
+				BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+			)
 		}
 	}
 	
