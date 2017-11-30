@@ -91,6 +91,8 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.ScriptTimes
+import it.unica.tcs.bitcoinTM.ScriptDiv
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -528,6 +530,36 @@ from {
 	
 	unify(substitutions, type, txType)
 	unify(substitutions, typeS, txType)
+}
+
+rule ScriptTimes
+	G |- TypeSubstitutions substitutions |> ScriptTimes minus : IntType t
+from {
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> minus.left: var Type leftType
+	G |- substitutions |> minus.right: var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	// the terms type must be unifiable with int type
+	unify(substitutions, leftType, t)
+	unify(substitutions, rightType, t)
+}
+
+rule ScriptDiv
+	G |- TypeSubstitutions substitutions |> ScriptDiv minus : IntType t
+from {
+	t = BitcoinTMFactory::eINSTANCE.createIntType
+	G |- substitutions |> minus.left: var Type leftType
+	G |- substitutions |> minus.right: var Type rightType
+	
+	leftType = typesubstitution(substitutions, leftType)
+	rightType = typesubstitution(substitutions, rightType)
+	
+	// the terms type must be unifiable with int type
+	unify(substitutions, leftType, t)
+	unify(substitutions, rightType, t)
 }
 
 rule Minus
@@ -1121,6 +1153,22 @@ from {
     G |- minus.left |> rho ~> var Long leftResult
     G |- minus.right |> rho ~> var Long rightResult
     result = leftResult - rightResult
+}
+
+rule InterpretTimes
+    G |- ScriptTimes minus |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- minus.left |> rho ~> var Long leftResult
+    G |- minus.right |> rho ~> var Long rightResult
+    result = leftResult * rightResult
+}
+
+rule InterpretDiv
+    G |- ScriptDiv minus |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- minus.left |> rho ~> var Long leftResult
+    G |- minus.right |> rho ~> var Long rightResult
+    result = leftResult / rightResult
 }
 
 rule InterpretPlus

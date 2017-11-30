@@ -15,8 +15,8 @@ import org.bitcoinj.script.Script;
 
 import it.unica.tcs.lib.script.InputScriptImpl;
 import it.unica.tcs.lib.script.OpReturnOutputScript;
+import it.unica.tcs.lib.script.OutputScriptImpl;
 import it.unica.tcs.lib.script.P2PKHOutputScript;
-import it.unica.tcs.lib.script.P2SHOutputScript;
 
 public class SerialTransactionBuilder implements ITransactionBuilder {
 
@@ -78,7 +78,7 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 			public Output get(int index) {
 				Script s = getTx().getOutput(index).getScriptPubKey();
 				if (s.isPayToScriptHash()) {
-					return Output.of(new P2SHOutputScript(s), getTx().getOutput(index).getValue().value);
+					return Output.of(new OutputScriptImpl(s), getTx().getOutput(index).getValue().value);
 				}
 				if (s.isSentToAddress()) {
 					return Output.of(new P2PKHOutputScript(s), getTx().getOutput(index).getValue().value);
