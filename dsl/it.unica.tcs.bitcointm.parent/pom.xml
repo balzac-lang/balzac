@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.unica.tcs.bitcointm</groupId>
-	<version>1.0.1</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<artifactId>it.unica.tcs.bitcointm.parent</artifactId>
 	<packaging>pom</packaging>
 
@@ -23,9 +23,9 @@
 		<module>it.unica.tcs.bitcointm.target</module>
 		<module>it.unica.tcs.bitcointm.feature</module>
 		<module>it.unica.tcs.bitcointm.repository</module>
-		<module>it.unica.tcs.bitcointm.tests</module>
-		<module>it.unica.tcs.bitcointm.ui.tests</module>
-		<module>it.unica.tcs.bitcointm.lib</module>
+<!-- 		<module>it.unica.tcs.bitcointm.tests</module> -->
+<!-- 		<module>it.unica.tcs.bitcointm.ui.tests</module> -->
+		
 	</modules>
 	
 	<build>

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>it.unica.tcs.bitcointm</groupId>
 		<artifactId>it.unica.tcs.bitcointm.parent</artifactId>
-		<version>1.0.1</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>it.unica.tcs.bitcointm.web</artifactId>
 	<packaging>war</packaging>
@@ -118,7 +118,7 @@
 			<artifactId>bootstrap</artifactId>
 			<version>4.0.0-beta.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-annotations</artifactId>
@@ -130,6 +130,11 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.21</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>it.unica.tcs.bitcointm</groupId>
+			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
+			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
 </project>

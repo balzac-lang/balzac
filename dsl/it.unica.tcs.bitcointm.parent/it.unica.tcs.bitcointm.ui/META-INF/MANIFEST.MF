@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: it.unica.tcs.bitcointm.ui
 Bundle-Vendor: My Company
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.1.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: it.unica.tcs.bitcointm,
@@ -16,11 +16,12 @@ Require-Bundle: it.unica.tcs.bitcointm,
  org.eclipse.compare,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
- org.eclipse.xtext.xbase.lib,
- org.eclipse.m2e.core
+ org.eclipse.xtext.xbase.lib
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: it.unica.tcs.ui.quickfix,
  it.unica.tcs.ui.contentassist,
  it.unica.tcs.bitcointm.ui.internal
 Bundle-Activator: it.unica.tcs.bitcointm.ui.internal.BitcointmActivator
+Bundle-ClassPath: .,
+ it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
