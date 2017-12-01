@@ -90,31 +90,30 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	/*
 	 * INFO
 	 */	
-	@Check
-	def void checkSingleElementArray(TransactionDeclaration tx) {
-		
-//		logger.trace("--- TRACE TEST --- ")
-//		logger.info ("--- INFO  TEST --- ")
-//		logger.warn ("--- WARN  TEST --- ")
-//		logger.error("--- ERROR TEST --- ")
-//		logger.fatal("--- FATAL TEST --- ")
-		
-		var tbody = tx.right.value as TransactionBody
-		var inputs = tbody.inputs
-		var outputs = tbody.outputs
-		
-		if (tbody.isMultiIn && inputs.size==1) {
-			info("Single element arrays can be replaced by the element itself.",
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
-			);	
-		}
-		
-		if (tbody.isIsMultiOut && outputs.size==1) {
-			info("Single element arrays can be replaced by the element itself.", 
-				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
-			);	
-		}
-	}
+//	@Check
+//	def void checkSingleElementArray(TransactionBody tbody) {
+//		
+////		logger.trace("--- TRACE TEST --- ")
+////		logger.info ("--- INFO  TEST --- ")
+////		logger.warn ("--- WARN  TEST --- ")
+////		logger.error("--- ERROR TEST --- ")
+////		logger.fatal("--- FATAL TEST --- ")
+//		
+//		var inputs = tbody.inputs
+//		var outputs = tbody.outputs
+//		
+//		if (tbody.isMultiIn && inputs.size==1) {
+//			info("Single element arrays can be replaced by the element itself.",
+//				BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
+//			);	
+//		}
+//		
+//		if (tbody.isIsMultiOut && outputs.size==1) {
+//			info("Single element arrays can be replaced by the element itself.", 
+//				BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
+//			);	
+//		}
+//	}
 
 	/*
 	 * WARNING
