@@ -846,6 +846,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		                var value = txbody.getOutputAmount(tx.networkParams, index)
 		                amount+=value
 			        }
+			        else {
+			        	// the reference points to a parameter, exit
+			        	return true;
+			        }
 	        	}
 	        }
         }

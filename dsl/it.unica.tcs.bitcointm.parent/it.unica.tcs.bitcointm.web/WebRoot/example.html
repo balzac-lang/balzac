@@ -1,0 +1,82 @@
+<html>
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="Content-Language" content="en-us">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>Bitcoin Transaction Model - Web Editor</title>
+
+        <link rel="stylesheet" type="text/css" href="/btm/xtext/2.11.0/xtext-ace.css"/>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+        <script src="/btm/webjars/requirejs/2.3.2/require.min.js"></script>
+        <script type="text/javascript">
+                var baseUrl = window.location.pathname;
+                var fileIndex = baseUrl.indexOf("example2.html");
+                if (fileIndex > 0)
+                        baseUrl = baseUrl.slice(0, fileIndex);
+                require.config({
+                        baseUrl: baseUrl,
+                        paths: {
+                                "jquery": "webjars/jquery/2.2.4/jquery.min",
+                                "ace/ext/language_tools": "webjars/ace/1.2.3/src/ext-language_tools",
+                                "xtext/xtext-ace": "xtext/2.11.0/xtext-ace",
+//                          "bootstrap": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/js/bootstrap",
+//                          "bootstrap-css": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/css/bootstrap"
+                        },
+//                      shim: { "bootstrap": [ "jquery" ] }
+                });
+                require(["webjars/ace/1.2.3/src/ace"], function() {
+                        require(["xtext/xtext-ace"], function(xtext) {
+
+                                var editor = xtext.createEditor({
+                                        baseUrl: baseUrl,
+                                        syntaxDefinition: "xtext-resources/generated/mode-btm"
+                                });
+
+                                editor.setValue("package example\n\nlet kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4\nlet kB = wif:cQWE5xCmvhxp9wthXPX35w7myKSk5J9jYQhMT9tZMpjm9MDKVCN1\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(s) . versig(kA; s)\n}\n\ntransaction T1 {\n    input = T: sig(kA)\n    output = 10 BTC: fun(s) . versig(kB; s)\n}\n\ncompile T T1");
+//                              editor.setTheme("ace/theme/monokai");
+                                editor.setAutoScrollEditorIntoView(true);
+
+                                $("#compile").click(function() {
+                                    editor.xtextServices.generate()
+                                            .done(function(result){
+                                                    $("#result").html(result)
+                                                    
+                                            });
+                                    
+                                });
+                        });
+                });
+        </script>
+</head>
+<body>
+
+        <div class="container-fluid mt-3 mb-3">
+                <div class="card">
+                        <div class="card-header text-center">
+                                <h3 class="card-title">Bitcoin Transaction Model</h3>
+                                <h5 class="card-title">Web Editor</h5>
+                        </div>
+                        <div class="card-body">
+                                <div class="border border-dark mb-3" >
+                                        <div id="xtext-editor" class="resizable" data-editor-xtext-lang="btm"></div>
+                                </div>
+                                <div class="text-center">
+                                        <button id="compile" type="button" class="btn btn-primary">Compile</button>
+                                </div>
+                        </div>
+                        <div class="card-footer">
+                                <pre id="result" class="bg-white border border-dark resizable">
+                           </pre>
+                        </div>
+                </div>
+        </div>
+
+</body>
+</html>
