@@ -17,7 +17,7 @@
         <script src="/btm/webjars/requirejs/2.3.2/require.min.js"></script>
         <script type="text/javascript">
                 var baseUrl = window.location.pathname;
-                var fileIndex = baseUrl.indexOf("example.html");
+                var fileIndex = baseUrl.indexOf("example2.html");
                 if (fileIndex > 0)
                         baseUrl = baseUrl.slice(0, fileIndex);
                 require.config({
@@ -39,7 +39,7 @@
                                         syntaxDefinition: "xtext-resources/generated/mode-btm"
                                 });
 
-                                editor.setValue("package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ntransaction T1 {\n    input = T: 42\n    output = [\n        7 BTC: fun(x) . x==13;\n        3 BTC: fun(x) . x==7\n    ]\n}\n\ntransaction T2 {\n    input = [\n        T1@0: 13;\n        T1@1: 7\n    ]\n    output = 10 BTC: fun(x) . after block 110 : x!=0\n}\n\ntransaction T3 {\n    input = T2: 1\n    output = 10 BTC: fun(x) . x==\"bitcoin\"\n    after block 100\n}\n\ntransaction T3_invalid {\n    input = T2: 1\n    output = 10 BTC: fun(x) . x==\"bitcoin\"\n    after block 120\n}\n\ncompile T T1 T2 T3 T3_invalid\n");
+                                editor.setValue("package example\n\nlet kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4\nlet kB = wif:cQWE5xCmvhxp9wthXPX35w7myKSk5J9jYQhMT9tZMpjm9MDKVCN1\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(s) . versig(kA; s)\n}\n\ntransaction T1 {\n    input = T: sig(kA)\n    output = 10 BTC: fun(s) . versig(kB; s)\n}\n\ncompile T T1");
 //                              editor.setTheme("ace/theme/monokai");
                                 editor.setAutoScrollEditorIntoView(true);
 
@@ -65,7 +65,7 @@
                         </div>
                         <div class="card-body">
                                 <div class="border border-dark mb-3" >
-                                        <div id="xtext-editor" class="resizable" data-editor-xtext-lang="btm"></div>
+                                        <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>
                                 </div>
                                 <div class="text-center">
                                         <button id="compile" type="button" class="btn btn-primary">Compile</button>
