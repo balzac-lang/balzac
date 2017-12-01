@@ -641,7 +641,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		/*
 		 * Verify that the fees are positive
 		 */
-        hasError = !tx.checkFee
+        hasError = !(tx.right.value as TransactionBody).checkFee
         
         if(hasError) return;  // interrupt the check
         
@@ -810,45 +810,66 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //        return true
 //    }
 	
-    def boolean checkFee(TransactionDeclaration tx) {
+    def boolean checkFee(TransactionBody tx) {
         
-//        var amount = 0L
-//        
-//        for (in : tx.body.inputs) {
-//        	var inputTx = in.txRef.ref
-//            if (inputTx instanceof TransactionDeclaration) {
-//                var index = in.outpoint.intValue
-//                var output = inputTx.body.outputs.get(index) 
-//                var value = output.value.exp.interpret(newHashMap).first as Long
-//                amount+=value
-//            }
-//            else if (inputTx instanceof SerialTransactionDeclaration){
-//                var index = in.outpoint.intValue
-//                var txbody = inputTx.bytes
-//                var value = txbody.getOutputAmount(tx.networkParams, index)
-//                amount+=value
-//            }
-//        }
-//        
-//        for (output : tx.body.outputs) {
-//            var value = output.value.exp.interpret(newHashMap).first as Long
-//            amount-=value
-//        }
-//
+        if (tx.isCoinbase)
+        	return true;
+        
+        var amount = 0L
+        
+        for (in : tx.inputs) {
+        	var inputTx = in.txRef
+        	
+        	switch(inputTx) {	
+	        	TransactionLiteral: {
+	        		var index = in.outpoint.intValue
+	                var txbody = inputTx.value
+	                var value = txbody.getOutputAmount(tx.networkParams, index)
+	                amount+=value
+	        	}
+	
+	        	DeclarationReference: {
+					val refTx = inputTx.ref.eContainer
+					
+					if (refTx instanceof TransactionDeclaration) {
+						
+		                var index = in.outpoint.intValue
+		                var output = (refTx.right.value as TransactionBody).outputs.get(index) 
+		                var value = output.value.exp.interpret(newHashMap).first as Long
+		                amount+=value
+			        }
+			        else if (
+			        	refTx instanceof Declaration &&
+			        	(refTx as Declaration).right.value instanceof TransactionLiteral
+			        ) {
+			      		var index = in.outpoint.intValue
+			        	val txbody = ((refTx as Declaration).right.value as TransactionLiteral).value
+		                var value = txbody.getOutputAmount(tx.networkParams, index)
+		                amount+=value
+			        }
+	        	}
+	        }
+        }
+        
+        for (output : tx.outputs) {
+            var value = output.value.exp.interpret(newHashMap).first as Long
+            amount-=value
+        }
+
 //        if (amount==0) {
 //            warning("Fees are zero.",
 //                tx,
-//                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
+//                BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
 //            );
 //        }
-//        
-//        if (amount<0) {
-//            error("The transaction spends more than expected.",
-//                tx,
-//                BitcoinTMPackage.Literals.USER_TRANSACTION_DECLARATION__BODY
-//            );
-//            return false;
-//        }
+        
+        if (amount<0) {
+            error("The transaction spends more than expected.",
+                tx,
+                BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
+            );
+            return false;
+        }
         
         return true;
     }
