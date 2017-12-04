@@ -8,7 +8,7 @@
 
 	<properties>
 		<tycho-version>0.25.0</tycho-version>
-		<xtextVersion>2.11.0</xtextVersion>
+		<xtextVersion>2.12.0</xtextVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -23,8 +23,8 @@
 		<module>it.unica.tcs.bitcointm.target</module>
 		<module>it.unica.tcs.bitcointm.feature</module>
 		<module>it.unica.tcs.bitcointm.repository</module>
-<!-- 		<module>it.unica.tcs.bitcointm.tests</module> -->
-<!-- 		<module>it.unica.tcs.bitcointm.ui.tests</module> -->
+		<module>it.unica.tcs.bitcointm.tests</module>
+		<module>it.unica.tcs.bitcointm.ui.tests</module>
 		<module>it.unica.tcs.bitcointm.lib</module>		
 	</modules>
 	
@@ -142,6 +142,10 @@
 									<include>**/*</include>
 								</includes>
 								<directory>${basedir}/xtend-gen</directory>
+								<includes>
+									<include>**/*</include>
+								</includes>
+								<directory>${basedir}/xsemantics-gen</directory>
 								<includes>
 									<include>**/*</include>
 								</includes>
