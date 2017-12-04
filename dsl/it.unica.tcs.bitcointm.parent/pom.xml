@@ -25,9 +25,9 @@
 		<module>it.unica.tcs.bitcointm.repository</module>
 		<module>it.unica.tcs.bitcointm.tests</module>
 		<module>it.unica.tcs.bitcointm.ui.tests</module>
-		<module>it.unica.tcs.bitcointm.lib</module>		
+		<module>it.unica.tcs.bitcointm.lib</module>
 	</modules>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -109,6 +109,8 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
+
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -286,5 +288,4 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	
 </project>

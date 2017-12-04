@@ -82,6 +82,41 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.xtext</groupId>
+				<artifactId>xtext-maven-plugin</artifactId>
+				<version>${xtextVersion}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<languages>
+						<language>
+							<setup>it.xsemantics.dsl.XsemanticsStandaloneSetup</setup>
+							<outputConfigurations>
+								<outputConfiguration>
+									<outputDirectory>${basedir}/xsemantics-gen</outputDirectory>
+								</outputConfiguration>
+							</outputConfigurations>
+						</language>
+					</languages>
+				</configuration>
+				<dependencies>
+					<!-- add a dependency to the language core bundle, this will only be 
+						needed during generation and will not pollute your project's classpath. -->
+					<dependency>
+						<groupId>net.sf.xsemantics</groupId>
+						<artifactId>it.xsemantics.dsl</artifactId>
+						<version>${xsemantics.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
 			<plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
@@ -93,13 +128,13 @@
 				<configuration>
 					<filesets combine.children="append">
 						<fileset>
-							<directory>${basedir}/../it.unica.tcs.bitcointm/src-gen/</directory>
+							<directory>${basedir}/src-gen/</directory>
 							<includes>
 								<include>**/*</include>
 							</includes>
 						</fileset>
 						<fileset>
-							<directory>${basedir}/../it.unica.tcs.bitcointm/xsemantics-gen/</directory>
+							<directory>${basedir}/xsemantics-gen</directory>
 							<includes>
 								<include>**/*</include>
 							</includes>
@@ -141,6 +176,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -152,15 +188,9 @@
 							<pluginExecutions>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>
-											org.codehaus.mojo
-										</groupId>
-										<artifactId>
-											exec-maven-plugin
-										</artifactId>
-										<versionRange>
-											[1.2.1,)
-										</versionRange>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>exec-maven-plugin</artifactId>
+										<versionRange>[1.2.1,)</versionRange>
 										<goals>
 											<goal>java</goal>
 										</goals>
@@ -172,38 +202,6 @@
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.xtext</groupId>
-					<artifactId>xtext-maven-plugin</artifactId>
-					<version>${xtextVersion}</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<languages>
-							<language>
-								<setup>it.xsemantics.dsl.XsemanticsStandaloneSetup</setup>
-								<outputConfigurations>
-									<outputConfiguration>
-										<outputDirectory>${basedir}/xsemantics-gen</outputDirectory>
-									</outputConfiguration>
-								</outputConfigurations>
-							</language>
-						</languages>
-					</configuration>
-					<dependencies>
-						 <!-- add a dependency to the language core bundle, this will only be needed during generation and will not pollute your project's classpath. -->
-						<dependency>
-							<groupId>net.sf.xsemantics</groupId>
-							<artifactId>it.xsemantics.dsl</artifactId>
-							<version>${xsemantics.version}</version>
-						</dependency>
-					</dependencies>
 				</plugin>
 			</plugins>
 		</pluginManagement>
