@@ -9,6 +9,14 @@
 	<artifactId>it.unica.tcs.bitcointm.tests</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>it.unica.tcs.bitcointm</groupId>
+			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
+			<version>${lib.version}</version>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>

@@ -5,7 +5,7 @@ Bundle-Vendor: My Company
 Bundle-Version: 1.0.1.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext,
+Require-Bundle: org.eclipse.xtext;bundle-version="[2.12.0,2.13.0)",
  org.eclipse.xtext.xbase,
  org.eclipse.equinox.common;bundle-version="3.5.0",
  org.eclipse.emf.ecore,
@@ -14,7 +14,7 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtend.lib,
  org.eclipse.emf.common,
  org.antlr.runtime,
- it.xsemantics.runtime
+ it.xsemantics.runtime;bundle-version="[1.12.1,1.13.0)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.google.inject,
  it.unica.tcs,

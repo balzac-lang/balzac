@@ -12,7 +12,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<xsemantics.version>1.12.0</xsemantics.version>
+		<xsemantics.version>1.12.1</xsemantics.version>
+		<lib.version>0.0.1</lib.version>
 	</properties>
 
 	<modules>
@@ -20,10 +21,10 @@
 		<module>it.unica.tcs.bitcointm.ide</module>
 		<module>it.unica.tcs.bitcointm.ui</module>
 		<module>it.unica.tcs.bitcointm.web</module>
-		<module>it.unica.tcs.bitcointm.target</module>
+ 		<module>it.unica.tcs.bitcointm.target</module>
 		<module>it.unica.tcs.bitcointm.feature</module>
 		<module>it.unica.tcs.bitcointm.repository</module>
-		<module>it.unica.tcs.bitcointm.tests</module>
+<!-- 		<module>it.unica.tcs.bitcointm.tests</module> -->
 		<module>it.unica.tcs.bitcointm.ui.tests</module>
 		<module>it.unica.tcs.bitcointm.lib</module>
 	</modules>
@@ -261,6 +262,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+	
 	<repositories>
 		<repository>
 			<id>codehaus-snapshots</id>
@@ -274,6 +276,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
+	
 	<pluginRepositories>
 		<pluginRepository>
 			<id>codehaus-snapshots</id>
