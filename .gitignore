@@ -1,0 +1,19 @@
+#.classpath # eclipse
+#.project   # eclipse
+
+.*
+!.gitignore
+
+bin
+target
+build
+xtend-gen
+src-gen
+xsemantics-gen
+
+**/model/generated/
+
+**local.properties
+
+**.jar
+
