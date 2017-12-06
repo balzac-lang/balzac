@@ -33,7 +33,7 @@ import it.unica.tcs.lib.script.P2SHOutputScript
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import java.util.Map
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.xtext.EcoreUtil2
@@ -43,7 +43,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 
 class TransactionCompiler {
 	
-	@Inject private extension BitcoinTMTypeSystem typeSystem
+	@Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils astUtils
 	@Inject private extension ScriptExpressionCompiler expGenerator
     @Inject private extension CompilerUtils

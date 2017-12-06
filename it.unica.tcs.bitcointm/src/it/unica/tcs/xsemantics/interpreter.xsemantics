@@ -1,0 +1,406 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
+
+import it.unica.tcs.bitcoinTM.AndScriptExpression
+import it.unica.tcs.bitcoinTM.Between
+import it.unica.tcs.bitcoinTM.BooleanLiteral
+import it.unica.tcs.bitcoinTM.Declaration
+import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.ExpressionI
+import it.unica.tcs.bitcoinTM.Hash160
+import it.unica.tcs.bitcoinTM.Hash160Literal
+import it.unica.tcs.bitcoinTM.Hash256
+import it.unica.tcs.bitcoinTM.Hash256Literal
+import it.unica.tcs.bitcoinTM.IfThenElse
+import it.unica.tcs.bitcoinTM.KeyLiteral
+import it.unica.tcs.bitcoinTM.Max
+import it.unica.tcs.bitcoinTM.Min
+import it.unica.tcs.bitcoinTM.NumberLiteral
+import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.Referrable
+import it.unica.tcs.bitcoinTM.Ripemd160
+import it.unica.tcs.bitcoinTM.Ripemd160Literal
+import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
+import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
+import it.unica.tcs.bitcoinTM.ScriptComparison
+import it.unica.tcs.bitcoinTM.ScriptDiv
+import it.unica.tcs.bitcoinTM.ScriptEquals
+import it.unica.tcs.bitcoinTM.ScriptMinus
+import it.unica.tcs.bitcoinTM.ScriptPlus
+import it.unica.tcs.bitcoinTM.ScriptTimes
+import it.unica.tcs.bitcoinTM.Sha256
+import it.unica.tcs.bitcoinTM.Sha256Literal
+import it.unica.tcs.bitcoinTM.Size
+import it.unica.tcs.bitcoinTM.StringLiteral
+import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionLiteral
+import it.unica.tcs.compiler.TransactionCompiler
+import it.unica.tcs.lib.Hash
+import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.utils.ASTUtils
+import java.math.BigInteger
+import java.util.Map
+import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.Utils
+
+system it.unica.tcs.xsemantics.BitcoinTMInterpreter
+ 
+inject extension ASTUtils astUtils
+inject extension TransactionCompiler compiler
+
+
+judgments {
+	interpret |- ExpressionI expression |> Map<Referrable,Object> rho ~> output Object
+}
+
+/*
+ * 
+ * Expression Interpreter
+ * 
+ */
+
+rule InterpretDeclarationReference
+	G |- DeclarationReference v |> Map<Referrable, Object> rho ~> Object res
+from {
+	{
+		val decl = v.ref.eContainer as Declaration
+		
+		for (var i=0; i<v.actualParams.size; i++) {
+			val actual = v.actualParams.get(i)
+			val formal = (v.ref as DeclarationLeft).params.get(i)
+			
+			G |- actual |> rho ~> var Object value
+			rho.put(formal, value)	
+		}
+		
+		G |- decl.right.value |> rho ~> res	
+	}
+	or {	// e.g. Script or Tx params
+		{rho.containsKey(v.ref)}
+		res = rho.get(v.ref)				
+	}
+}
+  
+axiom InterpretNumberLiteral
+    G |- NumberLiteral number |> Map<Referrable, Object> rho ~> number.value
+
+axiom InterpretStringLiteral
+    G |- StringLiteral str |> Map<Referrable, Object> rho ~> str.value
+
+axiom InterpretBooleanLiteral
+    G |- BooleanLiteral bool |> Map<Referrable, Object> rho ~> bool.^true
+
+axiom InterpretHash160Literal
+    G |- Hash160Literal hash |> Map<Referrable, Object> rho ~> new Hash.Hash160(hash.value)
+
+axiom InterpretHash256Literal
+    G |- Hash256Literal hash |> Map<Referrable, Object> rho ~> new Hash.Hash256(hash.value)
+
+axiom InterpretRipemd160Literal
+    G |- Ripemd160Literal hash |> Map<Referrable, Object> rho ~> new Hash.Ripemd160(hash.value)
+
+axiom InterpretSha256Literal
+    G |- Sha256Literal hash |> Map<Referrable, Object> rho ~> new Hash.Sha256(hash.value)
+
+axiom InterpretKeyLiteral
+    G |- KeyLiteral key |> Map<Referrable, Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+
+axiom InterpretTransactionLiteral
+    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+
+rule InterpretTransactionBody
+    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
+from {
+	/*
+	 * the only way to invoke this rule is by a DeclarationReference.
+	 * It adds the actual value to rho, so this exp should be closed
+	 */
+	val TransactionDeclaration decl = txBody.txDeclaration
+	val txBuilder = decl.compileTransaction
+	
+	for (p : decl.left.params) {
+		if (rho.containsKey(p)) {			
+			txBuilder.bindVariable(p.name, rho.get(p))
+		}
+	}
+	
+	res = txBuilder
+}
+
+rule InterpretMinus
+    G |- ScriptMinus minus |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- minus.left |> rho ~> var Long leftResult
+    G |- minus.right |> rho ~> var Long rightResult
+    result = leftResult - rightResult
+}
+
+rule InterpretTimes
+    G |- ScriptTimes minus |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- minus.left |> rho ~> var Long leftResult
+    G |- minus.right |> rho ~> var Long rightResult
+    result = leftResult * rightResult
+}
+
+rule InterpretDiv
+    G |- ScriptDiv minus |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- minus.left |> rho ~> var Long leftResult
+    G |- minus.right |> rho ~> var Long rightResult
+    result = leftResult / rightResult
+}
+
+rule InterpretPlus
+    G |- ScriptPlus plus |> Map<Referrable, Object> rho ~> Object result
+from {
+    G |- plus.left |> rho ~> var Object leftResult
+    G |- plus.right |> rho ~> var Object rightResult
+    
+    if (leftResult instanceof String || rightResult instanceof String) {
+        var leftString = leftResult.toString
+        var rightString = rightResult.toString
+        result = leftString + rightString
+    } else {
+        // both are int if the expression is well-typed
+        var leftInt = leftResult as Long
+        var rightInt = rightResult as Long
+        result = leftInt + rightInt
+    }
+}
+
+rule InterpretArithmeticSigned
+    G |- ScriptArithmeticSigned signed |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- signed.exp |> rho ~> var Long expResult
+    result = -(expResult)
+}
+
+rule InterpretAnd
+    G |- AndScriptExpression and |> Map<Referrable, Object> rho ~> Boolean result
+from {
+	{
+	    G |- and.left |> rho ~> var Boolean leftResult
+	    
+	    if (leftResult == false) {
+	    	result = false
+	    }
+	    else {
+		    G |- and.right |> rho ~> var Boolean rightResult
+		    result = rightResult.booleanValue    	
+	    }
+	} or {
+	    G |- and.right |> rho ~> var Boolean rightResult
+	    
+	    if (rightResult == false) {
+	    	result = false
+	    }
+	    else {
+		    G |- and.left |> rho ~> var Boolean leftResult
+		    result = leftResult.booleanValue    	
+	    }
+	}   
+}
+
+rule InterpretOr
+    G |- OrScriptExpression orExp |> Map<Referrable, Object> rho ~> Boolean result
+from {
+	{
+	    G |- orExp.left |> rho ~> var Boolean leftResult
+	    
+	    if (leftResult == true) {
+	    	result = true
+	    }
+	    else {
+		    G |- orExp.right |> rho ~> var Boolean rightResult
+		    result = rightResult.booleanValue 
+	    }
+    } or {
+    	G |- orExp.right |> rho ~> var Boolean rightResult
+	    
+	    if (rightResult == true) {
+	    	result = true
+	    }
+	    else {
+		    G |- orExp.left |> rho ~> var Boolean leftResult
+		    result = leftResult.booleanValue 
+	    }
+    }
+}
+
+rule InterpretBooleanNegation
+    G |- ScriptBooleanNegation neg |> Map<Referrable, Object> rho ~> Boolean result
+from {
+    G |- neg.exp |> rho ~> var Boolean expResult
+    result = !expResult
+}
+
+rule InterpretComparison
+    G |- ScriptComparison comparison |> Map<Referrable, Object> rho ~> Boolean result
+from {
+    G |- comparison.left |> rho ~> var Comparable<Object> leftResult
+    G |- comparison.right |> rho ~> var Object rightResult
+    
+    result = switch(comparison.op) {
+    		case ">=": leftResult >= rightResult
+    		case "<=": leftResult <= rightResult
+    		case ">": leftResult > rightResult
+    		case "<": leftResult < rightResult
+    		default: null
+    	}
+    	
+	if (result===null) {
+		fail 
+			error "Unexpecter operator "+comparison.op 
+			source comparison
+	}
+}
+
+rule InterpretEquals
+    G |- ScriptEquals comparison |> Map<Referrable, Object> rho ~> Boolean result
+from {
+	
+	{
+    	G |- comparison.left |> rho ~> var ITransactionBuilder leftResult
+	    G |- comparison.right |> rho ~> var ITransactionBuilder rightResult
+
+	    var areEqual = ITransactionBuilder.equals(leftResult,rightResult)
+	    
+	    result = switch(comparison.op) {
+    		case "==": areEqual
+    		case "!=": !areEqual
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpected operator "+comparison.op 
+				source comparison
+		}
+		
+    } or {
+    	comparison.left instanceof DeclarationReference
+    	comparison.right instanceof DeclarationReference
+		// two refs are the same if they point to the same parameter
+    	var leftResult = (comparison.left as DeclarationReference).ref 
+    	var rightResult = (comparison.right as DeclarationReference).ref
+    	leftResult == rightResult
+    	
+    	result = switch(comparison.op) {
+    		case "==": true
+    		case "!=": false
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpecter operator "+comparison.op 
+				source comparison
+		}
+		
+    } or {
+	    G |- comparison.left |> rho ~> var Object leftResult
+	    G |- comparison.right |> rho ~> var Object rightResult
+	    	    	    
+	    var areEqual = leftResult==rightResult
+	    
+	    result = switch(comparison.op) {
+    		case "==": areEqual
+    		case "!=": !areEqual
+    		default: null
+    	}
+    	
+		if (result===null) {
+			fail 
+				error "Unexpected operator "+comparison.op 
+				source comparison
+		}
+    }
+}
+
+rule InterpretIfThenElse
+    G |- IfThenElse stmt |> Map<Referrable, Object> rho ~> Object result
+from {
+    G |- stmt.^if |> rho ~> var Boolean ifCondition
+    
+    if (ifCondition) {
+        G |- stmt.then |> rho ~> var Object thenResult
+        result = thenResult
+    }
+    else {
+        G |- stmt.^else |> rho ~> var Object elseResult
+        result = elseResult
+    }
+}
+
+rule InterpretMin
+    G |- Min stmt |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- stmt.left |> rho ~> var Long leftRes
+    G |- stmt.right |> rho ~> var Long rightRes
+    
+    if (leftRes<=rightRes)
+        result = leftRes
+    else 
+        result = rightRes
+}
+
+rule InterpretMax
+    G |- Max stmt |> Map<Referrable, Object> rho ~> Long result
+from {
+    G |- stmt.left |> rho ~> var Long leftRes
+    G |- stmt.right |> rho ~> var Long rightRes
+    
+    if (leftRes>=rightRes)
+        result = leftRes
+    else 
+        result = rightRes
+}
+
+rule InterpretBetween
+    G |- Between stmt |> Map<Referrable, Object> rho ~> Boolean result
+from {
+    G |- stmt.value |> rho ~> var Long valueRes
+    G |- stmt.left |> rho ~> var Long leftRes
+    G |- stmt.right |> rho ~> var Long rightRes
+    result = leftRes<=valueRes && valueRes<rightRes
+}
+
+rule InterpretHash
+    G |- it.unica.tcs.bitcoinTM.Hash hash |> Map<Referrable, Object> rho ~> Hash result
+from {
+
+    G |- hash.value |> rho ~> var Object expResult
+    
+    // hash the bytes
+    if (hash instanceof Hash160)
+	    result = BitcoinUtils.hash(expResult, Hash.Hash160)
+    else if (hash instanceof Hash256)
+	    result = BitcoinUtils.hash(expResult, Hash.Hash256)
+    else if (hash instanceof Ripemd160)
+	    result = BitcoinUtils.hash(expResult, Hash.Ripemd160)
+    else if (hash instanceof Sha256)
+	    result = BitcoinUtils.hash(expResult, Hash.Sha256)
+	else {
+		fail 
+		error "Unexpected instance "+hash.class 
+		source hash
+	}
+}
+
+rule InterpretSize
+    G |- Size size |> Map<Referrable, Object> rho ~> Long result
+from {
+	G |- size.value |> rho ~> var Long res
+	
+	if (res==0) 
+		result=0L
+	else {
+		// ⌈(log2 |n| / 7)⌉
+		result = Long.valueOf(Utils.encodeMPI(BigInteger.valueOf(res), false).length)
+	}
+}

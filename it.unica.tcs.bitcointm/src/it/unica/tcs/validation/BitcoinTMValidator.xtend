@@ -44,7 +44,7 @@ import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
-import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import java.util.HashSet
 import java.util.Set
 import org.bitcoinj.core.AddressFormatException
@@ -80,7 +80,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
 	@Inject private extension IQualifiedNameConverter
-    @Inject private extension BitcoinTMTypeSystem
+    @Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils    
     @Inject private extension TransactionCompiler
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;

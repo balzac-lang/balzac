@@ -10,7 +10,7 @@ import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
-import it.unica.tcs.xsemantics.BitcoinTMTypeSystem
+import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import java.io.File
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
@@ -23,7 +23,7 @@ class RawTransactionGenerator extends AbstractGenerator {
 	
 	@Inject private extension IQualifiedNameProvider	
 	@Inject private extension TransactionCompiler	
-	@Inject private extension BitcoinTMTypeSystem
+	@Inject private extension BitcoinTMInterpreter
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		var package = resource.allContents.toIterable.filter(PackageDeclaration).get(0)

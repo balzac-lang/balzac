@@ -63,14 +63,14 @@ import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
-import it.unica.tcs.xsemantics.BitcoinTMTypeSystem;
+import it.unica.tcs.xsemantics.BitcoinTMInterpreter;
 import it.xsemantics.runtime.Result;
 
 @Singleton
 public class ASTUtils {
 	
 	@Inject private BitcoinClientI bitcoin;
-	@Inject private BitcoinTMTypeSystem typeSystem;
+	@Inject private BitcoinTMInterpreter interpreter;
 	
 	public String getName(Referrable ref) {
 		if (ref instanceof Parameter)
@@ -150,7 +150,7 @@ public class ASTUtils {
 			return exp;
 		
 
-		Result<Object> interpreted = typeSystem.interpret(exp, rho);
+		Result<Object> interpreted = interpreter.interpret(exp, rho);
 		if (interpreted.failed()) 
 			return exp;
 		else {	
