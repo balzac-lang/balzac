@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: it.unica.tcs.bitcointm.ui
 Bundle-Vendor: My Company
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 0.0.1.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: it.unica.tcs.bitcointm,
