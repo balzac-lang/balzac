@@ -69,6 +69,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.bitcoinTM.BooleanLiteral
 
 /**
  * This class contains custom validation rules. 
@@ -175,20 +176,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkEmptyLambda(it.unica.tcs.bitcoinTM.Script script) {
-		if (script.params.size==0 && !script.isOpReturn) {
-		    
-		    if (script.eContainer instanceof Output)
-    			warning("This output could be redeemed without providing any arguments.",
-    				script.eContainer,
-    				BitcoinTMPackage.Literals.OUTPUT__SCRIPT
-    			);
-    		
-    		if (script.eContainer instanceof Input)
-                warning("This output could be redeemed without providing any arguments.",
-                    script.eContainer,
-                    BitcoinTMPackage.Literals.INPUT__REDEEM_SCRIPT
-                );
+	def void checkConstantScripts(it.unica.tcs.bitcoinTM.Script script) {
+		
+		val scriptEvaluated = script.exp.interpretSafe
+		
+		if (scriptEvaluated instanceof BooleanLiteral) {			
+			warning("Script will always evaluate to "+scriptEvaluated.isTrue,
+				script.eContainer,
+				script.eContainingFeature
+			);
 		}
 	}
 	
