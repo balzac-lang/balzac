@@ -237,24 +237,26 @@ Size: "size" "(" value=ScriptExpression ")";
 AfterTimeLock: "after" timelock=Time ":" continuation=ScriptAtomic;
 
 DeclarationType returns Type:
-	BasicType;
+	PermittedType;
 
 Type:
-	BasicType 
-|	VoidType
-|	TypeVariable;
+	PermittedType 
+|   {VoidType} value=VoidTypeEnum
+|	{TypeVariable} value=ID;
+
+PermittedType:
+	BasicType
+|   {KeyType} value=KeyTypeEnum
+|   {AddressType} value=AddressTypeEnum
+|   {TransactionType} value=TransactionTypeEnum
+|   {SignatureType} value=SignatureTypeEnum;
 
 BasicType:
 	{IntType} value=IntTypeEnum 
 |	{StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
-|   {KeyType} value=KeyTypeEnum
-|   {TransactionType} value=TransactionTypeEnum
-|   {SignatureType} value=SignatureTypeEnum
 |	HashType;
 
-VoidType:
-	{VoidType} value=VoidTypeEnum;
 
 HashType:
 	{Hash160Type} value=Hash160TypeEnum
@@ -262,14 +264,13 @@ HashType:
 |	{Ripemd160Type} value=Ripemd160TypeEnum
 |	{Sha256Type} value=Sha256TypeEnum;
 
-TypeVariable:
-	value=ID;
 
 
 enum IntTypeEnum: int;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum KeyTypeEnum: key;
+enum AddressTypeEnum: address;
 enum SignatureTypeEnum: signature;
 enum TransactionTypeEnum: transaction;
 enum Hash160TypeEnum: hash160;
@@ -310,6 +311,9 @@ HoursDelay   returns ecore::ELong: LONG "hours";
 DayDelay     returns ecore::ELong: LONG "days";
 BlockDelay   returns ecore::ELong: LONG "blocks";
 
+PrivateKey returns ecore::EString: WIF;
+Address returns ecore::EString: WIF;
+
 terminal LONG_HEX returns ecore::ELong:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
@@ -317,6 +321,7 @@ terminal LONG_HEX returns ecore::ELong:
 
 terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
+
 
 terminal WIF: 
 	'wif:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;

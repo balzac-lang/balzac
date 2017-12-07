@@ -10,8 +10,9 @@ import it.unica.tcs.conversion.converter.HashValueConverter
 import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
-import it.unica.tcs.conversion.converter.WIFValueConverter
 import it.unica.tcs.lib.client.BitcoinClientI
+import org.bitcoinj.core.Address
+import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.xtext.common.services.DefaultTerminalConverters
 import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
@@ -27,7 +28,6 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	@Inject private TimestampValueConverter timestampTerminalConverter;
 	@Inject private LongUnderscoreValueConverter longTerminalConverter;
 	@Inject private DelayValueConverter delayConverter;
-	@Inject private WIFValueConverter wifConverter;
 		
 	@ValueConverter(rule = "Number")
     def IValueConverter<Long> getNumberConverter() {
@@ -97,7 +97,25 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 		
 	@ValueConverter(rule = "WIF")
     def IValueConverter<String> getWIF() {
-        return wifConverter
+        return new AbstractLexerBasedConverter<String>() {
+									
+			override toValue(String string, INode node) throws ValueConverterException {
+				var value = string.substring(string.indexOf(':')+1)
+		
+				try {
+					DumpedPrivateKey.fromBase58(null, value);	// it ignores the network byte
+					return value;
+				}
+				catch (Exception e) {
+					
+					try {
+						Address.fromBase58(null, value);	// it ignores the network byte
+						return value;
+					}
+					catch(Exception e1)
+						throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key, nor to an address. \n\nDetails: "+e.message, node, e);
+				}
+			}
+        }
 	}
-	
 }

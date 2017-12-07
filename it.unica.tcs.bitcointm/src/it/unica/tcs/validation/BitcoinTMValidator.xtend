@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Nicola Atzei
+O * Copyright 2017 Nicola Atzei
  */
 
 /*
@@ -49,6 +49,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import java.util.HashSet
 import java.util.Set
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.AddressFormatException
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Transaction
@@ -60,7 +61,6 @@ import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
-import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IEObjectDescription
@@ -82,7 +82,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 //	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
-	@Inject private extension IQualifiedNameProvider qnm
+//	@Inject private extension IQualifiedNameProvider qnm
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils    
@@ -363,10 +363,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkTransactionDeclarationNameIsUnique(Declaration t) {
 		
-		println("^^^ "+qnm)
-		println("^^^ "+t.left.name.toQualifiedName)
-		println("^^^ "+t.left.fullyQualifiedName)
-		
 		if (t instanceof ProcessDeclaration)
 			return
 		
@@ -457,20 +453,40 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkKeyDeclaration(KeyLiteral k) {
 		
-		try {
-			DumpedPrivateKey.fromBase58(k.networkParams, k.value)
+		if (k.value.isPrivateKey) {
+			try {
+				DumpedPrivateKey.fromBase58(k.networkParams, k.value)
+			}
+			catch (WrongNetworkException e) {
+				error("Key is not valid for the given network.", 
+					k,
+					BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+				)			
+			}
+			catch (AddressFormatException e) {
+				error("Invalid key. "+e.message, 
+					k,
+					BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+				)
+			}
 		}
-		catch (WrongNetworkException e) {
-			error("Key is not valid for the given network.", 
-				k,
-				BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-			)			
-		}
-		catch (AddressFormatException e) {
-			error("Invalid key. "+e.message, 
-				k,
-				BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-			)
+		
+		if (k.value.isAddress) {
+			try {
+				Address.fromBase58(k.networkParams, k.value)
+			}
+			catch (WrongNetworkException e) {
+				error("Address is not valid for the given network.", 
+					k,
+					BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+				)			
+			}
+			catch (AddressFormatException e) {
+				error("Invalid address. "+e.message, 
+					k,
+					BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+				)
+			}
 		}
 	}
 	

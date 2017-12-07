@@ -72,6 +72,26 @@ public class ASTUtils {
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMInterpreter interpreter;
 	
+	public boolean isAddress(String wif) {
+		try {
+			Address.fromBase58(null, wif);
+			return true;
+		}
+		catch(AddressFormatException e) {
+			return false;
+		}
+	}
+	
+	public boolean isPrivateKey(String wif) {
+		try {
+			DumpedPrivateKey.fromBase58(null, wif);
+			return true;
+		}
+		catch(AddressFormatException e) {
+			return false;
+		}
+	}
+	
 	public String getName(Referrable ref) {
 		if (ref instanceof Parameter)
 			return ((Parameter) ref).getName();

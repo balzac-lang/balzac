@@ -5,6 +5,7 @@
 package it.unica.tcs.ui.hover
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AddressType
 import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
@@ -13,6 +14,7 @@ import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.KeyType
+import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Sha256Type
@@ -26,7 +28,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.Type
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -156,8 +158,16 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return type.value.literal
 	}
 
+	dispatch def String toStringType(AddressType type) {
+		return type.value.literal
+	}
+	
 	dispatch def String toStringType(TypeVariable type) {
 		return type.value
+	}
+	
+	dispatch def String toStringType(Type type) {
+		return "unknown"
 	}
 	
 }

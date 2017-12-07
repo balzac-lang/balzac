@@ -40,6 +40,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import java.math.BigInteger
 import java.util.HashMap
 import java.util.Map
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 
@@ -112,8 +113,15 @@ axiom InterpretRipemd160Literal
 axiom InterpretSha256Literal
     G |- Sha256Literal hash |> Map<Referrable, Object> rho ~> new Hash.Sha256(hash.value)
 
-axiom InterpretKeyLiteral
-    G |- KeyLiteral key |> Map<Referrable, Object> rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+rule InterpretKeyLiteral
+    G |- KeyLiteral key |> Map<Referrable, Object> rho ~> Object res
+from {
+	{
+		res = DumpedPrivateKey.fromBase58(null, key.value);
+	} or {
+		res = Address.fromBase58(null, key.value);
+	}
+}
 
 //axiom InterpretTransactionLiteral
 //    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))

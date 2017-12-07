@@ -79,9 +79,13 @@ import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
+import org.bitcoinj.core.Address
+import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.AddressType
+import it.unica.tcs.bitcoinTM.PermittedType
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -96,7 +100,8 @@ auxiliary {
     unify(TypeSubstitutions substitutions, Type left, Type right) : Type
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
     
-    failIfNotBasic(Type type, EObject obj)        
+    failIfTypeVariable(Type type, EObject obj)
+    failIfNotBasic(Type type, EObject obj)
 }
 
 judgments {
@@ -109,11 +114,24 @@ judgments {
 /*
  * auxiliary functions
  */
- 
+
+auxiliary failIfTypeVariable(Type type, EObject obj) {
+	if (type instanceof TypeVariable) {
+		fail
+		error "Cannot infer the type"
+		source obj
+	} else {
+		// type is basic, set within the AST
+		if (obj instanceof DeclarationLeft) {
+			obj.type = type
+		}
+	}
+}
+
 auxiliary failIfNotBasic(Type type, EObject obj) {
 	if (!(type instanceof BasicType)) {
 		fail
-		error "basic type expected"
+		error "Basic type expected: int, string, bool, hash160, hash256, ripemd160, sha256"
 		source obj
 	} else {
 		// type is basic, set within the AST
@@ -164,22 +182,6 @@ auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
-    unify(substitutions,t2,t1)
-}
-
-auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
-    unify(substitutions,t2,t1)
-}
-
-auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
-    EcoreUtil::copy(t1)
-}
-
 auxiliary unify(TypeSubstitutions substitutions, StringType t1, StringType t2) {
     EcoreUtil::copy(t1)
 }
@@ -192,6 +194,10 @@ auxiliary unify(TypeSubstitutions substitutions, KeyType t1, KeyType t2) {
     EcoreUtil::copy(t1)
 }
 
+auxiliary unify(TypeSubstitutions substitutions, AddressType t1, AddressType t2) {
+    EcoreUtil::copy(t1)
+}
+
 auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
     EcoreUtil::copy(t1)
 }
@@ -200,12 +206,12 @@ auxiliary unify(TypeSubstitutions substitutions, TransactionType t1, Transaction
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
+auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, PermittedType basicType) {
     substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, BasicType basicType, TypeVariable typeVar) {
+auxiliary unify(TypeSubstitutions substitutions, PermittedType basicType, TypeVariable typeVar) {
     unify(substitutions, typeVar, basicType)
 }
 
@@ -217,6 +223,30 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
     fresh
 }
 
+// hash256 is a sha256
+auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
+    EcoreUtil::copy(t2)		
+}
+
+// hash256 is a sha256
+auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+// hash160 is a sha256
+auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
+    EcoreUtil::copy(t2)
+}
+
+// hash160 is a sha256
+auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
+    EcoreUtil::copy(t1)
+}
+
+// key is subtype of address: you can derive an address from its private part
+auxiliary unify(TypeSubstitutions substitutions, KeyType t1, AddressType t2) {
+    EcoreUtil::copy(t2)
+}
 
 
 
@@ -249,13 +279,13 @@ from {
 	// right part is unifiable with left one, the result is the type of the declaration
 	type = unify(substitutions, leftType, rightType)
 	
-	failIfNotBasic(type, decl.left)
+	failIfTypeVariable(type, decl.left)
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : decl.left.params) {
 		var ptype = env(G, p, Type)
 		ptype = typesubstitution(substitutions, ptype)
-		failIfNotBasic(ptype, p)
+		failIfTypeVariable(ptype, p)
 		p.type = ptype		// store the type in the AST
 	}
 	
@@ -311,7 +341,7 @@ from {
 			// apply eventual substitutions to get the basic type
 			formalParamType = typesubstitution(substitutions, formalParamType)
 			// ensure it's basic
-			failIfNotBasic(formalParamType, formalParam)
+			failIfTypeVariable(formalParamType, formalParam)
 			
 			// all the actual parameters are well typed
 			G |- substitutions |> actualParam : var Type actualParamType
@@ -368,7 +398,7 @@ from {
 				var exp = input.exps.get(i)
 				G |- substitutions |> exp : var Type texp	// type can be inferred by the "invocation" of inputTx
 				texp = typesubstitution(substitutions, texp)
-				failIfNotBasic(texp, exp)
+				failIfTypeVariable(texp, exp)
 			}
 		} or {
 			/*
@@ -392,7 +422,7 @@ from {
 					// apply eventual substitutions to get the basic type
 					formalParamType = typesubstitution(substitutions, formalParamType)
 					// ensure it's basic
-					failIfNotBasic(formalParamType, formalParam)
+					failIfTypeVariable(formalParamType, formalParam)
 					
 					// all the actual parameters are well typed
 					G |- substitutions |> actualParam : var Type actualParamType
@@ -415,7 +445,7 @@ from {
 					// apply eventual substitutions to get the basic type
 					formalParamType = typesubstitution(substitutions, formalParamType)
 					// ensure it's basic
-					failIfNotBasic(formalParamType, outputParam)
+					failIfTypeVariable(formalParamType, outputParam)
 					
 					// all the actual parameters are well typed
 					G |- substitutions |> inputExp : var Type actualParamType
@@ -459,7 +489,7 @@ from {
 	for (p : script.params) {
 		var ptype = env(G, p, Type)
 		ptype = typesubstitution(substitutions, ptype)
-		failIfNotBasic(ptype, p)
+		failIfTypeVariable(ptype, p)
 		p.type = ptype
 	}
 }
@@ -492,12 +522,21 @@ axiom Ripemd160Literal
 axiom Sha256Literal
 	G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
 
-axiom KeyLiteral
-	G |- TypeSubstitutions substitutions |> KeyLiteral key : BitcoinTMFactory::eINSTANCE.createKeyType
-	
 axiom TransactionLiteral
 	G |- TypeSubstitutions substitutions |> TransactionLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
 
+rule KeyLiteral
+	G |- TypeSubstitutions substitutions |> KeyLiteral key : Type res
+from {
+	{
+		DumpedPrivateKey.fromBase58(null, key.value);
+		res = BitcoinTMFactory::eINSTANCE.createKeyType
+	} or {
+		Address.fromBase58(null, key.value);
+		res = BitcoinTMFactory::eINSTANCE.createAddressType	
+	}
+}
+	
 
 rule Substitution
     G |- TypeSubstitutions substitutions |> Substitution cmd : BitcoinTMFactory::eINSTANCE.createTransactionType
@@ -682,12 +721,12 @@ from {
 rule VerSig
 	G |- TypeSubstitutions substitutions |> Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
-	var keyType = BitcoinTMFactory::eINSTANCE.createKeyType
+	var addrType = BitcoinTMFactory::eINSTANCE.createAddressType
 	
 	for (k : versig.pubkeys) {
 		G |- substitutions |> k : var Type t
 		t = typesubstitution(substitutions, t)
-		unify(substitutions, t, keyType)
+		unify(substitutions, t, addrType)
 	}
 
 	var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
@@ -715,11 +754,7 @@ from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
 	
-	if (!(t instanceof BasicType)) {
-		fail
-			error "basic type expected"
-			source hash.value			
-	}
+	failIfNotBasic(t, hash)
 }
 
 rule Hash256
@@ -728,11 +763,7 @@ from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
 	
-	if (!(t instanceof BasicType)) {
-		fail
-			error "basic type expected"
-			source hash.value			
-	}
+	failIfNotBasic(t, hash)
 }
 
 rule Ripemd160
@@ -741,11 +772,7 @@ from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
 	
-	if (!(t instanceof BasicType)) {
-		fail
-			error "basic type expected"
-			source hash.value			
-	}
+	failIfNotBasic(t, hash)
 }
 
 rule Sha256
@@ -754,11 +781,7 @@ from {
 	G |- substitutions |> hash.value: var Type t
 	t = typesubstitution(substitutions, t)
 	
-	if (!(t instanceof BasicType)) {
-		fail
-			error "basic type expected"
-			source hash.value			
-	}
+	failIfNotBasic(t, hash)
 }
 
 rule Min
