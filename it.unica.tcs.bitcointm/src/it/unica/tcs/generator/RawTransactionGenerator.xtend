@@ -18,6 +18,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import it.unica.tcs.bitcoinTM.Model
 
 class RawTransactionGenerator extends AbstractGenerator {
 	
@@ -26,15 +27,25 @@ class RawTransactionGenerator extends AbstractGenerator {
 	@Inject private extension BitcoinTMInterpreter
 	
 	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		var package = resource.allContents.toIterable.filter(PackageDeclaration).get(0)
-		var packagePath = package.fullyQualifiedName.toString(File.separator) ;
-        fsa.generateFile(packagePath + File.separator + "transactions", package.compileTransactions)
-        fsa.generateFile('/DEFAULT_ARTIFACT', package.compileTransactions)
+		val model = resource.allContents.toIterable.filter(Model).get(0)
+		val packages = EcoreUtil2.getAllContentsOfType(model, PackageDeclaration)
+		val packagePath =
+			if (packages.isEmpty) {
+				""
+			}
+			else {
+				var package = packages.get(0)
+				package.fullyQualifiedName.toString(File.separator)
+			}
+		
+		
+        fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
+        fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
 	}
 	
-	def private compileTransactions(PackageDeclaration pkg) {
+	def private compileTransactions(Model model) {
 		
-		val compiles = EcoreUtil2.eAllOfType(pkg, Compile)
+		val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
 		
 		if (compiles.isEmpty)
 			return "";

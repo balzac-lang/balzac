@@ -34,15 +34,11 @@ import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.TransactionBody
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
-import it.unica.tcs.bitcoinTM.TransactionLiteral
-//import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
-//import it.unica.tcs.utils.ASTUtils
 import java.math.BigInteger
+import java.util.HashMap
 import java.util.Map
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
@@ -55,12 +51,22 @@ system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
 judgments {
 	interpret |- ExpressionI expression |> Map<Referrable,Object> rho ~> output Object
+	interpretE |- ExpressionI expression ~> output Object
 }
 
+
 /*
- * 
+ * Evaluate an expression against an empty rho
+ */
+rule ExpressionI
+	G |- ExpressionI e ~> Object res
+from {
+	G |- e |> new HashMap<Referrable, Object> ~> var Object value
+}
+
+
+/*
  * Expression Interpreter
- * 
  */
 
 rule InterpretDeclarationReference

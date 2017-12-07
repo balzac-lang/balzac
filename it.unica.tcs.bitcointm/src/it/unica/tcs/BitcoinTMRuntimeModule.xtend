@@ -11,11 +11,18 @@ import com.google.inject.Binder
 import com.google.inject.name.Names
 import it.unica.tcs.conversion.BitcoinTMConverterService
 import it.unica.tcs.lib.BitcoinUtilsFactory
+import it.unica.tcs.scoping.BitcoinTMGlobalScopeProvider
+import it.unica.tcs.scoping.BitcoinTMQualifiedNameProvider
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
 import org.eclipse.xtext.conversion.IValueConverterService
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.eclipse.xtext.scoping.IGlobalScopeProvider
+import org.eclipse.xtext.scoping.IScopeProvider
+import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
+import org.eclipse.xtext.scoping.impl.SimpleLocalScopeProvider
 import org.eclipse.xtext.service.SingletonBinding
 
 /**
@@ -74,4 +81,19 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
 	override Class<? extends IValueConverterService> bindIValueConverterService() {
         return BitcoinTMConverterService
     }
+    
+    // fully qualified names depends on the package declaration
+//    override Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
+//		return BitcoinTMQualifiedNameProvider;
+//	}
+	
+	// disable ImportedNamespaceAwareLocalScopeProvider
+	override configureIScopeProviderDelegate(Binder binder) {
+		binder.bind(IScopeProvider).annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE)).to(SimpleLocalScopeProvider);
+	}
+	
+	override Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
+		return BitcoinTMGlobalScopeProvider;
+	}
+	
 }

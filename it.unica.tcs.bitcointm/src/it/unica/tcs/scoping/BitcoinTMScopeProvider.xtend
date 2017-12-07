@@ -95,7 +95,6 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 		for (p : participants) {
 			candidates.addAll(p.variables.map[a|a.left])
 		}
-		
 
 		Scopes.scopeFor(
 			candidates, 

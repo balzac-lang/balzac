@@ -13,6 +13,7 @@ import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
 import it.unica.tcs.bitcoinTM.BitcoinValue
+import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.DeclarationReference
@@ -21,6 +22,7 @@ import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
+import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.Modifier
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.PackageDeclaration
@@ -58,6 +60,7 @@ import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IContainer
 import org.eclipse.xtext.resource.IEObjectDescription
@@ -69,7 +72,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.bitcoinTM.BooleanLiteral
 
 /**
  * This class contains custom validation rules. 
@@ -80,6 +82,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 //	private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
+	@Inject private extension IQualifiedNameProvider qnm
 	@Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils    
@@ -274,7 +277,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	@Check
 	def void checkImport(Import imp) {
 		
-		var packageName = (imp.eContainer as PackageDeclaration).name.toQualifiedName
+		var packageName = (imp.eContainer as Model).package.name.toQualifiedName
 		var importedPackage = imp.importedNamespace.toQualifiedName
 		
 		if (packageName.equals(importedPackage.skipLast(1))) {
@@ -359,6 +362,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	
 	@Check
 	def void checkTransactionDeclarationNameIsUnique(Declaration t) {
+		
+		println("^^^ "+qnm)
+		println("^^^ "+t.left.name.toQualifiedName)
+		println("^^^ "+t.left.fullyQualifiedName)
 		
 		if (t instanceof ProcessDeclaration)
 			return
@@ -1156,7 +1163,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
 	}
 	
-	
+	@Check
+	def void checkActualParametersNotFree(DeclarationReference x) {
+		if (x.ref.isTx)
+			return;
+		
+		for (var i=0; i<x.actualParams.size; i++){
+			val actualP = x.actualParams.get(i)
+			if (actualP.interpretE.failed) {
+				error(
+	                "Actual parameters cannot be free.",
+	                x,
+					BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS,
+					i
+	            );
+			}
+		}
+	}
     
     
     
