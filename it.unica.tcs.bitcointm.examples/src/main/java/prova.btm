@@ -4,7 +4,7 @@ network mainnet
 
 const fee = 0.0112 BTC
 const aaa = 42 + fee
-const k = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
+const kA = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 
 transaction ALFA {
 	input = _
@@ -131,7 +131,7 @@ participant Alice {
 //	P(45) 
 //	process P(b) = assert b==4 -> P(b+1)
 //	process P1(b) = ask A0 + assert b==4 -> P(789+12)
-	let kA = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
+	const kA = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
 	
 //	key kA = wif:cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC		// testnet, compressed, encoded (address)
 }
@@ -140,7 +140,7 @@ participant Bob {
 	t
 //	P
 //	process P = ask A0 + receive x:int from Bob + send 5 to Alice
-	let kB = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
+	const kB = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
 }
 
 

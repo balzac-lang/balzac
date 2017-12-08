@@ -357,7 +357,7 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
  * Endpoints contracts
  */
 Participant: name=ID '{'
-	(process=Process)? & (variables+=Declaration | defs+=ProcessDeclaration)*
+	(process=Process)? & (variables+=Constant | defs+=ProcessDeclaration)*
 '}';
 
 ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;

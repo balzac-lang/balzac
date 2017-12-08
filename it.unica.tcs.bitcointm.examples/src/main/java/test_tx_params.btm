@@ -1,7 +1,7 @@
 
 package com.example
 
-let sum(a:int,b:int) = a + b
+//let sum(a:int,b:int) = a + b
 
 transaction T {
 	input = _   
@@ -59,7 +59,7 @@ transaction B {
 	output = 0: ""
 }
 
-let var_T:transaction = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
+const var_T:transaction = T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
 
 transaction X(x) {
 	input = _

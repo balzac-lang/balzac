@@ -10,8 +10,8 @@ const addr = wif:msm6jwXddCUP64XMmntsrkgqcGDXWehJ3t
 	
 participant Alice {
 	t 
-	let k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
-	let k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	const k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
+	const k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 }
 
 transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468

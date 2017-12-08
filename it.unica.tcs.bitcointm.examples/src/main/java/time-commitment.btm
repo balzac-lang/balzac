@@ -9,12 +9,12 @@ participant Alice {
 //	put T_commitA {input = T_fundsA: sig(kA) }
 //	-> send (do sig(T)_payDepositA kA to Bob)
 //		
-	let kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 }
 
 participant Bob {
 	t
-	let kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+	const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 }
 
 /*

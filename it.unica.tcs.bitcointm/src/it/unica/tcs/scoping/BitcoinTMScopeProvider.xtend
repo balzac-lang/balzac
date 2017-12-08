@@ -98,14 +98,14 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 //			.map[e|e.key->e.value.size]									// convert to String -> N
 //			.toMap([e|e.key],[e|e.value]);								// convert to a Map 
 		
-		val List<DeclarationLeft> candidates = newArrayList 
+		val List<Constant> candidates = newArrayList 
 		for (p : participants) {
-			candidates.addAll(p.variables.map[a|a.left])
+			candidates.addAll(p.variables)
 		}
 
 		Scopes.scopeFor(
 			candidates, 
-			[DeclarationLeft k|
+			[Constant k|
 				val participantName = EcoreUtil2.getContainerOfType(k, Participant).name
 //				println('''adding variable: «k.name» from participant «participantName» ''')
 				QualifiedName.create(participantName, k.name)				
