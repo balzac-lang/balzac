@@ -5,7 +5,7 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
@@ -128,7 +128,7 @@ class TransactionFactoryGenerator extends AbstractGenerator {
 		return getTransactionFromFactory(tx.txRef)
 	}
 	
-	def public getTransactionFromFactory(DeclarationReference txRef) {
+	def public getTransactionFromFactory(Reference txRef) {
 		return getTransactionFromFactory(txRef.ref.name, txRef.actualParams.map[l|l as Expression])
 	}
 	

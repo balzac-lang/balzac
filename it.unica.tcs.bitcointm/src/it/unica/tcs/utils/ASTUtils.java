@@ -31,8 +31,9 @@ import com.google.inject.Singleton;
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
+import it.unica.tcs.bitcoinTM.Constant;
 import it.unica.tcs.bitcoinTM.Declaration;
-import it.unica.tcs.bitcoinTM.DeclarationReference;
+import it.unica.tcs.bitcoinTM.Reference;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
@@ -102,7 +103,7 @@ public class ASTUtils {
 	
 	public Set<Parameter> getTxVariables(ExpressionI exp) {
         Set<Parameter> refs = 
-        		EcoreUtil2.getAllContentsOfType(exp.eContainer(), DeclarationReference.class)
+        		EcoreUtil2.getAllContentsOfType(exp.eContainer(), Reference.class)
         		.stream()
         		.map( v -> v.getRef() )
     			.filter(this::isTxParameter)
@@ -121,7 +122,8 @@ public class ASTUtils {
 	}
 	
 	public boolean isTxLiteral(Referrable p) {
-		return (p.eContainer() instanceof Declaration) && (((Declaration) p.eContainer()).getRight().getValue() instanceof TransactionLiteral);
+		return ((p.eContainer() instanceof Declaration) && (((Declaration) p.eContainer()).getRight().getValue() instanceof TransactionLiteral))
+				|| ((p instanceof Constant) && ((Constant) p).getExp() instanceof TransactionLiteral);
 	}
 	
 	public TransactionDeclaration getTxDeclaration(Referrable p) {
@@ -137,7 +139,12 @@ public class ASTUtils {
 	}
 
 	public TransactionLiteral getTxLiteral(Referrable p) {
-		return (TransactionLiteral) ((Declaration) p.eContainer()).getRight().getValue();
+		if (p instanceof Constant) {
+			return (TransactionLiteral) ((Constant) p).getExp();
+		}
+		else {
+			return (TransactionLiteral) ((Declaration) p.eContainer()).getRight().getValue();
+		}
 	}
 
 	

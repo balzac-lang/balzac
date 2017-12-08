@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.BooleanType;
 import it.unica.tcs.bitcoinTM.DeclarationLeft;
-import it.unica.tcs.bitcoinTM.DeclarationReference;
+import it.unica.tcs.bitcoinTM.Reference;
 import it.unica.tcs.bitcoinTM.IntType;
 import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.SignatureType;
@@ -49,7 +49,7 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
 						+ string(parameter.getType()) : "");
 	}
 
-	protected String stringRep(DeclarationReference ref) {
+	protected String stringRep(Reference ref) {
 		return stringRep(ref.getRef());
 	}
 

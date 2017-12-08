@@ -9,7 +9,7 @@ package it.unica.tcs.scoping
 
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.Receive
 import it.unica.tcs.bitcoinTM.Script
@@ -21,6 +21,7 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+import it.unica.tcs.bitcoinTM.Constant
 
 /**
  * This class contains custom scoping description.
@@ -31,19 +32,25 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
 
 
-	def IScope scope_Referrable(DeclarationReference v, EReference ref) {
+	def IScope scope_Referrable(Reference v, EReference ref) {
 //		println("Resolving variable: "+v)
 		getScopeForParameters(v,
 			getScopeForParticipantDeclarations(v, 
-				getIScopeForAllContentsOfClass(v, DeclarationLeft)
+				getIScopeForAllContentsOfClass(v, DeclarationLeft,
+					getIScopeForAllContentsOfClass(v, Constant)
+				)
 			)
 		)
 	}
 
 	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
+		getIScopeForAllContentsOfClass(ctx, clazz, IScope.NULLSCOPE)
+	}
+	
+	def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz, IScope outer){
 		var root = EcoreUtil2.getRootContainer(ctx);						// get the root
 		var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);		// get all contents of type clazz
-		return Scopes.scopeFor(candidates);									// return the scope
+		return Scopes.scopeFor(candidates, outer);									// return the scope
 	}
 	
 	//utils: recursively get all free-names declarations until Script definition

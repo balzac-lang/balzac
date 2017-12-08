@@ -16,7 +16,6 @@ import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
@@ -29,6 +28,7 @@ import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Participant
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
 import it.unica.tcs.bitcoinTM.ScriptDiv
@@ -205,7 +205,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			return
 		}
 		
-		if (exp instanceof DeclarationReference) {
+		if (exp instanceof Reference) {
 			// references which refer to a declaration are interpreted as their right-part interpretation.
 			// It's not useful to show that.
 			return;
@@ -440,7 +440,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	def void checkSign(Signature sig) {
 		var k = sig.key
 		
-		if (k instanceof DeclarationReference) {
+		if (k instanceof Reference) {
 			if (k.ref.eContainer instanceof TransactionDeclaration)
 				error("Cannot use parametric key.", 
 					sig,
@@ -679,7 +679,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (inputTx instanceof TransactionLiteral) {
 			numOfOutputs = new Transaction(input.networkParams, BitcoinUtils.decode(inputTx.value)).outputs.size
         }
-        else if (inputTx instanceof DeclarationReference) {
+        else if (inputTx instanceof Reference) {
 	        if (inputTx.ref.isTx){
 	        	val tx = inputTx.ref.txDeclaration
 	            numOfOutputs = (tx.right.value as TransactionBody).outputs.size
@@ -724,7 +724,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	            }
         	}
 
-        	DeclarationReference: {
+        	Reference: {
 				val refTx = inputTx.ref.eContainer
 				
 				if (refTx instanceof TransactionDeclaration) {
@@ -781,12 +781,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	else {
     		// free variables are not allowed
     		var ok = true
-    		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, DeclarationReference)) {
+    		for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, Reference)) {
     			if (v.ref.eContainer instanceof TransactionDeclaration) {
     				error(
 	                    "Cannot reference transaction parameters from the redeem script.",
 	                    v,
-	                    BitcoinTMPackage.Literals.DECLARATION_REFERENCE__REF
+	                    BitcoinTMPackage.Literals.REFERENCE__REF
 	                );
 	                ok = false;
     			}
@@ -846,7 +846,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	                amount+=value
 	        	}
 	
-	        	DeclarationReference: {
+	        	Reference: {
 					val refTx = inputTx.ref.eContainer
 					
 					if (refTx instanceof TransactionDeclaration) {
@@ -1078,7 +1078,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     	val tx = EcoreUtil2.getContainerOfType(after, TransactionDeclaration);
     	
     	// all the txs pointing to tx
-    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), DeclarationReference).filter[v|v.ref==tx]
+    	var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), Reference).filter[v|v.ref==tx]
     	
     	// all these txs have to define the timelock
     	for (ref : txReferences) {
@@ -1180,7 +1180,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 	}
 	
 	@Check
-	def void checkActualParametersNotFree(DeclarationReference x) {
+	def void checkActualParametersNotFree(Reference x) {
 		if (x.ref.isTx)
 			return;
 		
@@ -1190,7 +1190,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				error(
 	                "Actual parameters cannot be free.",
 	                x,
-					BitcoinTMPackage.Literals.DECLARATION_REFERENCE__ACTUAL_PARAMS,
+					BitcoinTMPackage.Literals.REFERENCE__ACTUAL_PARAMS,
 					i
 	            );
 			}

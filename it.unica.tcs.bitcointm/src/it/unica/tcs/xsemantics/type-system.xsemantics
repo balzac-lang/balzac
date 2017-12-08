@@ -2,6 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
+import it.unica.tcs.bitcoinTM.AddressType
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Ask
@@ -15,9 +16,9 @@ import it.unica.tcs.bitcoinTM.Check
 import it.unica.tcs.bitcoinTM.Choice
 import it.unica.tcs.bitcoinTM.Compile
 import it.unica.tcs.bitcoinTM.Confirmations
+import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.DeclarationRight
 import it.unica.tcs.bitcoinTM.GetBalance
 import it.unica.tcs.bitcoinTM.Hash160
@@ -34,19 +35,20 @@ import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
-import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parallel
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Participant
+import it.unica.tcs.bitcoinTM.PermittedType
 import it.unica.tcs.bitcoinTM.ProcessDeclaration
 import it.unica.tcs.bitcoinTM.ProcessReference
 import it.unica.tcs.bitcoinTM.ProtocolIfThenElse
 import it.unica.tcs.bitcoinTM.ProtocolTransactionReference
 import it.unica.tcs.bitcoinTM.Put
 import it.unica.tcs.bitcoinTM.Receive
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Regtest
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
@@ -83,9 +85,6 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
-import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.bitcoinTM.AddressType
-import it.unica.tcs.bitcoinTM.PermittedType
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -267,6 +266,24 @@ from {
 	G.add(p, type)
 }
 
+rule Constant
+	G |- TypeSubstitutions substitutions |> Constant c : Type type
+from {
+	{
+		c.type !== null
+		type = EcoreUtil.copy(c.type)
+	}
+	or {
+		type = lambdaUtils.createFreshTypeVariable
+	}
+	
+	G |- substitutions |> c.exp : var Type expType
+	type = unify(substitutions, expType, type)
+	
+	failIfTypeVariable(type, c)
+	c.type = type	// store the type in the AST
+}
+
 rule Declaration
 	G |- TypeSubstitutions substitutions |> Declaration decl : Type type
 from {
@@ -279,7 +296,6 @@ from {
 	// right part is unifiable with left one, the result is the type of the declaration
 	type = unify(substitutions, leftType, rightType)
 	
-	failIfTypeVariable(type, decl.left)
 	
 	// all the parameters should have a basic type (generic types are not allowed)
 	for (p : decl.left.params) {
@@ -289,6 +305,7 @@ from {
 		p.type = ptype		// store the type in the AST
 	}
 	
+	failIfTypeVariable(type, decl.left)
 	decl.left.type = type	// store the type in the AST
 }
 
@@ -307,7 +324,6 @@ from {
 	or {
 		type = lambdaUtils.createFreshTypeVariable
 	}
-	G.add(d, type)
 }
 
 rule DeclarationRight
@@ -316,14 +332,22 @@ from {
 	G |- substitutions |> p.value : type
 }
 
-rule DeclarationReference
-	G |- TypeSubstitutions substitutions |> DeclarationReference varRef : Type type
+rule Reference
+	G |- TypeSubstitutions substitutions |> Reference varRef : Type type
 from {
-	type = env(G, varRef.ref, Type)						// reference type
-	type = typesubstitution(substitutions, type)		// apply substitutions
 	
-	val ref = varRef.ref
-	if (ref instanceof DeclarationLeft) {
+	if (varRef.ref instanceof Constant) {
+		val const = varRef.ref as Constant
+		G |- substitutions |> const : type
+	}
+	else if (varRef.ref instanceof Parameter) {
+		val param = varRef.ref as Parameter
+		G |- substitutions |> param : type
+	}
+	else if (varRef.ref instanceof DeclarationLeft) {
+		val ref = varRef.ref as DeclarationLeft
+		G |- substitutions |> ref : type
+		type = typesubstitution(substitutions, type)
 		
 		if (varRef.actualParams.size != ref.params.size) {
 			fail 
@@ -408,7 +432,7 @@ from {
 			 */
 			val inputTxRef = input.txRef
 			
-			if (inputTxRef instanceof DeclarationReference) {
+			if (inputTxRef instanceof Reference) {
 				
 				var inputTx = inputTxRef.eContainer as TransactionDeclaration
 		
@@ -1078,26 +1102,30 @@ from {
 }
 
 
-rule TypeCheckModel
-	G |- TypeSubstitutions substitutions |> Model model : BitcoinTMFactory::eINSTANCE.createTransactionType
-from {
-
-	for (p: EcoreUtil2.getAllContentsOfType(model, Participant)) {
-	    G |- substitutions |> p: var Type t
-	}
-	
-	for (p: EcoreUtil2.getAllContentsOfType(model, Declaration)) {
-	    G |- substitutions |> p: var Type t
-	}
-	
-	for (p: EcoreUtil2.getAllContentsOfType(model, Regtest)) {
-	    G |- substitutions |> p: var Type t
-	}
-	
-	for (p: EcoreUtil2.getAllContentsOfType(model, Compile)) {
-	    G |- substitutions |> p: var Type t
-	}
-}
+//rule TypeCheckModel
+//	G |- TypeSubstitutions substitutions |> Model model : BitcoinTMFactory::eINSTANCE.createTransactionType
+//from {
+//
+////	for (p: EcoreUtil2.getAllContentsOfType(model, Constant)) {
+////	    G |- substitutions |> p: var Type t
+////	}
+//
+//	for (p: EcoreUtil2.getAllContentsOfType(model, Participant)) {
+//	    G |- substitutions |> p: var Type t
+//	}
+//	
+//	for (p: EcoreUtil2.getAllContentsOfType(model, Declaration)) {
+//	    G |- substitutions |> p: var Type t
+//	}
+//	
+//	for (p: EcoreUtil2.getAllContentsOfType(model, Regtest)) {
+//	    G |- substitutions |> p: var Type t
+//	}
+//	
+//	for (p: EcoreUtil2.getAllContentsOfType(model, Compile)) {
+//	    G |- substitutions |> p: var Type t
+//	}
+//}
 	
 
 /*
@@ -1105,8 +1133,36 @@ from {
  * rule invocations
  * 
  */
-checkrule CheckModel for
-    Model stmt
+//checkrule CheckModel for
+//    Model stmt
+//from {
+//	lambdaUtils.resetCounter
+//    empty |- new TypeSubstitutions |> stmt: var Type t
+//}
+
+checkrule CheckConstants for
+    Constant stmt
+from {
+	lambdaUtils.resetCounter
+    empty |- new TypeSubstitutions |> stmt: var Type t
+}
+
+checkrule CheckTransactions for
+    TransactionDeclaration stmt
+from {
+	lambdaUtils.resetCounter
+    empty |- new TypeSubstitutions |> stmt: var Type t
+}
+
+checkrule CheckParticipant for
+    Participant stmt
+from {
+	lambdaUtils.resetCounter
+    empty |- new TypeSubstitutions |> stmt: var Type t
+}
+
+checkrule CheckCompile for
+    Compile stmt
 from {
 	lambdaUtils.resetCounter
     empty |- new TypeSubstitutions |> stmt: var Type t

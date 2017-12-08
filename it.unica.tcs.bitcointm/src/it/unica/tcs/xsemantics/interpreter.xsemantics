@@ -7,7 +7,7 @@ import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash160Literal
@@ -43,6 +43,7 @@ import java.util.Map
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
+import it.unica.tcs.bitcoinTM.Constant
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
  
@@ -70,8 +71,8 @@ from {
  * Expression Interpreter
  */
 
-rule InterpretDeclarationReference
-	G |- DeclarationReference v |> Map<Referrable, Object> rho ~> Object res
+rule InterpretReference
+	G |- Reference v |> Map<Referrable, Object> rho ~> Object res
 from {
 	{
 		val decl = v.ref.eContainer as Declaration
@@ -85,6 +86,11 @@ from {
 		}
 		
 		G |- decl.right.value |> rho ~> res	
+	}
+	or {
+		// constants
+		val const = v.ref as Constant
+		G |- const.exp |> rho ~> res	
 	}
 	or {	// e.g. Script or Tx params
 		{rho.containsKey(v.ref)}
@@ -130,7 +136,7 @@ from {
 //    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
 //from {
 //	/*
-//	 * the only way to invoke this rule is by a DeclarationReference.
+//	 * the only way to invoke this rule is by a Reference.
 //	 * It adds the actual value to rho, so this exp should be closed
 //	 */
 //	val TransactionDeclaration decl = txBody.txDeclaration
@@ -297,11 +303,11 @@ from {
 		}
 		
     } or {
-    	comparison.left instanceof DeclarationReference
-    	comparison.right instanceof DeclarationReference
+    	comparison.left instanceof Reference
+    	comparison.right instanceof Reference
 		// two refs are the same if they point to the same parameter
-    	var leftResult = (comparison.left as DeclarationReference).ref 
-    	var rightResult = (comparison.right as DeclarationReference).ref
+    	var leftResult = (comparison.left as Reference).ref 
+    	var rightResult = (comparison.right as Reference).ref
     	leftResult == rightResult
     	
     	result = switch(comparison.op) {

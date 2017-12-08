@@ -2,17 +2,21 @@ package it.unica.btm.prova
 
 network mainnet
 
+const fee = 0.0112 BTC
+const aaa = 42 + fee
+const k = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
+
 transaction ALFA {
 	input = _
 	output = [
-		1 BTC: fun(n) . n==42;			// P2SH
+		1 BTC: fun(n) . n==42;		// P2SH
 		1 BTC: fun(y) . versig(Alice.kA; y);	// P2PKH
 		0 BTC: "DATA"					// OP_RETURN 
 	] 
 } 
 
 //transaction ALFA_serial = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f5050000000017a914a3f8ae3c775711c597ef7fdcfd5c3bfc2b6c47c4870000000000000000066a044441544100000000"
-let ALFA_serial = tx:01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000
+const ALFA_serial = tx:01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000
 
 transaction T {
 	input = _
@@ -33,7 +37,7 @@ transaction T1 {
 		T@3: sig(Alice.kA)[AIAO];  
 		T@4: sig(Alice.kA)[AIAO] 2 (sig(Alice.kA)[AIAO]==sig(Alice.kA));
 		
-//		ALFA@0:	42 ;
+//		ALFA@0:	42 ; 
 //		ALFA@1:	sig(kB)[];
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH 
 		ALFA_serial@1:	sig(Bob.kB)

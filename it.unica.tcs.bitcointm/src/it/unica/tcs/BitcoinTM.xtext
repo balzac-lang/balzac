@@ -29,7 +29,8 @@ QualifiedNameWithWildcard:
 
 Element: 
   "transaction" TransactionDeclaration | 
-  GlobalDeclaration | 
+//  GlobalDeclaration | 
+  Constant |
   "participant" Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
@@ -69,11 +70,14 @@ DeclarationRight:
 	value=Expression;
 
 Referrable:
-	Parameter | DeclarationLeft;
+	Parameter | DeclarationLeft | Constant;
 
 /*
  * transactions (special case of Declaration)
  */
+ 
+Constant:
+	"const" name=ID (":" type=DeclarationType)? "=" exp=Expression;
 
 TransactionDeclaration returns Declaration:
 	{TransactionDeclaration} left=DeclarationLeftNoType right=DeclarationRightTx;
@@ -173,9 +177,9 @@ ScriptAtomic returns ScriptExpression:
 
 
 CommonAtomic:
-	Literal | DeclarationReference | Hash;
+	Literal | Reference | Hash;
 
-DeclarationReference: 
+Reference: 
 	ref=[Referrable|QualifiedName]
 	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;		// within ScriptExpressions
 
@@ -285,6 +289,7 @@ Typeable:
 | DeclarationLeft
 | DeclarationRight
 | Parameter
+| Constant
 | Input
 | Output 
 | Participant
@@ -409,7 +414,7 @@ ProtocolIfThenElse:
 terminal INT returns ecore::EInt: LONG;
 
 ProtocolTransactionReference:
-	txRef=DeclarationReference (substitution=TransactionBody)?;
+	txRef=Reference (substitution=TransactionBody)?;
 
 		
 
@@ -452,6 +457,6 @@ SendTransaction:
 	
 	
 Compile:
-	{Compile} "compile" txs+=DeclarationReference*
+	{Compile} "compile" txs+=Reference*
 ;
 	

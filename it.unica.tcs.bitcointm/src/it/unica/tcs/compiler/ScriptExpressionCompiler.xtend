@@ -8,10 +8,10 @@ import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.DeclarationReference
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.HashLiteral
@@ -23,6 +23,8 @@ import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
 import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.Reference
+import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
@@ -44,7 +46,7 @@ import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory
+import it.unica.tcs.bitcoinTM.Constant
 
 /*
  * EXPRESSIONS
@@ -101,80 +103,6 @@ class ScriptExpressionCompiler {
         var anyoneCanPay = stmt.modifier.toAnyoneCanPay
         var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
         sb
-    }
-
-    def private dispatch ScriptBuilder2 compileExpressionInternal(DeclarationReference varRef, Context ctx) {
-        /*
-         * N: altezza dell'altstack
-         * i: posizione della variabile interessata
-         * 
-         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
-         * 	                                       x ora è in cima al main stack
-         * 
-         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
-         * 
-         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
-         * 
-         */
-        var ref = varRef.ref
-        var refContainer = ref.eContainer
-        
-        if (ref instanceof Parameter) {
-        	
-	        if (refContainer instanceof Script) {
-	        	// script parameter
-	        	val param = varRef.ref
-	        	val sb = new ScriptBuilder2()
-		        val pos = ctx.altstack.get(param).position
-				var count = ctx.altstack.get(param).occurrences
-		
-		        if(pos === null) throw new CompileException;
-		
-		        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-		        
-		        if (count==1) {
-		        	// this is the last usage of the variable
-		        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-		        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
-		        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-		        	}
-		        	
-			        if (ctx.altstack.size - pos> 0)
-			            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-		        	
-		        }
-		        else {
-		        	ctx.altstack.put(ref, AltStackEntry.of(pos, count-1))
-			        sb.op(OP_DUP).op(OP_TOALTSTACK)
-		
-			        if (ctx.altstack.size - pos - 1 > 0)
-			            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
-		        }
-		        return sb
-	        }
-	        else if (ref.isTxParameter) {
-	        	// transaction parameter
-	        	return new ScriptBuilder2().addVariable(ref.name, ref.type.convertType)
-	        }
-        	else 
-    			throw new CompileException('''unexpected class «refContainer»''')
-        }
-        else if (ref instanceof DeclarationLeft) {
-        	
-        	if (refContainer instanceof Declaration) {        		
-	        	val value = refContainer.right.value.interpretSafe
-	        	
-	        	if (value instanceof Literal) {
-		        	return value.compileExpression(ctx)        		
-	        	}
-	        	else 
-	        		throw new CompileException('''the right part of declaration «ref.name» does not evaluate to Literal value''')
-        	}	        
-        	else 
-    			throw new CompileException('''unexpected class «refContainer»''')        	
-        }
-        else 
-    		throw new CompileException('''unexpected class «ref.class»''')
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Hash160 hash, Context ctx) {
@@ -325,6 +253,93 @@ class ScriptExpressionCompiler {
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
         }
+    }
+    
+    
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Reference varRef, Context ctx) {
+		return compileReferrable(varRef.ref, ctx)
+    }
+    
+    
+    def private dispatch ScriptBuilder2 compileReferrable(Referrable obj, Context ctx) {
+    	throw new CompileException('''Cannot compile «obj.class»''')
+    }
+    
+    def private dispatch ScriptBuilder2 compileReferrable(Constant const, Context ctx) {
+    	val value = const.exp.interpretSafe
+	        	
+    	if (value instanceof Literal) {
+        	return value.compileExpression(ctx)        		
+    	}
+    	else 
+    		throw new CompileException('''Constant «const.name» does not evaluate to Literal value. This should be checked by validation.''')
+    }
+    
+    def private dispatch ScriptBuilder2 compileReferrable(DeclarationLeft obj, Context ctx) {
+		var refContainer = obj.eContainer
+		if (refContainer instanceof Declaration) {        		
+	        	val value = refContainer.right.value.interpretSafe
+	        	
+	        	if (value instanceof Literal) {
+		        	return value.compileExpression(ctx)        		
+	        	}
+	        	else 
+	        		throw new CompileException('''the right part of declaration «obj.name» does not evaluate to Literal value''')
+        	}	        
+        	else 
+    			throw new CompileException('''unexpected class «refContainer»''')
+    }
+    
+    def private dispatch ScriptBuilder2 compileReferrable(Parameter param, Context ctx) {
+        /*
+         * N: altezza dell'altstack
+         * i: posizione della variabile interessata
+         * 
+         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
+         * 	                                       x ora è in cima al main stack
+         * 
+         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
+         * 
+         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
+         * 
+         */
+    	var refContainer = param.eContainer
+		if (refContainer instanceof Script) {
+        	// script parameter
+        	val sb = new ScriptBuilder2()
+	        val pos = ctx.altstack.get(param).position
+			var count = ctx.altstack.get(param).occurrences
+	
+	        if(pos === null) throw new CompileException;
+	
+	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+	        
+	        if (count==1) {
+	        	// this is the last usage of the variable
+	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
+	        	}
+	        	
+		        if (ctx.altstack.size - pos> 0)
+		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+	        	
+	        }
+	        else {
+	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
+		        sb.op(OP_DUP).op(OP_TOALTSTACK)
+	
+		        if (ctx.altstack.size - pos - 1 > 0)
+		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+	        }
+	        return sb
+        }
+        else if (param.isTxParameter) {
+        	// transaction parameter
+        	return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
+        }
+    	else 
+			throw new CompileException('''unexpected class «refContainer»''')
     }
     
     

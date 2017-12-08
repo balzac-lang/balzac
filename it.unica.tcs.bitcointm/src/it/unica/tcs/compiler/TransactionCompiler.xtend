@@ -6,7 +6,7 @@ package it.unica.tcs.compiler
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.DeclarationReference
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
@@ -106,7 +106,7 @@ class TransactionCompiler {
 		    			tb.addInput(parentTxCompiled, outIndex, inScript)
 		    		}
     			}
-    			else if (parentTx instanceof DeclarationReference) {
+    			else if (parentTx instanceof Reference) {
     				
     				if (parentTx.ref.isTx) {
     					
@@ -272,7 +272,7 @@ class TransactionCompiler {
 		            
 		            s
 	        	}
-	        	else if (inputTx instanceof DeclarationReference) {
+	        	else if (inputTx instanceof Reference) {
 	        		
 				if (inputTx.ref.isTx || inputTx.ref.isTxParameter) {
 					parentTx.getOutputs.get(outIdx).script as P2SHOutputScript
@@ -329,7 +329,7 @@ class TransactionCompiler {
 	              .op(OP_CHECKSIG)
 	            return sb            	
             }
-            else if (res instanceof DeclarationReference) {
+            else if (res instanceof Reference) {
             	val sb = new P2PKHOutputScript()
 	            sb.op(OP_DUP)
 	              .op(OP_HASH160)
@@ -376,7 +376,7 @@ class TransactionCompiler {
         var redeemScript = new P2SHOutputScript()
         for (var i=script.params.size-1; i>=0; i--) {
             val p = script.params.get(i)
-            var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, DeclarationReference).filter[v|v.ref==p].size 
+            var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, Reference).filter[v|v.ref==p].size 
             
             ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size, numberOfRefs))    // update the context
             
