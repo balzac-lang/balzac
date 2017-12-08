@@ -274,20 +274,18 @@ class TransactionCompiler {
 	        	}
 	        	else if (inputTx instanceof DeclarationReference) {
 	        		
-	        		val ref = inputTx.ref.eContainer
-	        		
-	        		if (ref instanceof TransactionDeclaration) {	        			
-		        		parentTx.getOutputs.get(outIdx).script as P2SHOutputScript
-	        		}
-	        		else {
-	        			// get the redeem script from the AST (specified by the user)
+				if (inputTx.ref.isTx || inputTx.ref.isTxParameter) {
+					parentTx.getOutputs.get(outIdx).script as P2SHOutputScript
+				}
+					else if (inputTx.ref.isTxLiteral){
+						// get the redeem script from the AST (specified by the user)
 		                val s = input.redeemScript.getRedeemScript
 		                
 		                if (!s.ready)
 			                throw new CompileException("This redeem script cannot have free variables")
 			            
 			            s
-	        		}        		
+			        }
 	        	}
 	        	else 
 	        		throw new CompileException('''Unexpected class «inputTx»''')
