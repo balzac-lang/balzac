@@ -759,7 +759,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 		            else {
 		            	input.failIfRedeemScriptIsDefined
 		            }
-			        	
 		        }
         	}
         }

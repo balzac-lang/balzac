@@ -29,7 +29,6 @@ QualifiedNameWithWildcard:
 
 Element: 
   "transaction" TransactionDeclaration | 
-//  GlobalDeclaration | 
   Constant |
   "participant" Participant; 
 
@@ -47,9 +46,6 @@ Server: "server" "{"
  * generic declarations
  */
 
-GlobalDeclaration returns Declaration:
-	{GlobalDeclaration} "let" left=DeclarationLeft "=" right=DeclarationRight;
- 
 Declaration:
 	"let" left=DeclarationLeft "=" right=DeclarationRight;
 
