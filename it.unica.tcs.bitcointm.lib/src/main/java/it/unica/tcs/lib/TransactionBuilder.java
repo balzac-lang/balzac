@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -232,39 +231,6 @@ public class TransactionBuilder implements ITransactionBuilder {
 	
 	/**
 	 * Add a new transaction input.
-	 * @param tx the parent transaction to redeem. TODO
-	 * @param outIndex the index of the output script to redeem.
-	 * @param inputScript the input script that redeem {@code tx} at {@code outIndex}.
-	 * @return this builder.
-	 * @throws IllegalArgumentException
-	 *             if the parent transaction binding does not match its free
-	 *             variables, or the input script free variables are not
-	 *             contained within this tx free variables.
-	 */
-	public TransactionBuilder addInput(String varname, int outIndex, InputScript inputScript) {
-		checkNotNull(varname, "'varname' cannot be null");
-		checkNotNull(inputScript, "'inputScript' cannot be null");
-		checkArgument(hasVariable(varname), "'"+varname+"' is not a variable");
-		checkArgument(getType(varname).equals(ITransactionBuilder.class), "'"+varname+"' is not a variable of type ITransactionBuilder");
-		return addInput(
-				Input.of(()->{
-					if (isBound(varname)) 
-						return (ITransactionBuilder) getValue(varname);
-					
-					return new AbstractTransactionBuilder() {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public boolean isReady() {
-							return false;
-						}						
-					};
-				}, 
-				outIndex, 
-				inputScript));
-	}
-	
-	/**
-	 * Add a new transaction input.
 	 * @param tx the parent transaction to redeem.
 	 * @param outIndex the index of the output script to redeem.
 	 * @param inputScript the input script that redeem {@code tx} at {@code outIndex}.
@@ -342,7 +308,6 @@ public class TransactionBuilder implements ITransactionBuilder {
 				inputs.stream()
 					.filter(Input::hasParentTx)
 					.map(Input::getParentTx)
-					.map(Supplier::get)
 					.allMatch(ITransactionBuilder::isReady);
 	}
 	
@@ -369,7 +334,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 				checkState(txInput.isCoinBase(), "'txInput' is expected to be a coinbase");
 			}
 			else {
-				ITransactionBuilder parentTransaction2 = input.getParentTx().get();
+				ITransactionBuilder parentTransaction2 = input.getParentTx();
 				Transaction parentTransaction = parentTransaction2.toTransaction();
 				TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
 				byte[] script = new byte[]{};	// script will be set later

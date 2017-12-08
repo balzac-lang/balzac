@@ -4,10 +4,7 @@
 
 package it.unica.tcs.lib;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.Serializable;
-import java.util.function.Supplier;
 
 import it.unica.tcs.lib.script.InputScript;
 
@@ -20,12 +17,12 @@ public class Input implements Serializable {
 	private static final int UNSET_OUTINDEX = -1;
 	private static final int UNSET_LOCKTIME = -1;
 		
-	private final Supplier<ITransactionBuilder> parentTx;
+	private final ITransactionBuilder parentTx;
 	private final int outIndex;
 	private final InputScript script;
 	private final long locktime;
 	
-	private Input(Supplier<ITransactionBuilder> parentTx, int outIndex, InputScript script, long locktime) {
+	private Input(ITransactionBuilder parentTx, int outIndex, InputScript script, long locktime) {
 		this.parentTx = parentTx;
 		this.script = script;
 		this.outIndex = outIndex;
@@ -33,34 +30,25 @@ public class Input implements Serializable {
 	}
 	
 	static Input of(InputScript script){
-		return of((Supplier<ITransactionBuilder>) null, UNSET_OUTINDEX, script, UNSET_LOCKTIME);
+		return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, UNSET_LOCKTIME);
 	}
 	
 	static Input of(InputScript script, long locktime){
-		return of((Supplier<ITransactionBuilder>) null, UNSET_OUTINDEX, script, locktime);
+		return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, locktime);
 	}
 	
 	static Input of(int index, InputScript script){
-		return of((Supplier<ITransactionBuilder>) null, index, script, UNSET_LOCKTIME);
-	}
-	
-	static Input of(Supplier<ITransactionBuilder> tx, int index, InputScript script){
-		return of(tx, index, script, UNSET_LOCKTIME);
+		return of((ITransactionBuilder) null, index, script, UNSET_LOCKTIME);
 	}
 	
 	static Input of(ITransactionBuilder tx, int index, InputScript script){
-		return of(()->tx, index, script, UNSET_LOCKTIME);
+		return of(tx, index, script, UNSET_LOCKTIME);
 	}
 	
 	static Input of(ITransactionBuilder tx, int index, InputScript script, long locktime){
-		return of(()->tx, index, script, locktime);
-	}
-	
-	static Input of(Supplier<ITransactionBuilder> tx, int index, InputScript script, long locktime){
-		checkNotNull(script);
 		return new Input(tx, index, script, locktime);
 	}
-
+	
 	public boolean hasParentTx() {
 		return getParentTx()!=null;
 	};
@@ -69,7 +57,7 @@ public class Input implements Serializable {
 		return locktime!=UNSET_LOCKTIME;
 	};
 	
-	public Supplier<ITransactionBuilder> getParentTx() {
+	public ITransactionBuilder getParentTx() {
 		return parentTx;
 	}
 
