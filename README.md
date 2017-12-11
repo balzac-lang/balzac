@@ -61,7 +61,7 @@ ln -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bund
 
 ### Compile
 ```
-bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/
+cd bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/
 mvn install
 ```
 
