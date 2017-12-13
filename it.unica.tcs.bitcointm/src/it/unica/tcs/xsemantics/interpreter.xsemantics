@@ -63,7 +63,7 @@ judgments {
 rule ExpressionI
 	G |- ExpressionI e ~> Object res
 from {
-	G |- e |> new HashMap<Referrable, Object> ~> var Object value
+	G |- e |> new HashMap<Referrable, Object> ~> res
 }
 
 
