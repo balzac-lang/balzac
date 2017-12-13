@@ -10,6 +10,7 @@ import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
+import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.Hash160
@@ -36,17 +37,18 @@ import it.unica.tcs.bitcoinTM.ScriptMinus
 import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.script.ScriptBuilder2
+import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.bitcoinTM.Constant
 
 /*
  * EXPRESSIONS
@@ -94,6 +96,10 @@ class ScriptExpressionCompiler {
     
     def private dispatch ScriptBuilder2 compileExpressionInternal(KeyLiteral k, Context ctx) {
         new ScriptBuilder2().data(DumpedPrivateKey.fromBase58(null, k.value).key.pubKey)
+    }
+    
+    def private dispatch ScriptBuilder2 compileExpressionInternal(SignatureLiteral s, Context ctx) {
+        new ScriptBuilder2().data(BitcoinUtils.decode(s.value))
     }
     
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {

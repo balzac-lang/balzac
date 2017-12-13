@@ -156,8 +156,7 @@ ScritpMultiply returns ScriptExpression:
     Substitution (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=Substitution)*;
     
 Substitution returns ScriptExpression:
-	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*
-;
+	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*;
 
 ScriptPrefixed returns ScriptExpression:
     {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
@@ -194,7 +193,8 @@ Literal:
 |	BooleanLiteral
 |	HashLiteral
 |	KeyLiteral
-|	TransactionLiteral;
+|	TransactionLiteral
+|	SignatureLiteral;
 
 HashLiteral:
 	Hash160Literal
@@ -211,19 +211,20 @@ Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
 KeyLiteral: value=WIF;
 TransactionLiteral: value=(TXSERIAL|TXID);		// TXID is automatically converted into a hex by fetching the transaction from the network
+SignatureLiteral: value=SIGHEX;
 
 IfThenElse:
 	'if' if=ScriptExpression
 	"then" then=ScriptAtomic
 	'else' else=ScriptAtomic;
 
-Signature: "sig" "(" key=CommonAtomic ")" ("[" modifier=Modifier "]")?;
+Signature: "sig" "(" key=ScriptAtomic ")" ("[" modifier=Modifier "]")? ("of" tx=ScriptAtomic (=>"@" inputIdx=LONG)?)?;
 
 enum Modifier: 
 	AIAO 
 |	AISO 
 |	AINO
-|	SIAO 
+|	SIAO
 |	SISO
 |	SINO;
 	
@@ -342,6 +343,7 @@ terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'
 terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXID returns ecore::EString:      'txid:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL returns ecore::EString:  'tx:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal SIGHEX returns ecore::EString:  'sig:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 	
 terminal TIMESTAMP returns ecore::ELong: 
 	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd

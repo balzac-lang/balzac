@@ -94,6 +94,15 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 			}
         }
 	}
+	
+	@ValueConverter(rule = "SIGHEX")
+    def IValueConverter<String> getSig() {
+        return new AbstractLexerBasedConverter<String>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				string.split(":").get(1)
+			}
+        }
+	}
 		
 	@ValueConverter(rule = "WIF")
     def IValueConverter<String> getWIF() {

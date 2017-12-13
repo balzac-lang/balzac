@@ -427,30 +427,52 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 				BitcoinTMPackage.Literals.VERSIG__SIGNATURES
 			);
 		}
-//		
-//		for(var i=0; i<versig.pubkeys.size; i++) {
-//			var k = versig.pubkeys.get(i)
-//			
-//			if ((k instanceof KeyDeclaration) && k.isPlaceholder) {
-//				error("Cannot compute the public key.", 
-//					versig,
-//					BitcoinTMPackage.Literals.VERSIG__PUBKEYS,
-//					i
-//				);
-//			}
-//		}
 	}
 	
 	@Check
-	def void checkSign(Signature sig) {
+	def void checkSig(Signature sig) {
 		var k = sig.key
 		
 		if (k instanceof Reference) {
-			if (k.ref.eContainer instanceof TransactionDeclaration)
+			if (k.ref.isTxParameter)
 				error("Cannot use parametric key.", 
 					sig,
 					BitcoinTMPackage.Literals.SIGNATURE__KEY
 				);
+		}
+	}
+	
+	@Check
+	def void checkSigTransaction(Signature sig) {
+		val isTxDefined = sig.tx !== null
+		val isWithinInput = EcoreUtil2.getContainerOfType(sig, Input) !== null
+		
+		if (isTxDefined && sig.tx.isCoinbase) {
+			error("Transaction cannot be a coinbase.", 
+				sig,
+				BitcoinTMPackage.Literals.SIGNATURE__TX
+			);
+		}
+
+		if (isTxDefined && sig.tx.isSerial) {
+			error("Cannot sign a serialized transaction.", 
+				sig,
+				BitcoinTMPackage.Literals.SIGNATURE__TX
+			);
+		}
+
+		if (isTxDefined && isWithinInput) {
+			error("Transaction cannot be specified within input script.", 
+				sig,
+				BitcoinTMPackage.Literals.SIGNATURE__TX
+			);
+		}
+			
+		if (!isTxDefined && !isWithinInput) {
+			error("Transaction must be specified.", 
+				sig.eContainer,
+				sig.eContainingFeature
+			);
 		}
 	}
 	

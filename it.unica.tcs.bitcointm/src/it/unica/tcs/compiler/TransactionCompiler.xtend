@@ -5,12 +5,11 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Output
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.ScriptExpression
@@ -48,11 +47,6 @@ class TransactionCompiler {
 	@Inject private extension ScriptExpressionCompiler expGenerator
     @Inject private extension CompilerUtils
     
-    
-    def dispatch ITransactionBuilder compileTransaction(Declaration tx) {
-		return tx.right.value.interpret(newHashMap).first as ITransactionBuilder
-	}
-	
 	def dispatch ITransactionBuilder compileTransaction(TransactionLiteral tx) {    	
     	val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.value);
 		return txBuilder			

@@ -4,6 +4,7 @@
 
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
+import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Declaration
@@ -33,6 +34,8 @@ import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.ScriptTimes
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
+import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.TransactionBody
@@ -49,18 +52,17 @@ import java.util.Map
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
+import org.bitcoinj.crypto.TransactionSignature
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
  
 inject extension ASTUtils astUtils
 inject extension TransactionCompiler compiler
 
-
 judgments {
 	interpret |- ExpressionI expression |> Map<Referrable,Object> rho ~> output Object
 	interpretE |- ExpressionI expression ~> output Object
 }
-
 
 /*
  * Evaluate an expression against an empty rho
@@ -134,22 +136,77 @@ from {
 	}
 }
 
+axiom InterpretSignatureLiteral
+    G |- SignatureLiteral s |> Map<Referrable, Object> rho ~> TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(s.value), true, false)
+
+rule InterpretSignature
+    G |- Signature s |> Map<Referrable, Object> rho ~> TransactionSignature res
+from {
+	{ s.tx !== null }
+	
+	G |- s.key |> rho ~> var Object key
+
+	rho.put(ASTUtils.NO_WIT_FLAG, null)
+	G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
+	rho.remove(ASTUtils.NO_WIT_FLAG)
+	
+	if (!(key instanceof DumpedPrivateKey)) {
+		fail 
+			error "Key must be private" 
+			source s.key
+	}
+	
+	val tx = txBuilder.toTransaction
+	val inputIndex = s.inputIdx
+	val sigHashType = astUtils.toHashType(s.modifier)
+	val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
+	
+	val input = txBuilder.inputs.get(inputIndex as int)
+	val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
+	
+	res = tx.calculateSignature(
+		0, 
+		(key as DumpedPrivateKey).key, 
+		outScript,
+		sigHashType,
+		anyonecanpay
+	)
+}
+
 axiom InterpretTransactionLiteral
     G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
 rule InterpretTransactionBody
     G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
 from {
+	
+	val inputs = newArrayList
+	inputs.addAll(txBody.inputs)
+	
+	
+	if (rho.containsKey(ASTUtils.NO_WIT_FLAG)) {
+		txBody.inputs.forEach[i | 
+			i.exps.clear; 
+			i.exps.add(BitcoinTMFactory::eINSTANCE.createBooleanLiteral)
+		]
+	}
+	
 	/*
-	 * the only way to invoke this rule is by a Reference.
+	 * the only way to invoke this rule is by a DeclarationReference.
 	 * It adds the actual value to rho, so this exp should be closed
 	 */
 	val TransactionDeclaration decl = txBody.txDeclaration
 	val txBuilder = decl.compileTransaction
-
+	
 	for (p : decl.left.params) {
-		if (rho.containsKey(p)) {
+		if (rho.containsKey(p)) {			
 			txBuilder.bindVariable(p.name, rho.get(p))
+		}
+	}
+	
+	if (rho.containsKey(ASTUtils.NO_WIT_FLAG)) {
+		for (var i=0; i<inputs.size; i++) {
+			txBody.inputs.set(i, inputs.get(i))
 		}
 	}
 
@@ -280,7 +337,7 @@ from {
     	
 	if (result===null) {
 		fail 
-			error "Unexpecter operator "+comparison.op 
+			error "Unexpected operator "+comparison.op 
 			source comparison
 	}
 }

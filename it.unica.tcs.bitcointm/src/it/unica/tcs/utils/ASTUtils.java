@@ -19,6 +19,7 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
@@ -33,7 +34,7 @@ import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.Constant;
 import it.unica.tcs.bitcoinTM.Declaration;
-import it.unica.tcs.bitcoinTM.Reference;
+import it.unica.tcs.bitcoinTM.Expression;
 import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
@@ -43,11 +44,13 @@ import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
 import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.bitcoinTM.Reference;
 import it.unica.tcs.bitcoinTM.Referrable;
 import it.unica.tcs.bitcoinTM.RelativeTime;
 import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
 import it.unica.tcs.bitcoinTM.Sha256Literal;
+import it.unica.tcs.bitcoinTM.SignatureLiteral;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Time;
@@ -60,6 +63,8 @@ import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
 import it.unica.tcs.lib.Hash.Ripemd160;
 import it.unica.tcs.lib.Hash.Sha256;
+import it.unica.tcs.lib.ITransactionBuilder;
+import it.unica.tcs.lib.SerialTransactionBuilder;
 import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
@@ -69,6 +74,15 @@ import it.xsemantics.runtime.Result;
 
 @Singleton
 public class ASTUtils {
+	
+	public static final Referrable NO_WIT_FLAG;
+	public static final Map<Referrable,Object> RHO_NO_WIT_FLAG;
+	
+	static {
+		NO_WIT_FLAG = BitcoinTMFactory.eINSTANCE.createReferrable();
+		RHO_NO_WIT_FLAG = new HashMap<>();
+		RHO_NO_WIT_FLAG.put(NO_WIT_FLAG, null);
+	}
 	
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMInterpreter interpreter;
@@ -222,6 +236,11 @@ public class ASTUtils {
 	    		res.setValue(((DumpedPrivateKey) value).toBase58());
 	    		return (T) res;    		
 	    	}
+	    	else if (value instanceof TransactionSignature) {
+	    		SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
+	    		res.setValue(BitcoinUtils.encode(((TransactionSignature) value).encodeToBitcoin()));
+	    		return (T) res;    		
+	    	}
 	    	else {
 	    		throw new IllegalStateException("Unexpected type "+value.getClass());
 	    	}	
@@ -262,6 +281,33 @@ public class ASTUtils {
 	
 	public boolean isCoinbase(TransactionBody tx) {
 		return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
+	}
+	
+	public boolean isCoinbase(Expression tx) {
+		Result<Object> res = this.interpreter.interpret(tx, RHO_NO_WIT_FLAG);
+		
+		if (res.failed())
+			return false;
+		else {
+			
+			if (res.getFirst() instanceof ITransactionBuilder) {
+				ITransactionBuilder t = (ITransactionBuilder) res.getFirst();
+				return t.isCoinbase();
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	
+	public boolean isSerial(Expression tx) {
+		Result<Object> res = this.interpreter.interpretE(tx);
+		
+		if (res.failed())
+			return false;
+		else {
+			return res.getFirst() instanceof SerialTransactionBuilder;
+		}
 	}
 
 	public boolean isP2PKH(Script script) {

@@ -66,6 +66,7 @@ import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.Signature
+import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -549,6 +550,9 @@ axiom Sha256Literal
 axiom TransactionLiteral
 	G |- TypeSubstitutions substitutions |> TransactionLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
 
+axiom SignatureLiteral
+	G |- TypeSubstitutions substitutions |> SignatureLiteral s : BitcoinTMFactory::eINSTANCE.createSignatureType
+
 rule KeyLiteral
 	G |- TypeSubstitutions substitutions |> KeyLiteral key : Type res
 from {
@@ -770,6 +774,14 @@ from {
 	G |- substitutions |> s.key : var Type t
 	t = typesubstitution(substitutions, t)
 	unify(substitutions, t, keyType)
+	
+	if (s.tx !== null) {
+		var txType = BitcoinTMFactory::eINSTANCE.createTransactionType
+	
+		G |- substitutions |> s.tx : var Type t1
+		t1 = typesubstitution(substitutions, t1)
+		unify(substitutions, t1, txType)		
+	}
 }
 
 rule Hash160

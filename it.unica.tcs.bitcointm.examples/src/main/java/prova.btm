@@ -21,12 +21,14 @@ const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 const T:transaction = txid:f0315ffc38709d70ad5647e22048358dd3745f3ce3874223c80a7c92fab0c8ba
 const T_serial:transaction = tx:01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0e0420e7494d017f062f503253482fffffffff0100f2052a010000002321021aeaf2f8638a129a3156fbe7e5ef635226b0bafd495ff03afe2c843d7e3a4b51ac00000000
 
-transaction ALFA {
+
+transaction ALFA { 
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;		// P2SH
 		1 BTC: fun(y) . versig(Alice.kA; y);	// P2PKH
-		0 BTC: "DATA"					// OP_RETURN 
+		0 BTC: "DATA";					// OP_RETURN 
+		1 BTC: fun(y,s) . versig(Alice.kA; y) && s == "s"
 	] 
 } 
 
@@ -44,6 +46,9 @@ transaction T {
 	]
 }
  
+const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001
+const sig_of_T1_at_7_bis = sig(Bob.kB) of T1@7 
+
 transaction T1 {  
 	input = [
 		T@0: (0.00000043 BTC);  
@@ -55,7 +60,9 @@ transaction T1 {
 //		ALFA@0:	42 ; 
 //		ALFA@1:	sig(kB)[];
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH 
-		ALFA_serial@1:	sig(Bob.kB)
+		ALFA_serial@1:	sig(Bob.kB);
+		ALFA@3:	sig_of_T1_at_7 "s"; 
+		ALFA@3:	sig (Bob.kB) "s"
 	]
 
 	output = [  
@@ -64,8 +71,6 @@ transaction T1 {
 		1111:	if (12==10+2) then 3 else 4 == 3
 	]
 }
- 
- 
 
 transaction Th { 
 	input = _
@@ -166,6 +171,4 @@ transaction Y {
 	] 	
 }
 
-compile Y
-
-
+compile T1 

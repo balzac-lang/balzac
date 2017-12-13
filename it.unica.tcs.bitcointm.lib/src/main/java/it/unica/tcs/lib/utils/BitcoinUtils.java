@@ -18,6 +18,7 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
+import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
@@ -189,7 +190,9 @@ public class BitcoinUtils {
 		else if (obj instanceof DumpedPrivateKey)
 			return new ScriptBuilder().data(((DumpedPrivateKey) obj).getKey().getPubKey()).build();
 			
-		
+		else if (obj instanceof TransactionSignature)
+			return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
+			
 		throw new IllegalArgumentException();
 	}
 
