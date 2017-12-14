@@ -322,9 +322,6 @@ HoursDelay   returns ecore::ELong: LONG "hours";
 DayDelay     returns ecore::ELong: LONG "days";
 BlockDelay   returns ecore::ELong: LONG "blocks";
 
-PrivateKey returns ecore::EString: WIF;
-Address returns ecore::EString: WIF;
-
 terminal LONG_HEX returns ecore::ELong:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
