@@ -60,7 +60,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
  * </ul>
  */
 @Singleton
-class ScriptExpressionCompiler {
+class ScriptCompiler {
 	
 	@Inject private extension CompilerUtils
     @Inject private extension ASTUtils astUtils

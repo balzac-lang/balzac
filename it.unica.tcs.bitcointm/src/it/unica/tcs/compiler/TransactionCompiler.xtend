@@ -44,7 +44,7 @@ class TransactionCompiler {
 	
 	@Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils astUtils
-	@Inject private extension ScriptExpressionCompiler expGenerator
+	@Inject private extension ScriptCompiler expGenerator
     @Inject private extension CompilerUtils
     
 	def dispatch ITransactionBuilder compileTransaction(TransactionLiteral tx) {    	
