@@ -71,11 +71,12 @@ transaction Y(y) {
 	output = 10 BTC: fun(a:int) . a == y
 }
 
-compile T
+compile
+	T
 	T1(hash160:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547) 
 	T1(hash160("5"))
-//	var_T
-	A1(inTx) 
+//	var_T	//ERR
+	A1(inTx)
 	A2 
 	B
  

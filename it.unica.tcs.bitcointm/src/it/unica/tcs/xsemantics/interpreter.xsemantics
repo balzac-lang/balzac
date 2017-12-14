@@ -5,9 +5,9 @@
 import it.unica.tcs.bitcoinTM.AndScriptExpression
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BooleanLiteral
+import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Declaration
 import it.unica.tcs.bitcoinTM.DeclarationLeft
-import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash160Literal
@@ -19,6 +19,7 @@ import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
 import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
@@ -34,21 +35,25 @@ import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
+import it.unica.tcs.bitcoinTM.TransactionBody
+import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.TransactionLiteral
+import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.utils.ASTUtils
 import java.math.BigInteger
 import java.util.HashMap
 import java.util.Map
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
-import it.unica.tcs.bitcoinTM.Constant
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
  
-//inject extension ASTUtils astUtils
-//inject extension TransactionCompiler compiler
+inject extension ASTUtils astUtils
+inject extension TransactionCompiler compiler
 
 
 judgments {
@@ -129,27 +134,27 @@ from {
 	}
 }
 
-//axiom InterpretTransactionLiteral
-//    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
-//
-//rule InterpretTransactionBody
-//    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
-//from {
-//	/*
-//	 * the only way to invoke this rule is by a Reference.
-//	 * It adds the actual value to rho, so this exp should be closed
-//	 */
-//	val TransactionDeclaration decl = txBody.txDeclaration
-//	val txBuilder = decl.compileTransaction
-//	
-//	for (p : decl.left.params) {
-//		if (rho.containsKey(p)) {			
-//			txBuilder.bindVariable(p.name, rho.get(p))
-//		}
-//	}
-//	
-//	res = txBuilder
-//}
+axiom InterpretTransactionLiteral
+    G |- TransactionLiteral tx |> Map<Referrable, Object> rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+
+rule InterpretTransactionBody
+    G |- TransactionBody txBody |> Map<Referrable, Object> rho ~> ITransactionBuilder res
+from {
+	/*
+	 * the only way to invoke this rule is by a Reference.
+	 * It adds the actual value to rho, so this exp should be closed
+	 */
+	val TransactionDeclaration decl = txBody.txDeclaration
+	val txBuilder = decl.compileTransaction
+
+	for (p : decl.left.params) {
+		if (rho.containsKey(p)) {
+			txBuilder.bindVariable(p.name, rho.get(p))
+		}
+	}
+
+	res = txBuilder
+}
 
 rule InterpretMinus
     G |- ScriptMinus minus |> Map<Referrable, Object> rho ~> Long result

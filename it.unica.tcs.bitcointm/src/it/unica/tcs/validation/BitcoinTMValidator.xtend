@@ -19,6 +19,7 @@ import it.unica.tcs.bitcoinTM.DeclarationLeft
 import it.unica.tcs.bitcoinTM.ExpressionI
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
+import it.unica.tcs.bitcoinTM.IsMinedCheck
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Model
@@ -44,6 +45,7 @@ import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
 import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
@@ -72,6 +74,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.lib.client.BitcoinClientException
 
 /**
  * This class contains custom validation rules. 
@@ -90,6 +93,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Inject	private ResourceDescriptionsProvider resourceDescriptionsProvider;
 	@Inject	private IContainer.Manager containerManager;
 //	@Inject private KeyStore keyStore
+	
+	@Inject private BitcoinClientI bitcoinCli;
 	
 	/*
 	 * INFO
@@ -1195,7 +1200,90 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 			}
 		}
 	}
+	
+	@Check
+    def boolean checkTransactionChecksOndemand(TransactionDeclaration tx) {
+        var hasError = false
+        for (var i=0; i<tx.checks.size-1; i++) {
+            for (var j=i; i<tx.checks.size; j++) {
+                val one = tx.checks.get(i)
+                val other = tx.checks.get(j)
+
+                if (one.class == other.class) {
+                    error(
+                        "Duplicated annotation",
+                        tx,
+                        BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                        i
+                    );
+                    error(
+                        "Duplicated annotation",
+                        tx,
+                        BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                        j
+                    );
+                    hasError = true;
+                }
+            }
+        }
+        
+        return !hasError;
+    }
     
-    
+    @Check(CheckType.NORMAL)
+    def void checkTransactionOndemand(IsMinedCheck check) {
+
+        val tx = EcoreUtil2.getContainerOfType(check, TransactionDeclaration)
+
+        if (!checkTransactionChecksOndemand(tx)) {
+            return
+        }
+
+        val checkIdx = tx.checks.indexOf(check)
+        val txBuilder = tx.compileTransaction
+
+        if (!txBuilder.isReady) {
+            warning(
+                "Cannot check if the transaction is mined due to its parameters",
+                tx,
+                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                checkIdx
+            );
+            return
+        }
+
+        val txid = txBuilder.toTransaction.hashAsString
+
+        try {
+            val mined = bitcoinCli.isMined(txid)
+            
+            if (check.isMined && !mined) {
+                warning(
+                    "Transaction is not mined",
+                    tx,
+                    BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                    checkIdx
+                );
+            }
+            
+            if (!check.isMined && mined) {
+                warning(
+                    "Transaction is already mined",
+                    tx,
+                    BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                    checkIdx
+                );    
+            }
+            
+        }
+        catch(BitcoinClientException e) {
+            warning(
+                "Cannot check if the transaction is mined due to network problems: "+e.message,
+                tx,
+                BitcoinTMPackage.Literals.TRANSACTION_DECLARATION__CHECKS,
+                checkIdx
+            );
+        }
+    }
     
 }

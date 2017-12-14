@@ -28,8 +28,8 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Element: 
-  "transaction" TransactionDeclaration | 
   Constant |
+  TransactionDeclaration |
   "participant" Participant; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
@@ -76,7 +76,9 @@ Constant:
 	"const" name=ID (":" type=DeclarationType)? "=" exp=Expression;
 
 TransactionDeclaration returns Declaration:
-	{TransactionDeclaration} left=DeclarationLeftNoType right=DeclarationRightTx;
+	{TransactionDeclaration}
+	checks+=OnDemandCheck*
+	"transaction"  left=DeclarationLeftNoType right=DeclarationRightTx;
 
 DeclarationRightTx returns DeclarationRight:
 	value=TransactionBody;
@@ -114,6 +116,13 @@ Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
 
 
+/* on-demand checks */
+OnDemandCheck:
+	IsMinedCheck
+|	IsNotMinedCheck;
+
+IsMinedCheck: {IsMinedCheck} mined?="@isMined";
+IsNotMinedCheck: {IsMinedCheck} "@isNotMined";
 
 
 /*
