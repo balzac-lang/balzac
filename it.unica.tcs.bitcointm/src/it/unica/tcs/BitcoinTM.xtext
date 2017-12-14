@@ -28,69 +28,32 @@ QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
 Element: 
-  Constant |
-  TransactionDeclaration |
-  "participant" Participant; 
+	Constant
+|	TransactionDeclaration; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
-Server: "server" "{"
-	"address" ":" STRING
-	"port" ":" LONG
-	"user" ":" STRING
-	("password" ":" STRING)?
-	("timeout" ":" LONG)?
-"}";
-
-/*
- * generic declarations
- */
-
-Declaration:
-	"let" left=DeclarationLeft "=" right=DeclarationRight;
-
-DeclarationLeft:
-	name=ID 
-	("(" (params+=Parameter ("," params+=Parameter)*)? ")")?
-	(":" type=DeclarationType)?;
-	
-DeclarationLeftNoType returns DeclarationLeft:	// same as DeclarationLeft, but does not permit type
-	name=ID
-	("(" (params+=Parameter ("," params+=Parameter)*)? ")")?;
-
 Parameter:
 	name=ID 
-	(":" type=DeclarationType)?;	// name (: type)?
-
-DeclarationRight:
-	value=Expression;
-
-Referrable:
-	Parameter | DeclarationLeft | Constant;
+	(":" type=PermittedType)?;
 
 /*
  * transactions (special case of Declaration)
  */
  
 Constant:
-	"const" name=ID (":" type=DeclarationType)? "=" exp=Expression;
+	"const" name=ID (":" type=PermittedType)? "=" exp=Expression;
 
-TransactionDeclaration returns Declaration:
-	{TransactionDeclaration}
+TransactionDeclaration:
 	checks+=OnDemandCheck*
-	"transaction"  left=DeclarationLeftNoType right=DeclarationRightTx;
-
-DeclarationRightTx returns DeclarationRight:
-	value=TransactionBody;
-
-TransactionBody returns ScriptExpression: {TransactionBody} "{"
-	("input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") ))?
-	("output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") ))?
-	("after" tlock=Tlock)?
-"}";
+	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
+		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
+		"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
+		("after" tlock=Tlock)?
+	"}";
 
 Input:
-	txRef=Expression ("@" outpoint=LONG)? ":" exps+=ScriptAtomic+ ("["redeemScript=Script"]")?;
+	txRef=Expression ("@" outpoint=LONG)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -99,21 +62,18 @@ Output:
 	value=BitcoinValue ":" script=Script;
 
 BitcoinValue:
-	exp=ScriptExpression;
+	exp=Expression;
 
-Tlock: times+=Time ("&&" times+=Time)*;
-
-Time: AbsoluteTime | RelativeTime
-;
+Tlock: times+=AbsoluteTime;
 
 AbsoluteTime:
 	block?="block" value=LONG | date?="date" value=TIMESTAMP;
 
 RelativeTime:
-	value=Delay "from" tx=[DeclarationLeft|QualifiedName];
+	value=Delay "from" tx=Reference;
 
 Script:
-	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=ScriptExpression;
+	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
 
 
 /* on-demand checks */
@@ -128,46 +88,40 @@ IsNotMinedCheck: {IsMinedCheck} "@isNotMined";
 /*
  * script expressions
  */
-ExpressionI:            /* just to force some hierarchy and resolve ambiguity */
-	"ε" ScriptExpression | "η" Expression;
 
 Expression:
-    ScriptExpression;
+    OrExpression;
 
-ScriptExpression:
-    OrScriptExpression;
+OrExpression returns Expression:
+	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
 
-OrScriptExpression returns ScriptExpression:
-	AndScriptExpression (({OrScriptExpression.left=current} => '||' ) right=AndScriptExpression)*;
+AndExpression returns Expression:
+	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
 
-AndScriptExpression returns ScriptExpression:
-	ScriptComparison (({AndScriptExpression.left=current} '&&') right=ScriptComparison)*;
+Comparison returns Expression:
+	Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
 
-ScriptComparison returns ScriptExpression:
-	ScriptEquals (({ScriptComparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=ScriptEquals)*;
-
-ScriptEquals returns ScriptExpression:
-	ScritpAddition (({ScriptEquals.left=current} op=("==" | "!=") ) right=ScritpAddition)*;
+Equals returns Expression:
+	Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
  
-ScritpAddition returns ScriptExpression:
-    ScritpMultiply (({ScriptPlus.left=current} '+' | {ScriptMinus.left=current} '-') right=ScritpMultiply)*; 
+Addition returns Expression:
+    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
 
-ScritpMultiply returns ScriptExpression:
-    Substitution (({ScriptTimes.left=current} '*' | {ScriptDiv.left=current} '/') right=Substitution)*;
+Multiply returns Expression:
+    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*;
     
-Substitution returns ScriptExpression:
-	ScriptPrefixed (({Substitution.left=current} => '<|') right=ScriptPrefixed)*;
-
-ScriptPrefixed returns ScriptExpression:
-    {ScriptBooleanNegation} =>"!" exp=ScriptAtomic | /* right associativity */
-    {ScriptArithmeticSigned} =>"-" exp=ScriptAtomic | /* right associativity */
-    ScriptAtomic;
+Prefixed returns Expression:
+    {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
+    {ArithmeticSigned} =>"-" exp=AtomicExpression | /* right associativity */
+    AtomicExpression;
 
 
-ScriptAtomic returns ScriptExpression:
-    '(' ScriptExpression ')' 
-|   CommonAtomic
+AtomicExpression returns Expression:
+'(' Expression ')' 
+|	Literal
+|	Reference
 
+|	Hash
 |   Signature 
 |	Versig 
 |	IfThenElse 
@@ -176,16 +130,16 @@ ScriptAtomic returns ScriptExpression:
 |   Between
 |   Size
 |	AfterTimeLock
-|	TransactionBody
 ;
-
-
-CommonAtomic:
-	Literal | Reference | Hash;
 
 Reference: 
 	ref=[Referrable|QualifiedName]
-	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;		// within ScriptExpressions
+	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+
+Referrable:
+	Parameter 
+|	TransactionDeclaration
+|	Constant;
 
 Literal:
 	NumberLiteral 
@@ -214,11 +168,11 @@ TransactionLiteral: value=(TXSERIAL|TXID);		// TXID is automatically converted i
 SignatureLiteral: value=SIGHEX;
 
 IfThenElse:
-	'if' if=ScriptExpression
-	"then" then=ScriptAtomic
-	'else' else=ScriptAtomic;
+	'if' if=Expression
+	"then" then=AtomicExpression
+	'else' else=AtomicExpression;
 
-Signature: "sig" "(" key=ScriptAtomic ")" ("[" modifier=Modifier "]")? ("of" tx=ScriptAtomic (=>"@" inputIdx=LONG)?)?;
+Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? ("of" tx=AtomicExpression (=>"@" inputIdx=LONG)?)?;
 
 enum Modifier: 
 	AIAO 
@@ -230,24 +184,22 @@ enum Modifier:
 	
 Versig:
 	"versig" "(" 
-		pubkeys+=CommonAtomic ("," pubkeys+=CommonAtomic)* ";"
-		signatures+=ScriptExpression ("," signatures+=ScriptExpression)* 
+		pubkeys+=Expression ("," pubkeys+=Expression)* ";"
+		signatures+=Expression ("," signatures+=Expression)* 
 	")";
 
 Hash: Hash160 | Hash256 | Ripemd160 | Sha256;
-Hash160: 	'hash160' "(" value=ScriptExpression ")";
-Hash256: 	'hash256' "(" value=ScriptExpression ")";
-Ripemd160: 	'ripemd160' "(" value=ScriptExpression ")";
-Sha256: 	'sha256' "(" value=ScriptExpression ")";
+Hash160: 	'hash160' "(" value=Expression ")";
+Hash256: 	'hash256' "(" value=Expression ")";
+Ripemd160: 	'ripemd160' "(" value=Expression ")";
+Sha256: 	'sha256' "(" value=Expression ")";
 
-Min: "min" "(" left=ScriptExpression "," right=ScriptExpression ")";
-Max: "max" "(" left=ScriptExpression"," right=ScriptExpression ")";
-Between: "between" "(" value=ScriptExpression "," left=ScriptExpression":" right=ScriptExpression ")";
-Size: "size" "(" value=ScriptExpression ")";
-AfterTimeLock: "after" timelock=Time ":" continuation=ScriptAtomic;
+Min: "min" "(" left=Expression "," right=Expression ")";
+Max: "max" "(" left=Expression"," right=Expression ")";
+Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
+Size: "size" "(" value=Expression ")";
+AfterTimeLock: "after" timelock=AbsoluteTime ":" continuation=AtomicExpression;
 
-DeclarationType returns Type:
-	PermittedType;
 
 Type:
 	PermittedType 
@@ -255,18 +207,14 @@ Type:
 |	{TypeVariable} value=ID;
 
 PermittedType:
-	BasicType
+	{IntType} value=IntTypeEnum 
+|	{StringType} value=StringTypeEnum 
+|   {BooleanType} value=BoolTypeEnum
+|	HashType
 |   {KeyType} value=KeyTypeEnum
 |   {AddressType} value=AddressTypeEnum
 |   {TransactionType} value=TransactionTypeEnum
 |   {SignatureType} value=SignatureTypeEnum;
-
-BasicType:
-	{IntType} value=IntTypeEnum 
-|	{StringType} value=StringTypeEnum 
-|   {BooleanType} value=BoolTypeEnum
-|	HashType;
-
 
 HashType:
 	{Hash160Type} value=Hash160TypeEnum
@@ -290,23 +238,12 @@ enum Sha256TypeEnum: sha256;
 enum VoidTypeEnum: void;
 
 Typeable:
-	Model
-| Declaration
-| DeclarationLeft
-| DeclarationRight
-| Parameter
+  Parameter
 | Constant
+| TransactionDeclaration
 | Input
 | Output 
-| Participant
-| ProcessDeclaration
-| ProcessReference
-| Process
-| Prefix
-| ProtocolTransactionReference
-| ExpressionI
-| Regtest
-| Instruction
+| Expression
 | Compile
 ;
 
@@ -360,106 +297,10 @@ terminal OFFSET_SIGN: "+"|"-";
 terminal OFFSET_HOUR: '0'('0'..'9') | '1'('0'..'2');
 terminal OFFSET_MINUTE: '0''0' | '3''0';
 
-
-/*
- * Endpoints contracts
- */
-Participant: name=ID '{'
-	(process=Process)? & (variables+=Constant | defs+=ProcessDeclaration)*
-'}';
-
-ProcessDeclaration: 'process' name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? '=' process=Process;
-ProcessReference: ref=[ProcessDeclaration] ("("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
-
-Process:
-  SingleChoice 
-| ProtocolIfThenElse
-| ProcessReference
-| '(' Parallel ')'
-;
-
-Parallel returns Process:
-	Process (({Parallel.left=current} => '|' ) right=Process)*;
-
-Choice:
-	actions+=Prefix ('+' actions+=Prefix)*;
-
-SingleChoice returns Choice:
-	actions+=Prefix;
-
-NextProcess returns Process:
-  SingleChoice
-| ProtocolIfThenElse
-| ProcessReference
-| '(' Process ')'
-;
-
-Prefix:	(Ask|Put|Send|Receive|Check|Tau) (';' next=NextProcess)?;
-
-Tau: {Tau} 't';
-
-Ask: "ask" (txRefs+=ProtocolTransactionReference
-		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}') ;
-	
-Put: 'put' (
-	  	txRefs+=ProtocolTransactionReference
-		|'{'(txRefs+=ProtocolTransactionReference ) (',' txRefs+=ProtocolTransactionReference)* '}');
-
-Send: 'send' message=Expression 'to' p=[Participant];
-Receive: 'receive' var=Parameter 'from' p=[Participant];
-Check:	'check' exp=Expression;
-
-ProtocolIfThenElse: 
-'if' exp=Expression 
-'then' then=NextProcess 
-(=> 'else' else=NextProcess)?;
-
 @Override
 terminal INT returns ecore::EInt: LONG;
 
-ProtocolTransactionReference:
-	txRef=Reference (substitution=TransactionBody)?;
 
-		
-
-
-Regtest:
-	{Regtest} 'regtest' '{'
-		intructions+=Instruction*
-	'}';
-
-Instruction:
-	Assert
-|	Confirmations
-|	GetBalance
-|	IsMined
-;
-
-Assert:
-	'assert' '(' exp=Expression ')';
-
-Confirmations:
-	"confirmations" '(' exp=Expression ')';
-
-GetBalance:
-	'balance' '(' exp=Expression ')';
-
-IsMined:
-	'isMined' '(' exp=Expression ')';
-
-MineBlocks:
-	'mine' n=Number 'blocks';
-	
-SendTransaction:
-	'send' '(' exp=Expression ')';
-
-
-//Redeems returns ScriptExpression:
-//	ScriptPrefixed ("(" inIdx=LONG ")")? (({Redeems.left=current}"|=") right=ScriptPrefixed ("(" outIdx=LONG ")")?)*;
-	
-	
-	
-	
 Compile:
 	{Compile} "compile" txs+=Reference*
 ;
