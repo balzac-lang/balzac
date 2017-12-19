@@ -4,10 +4,8 @@
 
 package it.unica.tcs.utils
 
-import com.google.inject.Inject
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IntType
@@ -21,7 +19,6 @@ import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.compiler.CompileException
-import it.unica.tcs.generator.ExpressionGenerator
 import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
 import it.unica.tcs.lib.Hash.Ripemd160
@@ -34,12 +31,6 @@ import org.eclipse.xtext.EcoreUtil2
 
 @Singleton
 class CompilerUtils {
-	
-	@Inject private extension ExpressionGenerator
-	
-	def String compileActualParams(List<Expression> actualParams) {
-		actualParams.map[e|e.compileExpression].join(",")
-	}
 	
 	def String compileFormalParams(List<Parameter> formalParams) {
 		formalParams.map[p|p.type.compileType+" "+p.name].join(", ")

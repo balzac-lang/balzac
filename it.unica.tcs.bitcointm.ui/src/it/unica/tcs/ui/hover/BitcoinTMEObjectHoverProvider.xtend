@@ -7,8 +7,7 @@ package it.unica.tcs.ui.hover
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AddressType
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.IntType
@@ -20,16 +19,16 @@ import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
-import it.unica.tcs.bitcoinTM.TransactionDeclaration
+import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionType
+import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.bitcoinTM.Type
-import it.unica.tcs.bitcoinTM.Constant
+import it.unica.tcs.xsemantics.Rho
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -62,10 +61,6 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getLabel(obj)
 	}
 
-	dispatch def String getLabelInternal(DeclarationLeft p) {
-		return p.name+" : "+p.type?.toStringType
-	}
-	
 	dispatch def String getLabelInternal(Parameter p) {
 		return p.name+" : "+p.type?.toStringType
 	}
@@ -79,8 +74,8 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getFirstLine(obj)
 	}
 	
-	def String getFirstLineInternal(TransactionDeclaration tx) {
-		'''transaction «tx.left.name»'''
+	def String getFirstLineInternal(Transaction tx) {
+		'''transaction «tx.name»'''
 	}
 	
 	// base case getDocumentationInternal
@@ -88,9 +83,9 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return super.getDocumentation(obj)
 	}
 	
-	def dispatch String getDocumentationInternal(Declaration pvt) '''
-		«IF pvt.right.value instanceof KeyLiteral»
-			«val wif = (pvt.right.value as KeyLiteral).value» 
+	def dispatch String getDocumentationInternal(Constant pvt) '''
+		«IF pvt.exp instanceof KeyLiteral»
+			«val wif = (pvt.exp as KeyLiteral).value» 
 			«val pvtEC = BitcoinUtils.wifToECKey(wif, pvt.networkParams)»
 			<pre>
 			Private key
@@ -105,10 +100,10 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		«ENDIF»
 		'''
 	
-	def dispatch String getDocumentationInternal(TransactionDeclaration tx) {
+	def dispatch String getDocumentationInternal(Transaction tx) {
 		'''
 		<pre>
-		«tx.compileTransaction.toString»
+		«tx.compileTransaction(new Rho).toString»
 		</pre>
 		'''		
 	}

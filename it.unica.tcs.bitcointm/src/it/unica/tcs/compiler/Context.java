@@ -7,12 +7,18 @@ package it.unica.tcs.compiler;
 import java.util.HashMap;
 
 import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.xsemantics.Rho;
 
 /**
  * Everything that is relevant to achieve the compilation.
  */
 public class Context {
-	public AltStack altstack = new AltStack();
+	public final AltStack altstack = new AltStack();
+	public final Rho rho;
+	
+	public Context(Rho rho) {
+		this.rho = rho;
+	}
 }
 
 class AltStack extends HashMap<Parameter, AltStackEntry>{

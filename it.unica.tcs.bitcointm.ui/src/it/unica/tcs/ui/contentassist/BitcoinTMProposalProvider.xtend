@@ -48,7 +48,7 @@ class BitcoinTMProposalProvider extends AbstractBitcoinTMProposalProvider {
 				if (!packageName.equals(od.qualifiedName))
 					names.add(od.qualifiedName.append("*"))
 			}
-			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.TRANSACTION_DECLARATION)) {
+			for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.TRANSACTION)) {
 				if (!packageName.equals(od.qualifiedName.skipLast(1)))
 					names.add(od.qualifiedName)
 			}

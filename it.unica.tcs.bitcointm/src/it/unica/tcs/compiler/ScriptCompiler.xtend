@@ -6,44 +6,43 @@ package it.unica.tcs.compiler
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AfterTimeLock
-import it.unica.tcs.bitcoinTM.AndScriptExpression
+import it.unica.tcs.bitcoinTM.AndExpression
+import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.Between
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BooleanLiteral
+import it.unica.tcs.bitcoinTM.BooleanNegation
+import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.Declaration
-import it.unica.tcs.bitcoinTM.DeclarationLeft
+import it.unica.tcs.bitcoinTM.Equals
+import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
-import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Literal
 import it.unica.tcs.bitcoinTM.Max
 import it.unica.tcs.bitcoinTM.Min
+import it.unica.tcs.bitcoinTM.Minus
 import it.unica.tcs.bitcoinTM.NumberLiteral
-import it.unica.tcs.bitcoinTM.OrScriptExpression
+import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
+import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.ScriptArithmeticSigned
-import it.unica.tcs.bitcoinTM.ScriptBooleanNegation
-import it.unica.tcs.bitcoinTM.ScriptComparison
-import it.unica.tcs.bitcoinTM.ScriptEquals
-import it.unica.tcs.bitcoinTM.ScriptExpression
-import it.unica.tcs.bitcoinTM.ScriptMinus
-import it.unica.tcs.bitcoinTM.ScriptPlus
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.TransactionLiteral
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.SerialTransactionBuilder
+import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.script.InputScript
 import it.unica.tcs.lib.script.InputScriptImpl
 import it.unica.tcs.lib.script.OpReturnOutputScript
@@ -55,6 +54,8 @@ import it.unica.tcs.lib.script.ScriptBuilder2
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
+import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.xsemantics.Rho
 import javax.inject.Singleton
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.xtext.EcoreUtil2
@@ -75,18 +76,32 @@ class ScriptCompiler {
 	
 	@Inject private extension CompilerUtils
     @Inject private extension ASTUtils
+    @Inject private extension BitcoinTMInterpreter
     
-    def InputScript compileInput(Input input, OutputScript outScript) {
+    def InputScript compileInput(Input input, ITransactionBuilder parentTx, Rho rho) {
+
+		val outpoint = input.outpoint as int
+		val outScript = parentTx.outputs.get(outpoint).script
 
         if (outScript.isP2PKH) {
         	/*
         	 * P2PKH
         	 */
         	var sig = input.exps.get(0) as Signature
-            var pubkey = sig.key.interpretSafe(KeyLiteral).value.privateWifToPubkeyBytes(input.networkParams)
+            var sb = sig.compileInputExpression(rho)
             
-            var sb = sig.compileInputExpression
-            sb.data(pubkey)
+            val resKey = sig.privkey.interpret(rho)
+    	
+	    	if (resKey.failed)
+	    		throw new CompileException('''Unable to evaluate to a private key''')
+	    	
+	    	val key = resKey.first
+	    	if (key instanceof DumpedPrivateKey) {
+	            sb.data(key.key.pubKey)
+	    	}
+	    	else {
+	    		throw new CompileException('''Unable to evaluate to a private key: «key»''')
+	    	}
 
             /* <sig> <pubkey> */
             return new InputScriptImpl().append(sb) as InputScript
@@ -99,30 +114,19 @@ class ScriptCompiler {
         	 * P2SH
         	 */
         	val redeemScript = 
-	        	if (inputTx instanceof TransactionLiteral) {
+        		if (parentTx instanceof SerialTransactionBuilder) {
+        			
 	        		// get the redeem script from the AST (specified by the user)
-	                val s = input.redeemScript.compileRedeemScript
+	                val s = input.redeemScript.compileRedeemScript(rho)
 	                
 	                if (!s.ready)
 		                throw new CompileException("This redeem script cannot have free variables")
 		            
 		            s
-	        	}
-	        	else if (inputTx instanceof Reference) {
-	        		
-				if (inputTx.ref.isTx || inputTx.ref.isTxParameter) {
-					outScript as P2SHOutputScript
-				}
-					else if (inputTx.ref.isTxLiteral){
-						// get the redeem script from the AST (specified by the user)
-		                val s = input.redeemScript.compileRedeemScript
-		                
-		                if (!s.ready)
-			                throw new CompileException("This redeem script cannot have free variables")
-			            
-			            s
-			        }
-	        	}
+        		}
+        		else if (parentTx instanceof TransactionBuilder) {
+        			outScript as P2SHOutputScript
+        		}
 	        	else 
 	        		throw new CompileException('''Unexpected class «inputTx»''')
 	        	
@@ -130,7 +134,7 @@ class ScriptCompiler {
                 
             // build the list of expression pushes (actual parameters) 
             input.exps.forEach[e|
-            	p2sh.append(e.compileInputExpression)
+            	p2sh.append(e.compileInputExpression(rho))
             ]
             
             /* <e1> ... <en> <serialized script> */
@@ -143,56 +147,49 @@ class ScriptCompiler {
     /**
      * 
      */
-    def InputScript compileInputExpression(ScriptExpression exp) {
-    	var ctx = new Context
+    def InputScript compileInputExpression(Expression exp, Rho rho) {
+    	var ctx = new Context(rho)
         new InputScriptImpl().append(exp.compileExpression(ctx)) as InputScript
     }
     
     /**
      * 
      */
-    def OutputScript compileOutputScript(Output output) {
+    def OutputScript compileOutputScript(Output output, Rho rho) {
 		
         var outScript = output.script
 
-        if (outScript.isP2PKH) {
+        if (outScript.isP2PKH(rho)) {
             var versig = outScript.exp as Versig
             
-            var res = versig.pubkeys.get(0).interpretSafe
-            
-            if (res instanceof KeyLiteral) {
-	            var wif = res.value
-	            var pkHash = BitcoinUtils.wifToECKey(wif, output.networkParams).pubKeyHash
-	
-	            /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+            val resKey = versig.pubkeys.get(0).interpret(rho)
+	    	
+	    	if (resKey.failed)
+	    		throw new CompileException('''Unable to evaluate to an address key''')
+	    	
+	    	val key = resKey.first
+	    	if (key instanceof DumpedPrivateKey) {
+		        	            /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
 	            val sb = new P2PKHOutputScript()
 	            sb.op(OP_DUP)
 	              .op(OP_HASH160)
-	              .data(pkHash)
+	              .data(key.key.pubKeyHash)
 	              .op(OP_EQUALVERIFY)
 	              .op(OP_CHECKSIG)
 	            return sb            	
-            }
-            else if (res instanceof Reference) {
-            	val sb = new P2PKHOutputScript()
-	            sb.op(OP_DUP)
-	              .op(OP_HASH160)
-	              .addVariable(res.ref.name, DumpedPrivateKey)
-	              .op(OP_EQUALVERIFY)
-	              .op(OP_CHECKSIG)
-	            return sb
-            }
-            else
-            	throw new CompileException("unexpected result "+res)
+	    	}
+	    	else {
+	    		throw new CompileException('''Unable to evaluate to a private key: «key»''')
+	    	}
             	
-        } else if (outScript.isP2SH) {
+        } else if (outScript.isP2SH(rho)) {
             
             // get the redeem script to serialize
-            var redeemScript = output.script.compileRedeemScript
+            var redeemScript = output.script.compileRedeemScript(rho)
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
             redeemScript
-        } else if (outScript.isOpReturn) {
+        } else if (outScript.isOpReturn(rho)) {
             var c = outScript.exp as StringLiteral
             var data = c.value.bytes
 
@@ -212,9 +209,9 @@ class ScriptCompiler {
 	 * <p>
 	 * It also prepends a magic number and altstack instruction.
 	 */
-	def P2SHOutputScript compileRedeemScript(Script script) {
+	def P2SHOutputScript compileRedeemScript(Script script, Rho rho) {
         
-        var ctx = new Context
+        var ctx = new Context(rho)
         
         // build the redeem script to serialize
         var redeemScript = new P2SHOutputScript()
@@ -236,13 +233,13 @@ class ScriptCompiler {
     
     
     
-	def private ScriptBuilder2 compileExpression(ScriptExpression exp, Context ctx) {
-        return exp.interpretSafe.compileExpressionInternal(ctx)
+	def private ScriptBuilder2 compileExpression(Expression exp, Context ctx) {
+        return exp.interpretSafe(ctx.rho).compileExpressionInternal(ctx)
     }
 
 	// default
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptExpression exp, Context ctx) {
-        throw new CompileException
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Expression exp, Context ctx) {
+        throw new CompileException("Unable to compile expression "+exp)
     }
 
 	/*
@@ -265,21 +262,27 @@ class ScriptCompiler {
         new ScriptBuilder2().data(s.value)
     }
     
-    def private dispatch ScriptBuilder2 compileExpressionInternal(KeyLiteral k, Context ctx) {
-        new ScriptBuilder2().data(DumpedPrivateKey.fromBase58(null, k.value).key.pubKey)
-    }
-    
     def private dispatch ScriptBuilder2 compileExpressionInternal(SignatureLiteral s, Context ctx) {
         new ScriptBuilder2().data(BitcoinUtils.decode(s.value))
     }
     
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
-		var wif = stmt.key.interpretSafe(KeyLiteral).value
-		var key = DumpedPrivateKey.fromBase58(stmt.networkParams, wif).getKey();
-        var hashType = stmt.modifier.toHashType
-        var anyoneCanPay = stmt.modifier.toAnyoneCanPay
-        var sb = new ScriptBuilder2().signaturePlaceholder(key, hashType, anyoneCanPay)
-        sb
+    	
+    	val resKey = stmt.privkey.interpret(ctx.rho)
+    	
+    	if (resKey.failed)
+    		throw new CompileException('''Unable to evaluate to a private key''')
+    	
+    	val key = resKey.first
+    	if (key instanceof DumpedPrivateKey) {
+	        var hashType = stmt.modifier.toHashType
+	        var anyoneCanPay = stmt.modifier.toAnyoneCanPay
+	        var sb = new ScriptBuilder2().signaturePlaceholder(key.key, hashType, anyoneCanPay)
+	        sb    		
+    	}
+    	else {
+    		throw new CompileException('''Unable to evaluate to a private key: «key»''')
+    	}
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Hash160 hash, Context ctx) {
@@ -310,7 +313,7 @@ class ScriptCompiler {
         sb.append(stmt.continuation.compileExpression(ctx))
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(AndScriptExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(AndExpression stmt, Context ctx) {
     	var sb = stmt.left.compileExpression(ctx)
         sb.op(OP_IF)
         sb.append(stmt.right.compileExpression(ctx))
@@ -321,7 +324,7 @@ class ScriptCompiler {
         sb.op(OP_ENDIF)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(OrScriptExpression stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(OrExpression stmt, Context ctx) {
     	var sb = stmt.left.compileExpression(ctx)
         sb.op(OP_IF) // short circuit
         val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
@@ -332,13 +335,13 @@ class ScriptCompiler {
         sb.op(OP_ENDIF)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptPlus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Plus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_ADD)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptMinus stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Minus stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_SUB)
@@ -361,12 +364,12 @@ class ScriptCompiler {
         sb.op(OP_SIZE)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptBooleanNegation stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(BooleanNegation stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)            
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptArithmeticSigned stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(ArithmeticSigned stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_NOT)
     }
@@ -378,7 +381,7 @@ class ScriptCompiler {
         sb.op(OP_WITHIN)
     }
 
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptComparison stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Comparison stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
 
@@ -390,7 +393,7 @@ class ScriptCompiler {
         }
     }
     
-    def private dispatch ScriptBuilder2 compileExpressionInternal(ScriptEquals stmt, Context ctx) {
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Equals stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.append(stmt.right.compileExpression(ctx))
         
@@ -412,14 +415,38 @@ class ScriptCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Versig stmt, Context ctx) {
         if (stmt.pubkeys.size == 1) {
             var sb = stmt.signatures.get(0).compileExpression(ctx)
-            sb.append((stmt.pubkeys.get(0) as ScriptExpression).compileExpression(ctx))
+        
+        	val resKey = stmt.pubkeys.get(0).interpret(ctx.rho)
+	    	
+	    	if (resKey.failed)
+	    		throw new CompileException('''Unable to evaluate to a public key''')
+	    	
+	    	val key = resKey.first
+	    	if (key instanceof DumpedPrivateKey) {
+		        sb.data(key.key.pubKey)
+	    	}
+	    	else {
+	    		throw new CompileException('''Unable to evaluate to a private key: «key»''')
+	    	}
+        
             sb.op(OP_CHECKSIG)
         } else {
             val sb = new ScriptBuilder2().number(OP_0)
             stmt.signatures.forEach[s|sb.append(s.compileExpression(ctx))]
             sb.number(stmt.signatures.size)
             stmt.pubkeys.forEach[k|
-	            sb.append((k as ScriptExpression).compileExpression(ctx))
+            	val resKey = k.interpret(ctx.rho)
+		    	
+		    	if (resKey.failed)
+		    		throw new CompileException('''Unable to evaluate to a public key''')
+		    	
+		    	val key = resKey.first
+		    	if (key instanceof DumpedPrivateKey) {
+			        sb.data(key.key.pubKey)
+		    	}
+		    	else {
+		    		throw new CompileException('''Unable to evaluate to a private key: «key»''')
+		    	}
             ]
             sb.number(stmt.pubkeys.size)
             sb.op(OP_CHECKMULTISIG)
@@ -437,7 +464,7 @@ class ScriptCompiler {
     }
     
     def private dispatch ScriptBuilder2 compileReferrable(Constant const, Context ctx) {
-    	val value = const.exp.interpretSafe
+    	val value = const.exp.interpretSafe(ctx.rho)
 	        	
     	if (value instanceof Literal) {
         	return value.compileExpression(ctx)        		
@@ -446,72 +473,64 @@ class ScriptCompiler {
     		throw new CompileException('''Constant «const.name» does not evaluate to Literal value. This should be checked by validation.''')
     }
     
-    def private dispatch ScriptBuilder2 compileReferrable(DeclarationLeft obj, Context ctx) {
-		var refContainer = obj.eContainer
-		if (refContainer instanceof Declaration) {        		
-	        	val value = refContainer.right.value.interpretSafe
-	        	
-	        	if (value instanceof Literal) {
-		        	return value.compileExpression(ctx)        		
-	        	}
-	        	else 
-	        		throw new CompileException('''the right part of declaration «obj.name» does not evaluate to Literal value''')
-        	}	        
-        	else 
-    			throw new CompileException('''unexpected class «refContainer»''')
-    }
-    
     def private dispatch ScriptBuilder2 compileReferrable(Parameter param, Context ctx) {
-        /*
-         * N: altezza dell'altstack
-         * i: posizione della variabile interessata
-         * 
-         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
-         * 	                                       x ora è in cima al main stack
-         * 
-         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
-         * 
-         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
-         * 
-         */
-    	var refContainer = param.eContainer
-		if (refContainer instanceof Script) {
-        	// script parameter
-        	val sb = new ScriptBuilder2()
-	        val pos = ctx.altstack.get(param).position
-			var count = ctx.altstack.get(param).occurrences
-	
-	        if(pos === null) throw new CompileException;
-	
-	        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-	        
-	        if (count==1) {
-	        	// this is the last usage of the variable
-	        	ctx.altstack.remove(param)							// remove the reference to its altstack position
-	        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
-	        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-	        	}
-	        	
-		        if (ctx.altstack.size - pos> 0)
-		            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-	        	
-	        }
-	        else {
-	        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
-		        sb.op(OP_DUP).op(OP_TOALTSTACK)
-	
-		        if (ctx.altstack.size - pos - 1 > 0)
-		            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
-	        }
-	        return sb
+        
+        if (ctx.rho.containsKey(param)) {
+        	val exp = objectToExpression(ctx.rho.get(param))
+        	return exp.compileExpression(ctx)
         }
-        else if (param.isTxParameter) {
-        	// transaction parameter
-        	return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
+        else {
+        	
+	    	var refContainer = param.eContainer
+			if (refContainer instanceof Script) {
+				
+				/*
+		         * N: altezza dell'altstack
+		         * i: posizione della variabile interessata
+		         * 
+		         * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
+		         * 	                                       x ora è in cima al main stack
+		         * 
+		         * OP_DUP OP_TOALTSTACK        	           duplica x e lo rimanda sull'altstack
+		         * 
+		         * (OP_SWAP OP_TOALTSTACK)( N - i - 1 )    prende l'elemento sotto x e lo sposta sull'altstack
+		         * 
+		         */
+	        	// script parameter
+	        	val sb = new ScriptBuilder2()
+		        val pos = ctx.altstack.get(param).position
+				var count = ctx.altstack.get(param).occurrences
+		
+		        if(pos === null) throw new CompileException;
+		
+		        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+		        
+		        if (count==1) {
+		        	// this is the last usage of the variable
+		        	ctx.altstack.remove(param)							// remove the reference to its altstack position
+		        	for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {	// update all the positions of the remaing elements
+		        		ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
+		        	}
+		        	
+			        if (ctx.altstack.size - pos> 0)
+			            (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
+		        	
+		        }
+		        else {
+		        	ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
+			        sb.op(OP_DUP).op(OP_TOALTSTACK)
+		
+			        if (ctx.altstack.size - pos - 1 > 0)
+			            (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]	            
+		        }
+		        return sb
+	        }
+	        else if (param.isTxParameter) {
+	        	// transaction parameter
+	        	return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
+	        }
+	    	else 
+				throw new CompileException('''unexpected class «refContainer»''')
         }
-    	else 
-			throw new CompileException('''unexpected class «refContainer»''')
     }
-    
-    
 }

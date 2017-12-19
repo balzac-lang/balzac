@@ -12,25 +12,19 @@
 
 package it.unica.btm.naive_2_party_escrow_arbiter
 
+const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kC = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 transaction T {
 	input = _
-	output = 10BTC: fun(sig1, sig2). versig(Alice.kA, Alice.kB, Alice.kC; sig1, sig2)
+	output = 10BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
 }
 
 transaction TA {
-	input = T: sig(Alice.kA) sig(Alice.kC) 
+	input = T: sig(kA) sig(kC) 
 	output = [
-		4BTC-15: fun(x). versig(Alice.kA; x);
-		6BTC-15: fun(y). versig(Alice.kB; y) 
+		4BTC-15: fun(x). versig(kA; x);
+		6BTC-15: fun(y). versig(kB; y) 
 	]
-}
-
-// finalization omitted
-
-participant Alice {
-	t	
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-	const kC = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 }

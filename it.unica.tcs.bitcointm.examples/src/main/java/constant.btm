@@ -1,0 +1,24 @@
+package it.unica.btm.constants 
+
+network mainnet
+
+const a:int    = 12+4*2               // integer 64-bit
+const b:bool   = true && false        // boolean
+const s:string = "Hello "+"world"     // string
+
+const h1:sha256    = sha256(42)
+const h2:ripemd160 = ripemd160("secret")
+const h160:hash160 = hash160(true)          // ripemd160(sha256(..))
+const h256:hash256 = hash256(h1)            // sha256(sha256(..))
+
+const h1_bis:sha256    = sha256:684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1
+const h2_bis:ripemd160 = ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78
+const h160_bis:hash160 = hash160:c51b66bced5e4491001bd702669770dccf440982
+const h256_bis:hash256 = hash256:3e60b464ea3bb214e7fee339baff43195bf00dd1f8bc384896ea527139eced55
+
+const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
+const k = kA
+
+const T:transaction = txid:f0315ffc38709d70ad5647e22048358dd3745f3ce3874223c80a7c92fab0c8ba
+const T_serial:transaction = tx:01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0e0420e7494d017f062f503253482fffffffff0100f2052a010000002321021aeaf2f8638a129a3156fbe7e5ef635226b0bafd495ff03afe2c843d7e3a4b51ac00000000
+

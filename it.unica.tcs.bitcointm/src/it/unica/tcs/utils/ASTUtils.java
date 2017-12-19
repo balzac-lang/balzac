@@ -4,11 +4,7 @@
 
 package it.unica.tcs.utils;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +19,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
 
@@ -31,13 +28,13 @@ import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
+import it.unica.tcs.bitcoinTM.BitcoinTMPackage;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.Constant;
-import it.unica.tcs.bitcoinTM.Declaration;
 import it.unica.tcs.bitcoinTM.Expression;
-import it.unica.tcs.bitcoinTM.ExpressionI;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
+import it.unica.tcs.bitcoinTM.Interpretable;
 import it.unica.tcs.bitcoinTM.KeyLiteral;
 import it.unica.tcs.bitcoinTM.Literal;
 import it.unica.tcs.bitcoinTM.Modifier;
@@ -55,9 +52,6 @@ import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Time;
 import it.unica.tcs.bitcoinTM.Tlock;
-import it.unica.tcs.bitcoinTM.TransactionBody;
-import it.unica.tcs.bitcoinTM.TransactionDeclaration;
-import it.unica.tcs.bitcoinTM.TransactionLiteral;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -70,19 +64,11 @@ import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter;
+import it.unica.tcs.xsemantics.Rho;
 import it.xsemantics.runtime.Result;
 
 @Singleton
 public class ASTUtils {
-	
-	public static final Referrable NO_WIT_FLAG;
-	public static final Map<Referrable,Object> RHO_NO_WIT_FLAG;
-	
-	static {
-		NO_WIT_FLAG = BitcoinTMFactory.eINSTANCE.createReferrable();
-		RHO_NO_WIT_FLAG = new HashMap<>();
-		RHO_NO_WIT_FLAG.put(NO_WIT_FLAG, null);
-	}
 	
 	@Inject private BitcoinClientI bitcoin;
 	@Inject private BitcoinTMInterpreter interpreter;
@@ -110,12 +96,24 @@ public class ASTUtils {
 	public String getName(Referrable ref) {
 		if (ref instanceof Parameter)
 			return ((Parameter) ref).getName();
-		if (ref instanceof Parameter)
-			return ((Parameter) ref).getName();
+		if (ref instanceof it.unica.tcs.bitcoinTM.Transaction)
+			return ((it.unica.tcs.bitcoinTM.Transaction) ref).getName();
+		if (ref instanceof Constant)
+			return ((Constant) ref).getName();
 		throw new IllegalStateException("Unexpected class "+ref.getClass());
 	}
 	
-	public Set<Parameter> getTxVariables(ExpressionI exp) {
+	public EAttribute getLiteralName(Referrable ref) {
+		if (ref instanceof Parameter)
+			return BitcoinTMPackage.Literals.PARAMETER__NAME;
+		if (ref instanceof it.unica.tcs.bitcoinTM.Transaction)
+			return BitcoinTMPackage.Literals.TRANSACTION__NAME;
+		if (ref instanceof Constant)
+			return BitcoinTMPackage.Literals.CONSTANT__NAME;
+		throw new IllegalStateException("Unexpected class "+ref.getClass());
+	}
+	
+	public Set<Parameter> getTxVariables(Expression exp) {
         Set<Parameter> refs = 
         		EcoreUtil2.getAllContentsOfType(exp.eContainer(), Reference.class)
         		.stream()
@@ -127,67 +125,22 @@ public class ASTUtils {
         return refs;
 	}
 	
-	public boolean isTx(Referrable p) {
-		return (p.eContainer() instanceof TransactionDeclaration);
-	}
 	
 	public boolean isTxParameter(Referrable p) {
-		return (p instanceof Parameter) && (p.eContainer().eContainer() instanceof TransactionDeclaration);
+		return (p instanceof Parameter) && (p.eContainer() instanceof it.unica.tcs.bitcoinTM.Transaction);
 	}
 	
-	public boolean isTxLiteral(Referrable p) {
-		return ((p.eContainer() instanceof Declaration) && (((Declaration) p.eContainer()).getRight().getValue() instanceof TransactionLiteral))
-				|| ((p instanceof Constant) && ((Constant) p).getExp() instanceof TransactionLiteral);
-	}
-	
-	public TransactionDeclaration getTxDeclaration(Referrable p) {
-		return (TransactionDeclaration) p.eContainer();
-	}
-	
-	public TransactionDeclaration getTxDeclaration(TransactionBody p) {
-		return (TransactionDeclaration) p.eContainer().eContainer();
-	}
-	
-	public Parameter getTxParameter(Referrable p) {
-		return (Parameter) p;
-	}
-
-	public TransactionLiteral getTxLiteral(Referrable p) {
-		if (p instanceof Constant) {
-			return (TransactionLiteral) ((Constant) p).getExp();
-		}
-		else {
-			return (TransactionLiteral) ((Declaration) p.eContainer()).getRight().getValue();
-		}
-	}
-
-	
-	public boolean hasTxVariables(ExpressionI exp) {
+	public boolean hasTxVariables(Expression exp) {
         return !getTxVariables(exp).isEmpty();
 	}
 
-	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Class<T> expectedType) {
-		return interpretSafe(exp, new HashMap<>(), expectedType);
-	}
-	
-	public <T extends ExpressionI> T interpretSafe(ExpressionI exp, Map<Referrable,Object> rho, Class<T> expectedType) {
-		ExpressionI res = interpretSafe(exp, rho);
-		checkState(expectedType.isInstance(res), "expected type "+expectedType+", got "+res.getClass());
-		return expectedType.cast(res);
-	}
-	
-	public <T extends ExpressionI> T interpretSafe(T exp) {
-		// returns the same type of exp
-		return interpretSafe(exp, new HashMap<>());
-	}
-	
 	@SuppressWarnings("unchecked")
-	public <T extends ExpressionI> T interpretSafe(T exp, Map<Referrable,Object> rho) {
+	public <T extends Interpretable> T interpretSafe(T exp, Rho rho) {
 		// returns the same type of exp
 		if (exp instanceof Literal)
 			return exp;
 		
-		if (exp instanceof TransactionBody)
+		if (exp instanceof Transaction)
 			return exp;
 		
 
@@ -196,55 +149,59 @@ public class ASTUtils {
 			return exp;
 		else {	
 			Object value = interpreted.getFirst();
-			if (value instanceof Long) {
-				NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
-	    		res.setValue((Long) value);
-	    		return (T) res;
-	    	}
-	    	else if (value instanceof String) {
-	    		StringLiteral res = BitcoinTMFactory.eINSTANCE.createStringLiteral();
-	    		res.setValue((String) value);
-	    		return (T) res;
-	    	}	
-	    	else if (value instanceof Boolean) {
-	    		BooleanLiteral res = BitcoinTMFactory.eINSTANCE.createBooleanLiteral();
-	    		res.setTrue((Boolean) value);
-	    		return (T) res;	
-	    	}	
-	    	else if (value instanceof Hash160) {
-	    		Hash160Literal res = BitcoinTMFactory.eINSTANCE.createHash160Literal();
-	    		res.setValue(((Hash160) value).getBytes());
-	    		return (T) res;	
-	    	}
-	    	else if (value instanceof Hash256) {
-	    		Hash256Literal res = BitcoinTMFactory.eINSTANCE.createHash256Literal();
-	    		res.setValue(((Hash256) value).getBytes());
-	    		return (T) res;    		
-	    	}
-	    	else if (value instanceof Ripemd160) {
-	    		Ripemd160Literal res = BitcoinTMFactory.eINSTANCE.createRipemd160Literal();
-	    		res.setValue(((Ripemd160) value).getBytes());
-	    		return (T) res;    		
-	    	}
-	    	else if (value instanceof Sha256) {
-	    		Sha256Literal res = BitcoinTMFactory.eINSTANCE.createSha256Literal();
-	    		res.setValue(((Sha256) value).getBytes());
-	    		return (T) res;    		
-	    	}
-	    	else if (value instanceof DumpedPrivateKey) {
-	    		KeyLiteral res = BitcoinTMFactory.eINSTANCE.createKeyLiteral();
-	    		res.setValue(((DumpedPrivateKey) value).toBase58());
-	    		return (T) res;    		
-	    	}
-	    	else if (value instanceof TransactionSignature) {
-	    		SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
-	    		res.setValue(BitcoinUtils.encode(((TransactionSignature) value).encodeToBitcoin()));
-	    		return (T) res;    		
-	    	}
-	    	else {
-	    		throw new IllegalStateException("Unexpected type "+value.getClass());
-	    	}	
+			return (T) objectToExpression(value);
 		}
+	}
+	
+	public Expression objectToExpression(Object value) {
+		if (value instanceof Long) {
+			NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
+    		res.setValue((Long) value);
+    		return res;
+    	}
+    	else if (value instanceof String) {
+    		StringLiteral res = BitcoinTMFactory.eINSTANCE.createStringLiteral();
+    		res.setValue((String) value);
+    		return res;
+    	}	
+    	else if (value instanceof Boolean) {
+    		BooleanLiteral res = BitcoinTMFactory.eINSTANCE.createBooleanLiteral();
+    		res.setTrue((Boolean) value);
+    		return res;	
+    	}	
+    	else if (value instanceof Hash160) {
+    		Hash160Literal res = BitcoinTMFactory.eINSTANCE.createHash160Literal();
+    		res.setValue(((Hash160) value).getBytes());
+    		return res;	
+    	}
+    	else if (value instanceof Hash256) {
+    		Hash256Literal res = BitcoinTMFactory.eINSTANCE.createHash256Literal();
+    		res.setValue(((Hash256) value).getBytes());
+    		return res;    		
+    	}
+    	else if (value instanceof Ripemd160) {
+    		Ripemd160Literal res = BitcoinTMFactory.eINSTANCE.createRipemd160Literal();
+    		res.setValue(((Ripemd160) value).getBytes());
+    		return res;    		
+    	}
+    	else if (value instanceof Sha256) {
+    		Sha256Literal res = BitcoinTMFactory.eINSTANCE.createSha256Literal();
+    		res.setValue(((Sha256) value).getBytes());
+    		return res;    		
+    	}
+    	else if (value instanceof DumpedPrivateKey) {
+    		KeyLiteral res = BitcoinTMFactory.eINSTANCE.createKeyLiteral();
+    		res.setValue(((DumpedPrivateKey) value).toBase58());
+    		return res;    		
+    	}
+    	else if (value instanceof TransactionSignature) {
+    		SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
+    		res.setValue(BitcoinUtils.encode(((TransactionSignature) value).encodeToBitcoin()));
+    		return res;    		
+    	}
+    	else {
+    		throw new IllegalStateException("Unexpected type "+value.getClass());
+    	}
 	}
 	
 //	public boolean allAbsoluteAreBlock(Tlock tlock) {
@@ -275,16 +232,12 @@ public class ASTUtils {
 //    			.allMatch(ASTUtils::isRelativeDate);
 //    }
 	
-	public boolean isCoinbase(TransactionDeclaration tx) {
-		return isCoinbase(((TransactionBody) tx.getRight().getValue()));
-	}
-	
-	public boolean isCoinbase(TransactionBody tx) {
+	public boolean isCoinbase(it.unica.tcs.bitcoinTM.Transaction tx) {
 		return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
 	}
 	
 	public boolean isCoinbase(Expression tx) {
-		Result<Object> res = this.interpreter.interpret(tx, RHO_NO_WIT_FLAG);
+		Result<Object> res = this.interpreter.interpretE(tx);
 		
 		if (res.failed())
 			return false;
@@ -310,23 +263,21 @@ public class ASTUtils {
 		}
 	}
 
-	public boolean isP2PKH(Script script) {
-        boolean onlyOneSignatureParam = 
-        		script.getParams().size() == 1 && script.getParams().get(0).getType() instanceof SignatureType;
-        boolean onlyOnePubkey = (interpretSafe(script.getExp()) instanceof Versig) 
-        		&& ((Versig) interpretSafe(script.getExp())).getPubkeys().size() == 1;
+	public boolean isP2PKH(Script script, Rho rho) {
+        boolean onlyOneSignatureParam = script.getParams().size() == 1 && script.getParams().get(0).getType() instanceof SignatureType;
+        boolean onlyOnePubkey = (interpretSafe(script.getExp(), rho) instanceof Versig) && ((Versig) interpretSafe(script.getExp(), rho)).getPubkeys().size() == 1;
 
         return onlyOneSignatureParam && onlyOnePubkey;
     }
 
-	public boolean isOpReturn(Script script) {
+	public boolean isOpReturn(Script script, Rho rho) {
         boolean noParam = script.getParams().size() == 0;
-        boolean onlyString = interpretSafe(script.getExp()) instanceof StringLiteral;
+        boolean onlyString = interpretSafe(script.getExp(), rho) instanceof StringLiteral;
         return noParam && onlyString;
     }
 
-	public boolean isP2SH(Script script) {
-        return !isP2PKH(script) && !isOpReturn(script);
+	public boolean isP2SH(Script script, Rho rho) {
+        return !isP2PKH(script, rho) && !isOpReturn(script, rho);
     }
 
 	
@@ -335,7 +286,7 @@ public class ASTUtils {
     	return tlock.getTimes().stream().filter(x -> x instanceof AbsoluteTime).count()>0;
     }
     
-    public boolean containsRelative(Tlock tlock, TransactionDeclaration tx) {
+    public boolean containsRelative(Tlock tlock, it.unica.tcs.bitcoinTM.Transaction tx) {
     	return tlock.getTimes().stream()
     			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
     			.count()>0;
@@ -347,7 +298,7 @@ public class ASTUtils {
     			.collect(Collectors.toList()).get(0).getValue();
     }
     
-    public long getRelative(Tlock tlock, TransactionDeclaration tx) {
+    public long getRelative(Tlock tlock, it.unica.tcs.bitcoinTM.Transaction tx) {
     	return tlock.getTimes().stream()
     			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
     			.collect(Collectors.toList()).get(0).getValue();

@@ -4,24 +4,14 @@
 
 package it.unica.btm.time_commitment
 
-participant Alice {
-	t
-//	put T_commitA {input = T_fundsA: sig(kA) }
-//	-> send (do sig(T)_payDepositA kA to Bob)
-//		
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-}
-
-participant Bob {
-	t
-	const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-}
+const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 
 /*
  * funds
  */
-transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(Alice.kA; sigma)}   
-transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(Bob.kB; sigma)} 
+transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}   
+transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(kB; sigma)} 
 
 transaction T_funds(k:key) { 
 	input = _ 
@@ -35,18 +25,18 @@ transaction T_commitA {
 	input = _
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
-			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(Alice.kA; sigma1)
+			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
 			||
-			versig(Alice.kA, Bob.kB; sigma1, sigma2)
+			versig(kA, kB; sigma1, sigma2)
 }
 
 transaction T_commitB { 
 	input = _
 	output = 10 BTC: 
 		fun(sigma1, sigma2, x:string).
-			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(Bob.kB; sigma1)
+			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
 			||  
-			versig(Alice.kA, Bob.kB; sigma1, sigma2)
+			versig(kA, kB; sigma1, sigma2)
 }
  
 transaction T_commit(hSecret:hash160, k:key) {
@@ -55,39 +45,39 @@ transaction T_commit(hSecret:hash160, k:key) {
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hSecret && versig(k; sigma1)
 			||  
-			versig(Alice.kA, Bob.kB; sigma1, sigma2)
+			versig(kA, kB; sigma1, sigma2)
 }
 
 /*
  * open
  */
 transaction T_openA { 
-	input = T_commitA: sig(Alice.kA) sig(Alice.kA) "secretA"	// second item is useless
-	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
+	input = T_commitA: sig(kA) sig(kA) "secretA"	// second item is useless
+	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 }
 
 transaction T_openB {
-	input = T_commitB: sig(Bob.kB) sig(Bob.kB) "secretB"	// second item is useless
-	output = 10 BTC - 10: fun(sigma) . versig(Bob.kB; sigma)
+	input = T_commitB: sig(kB) sig(kB) "secretB"	// second item is useless
+	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
 }
 
 //transaction T_open(k:key, secret:string) {	// TODO: consider taking tx as parameter
 //	input = T_commit(hash160(secret), k): sig(k) sig(k)et	// second item is useless
-//	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
+//	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 //}
 
 /*
  * pay deposit
  */
 transaction T_payDepositA {
-    input = T_commitA: sig(Alice.kA) sig(Bob.kB) ""
- 	output = 10 BTC - 10: fun(sigma) . versig(Alice.kA; sigma)
+    input = T_commitA: sig(kA) sig(kB) ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 	after block 45
 }
 
 transaction T_payDepositB {
-    input = T_commitB: sig(Alice.kA) sig(Bob.kB) ""
- 	output = 10 BTC - 10: fun(sigma) . versig(Bob.kB; sigma)
+    input = T_commitB: sig(kA) sig(kB) ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
 	after block 45 
 }
 
@@ -103,8 +93,8 @@ transaction T_compute {
 			(size(xA) == 128 || size(xA) == 127) && 
 			(size(xB) == 128 || size(xB) == 127) &&
 			if size(xA) == size(xB) 
-			then versig(Alice.kA; sigma1)  
-			else versig(Bob.kB; sigma2) 
+			then versig(kA; sigma1)  
+			else versig(kB; sigma2) 
 } 
 
 

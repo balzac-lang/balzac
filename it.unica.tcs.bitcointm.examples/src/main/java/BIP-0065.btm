@@ -2,34 +2,29 @@ package it.unica.btm.bip_0062
 
 network testnet
  
+const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 transaction T {
 	input = _
 	output = 1 BTC - 10:
 		fun(flag, sig1, sig2) . 
 			if (flag)
-			then after block 50 : (versig(Alice.kL; sig2) && versig(Alice.kA,Alice.kB; sig1))
-			else versig(Alice.kA,Alice.kB; sig1,sig2)
+			then after block 50 : (versig(kL; sig2) && versig(kA,kB; sig1))
+			else versig(kA,kB; sig1,sig2)
 }
 
 transaction T_1 {
-	input = T: true sig(Alice.kA) sig(Alice.kL)
+	input = T: true sig(kA) sig(kL)
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50
 }
 
 transaction T_2 {
-	input = T: false sig(Alice.kA) sig(Alice.kB)
+	input = T: false sig(kA) sig(kB)
 	output = 0: "test"
 //	after date 1985-11-05T00:53:20-00:30
 	after block 50
 }
-
-participant Alice {
-	t
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-	const kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
-}
-

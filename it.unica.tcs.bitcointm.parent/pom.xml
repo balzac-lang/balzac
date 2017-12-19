@@ -24,7 +24,7 @@
  		<module>../it.unica.tcs.bitcointm.target</module>
 		<module>../it.unica.tcs.bitcointm.feature</module>
 		<module>../it.unica.tcs.bitcointm.repository</module>
-<!-- 		<module>../it.unica.tcs.bitcointm.tests</module> -->
+<!--  	<module>../it.unica.tcs.bitcointm.tests</module> -->
 		<module>../it.unica.tcs.bitcointm.ui.tests</module>
 		<module>../it.unica.tcs.bitcointm.lib</module>
 	</modules>

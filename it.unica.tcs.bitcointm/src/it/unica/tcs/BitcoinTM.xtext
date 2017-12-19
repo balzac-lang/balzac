@@ -29,7 +29,7 @@ QualifiedNameWithWildcard:
 
 Element: 
 	Constant
-|	TransactionDeclaration; 
+|	Transaction; 
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
@@ -44,7 +44,7 @@ Parameter:
 Constant:
 	"const" name=ID (":" type=PermittedType)? "=" exp=Expression;
 
-TransactionDeclaration:
+Transaction:
 	checks+=OnDemandCheck*
 	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
 		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
@@ -65,6 +65,9 @@ BitcoinValue:
 	exp=Expression;
 
 Tlock: times+=AbsoluteTime;
+
+Time:
+	AbsoluteTime | RelativeTime;
 
 AbsoluteTime:
 	block?="block" value=LONG | date?="date" value=TIMESTAMP;
@@ -138,7 +141,7 @@ Reference:
 
 Referrable:
 	Parameter 
-|	TransactionDeclaration
+|	Transaction
 |	Constant;
 
 Literal:
@@ -240,12 +243,15 @@ enum VoidTypeEnum: void;
 Typeable:
   Parameter
 | Constant
-| TransactionDeclaration
+| Transaction
 | Input
 | Output 
 | Expression
-| Compile
-;
+| Compile;
+
+Interpretable:
+	Expression
+|	Transaction;
 
 Number returns ecore::ELong:
 	LONG ('.' LONG)? "BTC"?
@@ -268,7 +274,7 @@ terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
 
-terminal WIF: 
+terminal WIF:
 	'wif:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
 terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;

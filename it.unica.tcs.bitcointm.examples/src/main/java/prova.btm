@@ -1,34 +1,17 @@
-package it.unica.btm.prova 
+package it.unica.btm.prova
 
 network mainnet
 
-const a:int    = 12+4*2               // integer 64-bit
-const b:bool   = true && false        // boolean
-const s:string = "Hello "+"world"     // string
-
-const h1:sha256    = sha256(42)
-const h2:ripemd160 = ripemd160("secret")
-const h160:hash160 = hash160(true)          // ripemd160(sha256(..))
-const h256:hash256 = hash256(h1)            // sha256(sha256(..))
-
-const h1_bis:sha256    = sha256:684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1
-const h2_bis:ripemd160 = ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78
-const h160_bis:hash160 = hash160:c51b66bced5e4491001bd702669770dccf440982
-const h256_bis:hash256 = hash256:3e60b464ea3bb214e7fee339baff43195bf00dd1f8bc384896ea527139eced55
-
 const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
-
-const T:transaction = txid:f0315ffc38709d70ad5647e22048358dd3745f3ce3874223c80a7c92fab0c8ba
-const T_serial:transaction = tx:01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0e0420e7494d017f062f503253482fffffffff0100f2052a010000002321021aeaf2f8638a129a3156fbe7e5ef635226b0bafd495ff03afe2c843d7e3a4b51ac00000000
-
+const kB = kA
 
 transaction ALFA { 
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;		// P2SH
-		1 BTC: fun(y) . versig(Alice.kA; y);	// P2PKH
+		1 BTC: fun(y) . versig(kA; y);	// P2PKH
 		0 BTC: "DATA";					// OP_RETURN 
-		1 BTC: fun(y,s) . versig(Alice.kA; y) && s == "s"
+		1 BTC: fun(y,s) . versig(kA; y) && s == "s"
 	] 
 } 
 
@@ -42,27 +25,26 @@ transaction T {
 		0.00000546 BTC:		fun(n) . n=="screen";
 		546:				fun(x:signature, y:signature) . x==y;
 		550:				fun(y:signature) . false;
-		550:				fun(y2, n2: int, b:bool) . versig(Alice.kA, Bob.kB; y2) && 2==n2 && b
+		550:				fun(y2, n2: int, b:bool) . versig(kA, kB; y2) && 2==n2 && b
 	]
 }
  
 const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001
-const sig_of_T1_at_7_bis = sig(Bob.kB) of T1@7 
+const sig_of_T1_at_7_bis = sig(kB) of T1@7 
 
 transaction T1 {  
 	input = [
 		T@0: (0.00000043 BTC);  
 		T@1: if (10+2==12) then "screen" else "xyz";
-		T@2: sig(Alice.kA)[AIAO] sig(Alice.kA)[AIAO];
-		T@3: sig(Alice.kA)[AIAO];  
-		T@4: sig(Alice.kA)[AIAO] 2 (sig(Alice.kA)[AIAO]==sig(Alice.kA));
+		T@2: sig(kA)[AIAO] sig(kA)[AIAO];
+		T@3: sig(kA)[AIAO];  
+		T@4: sig(kA)[AIAO] 2 true; 
 		
 //		ALFA@0:	42 ; 
 //		ALFA@1:	sig(kB)[];
-		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH 
-		ALFA_serial@1:	sig(Bob.kB);
-		ALFA@3:	sig_of_T1_at_7 "s"; 
-		ALFA@3:	sig (Bob.kB) "s"
+		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH
+		ALFA_serial@1:	sig(kB);
+		ALFA@3:	sig (kB) "s"
 	]
 
 	output = [  
@@ -89,86 +71,35 @@ transaction Th {
 } 
 
 transaction Th1 {  
-	input = Th: "secret"
+	input = Th: "secretq2"
 	output = 0: "HELLO WORLD" 
 }
 
-transaction A0 {
-	input = Th : "secret"
-	output = 0: ""
-	after 4 blocks from Th
-}
-
-transaction A1 {
-	input = Th : "secret"
-	output = 0: ""
-	after 60 minutes from Th
-}
-
-transaction A2 {
-	input = Th : "secret"
-	output = 0: ""
-	after 60 hours from Th
-}
-
-transaction A3 {
-	input = Th : "secret"
-	output = 0: ""
-	after 380 days from Th 
-}
-
-transaction A4 {
-	input = Th : "secret" 
-	output = 0: ""
-	after block 499_999_999
-}
- 
 transaction test(p) { 
 	input = Th : (""+p)
 	output = 1000: fun(secret:string). p==secret 
 	after block 499_999_999
 }
 
-transaction test2(p) {
-	input = test(p) : ""
-	output = 900: fun(secret:string). p==secret  
-	after block 499_999_999
-}
+//transaction test2(p) {
+//	input = test(p) : ""
+//	output = 900: fun(secret:string). p==secret  
+//	after block 499_999_999
+//}
 
 
 transaction bar {
 	input = _
-	output = 1 BTC: fun(sigma) . versig(Alice.kA ; sigma) 
+	output = 1 BTC: fun(sigma) . versig(kA ; sigma) 
 }
 
-//transaction foo(sigma) {
-//	input = bar : sigma  
-//	output = 0: "magic"
-//}
-
-participant Alice {
-	t
-//	P(45) 
-//	process P(b) = assert b==4 -> P(b+1)
-//	process P1(b) = ask A0 + assert b==4 -> P(789+12)
-	const kA = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
-	
-//	key kA = wif:cQgNVSk8a7gAgtoWmmMMVU1zYwarS8Qw7Et1S6HG4tkqyU6FmFUC		// testnet, compressed, encoded (address)
-}
- 
-participant Bob {
-	t
-//	P
-//	process P = ask A0 + receive x:int from Bob + send 5 to Alice
-	const kB = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW		// mainnet, compressed, encoded (address)
-}
 transaction Y {
-	input = bar: sig(Alice.kA)
+	input = bar: sig(kA)
 	output = [
 		550: fun(n) . n==42;				// P2SH
-		550: fun(y) . versig(Alice.kA; y);	// P2PKH
+		550: fun(y) . versig(kA; y);	// P2PKH
 		0 BTC: "DATA"						// OP_RETURN 
 	] 	
 }
 
-compile T1 
+compile T1
