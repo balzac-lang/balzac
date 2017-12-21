@@ -341,48 +341,47 @@ from {
 		t1 = typesubstitution(substitutions, t1)
 		unify(substitutions, t1, txType)
 		
-		{
-			val inputTxRef = input.txRef
+		val inputTxRef = input.txRef
+
+		if (inputTxRef instanceof Reference) {
 			
-			if (inputTxRef instanceof Reference) {
-				
-				val tx = inputTxRef.ref as Transaction
-				
-				
-				// check the actual parameters type match the formal ones (Script)
-				var outputIndex = input.outpoint
-				var outputScript = tx.outputs.get(new Long(outputIndex).intValue).script
+			val tx = inputTxRef.ref as Transaction
+			
+			
+			// check the actual parameters type match the formal ones (Script)
+			var outputIndex = input.outpoint
+			var outputScript = tx.outputs.get(new Long(outputIndex).intValue).script
 
-				if (input.exps.size != outputScript.params.size) {
-					fail 
-						error "Invalid number of actual parameters."
-						source inputTxRef
-				}
-
-				for (var i=0; i<input.exps.size; i++) {
-					var inputExp = input.exps.get(i)
-					var outputParam = outputScript.params.get(i)
-					
-					// get formal parameter type
-					var formalParamType = env(G, outputParam, Type)
-					// apply eventual substitutions to get the basic type
-					formalParamType = typesubstitution(substitutions, formalParamType)
-					// ensure it's basic
-					failIfTypeVariable(formalParamType, outputParam)
-					
-					// all the actual parameters are well typed
-					G |- substitutions |> inputExp : var Type actualParamType
-					// apply eventual substitutions
-					actualParamType = typesubstitution(substitutions, actualParamType)
-					
-					// the actual param type must be unifiable with the formal param type
-					unify(substitutions, actualParamType, formalParamType)
-					
-					// store the type in the AST
-					outputParam.type = formalParamType as PermittedType
-				}
+			if (input.exps.size != outputScript.params.size) {
+				fail 
+					error "Invalid number of actual parameters."
+					source input
 			}
-		} or {
+
+			for (var i=0; i<input.exps.size; i++) {
+				var inputExp = input.exps.get(i)
+				var outputParam = outputScript.params.get(i)
+				
+				// get formal parameter type
+				var formalParamType = env(G, outputParam, Type)
+				// apply eventual substitutions to get the basic type
+				formalParamType = typesubstitution(substitutions, formalParamType)
+				// ensure it's basic
+				failIfTypeVariable(formalParamType, outputParam)
+				
+				// all the actual parameters are well typed
+				G |- substitutions |> inputExp : var Type actualParamType
+				// apply eventual substitutions
+				actualParamType = typesubstitution(substitutions, actualParamType)
+				
+				// the actual param type must be unifiable with the formal param type
+				unify(substitutions, actualParamType, formalParamType)
+				
+				// store the type in the AST
+				outputParam.type = formalParamType as PermittedType
+			}
+		}
+		else {
 			// all the input expressions are well typed and the type is basic
 			for (var i=0; i<input.exps.size; i++) {
 				var exp = input.exps.get(i)
@@ -390,7 +389,7 @@ from {
 				texp = typesubstitution(substitutions, texp)
 				failIfTypeVariable(texp, exp)
 			}
-		}
+		} 
 	}
 }
 

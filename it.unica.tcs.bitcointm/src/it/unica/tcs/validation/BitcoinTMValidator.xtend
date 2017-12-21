@@ -938,112 +938,17 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             );
     	}
     }
-    
+
     @Check
     def void checkRelativeTime(RelativeTime tlock) {
-    	
-    	
+
     }
     
     @Check
     def void checkAfter(AfterTimeLock after) {
-    	
-    	// transaction containing after
-    	val tx = EcoreUtil2.getContainerOfType(after, Transaction);
-    	
-    	// all the txs pointing to tx
-    	var txReferences = EcoreUtil.UsageCrossReferencer.find(tx, tx.eResource())
-    		.map[s|s.EObject as Reference];
-//		var txReferences = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(after), Reference).filter[v|v.ref==tx]
-    	
-    	// all these txs have to define the timelock
-    	for (ref : txReferences) {
-    		
-    		val body = EcoreUtil2.getContainerOfType(ref, Transaction);
-    		
-    		// the transaction does not define a timelock
-    		if (body.tlock===null) {
-    			error(
-	                '''Referred output requires to define a timelock.''',
-	                ref.eContainer,			// INPUT
-	                ref.eContainingFeature	// INPUT__TX_REF
-	            );
-    		}
-			// transaction lock is defined
-    		else {	
-	    	
-				// after expression uses an absolute time     	
-	    		if (after.timelock.isAbsolute)  {
-	    			
-	        		var absTimes = body.tlock.times.filter(AbsoluteTime).map(x|x as AbsoluteTime) 
 
-			        if(absTimes.size==0){
-	 					error(
-			                '''Transaction does not define an absolute timelock''',
-			                body,
-			                BitcoinTMPackage.Literals.TRANSACTION__TLOCK
-			            );
-			        }
-			        else if(absTimes.size==1) {
-			        	// check if they are of the same type (block|date)
-			        	if (after.timelock.isBlock && !absTimes.get(0).isBlock
-							|| after.timelock.isRelative && !absTimes.get(0).isRelative
-						)
-							error(
-				                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
-				                absTimes.get(0).eContainer,
-				                absTimes.get(0).eContainingFeature
-				            );
-			        }
-			        else {
-			        	for (t : absTimes)
-							error(
-				                '''Only one absolute timelock is allowed''',
-				                t.eContainer,
-				                t.eContainingFeature
-				            );
-			        }
-	    		}
-	    		
-	    		// after expression uses a relative time
-	    		if (after.timelock.isRelative) {
-	    			
-		    		var timesPerTx = body.tlock.times
-			    		.filter(RelativeTime)
-			    		.filter(x | (x as RelativeTime).tx == tx)
-			    		
-			    	
-			    	if (timesPerTx.size==0) {
-			    		error(
-			                '''Transaction does not define a relative timelock for transaction «(ref.ref as Transaction).name»''',
-			                body,
-			                BitcoinTMPackage.Literals.TRANSACTION__TLOCK
-			            );
-			    	}
-			    	else if (timesPerTx.size==1) {
-			    		// check if they are of the same type (block|date)
-						if (after.timelock.isBlock && !timesPerTx.get(0).isBlock
-							|| after.timelock.isRelative && !timesPerTx.get(0).isRelative
-						)
-							error(
-				                '''Transaction timelock must be of type «IF after.timelock.isBlock»block«ELSE»timestamp«ENDIF».''',
-				                timesPerTx.get(0).eContainer,
-				                timesPerTx.get(0).eContainingFeature
-				            );
-			    	}
-			    	else {
-			    		for (t : timesPerTx)
-				    		error(
-				                '''Only one relative timelock is allowed per transaction''',
-				                t.eContainer,
-				                t.eContainingFeature
-				            );
-			    	}
-	    		}
-			} 
-    	}
     }
-    
+
 	@Check
     def boolean checkTransactionChecksOndemand(Transaction tx) {
         var hasError = false

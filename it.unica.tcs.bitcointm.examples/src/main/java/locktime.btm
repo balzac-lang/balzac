@@ -1,0 +1,47 @@
+package it.unica.btm.locktime
+
+network testnet
+ 
+const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+
+transaction T {
+	input = _
+	output = 1 BTC - 10:
+		fun(sig1, sig2) . 
+			versig(kA,kB; sig1,sig2)
+			|| after block 50 : versig(kA,kB,kL; sig1,sig2)
+}
+
+/*
+ * T_1 redeems at any time
+ */
+transaction T_1 {
+	input = T: sig(kA) sig(kB)
+	output = 0: "test"
+}
+
+/*
+ * T_2 does not satisfy timelock constraints
+ */
+transaction T_2 {
+	input = T: sig(kA) sig(kL)
+	output = 0: "test"
+	after block 25
+}
+
+/*
+ * T_3 T_4 satisfy timelock constraints.
+ */
+transaction T_3 {
+	input = T: sig(kA) sig(kL)
+	output = 0: "test"
+	after block 55
+}
+
+transaction T_4 {
+	input = T: sig(kB) sig(kL)
+	output = 0: "test"
+	after block 55
+}
