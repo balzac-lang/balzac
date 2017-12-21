@@ -50,7 +50,7 @@ public abstract class Hash {
 			checkArgument(bytes.length==20, "Ripemd160: expected byte array of length 20");
 		}
 		public String getType() { 
-			return "ripemd:";
+			return "ripemd";
 		}
 	}
 	
