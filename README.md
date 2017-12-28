@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/bitcoin-transaction-model/bitcoin-transaction-model.svg?branch=master)](https://travis-ci.org/bitcoin-transaction-model/bitcoin-transaction-model)
+[![Coverage Status](https://coveralls.io/repos/github/bitcoin-transaction-model/bitcoin-transaction-model/badge.svg?branch=master)](https://coveralls.io/github/bitcoin-transaction-model/bitcoin-transaction-model?branch=master)
+
 # Bitcoin transaction model
 
 A domain-specific language to write Bitcoin transactions, based on the paper
