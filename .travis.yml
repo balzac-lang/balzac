@@ -5,3 +5,6 @@ before_script:
 
 script:
   - mvn -f it.unica.tcs.bitcointm.parent/ install
+
+after_success:
+  - mvn -f it.unica.tcs.bitcointm.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
