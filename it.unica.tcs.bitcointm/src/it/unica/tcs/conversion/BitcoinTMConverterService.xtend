@@ -5,7 +5,6 @@
 package it.unica.tcs.conversion
 
 import com.google.inject.Inject
-import it.unica.tcs.conversion.converter.DelayValueConverter
 import it.unica.tcs.conversion.converter.HashValueConverter
 import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
@@ -27,7 +26,6 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 	@Inject private HashValueConverter hashConverter;
 	@Inject private TimestampValueConverter timestampTerminalConverter;
 	@Inject private LongUnderscoreValueConverter longTerminalConverter;
-	@Inject private DelayValueConverter delayConverter;
 		
 	@ValueConverter(rule = "Number")
     def IValueConverter<Long> getNumberConverter() {
@@ -64,11 +62,6 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
         return longTerminalConverter
 	}
 		
-	@ValueConverter(rule = "Delay")
-    def IValueConverter<Long> getDelay() {
-        return delayConverter
-	}
-	
 	@ValueConverter(rule = "TXID")
     def IValueConverter<String> getTXID() {
         return new AbstractLexerBasedConverter<String>() {

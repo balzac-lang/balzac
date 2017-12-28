@@ -72,9 +72,14 @@ class TransactionCompiler {
 		    		val inScript = input.compileInput(parentTxCompiled, rho)
 		    		
 		    		// relative timelock
-		    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
-						val locktime = tx.tlock.getRelative(tx)
-						tb.addInput(parentTxCompiled, outIndex, inScript, locktime)
+		    		if (tx.timelocks.containsRelative(tx)) {
+						val locktime = tx.timelocks.getRelative(tx)
+						val res = locktime.value.interpret(rho)
+    		
+			    		if (res.failed)
+			    			throw new CompileException("Cannot evaluate the relative timelock.")
+			    		
+						tb.addInput(parentTxCompiled, outIndex, inScript, res.value as Long)
 		    		}
 		    		else {
 		    			tb.addInput(parentTxCompiled, outIndex, inScript)
@@ -94,9 +99,14 @@ class TransactionCompiler {
 				    		
 			    		
 			    		// relative timelock
-			    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
-							val locktime = tx.tlock.getRelative(tx)
-							tb.addInput(parentTxCompiled, outIndex, inScript, locktime)
+			    		if (tx.timelocks.containsRelative(tx)) {
+							val locktime = tx.timelocks.getRelative(tx)
+							val res = locktime.value.interpret(rho)
+	    		
+				    		if (res.failed)
+				    			throw new CompileException("Cannot evaluate the relative timelock.")
+				    		
+							tb.addInput(parentTxCompiled, outIndex, inScript, res.value as Long)
 			    		}
 			    		else {
 			    			tb.addInput(parentTxCompiled, outIndex, inScript)
@@ -117,9 +127,14 @@ class TransactionCompiler {
 					    		
 				    		
 				    		// relative timelock
-				    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
-								val locktime = tx.tlock.getRelative(tx)
-								tb.addInput(parentTx, outIndex, inScript, locktime)
+				    		if (tx.timelocks.containsRelative(tx)) {
+								val locktime = tx.timelocks.getRelative(tx)
+								val res = locktime.value.interpret(rho)
+		    		
+					    		if (res.failed)
+					    			throw new CompileException("Cannot evaluate the relative timelock.")
+					    		
+								tb.addInput(parentTx, outIndex, inScript, res.value as Long)
 				    		}
 				    		else {
 				    			tb.addInput(parentTx, outIndex, inScript)
@@ -212,9 +227,14 @@ class TransactionCompiler {
 			    		val inScript = input.compileInput(parentTxCompiled, rho)
 
 			    		// relative timelock
-			    		if (tx.tlock!==null && tx.tlock.containsRelative(tx)) {
-							val locktime = tx.tlock.getRelative(tx)
-							tb.addInput(parentTxCompiled, outIndex, inScript, locktime)
+			    		if (tx.timelocks.containsRelative(tx)) {
+							val locktime = tx.timelocks.getRelative(tx)
+							val res = locktime.value.interpret(rho)
+	    		
+				    		if (res.failed)
+				    			throw new CompileException("Cannot evaluate the relative timelock.")
+				    		
+							tb.addInput(parentTxCompiled, outIndex, inScript, res.value as Long)
 			    		}
 			    		else {
 			    			tb.addInput(parentTxCompiled, outIndex, inScript)
@@ -236,8 +256,14 @@ class TransactionCompiler {
     	}
     	
     	// absolute timelock
-    	if (tx.tlock!==null && tx.tlock.containsAbsolute)
-	        tb.locktime = tx.tlock.getAbsolute()
+    	if (tx.timelocks.containsAbsolute) {
+    		val res = tx.timelocks.absolute.value.interpret(rho)
+    		
+    		if (res.failed)
+    			throw new CompileException("Cannot evaluate the absolute timelock.")
+    		
+	        tb.locktime = res.first as Long
+    	}
     	
     	
     	// remove unused tx variables

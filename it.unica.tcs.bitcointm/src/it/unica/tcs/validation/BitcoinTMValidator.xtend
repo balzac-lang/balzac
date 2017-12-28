@@ -8,8 +8,6 @@ O * Copyright 2017 Nicola Atzei
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.AbsoluteTime
-import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
@@ -28,9 +26,9 @@ import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
-import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
+import it.unica.tcs.bitcoinTM.Timelock
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionLiteral
@@ -47,6 +45,7 @@ import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
 import java.util.HashSet
 import java.util.Map
@@ -73,7 +72,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.bitcoinTM.RelativeTime
 
 /**
  * This class contains custom validation rules. 
@@ -912,41 +911,51 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     @Check
-    def void checkAbsoluteTime(AbsoluteTime tlock) {
+    def void checkAbsoluteTime(Timelock tlock) {
     	
-    	if (tlock.value<0) {
+		val res = tlock.value.interpretE
+    	
+    	if (res.failed)
+    		return;
+    	
+    	val value = res.first as Long
+    	
+    	if (value<0) {
 			error(
                 "Negative timelock is not permitted.",
                 tlock,
-                BitcoinTMPackage.Literals.TIME__VALUE
+                BitcoinTMPackage.Literals.TIMELOCK__VALUE
             );
     	}
     	
-    	if (tlock.isBlock && tlock.value>=org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+    	if (tlock.isBlock && value>=org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
 			error(
                 "Block number must be lower than 500_000_000.",
                 tlock,
-                BitcoinTMPackage.Literals.TIME__VALUE
+                BitcoinTMPackage.Literals.TIMELOCK__VALUE
             );
     	}
     	
-    	if (!tlock.isBlock && tlock.value<org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+    	if (!tlock.isBlock && value<org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
     		error(
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
                 tlock,
-                BitcoinTMPackage.Literals.TIME__VALUE
+                BitcoinTMPackage.Literals.TIMELOCK__VALUE
             );
     	}
-    }
-
-    @Check
-    def void checkRelativeTime(RelativeTime tlock) {
-
-    }
-    
-    @Check
-    def void checkAfter(AfterTimeLock after) {
-
+    	
+    	if (tlock instanceof RelativeTime) {
+    		/*
+    		 * tlock.value must fit in 16-bit
+    		 */
+    		if (!value.fitIn16bits) {
+    			error(
+	                "Relative timelocks must fit within unsigned 16-bits. Max value is "+0xFFFF,
+	                tlock,
+	                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+	            );
+    		}
+    	}
     }
 
 	@Check

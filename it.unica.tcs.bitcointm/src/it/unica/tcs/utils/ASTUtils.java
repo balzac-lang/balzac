@@ -50,8 +50,7 @@ import it.unica.tcs.bitcoinTM.Sha256Literal;
 import it.unica.tcs.bitcoinTM.SignatureLiteral;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
-import it.unica.tcs.bitcoinTM.Time;
-import it.unica.tcs.bitcoinTM.Tlock;
+import it.unica.tcs.bitcoinTM.Timelock;
 import it.unica.tcs.bitcoinTM.Versig;
 import it.unica.tcs.lib.Hash.Hash160;
 import it.unica.tcs.lib.Hash.Hash256;
@@ -282,88 +281,101 @@ public class ASTUtils {
 
 	
 	
-	public boolean containsAbsolute(Tlock tlock) {
-    	return tlock.getTimes().stream().filter(x -> x instanceof AbsoluteTime).count()>0;
+	public boolean containsAbsolute(List<Timelock> timelocks) {
+    	return timelocks.stream().filter(x -> x instanceof AbsoluteTime).count()>0;
     }
     
-    public boolean containsRelative(Tlock tlock, it.unica.tcs.bitcoinTM.Transaction tx) {
-    	return tlock.getTimes().stream()
+    public boolean containsRelative(List<Timelock> timelocks, it.unica.tcs.bitcoinTM.Transaction tx) {
+    	return timelocks.stream()
     			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
     			.count()>0;
     }
 	
-    public long getAbsolute(Tlock tlock) {
-    	return tlock.getTimes().stream()
+    public AbsoluteTime getAbsolute(List<Timelock> timelocks) {
+    	return timelocks.stream()
     			.filter(x -> x instanceof AbsoluteTime)
-    			.collect(Collectors.toList()).get(0).getValue();
+    			.map( x -> (AbsoluteTime) x)
+    			.collect(Collectors.toList()).get(0);
     }
     
-    public long getRelative(Tlock tlock, it.unica.tcs.bitcoinTM.Transaction tx) {
-    	return tlock.getTimes().stream()
+    public RelativeTime getRelative(List<Timelock> timelocks, it.unica.tcs.bitcoinTM.Transaction tx) {
+    	return timelocks.stream()
     			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
-    			.collect(Collectors.toList()).get(0).getValue();
+    			.map( x -> (RelativeTime) x)
+    			.collect(Collectors.toList()).get(0);
     }
     
     
     
     
     
-	public boolean isBlock(Time time) {
-    	if (isRelative(time)) return isRelativeBlock(time);
-    	if (isAbsolute(time)) return isAbsoluteBlock(time);
-    	throw new IllegalArgumentException();
-    }
-	
-	public boolean isDate(Time time) {
-    	if (isRelative(time)) return isRelativeDate(time);
-    	if (isAbsolute(time)) return isAbsoluteDate(time);
-    	throw new IllegalArgumentException();
-    }
+//	public boolean isBlock(Time time) {
+//    	if (isRelative(time)) return isRelativeBlock(time);
+//    	if (isAbsolute(time)) return isAbsoluteBlock(time);
+//    	throw new IllegalArgumentException();
+//    }
+//	
+//	public boolean isDate(Time time) {
+//    	if (isRelative(time)) return isRelativeDate(time);
+//    	if (isAbsolute(time)) return isAbsoluteDate(time);
+//    	throw new IllegalArgumentException();
+//    }
+//    
+//    public boolean isAbsolute(Time time) {
+//    	return time instanceof AbsoluteTime;
+//    }
+//    
+//    public boolean isRelative(Time time) {
+//    	return time instanceof RelativeTime;
+//    }
+//    
+//    public boolean isAbsoluteBlock(Time time) {
+//    	return isAbsolute(time) && ((AbsoluteTime) time).isBlock();
+//    }
+//    
+//    public boolean isAbsoluteDate(Time time) {
+//    	return isAbsolute(time) && ((AbsoluteTime)time).isDate();
+//    }
+//    
+//    public boolean isRelativeBlock(Time time) {
+//    	// true if the 22th bit is UNSET
+//    	int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
+//    	return isRelative(time) && (((RelativeTime) time).getValue() & mask) == 0;
+//    }
+//    
+//    public boolean isRelativeDate(Time time) {
+//    	return isRelative(time) && !isRelativeBlock(time);   
+//	}
     
-    public boolean isAbsolute(Time time) {
-    	return time instanceof AbsoluteTime;
-    }
-    
-    public boolean isRelative(Time time) {
-    	return time instanceof RelativeTime;
-    }
-    
-    public boolean isAbsoluteBlock(Time time) {
-    	return isAbsolute(time) && ((AbsoluteTime) time).isBlock();
-    }
-    
-    public boolean isAbsoluteDate(Time time) {
-    	return isAbsolute(time) && ((AbsoluteTime)time).isDate();
-    }
-    
-    public boolean isRelativeBlock(Time time) {
-    	// true if the 22th bit is UNSET
-    	int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
-    	return isRelative(time) && (((RelativeTime) time).getValue() & mask) == 0;
-    }
-    
-    public boolean isRelativeDate(Time time) {
-    	return isRelative(time) && !isRelativeBlock(time);   
-	}
-    
-    public long setRelativeDate(int i) {
+    public long getRelativeTimelock(int i) {
     	// true if the 22th bit is UNSET
     	int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
     	return i | mask;
     }
     
+    /**
+     * Cast the given number to unsigned-short (16 bit)
+     * @param i
+     * @return
+     */
     public int castUnsignedShort(int i) {
 		int mask = 0x0000FFFF;
-		return i & mask;
-	}
-    
-    public int safeCastUnsignedShort(int i) {
-		int value = castUnsignedShort(i);
+		int value = i & mask;
 		
 		if (value!=i)
 			throw new NumberFormatException("The number does not fit in 16 bits");
 		
 		return value;
+	}
+    
+    public boolean fitIn16bits (long i) {
+		try {
+			castUnsignedShort((int)i);
+			return true;
+		}
+		catch (NumberFormatException e) {
+			return false;
+		}
 	}
     
     public byte[] wifToAddressHash(String wif, NetworkParameters params) {

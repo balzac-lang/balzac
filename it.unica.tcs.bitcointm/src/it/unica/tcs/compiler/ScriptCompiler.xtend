@@ -14,6 +14,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral
 import it.unica.tcs.bitcoinTM.BooleanNegation
 import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Constant
+import it.unica.tcs.bitcoinTM.DateLiteral
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Expression
 import it.unica.tcs.bitcoinTM.Hash160
@@ -261,6 +262,10 @@ class ScriptCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(HashLiteral s, Context ctx) {
         new ScriptBuilder2().data(s.value)
     }
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(DateLiteral s, Context ctx) {
+        new ScriptBuilder2().number(s.value)
+    }
     
     def private dispatch ScriptBuilder2 compileExpressionInternal(SignatureLiteral s, Context ctx) {
         new ScriptBuilder2().data(BitcoinUtils.decode(s.value))
@@ -306,8 +311,7 @@ class ScriptCompiler {
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
-        var sb = new ScriptBuilder2()
-        sb.number(stmt.timelock.value)
+        var sb = stmt.timelock.value.compileExpression(ctx)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
         sb.op(OP_DROP)
         sb.append(stmt.continuation.compileExpression(ctx))

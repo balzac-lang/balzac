@@ -2,6 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
+import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.AddressType
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
@@ -14,6 +15,7 @@ import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Comparison
 import it.unica.tcs.bitcoinTM.Compile
 import it.unica.tcs.bitcoinTM.Constant
+import it.unica.tcs.bitcoinTM.DateLiteral
 import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Hash160
@@ -62,6 +64,7 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
+import it.unica.tcs.bitcoinTM.RelativeTime
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -427,9 +430,27 @@ from {
 	}
 }
 
+rule AbsoluteTime
+	G |- TypeSubstitutions substitutions |> AbsoluteTime tlock : BitcoinTMFactory::eINSTANCE.createVoidType
+from {
+	G |- substitutions |> tlock.value : var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+}
 
-
-
+rule RelativeTime
+	G |- TypeSubstitutions substitutions |> RelativeTime tlock : BitcoinTMFactory::eINSTANCE.createVoidType
+from {
+	G |- substitutions |> tlock.value : var Type type
+	type = typesubstitution(substitutions, type)
+	unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+	
+	if (tlock.tx !== null) {
+		G |- substitutions |> tlock.tx : var Type txtype
+		txtype = typesubstitution(substitutions, txtype)
+		unify(substitutions, txtype, BitcoinTMFactory::eINSTANCE.createTransactionType)
+	}
+}	
 
 /*
  * Expressions type system
@@ -460,6 +481,9 @@ axiom TransactionLiteral
 
 axiom SignatureLiteral
 	G |- TypeSubstitutions substitutions |> SignatureLiteral s : BitcoinTMFactory::eINSTANCE.createSignatureType
+
+axiom DateLiteral
+	G |- TypeSubstitutions substitutions |> DateLiteral d : BitcoinTMFactory::eINSTANCE.createIntType
 
 rule KeyLiteral
 	G |- TypeSubstitutions substitutions |> KeyLiteral key : Type res
@@ -769,6 +793,8 @@ from {
 rule AfterTimeLock
 	G |- TypeSubstitutions substitutions |> AfterTimeLock after: Type texpr
 from {
+	G |- substitutions |> after.timelock: var Type t
+	
 	G |- substitutions |> after.continuation: texpr
 	texpr = typesubstitution(substitutions, texpr)
 }

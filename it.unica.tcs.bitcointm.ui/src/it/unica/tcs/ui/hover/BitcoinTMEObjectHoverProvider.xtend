@@ -14,7 +14,6 @@ import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -26,9 +25,9 @@ import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.xsemantics.Rho
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.xsemantics.Rho
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 	
@@ -43,12 +42,12 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 		return eobj.firstLineInternal
 	}
 	
-	override boolean hasHover(EObject eobj) {
-		if (eobj instanceof RelativeTime)
-			return eobj.isDate;
-		
-		return super.hasHover(eobj)
-	}
+//	override boolean hasHover(EObject eobj) {
+//		if (eobj instanceof RelativeTime)
+//			return eobj.isDate;
+//		
+//		return super.hasHover(eobj)
+//	}
 	
 	override getDocumentation(EObject eobj) {
         return eobj.documentationInternal

@@ -47,9 +47,9 @@ Constant:
 Transaction:
 	checks+=OnDemandCheck*
 	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
-		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (isMultiIn?="["  inputs+=Input   (";" inputs+=Input)*   "]") )
-		"output" "=" (outputs+=Output| (isMultiOut?="[" outputs+=Output (";" outputs+=Output)* "]") )
-		("after" tlock=Tlock)?
+		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (multiIn?="["  inputs+=Input   (";" inputs+=Input)* ";"? "]") )
+		"output" "=" (outputs+=Output| (multiOut?="[" outputs+=Output (";" outputs+=Output)* ";"? "]") )
+		("timelock" "=" (timelocks+=Timelock| (multiLock?="[" timelocks+=Timelock (";" timelocks+=Timelock)* ";"? "]") ))?
 	"}";
 
 Input:
@@ -64,16 +64,14 @@ Output:
 BitcoinValue:
 	exp=Expression;
 
-Tlock: times+=AbsoluteTime;
-
-Time:
-	AbsoluteTime | RelativeTime;
+Timelock: 
+	"after" AbsoluteTime | "delay" RelativeTime;
 
 AbsoluteTime:
-	block?="block" value=LONG | date?="date" value=TIMESTAMP;
+	(block?="block" | date?="date") value=Expression;
 
 RelativeTime:
-	value=Delay "from" tx=Reference;
+	value=Expression (block?="block")? ("from" tx=Reference)?;
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
@@ -145,9 +143,10 @@ Referrable:
 |	Constant;
 
 Literal:
-	NumberLiteral 
+	NumberLiteral
 |	StringLiteral
 |	BooleanLiteral
+|	DateLiteral
 |	HashLiteral
 |	KeyLiteral
 |	TransactionLiteral
@@ -162,6 +161,7 @@ HashLiteral:
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
+DateLiteral: value=TIMESTAMP;
 Hash160Literal: value=HASH_160;
 Hash256Literal: value=HASH_256;
 Ripemd160Literal: value=RIPMED_160;
@@ -245,7 +245,8 @@ Typeable:
 | Constant
 | Transaction
 | Input
-| Output 
+| Output
+| Timelock
 | Expression
 | Compile;
 
@@ -257,22 +258,12 @@ Number returns ecore::ELong:
 	LONG ('.' LONG)? "BTC"?
 |	LONG_HEX;
 
-Delay returns ecore::ELong:
-	MinutesDelay | HoursDelay | DayDelay | BlockDelay;
-
-MinutesDelay returns ecore::ELong: LONG "minutes";
-HoursDelay   returns ecore::ELong: LONG "hours";
-DayDelay     returns ecore::ELong: LONG "days";
-BlockDelay   returns ecore::ELong: LONG "blocks";
-
 terminal LONG_HEX returns ecore::ELong:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
-
 terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
-
 
 terminal WIF:
 	'wif:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
@@ -284,14 +275,18 @@ terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'
 terminal TXID returns ecore::EString:      'txid:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL returns ecore::EString:  'tx:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal SIGHEX returns ecore::EString:  'sig:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-	
-terminal TIMESTAMP returns ecore::ELong: 
-	YEAR '-' MONTH '-' DAY	// YYYY-MM-dd
-	("T" HOUR ":" MINUTE 					// THH:mm
-		(":" SECOND 						// :ss
-			(OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE)?	// +/- HH:mm
-		)?
-	)?;
+
+/*
+ * 2011-12-03T10:15:30+01:00
+ * 2011-12-03T10:15:30
+ * 2011-12-03T10:15
+ * 2011-12-03
+ */
+terminal TIMESTAMP returns ecore::ELong: DATE ("T" TIME OFFSET? )?;
+
+terminal DATE:    YEAR '-' MONTH '-' DAY;
+terminal TIME:    HOUR ':' MINUTE (':' SECOND)?;
+terminal OFFSET:  OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE;
 
 terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
 terminal MONTH: ('0'..'9')('1'..'9');
@@ -305,7 +300,6 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 
 @Override
 terminal INT returns ecore::EInt: LONG;
-
 
 Compile:
 	{Compile} "compile" txs+=Reference*

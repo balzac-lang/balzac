@@ -6,42 +6,104 @@ const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 const kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
-transaction T {
+const blockN = 500_000
+const deadline = 2018-06-11T15:00:00+02:00
+const aDay = 24*60*60
+
+transaction coinbase {
 	input = _
-	output = 1 BTC - 10:
+	output = 10 BTC: fun(s) . versig(kA; s)
+}
+
+transaction T {
+	input = coinbase: sig(kA)
+	output = [
+		1 BTC:
 		fun(sig1, sig2) . 
 			versig(kA,kB; sig1,sig2)
-			|| after block 50 : versig(kA,kB,kL; sig1,sig2)
+			|| after block blockN : versig(kA,kB,kL; sig1,sig2);
+			
+		1 BTC:
+		fun(sig1, sig2) . 
+			versig(kA,kB; sig1,sig2)
+			|| after date deadline : versig(kA,kB,kL; sig1,sig2)
+	]
 }
 
 /*
  * T_1 redeems at any time
  */
 transaction T_1 {
-	input = T: sig(kA) sig(kB)
+	input = [
+		T: sig(kA) sig(kB);
+		T@1: sig(kA) sig(kB)
+	]
 	output = 0: "test"
 }
+
 
 /*
  * T_2 does not satisfy timelock constraints
  */
-transaction T_2 {
+transaction T_2_block {
 	input = T: sig(kA) sig(kL)
 	output = 0: "test"
-	after block 25
+	timelock = after block blockN - 5
 }
+
+transaction T_2_date {
+	input = T@1: sig(kA) sig(kL)
+	output = 0: "test"
+	timelock = after date deadline - aDay
+}
+
+transaction T_2_mismatch {
+	input = T: sig(kA) sig(kL)
+	output = 0: "test"
+	timelock = after date deadline - aDay
+}
+
 
 /*
  * T_3 T_4 satisfy timelock constraints.
  */
-transaction T_3 {
+transaction T_3_block {
 	input = T: sig(kA) sig(kL)
 	output = 0: "test"
-	after block 55
+	timelock = after block blockN + 5
 }
 
-transaction T_4 {
+transaction T_3_date {
+	input = T@1: sig(kA) sig(kL)
+	output = 0: "test"
+	timelock = after date deadline + aDay
+}
+
+transaction T_4_block {
 	input = T: sig(kB) sig(kL)
 	output = 0: "test"
-	after block 55
+	timelock = after block blockN + 5
 }
+
+transaction T_4_date {
+	input = T@1: sig(kB) sig(kL)
+	output = 0: "test"
+	timelock = after date deadline + aDay
+}
+
+compile 
+	kA
+	kB
+	kL
+	blockN
+	deadline
+	aDay
+	T 
+	T_1
+	T_2_block
+	T_2_date
+	T_2_mismatch
+	T_3_block
+	T_3_date
+	T_4_block
+	T_4_date
