@@ -5,6 +5,7 @@
 !.gitignore
 !.classpath
 !.project
+!.travis.yml
 
 bin
 target

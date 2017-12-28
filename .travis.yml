@@ -1,0 +1,7 @@
+language: java
+
+before_script:
+  - ./install-deps.sh
+
+script:
+  - mvn -f it.unica.tcs.bitcointm.parent/ install
