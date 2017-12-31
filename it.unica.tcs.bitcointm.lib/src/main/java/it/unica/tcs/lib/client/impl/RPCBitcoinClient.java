@@ -22,7 +22,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
 
     private static final Logger logger = LoggerFactory.getLogger(RPCBitcoinClient.class);
     private BitcoindApi api;
-    
+
     private final String address;
     private final int port;
     private final String protocol;
@@ -30,11 +30,11 @@ public class RPCBitcoinClient implements BitcoinClientI {
     private final String password;
     private final int timeout;
     private final TimeUnit unit;
-    
+
     @Inject
     public RPCBitcoinClient(
-            @Named("bitcoind.address") String address, 
-            @Named("bitcoind.port") int port, 
+            @Named("bitcoind.address") String address,
+            @Named("bitcoind.port") int port,
             @Named("bitcoind.protocol") String protocol,
             @Named("bitcoind.user") String user,
             @Named("bitcoind.password") String password,
@@ -49,7 +49,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
         this.timeout = timeout;
         this.unit = unit;
     }
-    
+
     public BitcoindApi getApi() throws BitcoinClientException {
         if (this.api==null) {
             try {

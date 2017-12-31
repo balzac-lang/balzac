@@ -17,16 +17,16 @@ public class P2PKHOutputScript extends OutputScript {
     public P2PKHOutputScript() {
         super();
     }
-    
+
     public P2PKHOutputScript(Script script) {
         super(script);
         checkState(script.isSentToAddress());
     }
-    
+
     public P2PKHOutputScript(Address addr) {
         super(ScriptBuilder.createOutputScript(addr));
     }
-    
+
     @Override
     public boolean isP2SH() {
         return false;

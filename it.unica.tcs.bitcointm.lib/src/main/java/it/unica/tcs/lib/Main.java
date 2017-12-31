@@ -12,7 +12,7 @@ public class Main {
 
     private static Alice alice = new Alice();
     private static Bob bob = new Bob();
-    
+
     public static class Alice extends Participant {
 
         public Alice() {
@@ -31,7 +31,7 @@ public class Main {
             System.out.println("Alice END");
         }
     }
-    
+
     public static class Bob extends Participant {
 
         public Bob() {
@@ -51,9 +51,9 @@ public class Main {
         }
     }
 
-    
+
     public static void main(String[] args) throws InterruptedException {
-        
+
         ClassLoader cl = ClassLoader.getSystemClassLoader();
 
         URL[] urls = ((URLClassLoader)cl).getURLs();

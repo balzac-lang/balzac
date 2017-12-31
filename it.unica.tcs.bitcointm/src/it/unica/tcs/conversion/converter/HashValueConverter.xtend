@@ -10,12 +10,12 @@ import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 
 class HashValueConverter extends AbstractLexerBasedConverter<byte[]> {
-    
+
     override toValue(String string, INode node) throws ValueConverterException {
-        
+
         var prefix = string.substring(0,string.indexOf(':'))
         var value = string.substring(string.indexOf(':')+1)
-        
+
         if (
             prefix=="sha256" && value.length!=64
             || prefix=="ripemd160" && value.length!=40
@@ -24,7 +24,7 @@ class HashValueConverter extends AbstractLexerBasedConverter<byte[]> {
         ) {
             throw new ValueConverterException("Invalid length", node, null);
         }
-        
+
         try {
             return BitcoinUtils.decode(value.toLowerCase)
         }

@@ -45,18 +45,18 @@ public class TransactionBuilder implements ITransactionBuilder {
     private static final long UNSET_LOCKTIME = -1;
 
     private transient NetworkParameters params;
-    
+
     private final List<Input> inputs = new ArrayList<>();
     private final List<Output> outputs = new ArrayList<>();
     private long locktime = UNSET_LOCKTIME;
     private final Env<Object> env = new Env<>();
-    
+
     private final Map<Set<String>,Consumer<Map<String,Object>>> variablesHook = new HashMap<>();
-    
+
     public TransactionBuilder(NetworkParameters params) {
         this.params = params;
     }
-    
+
     @Override
     public boolean hasVariable(String name) {
         return env.hasVariable(name);
@@ -76,17 +76,17 @@ public class TransactionBuilder implements ITransactionBuilder {
     public Class<?> getType(String name) {
         return env.getType(name);
     }
-    
+
     @Override
     public Object getValue(String name) {
         return env.getValue(name);
     }
-    
+
     @Override
     public Object getValueOrDefault(String name, Object defaultValue) {
         return env.getValueOrDefault(name, defaultValue);
     }
-    
+
     @Override
     public <E> E getValue(String name, Class<E> clazz) {
         return env.getValue(name, clazz);
@@ -101,16 +101,16 @@ public class TransactionBuilder implements ITransactionBuilder {
     @Override
     public TransactionBuilder removeVariable(String name) {
         for (Input in : inputs) {
-            checkState(!in.getScript().hasVariable(name), "input script "+in.getScript()+" use variable '"+name+"'");           
+            checkState(!in.getScript().hasVariable(name), "input script "+in.getScript()+" use variable '"+name+"'");
         }
         for (Output out : outputs) {
-            checkState(!out.getScript().hasVariable(name), "output script "+out.getScript()+" use variable '"+name+"'");            
+            checkState(!out.getScript().hasVariable(name), "output script "+out.getScript()+" use variable '"+name+"'");
         }
         env.removeVariable(name);
         variablesHook.remove(name);
         return this;
     }
-    
+
     @Override
     public TransactionBuilder bindVariable(String name, Object value) {
         env.bindVariable(name, value);
@@ -127,11 +127,11 @@ public class TransactionBuilder implements ITransactionBuilder {
         }
         return this;
     }
-    
+
     /**
      * Add an hook that will be executed when the variable {@code name} will have been bound.
      * The hook is a {@link Consumer} that will take the value of the variable.
-     * 
+     *
      * @param name the name of the variable
      * @param hook the consumer
      * @return this builder
@@ -148,7 +148,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         variablesHook.put(names, hook);
         return this;
     }
-    
+
     public boolean hasHook(String name, String... names) {
         checkNotNull(name, "'name' cannot be null");
         checkNotNull(names, "'names' cannot be null");
@@ -164,7 +164,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     public Collection<String> getFreeVariables() {
         return env.getFreeVariables();
     }
-    
+
     @Override
     public void clear() {
         env.clear();
@@ -174,7 +174,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     public Collection<String> getBoundVariables() {
         return env.getBoundVariables();
     }
-        
+
     @Override
     public List<Input> getInputs() {
         return inputs;
@@ -189,14 +189,14 @@ public class TransactionBuilder implements ITransactionBuilder {
      * Remove the unused variables of this builder.
      * A transaction variable is unused if it is unused by all the
      * input/output scripts.
-     * 
+     *
      * @return this builder
      */
     public TransactionBuilder removeUnusedVariables() {
         for (String name : getVariables()) {
-            
+
             boolean used = false;
-            
+
             for (Input in : inputs) {
                 used = used || in.getScript().hasVariable(name);
             }
@@ -204,14 +204,14 @@ public class TransactionBuilder implements ITransactionBuilder {
             for (Output out : outputs) {
                 used = used || out.getScript().hasVariable(name);
             }
-            
+
             if (!used)
                 removeVariable(name);
         }
-        
+
         return this;
     }
-    
+
     /**
      * Add a new transaction input.
      * <p>This method is only used by {@link CoinbaseTransactionBuilder} to provide a valid input.
@@ -228,7 +228,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         checkState(this.inputs.size()==0, "addInput(ScriptBuilder2) can be invoked only once");
         return addInput(Input.of(inputScript));
     }
-    
+
     /**
      * Add a new transaction input.
      * @param tx the parent transaction to redeem.
@@ -243,7 +243,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, InputScript inputScript) {
         return addInput(Input.of(tx, outIndex, inputScript));
     }
-    
+
     /**
      * Add a new transaction input.
      * @param tx the parent transaction to redeem.
@@ -259,7 +259,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     public TransactionBuilder addInput(ITransactionBuilder tx, int outIndex, InputScript inputScript, long locktime) {
         return addInput(Input.of(tx, outIndex, inputScript, locktime));
     }
-    
+
     public TransactionBuilder addInput(Input input) {
         checkNotNull(input, "'input' cannot be null");
         checkArgument(getFreeVariables().containsAll(input.getScript().getFreeVariables()), "the input script contains free-variables "+input.getScript().getFreeVariables()+", but the transactions only contains "+getFreeVariables());
@@ -269,7 +269,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         inputs.add(input);
         return this;
     }
-    
+
     /**
      * Add a new transaction output.
      * @param outputScript the output script.
@@ -287,7 +287,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         outputs.add(Output.of(outputScript, satoshis));
         return this;
     }
-    
+
     /**
      * Set the transaction locktime (absolute locktime which could represent a block number or a timestamp).
      * @param locktime the value to set.
@@ -304,13 +304,13 @@ public class TransactionBuilder implements ITransactionBuilder {
      */
     @Override
     public boolean isReady() {
-        return env.isReady() && inputs.size()>0 && outputs.size()>0 && 
+        return env.isReady() && inputs.size()>0 && outputs.size()>0 &&
                 inputs.stream()
                     .filter(Input::hasParentTx)
                     .map(Input::getParentTx)
                     .allMatch(ITransactionBuilder::isReady);
     }
-    
+
     /**
      * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
      * unbound free variables.
@@ -320,16 +320,16 @@ public class TransactionBuilder implements ITransactionBuilder {
     @Override
     public Transaction toTransaction() {
         checkState(this.isReady(), "the transaction and all its ancestors are not ready");
-        
+
         Transaction tx = new Transaction(params);
 
         // set version
         tx.setVersion(2);
-        
-        
+
+
         // inputs
         for (Input input : inputs) {
-            
+
             if (!input.hasParentTx()) {
                 // coinbase transaction
                 byte[] script = new byte[]{};   // script will be set later
@@ -343,7 +343,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                 TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
                 byte[] script = new byte[]{};   // script will be set later
                 TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
-                
+
                 //set checksequenseverify (relative locktime)
                 if (input.getLocktime()==UNSET_LOCKTIME) {
                     // see BIP-0065
@@ -357,22 +357,22 @@ public class TransactionBuilder implements ITransactionBuilder {
                 tx.addInput(txInput);
             }
         }
-                
+
         // outputs
         for (Output output : outputs) {
             // bind free variables
             OutputScript sb = output.getScript();
-            
+
             for(String freeVarName : getVariables()) {
-                if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {                    
+                if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {
                     sb.bindVariable(freeVarName, this.getValue(freeVarName));
                 }
             }
             checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
             checkState(sb.signatureSize()==0);
-            
+
             Script outScript;
-            
+
             if (sb instanceof P2SHOutputScript) {
                 // P2SH
                 outScript = ((P2SHOutputScript) sb).getOutputScript();
@@ -380,30 +380,30 @@ public class TransactionBuilder implements ITransactionBuilder {
             else {
                 outScript = sb.build();
             }
-            
+
             Coin value = Coin.valueOf(output.getValue());
             tx.addOutput(value, outScript);
         }
-        
+
         //set checklocktime (absolute locktime)
         if (locktime!=UNSET_LOCKTIME) {
             tx.setLockTime(locktime);
         }
-        
+
         // set all the signatures within the input scripts (which are never part of the signature)
         for (int i=0; i<tx.getInputs().size(); i++) {
             TransactionInput txInput = tx.getInputs().get(i);
             InputScript sb = inputs.get(i).getScript();
-            
+
             // bind free variables
             for(String freeVarName : getVariables()) {
-                if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {                    
+                if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {
                     sb.bindVariable(freeVarName, this.getValue(freeVarName));
                 }
             }
-            
+
             checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
-            
+
             byte[] outScript;
             if (txInput.isCoinBase()) {
                 outScript = new byte[]{};
@@ -419,11 +419,11 @@ public class TransactionBuilder implements ITransactionBuilder {
             }
             sb.setAllSignatures(tx, i, outScript);
             checkState(sb.signatureSize()==0,  "all the signatures should have been set");
-            
+
             // update scriptSig
             txInput.setScriptSig(sb.build());
         }
-        
+
         return tx;
     }
 
@@ -431,21 +431,21 @@ public class TransactionBuilder implements ITransactionBuilder {
     public boolean isCoinbase() {
         return inputs.size()==1 && !inputs.get(0).hasParentTx();
     }
-    
-    
-    
+
+
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("\n");
-        
+
         addInfo(sb, this);
         addVariables(sb, this);
         addInputs(sb, this.inputs);
         addOutputs(sb, this.outputs);
-        
+
         return sb.toString();
     }
-    
+
     private static void addInfo(StringBuilder sb, TransactionBuilder tb) {
         TablePrinter tp = new TablePrinter("General info", 2);
         tp.addRow("hashcode", tb.hashCode());
@@ -455,19 +455,19 @@ public class TransactionBuilder implements ITransactionBuilder {
         sb.append(tp.toString());
         sb.append("\n\n");
     }
-    
+
     private static void addVariables(StringBuilder sb, EnvI<Object,?> env) {
         TablePrinter tp = new TablePrinter("Variables", new String[]{"Name", "Type", "Binding"}, "No variables");
         for (String name : new TreeSet<>(env.getVariables())) {
             tp.addRow(
-                    name, 
-                    env.getType(name).getSimpleName(), 
+                    name,
+                    env.getType(name).getSimpleName(),
                     env.getValueOrDefault(name, "").toString());
         }
         sb.append(tp.toString());
         sb.append("\n\n");
     }
-    
+
     private static void addInputs(StringBuilder sb, List<Input> inputs) {
         TablePrinter tp = new TablePrinter("Inputs", new String[]{"Index", "Outpoint", "Locktime", "Type", "Ready", "Variables", "Script"}, "No inputs");
         int i=0;
@@ -479,16 +479,16 @@ public class TransactionBuilder implements ITransactionBuilder {
             String ready = String.valueOf(input.getScript().isReady());
             List<String> vars = getCompactVariables(input.getScript());
             String script = input.getScript().toString();
-                        
+
             tp.addRow(
-                    index, 
-                    outpoint, 
+                    index,
+                    outpoint,
                     locktime,
                     type,
                     ready,
                     vars.isEmpty()?"":vars.get(0),
                     script);
-            
+
             for (int j=1; j<vars.size();j++) {
                 tp.addRow(new String[]{"","","","",vars.isEmpty()?"":vars.get(j),""});
             }
@@ -496,7 +496,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         sb.append(tp.toString());
         sb.append("\n\n");
     }
-    
+
     private static void addOutputs(StringBuilder sb, List<Output> inputs) {
         TablePrinter tp = new TablePrinter("Outputs", new String[]{"Index", "Value", "Type", "Ready", "Variables", "Script"}, "No outputs");
         int i=0;
@@ -507,15 +507,15 @@ public class TransactionBuilder implements ITransactionBuilder {
             String ready = output.getScript().isReady()+"";
             List<String> vars = getCompactVariables(output.getScript());
             String script = output.getScript().toString();
-                        
+
             tp.addRow(
-                    index, 
-                    value, 
+                    index,
+                    value,
                     type,
                     ready,
                     vars.isEmpty()?"":vars.get(0),
                     script);
-            
+
             for (int j=1; j<vars.size();j++) {
                 tp.addRow("","","","",vars.isEmpty()?"":vars.get(j),"");
             }
@@ -523,13 +523,13 @@ public class TransactionBuilder implements ITransactionBuilder {
         sb.append(tp.toString());
         sb.append("\n\n");
     }
-    
+
     private static List<String> getCompactVariables(EnvI<Object,?> env) {
         List<String> res = new ArrayList<>();
         Collection<String> variables = new TreeSet<>(env.getVariables());
-        
+
         int size = variables.stream().map(v->("("+env.getType(v).getSimpleName()+") "+v).length()).reduce(0, Integer::max);
-                
+
         for (String v : variables) {
             res.add(StringUtils.rightPad("("+env.getType(v).getSimpleName()+") "+v, size)+(env.isBound(v)? " -> "+env.getValue(v):""));
         }
@@ -581,7 +581,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             return false;
         return true;
     }
-    
+
     // Java serialization
 
     private void writeObject(ObjectOutputStream out) throws IOException {

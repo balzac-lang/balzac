@@ -23,7 +23,7 @@ public class BitcoinUtilsFactory {
     private final List<Module> modules;
 
     private BitcoinUtilsFactory(Module... modules) {
-        
+
         Module defaultModule = new Module(){
             @Override
             public void configure(Binder builder) {
@@ -46,23 +46,23 @@ public class BitcoinUtilsFactory {
     public static BitcoinUtilsFactory create(Module... modules) {
         return new BitcoinUtilsFactory(modules);
     }
-  
+
     public List<Module> getModules() {
         return modules;
     }
-    
+
     public BitcoinClientI getBitcoinClient() {
         return injector.getInstance(BitcoinClientI.class);
     }
-    
+
     public static void main(String[] args) throws TransactionNotFoundException {
-        
+
         BitcoinUtilsFactory lib = BitcoinUtilsFactory.create();
-        
+
         RPCBitcoinClient client = lib.injector.getInstance(RPCBitcoinClient.class);
-        
+
         BitcoindApi api = ((RPCBitcoinClient)client).getApi();
-        
+
         System.out.println("Best block count: " + client.getBlockCount());
         System.out.println("Get raw transaction: " + client.getRawTransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
         System.out.println("Get raw transaction: " + api.getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
@@ -76,5 +76,5 @@ public class BitcoinUtilsFactory {
         System.out.println("Is mined: " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66"));
         System.out.println("Is mined (reliability low): " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66", Confidentiality.LOW));
     }
-    
+
 }

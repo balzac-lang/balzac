@@ -10,7 +10,7 @@ import java.util.List;
 import org.bitcoinj.core.Transaction;
 
 public abstract class AbstractTransactionBuilder implements ITransactionBuilder {
-    
+
     private static final long serialVersionUID = 1L;
 
     @Override

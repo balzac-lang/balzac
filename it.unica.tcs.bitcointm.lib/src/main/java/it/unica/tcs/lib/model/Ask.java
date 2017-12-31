@@ -16,12 +16,12 @@ public class Ask extends AbstractPrefix {
 
     private BitcoinClientI client;
     private final List<String> txsid;
-    
+
     Ask(List<String> txsid) {
         this.txsid = txsid;
         this.client = BitcoinUtilsFactory.create().getBitcoinClient();
     }
-    
+
     @Override
     public boolean ready() {
         return txsid.stream().allMatch((tx) -> client.isMined(tx));

@@ -197,7 +197,7 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
             return false;
         return true;
     }
-    
+
     // Java serialization
 
     private void writeObject(ObjectOutputStream out) throws IOException {

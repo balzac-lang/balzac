@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 
 public class TablePrinter {
-    
+
     private final int nColumns;
     private String title;
     private String[] header;
@@ -22,26 +22,26 @@ public class TablePrinter {
     private String rowSuffix = " ";
     private int rowSuffixSize = 1;
     private String valueSeparator = " ";
-    private int valueSeparatorSize = 6; 
+    private int valueSeparatorSize = 6;
     private String noValueRow;
-    
-    
+
+
     public TablePrinter(String title, int nColumns) {
         this(nColumns, title, new String[]{}, "no values");
     }
-    
+
     public TablePrinter(String title, String[] header) {
         this(header.length, title, header, "no values");
     }
-    
+
     public TablePrinter(String[] header, String noValueRow) {
         this(header.length, "", header, noValueRow);
     }
-    
+
     public TablePrinter(String title, String[] header, String noValueRow) {
         this(header.length, title, header, noValueRow);
     }
-    
+
     private TablePrinter(int nColumns, String title, String[] header, String noValueRow) {
         this.nColumns = nColumns;
         this.title = title;
@@ -51,7 +51,7 @@ public class TablePrinter {
             this.maxColLength.putIfAbsent(i, header.length==nColumns? header[i].length():0);
         }
     }
-    
+
     public String getTitle() {
         return title;
     }
@@ -123,7 +123,7 @@ public class TablePrinter {
     public void addRow(Object... values) {
         addRow(Arrays.stream(values).map(Object::toString).toArray(String[]::new));
     }
-    
+
     public void addRow(String... values) {
         checkArgument(values.length<=nColumns);
         for (int i=0; i<values.length; i++) {
@@ -133,7 +133,7 @@ public class TablePrinter {
         }
         this.valuesPerLine.add(values);
     }
-    
+
     private void printTitle(StringBuilder sb) {
         if (!title.isEmpty()) {
             sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
@@ -141,13 +141,13 @@ public class TablePrinter {
             sb.append("\n");
         }
     }
-    
+
     private void printNoValues(StringBuilder sb) {
         sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
         sb.append(noValueRow);
         sb.append("\n");
     }
-        
+
     private void printLine(StringBuilder sb, char ch) {
         int size = maxColLength.values().stream().reduce(0, Integer::sum)
                 + rowPrefixSize
@@ -156,7 +156,7 @@ public class TablePrinter {
         sb.append(StringUtils.repeat(ch, size));
         sb.append("\n");
     }
-    
+
     private void printRow(StringBuilder sb, String[] values) {
         sb.append(StringUtils.repeat(rowPrefix, rowPrefixSize));
         for (int col=0; col<values.length; col++) {
@@ -167,22 +167,22 @@ public class TablePrinter {
         sb.append(StringUtils.repeat(rowSuffix, rowSuffixSize));
         sb.append("\n");
     }
-    
+
     private void printHeader(StringBuilder sb) {
         if (header.length>0 && !valuesPerLine.isEmpty()) {
             printRow(sb, header);
             printLine(sb, '-');
         }
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        
+
         printTitle(sb);
         printLine(sb, '=');
-        printHeader(sb);        
-        
+        printHeader(sb);
+
         if (valuesPerLine.isEmpty()) {
             printNoValues(sb);
         }
@@ -192,7 +192,7 @@ public class TablePrinter {
                 printRow(sb, values);
             }
         }
-        
+
         printLine(sb, '=');
         return sb.toString();
     }

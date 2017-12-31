@@ -31,7 +31,7 @@ public class OutputScriptImpl extends OutputScript {
     public boolean isOP_RETURN() {
         return build().isOpReturn();
     }
-    
+
     @Override
     public boolean isP2SH() {
         return build().isPayToScriptHash();

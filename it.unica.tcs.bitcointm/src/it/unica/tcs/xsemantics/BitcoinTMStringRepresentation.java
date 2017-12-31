@@ -3,7 +3,7 @@
  */
 
 /**
- * 
+ *
  */
 package it.unica.tcs.xsemantics;
 
@@ -23,7 +23,7 @@ import it.xsemantics.runtime.StringRepresentation;
 
 /**
  * @author Lorenzo Bettini
- * 
+ *
  */
 public class BitcoinTMStringRepresentation extends StringRepresentation {
 
@@ -58,7 +58,7 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
     protected String stringRep(TypeVariable typeVariable) {
         return typeVariable.getValue();
     }
-    
+
     protected String stringRep(StringType type) {
         return type.getValue().getLiteral();
     }
@@ -74,5 +74,5 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
     protected String stringRep(SignatureType type) {
         return type.getValue().getLiteral();
     }
-    
+
 }

@@ -20,7 +20,7 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 
 /**
  * This class contains custom scoping description.
- * 
+ *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#scoping
  * on how and when to use it.
  */
@@ -41,19 +41,19 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
     def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
         getIScopeForAllContentsOfClass(ctx, clazz, IScope.NULLSCOPE)
     }
-    
+
     def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz, IScope outer){
         var root = EcoreUtil2.getRootContainer(ctx);                        // get the root
         var candidates = EcoreUtil2.getAllContentsOfType(root, clazz);      // get all contents of type clazz
         return Scopes.scopeFor(candidates, outer);                          // return the scope
     }
-    
+
     //utils: recursively get all free-names declarations until Script definition
     def static dispatch IScope getScopeForParameters(EObject cont, IScope outer) {
 //      println("skipping: "+cont)
         return getScopeForParameters(cont.eContainer, outer);
     }
-    
+
     def static dispatch IScope getScopeForParameters(Script obj, IScope outer) {
 //      println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
         return Scopes.scopeFor(
@@ -61,7 +61,7 @@ class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
             getScopeForParameters(obj.eContainer, outer)
         );
     }
-    
+
     def static dispatch IScope getScopeForParameters(Transaction obj, IScope outer) {
 //      println('''adding params: [«obj.params.map[p|p.name+":"+p.type].join(",")»] from script «obj»''')
         return Scopes.scopeFor(obj.params, outer);

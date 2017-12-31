@@ -40,5 +40,5 @@ public class P2SHOutputScript extends OutputScript {
     public boolean isOP_RETURN() {
         return false;
     }
-    
+
 }

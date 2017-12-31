@@ -16,15 +16,15 @@ import org.eclipse.xtext.web.servlet.XtextServlet
  */
 @WebServlet(name = 'XtextServices', urlPatterns = '/xtext-service/*')
 class BitcoinTMServlet extends XtextServlet {
-    
+
     DisposableRegistry disposableRegistry
-    
+
     override init() {
         super.init()
         val injector = new BitcoinTMWebSetup().createInjectorAndDoEMFRegistration()
         disposableRegistry = injector.getInstance(DisposableRegistry)
     }
-    
+
     override destroy() {
         if (disposableRegistry !== null) {
             disposableRegistry.dispose()
@@ -32,5 +32,5 @@ class BitcoinTMServlet extends XtextServlet {
         }
         super.destroy()
     }
-    
+
 }

@@ -21,17 +21,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class Participant implements Runnable {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(Participant.class);
-    
+
     private final String name;
     private final ExecutorService executor;
     private final ServerSocketDaemon receiverDeamon;
-    
+
     public Participant(String name) {
         this(name, 0);
     }
-    
+
     public Participant(String name, int port) {
         this.name = name;
         this.executor = Executors.newCachedThreadPool();
@@ -44,21 +44,21 @@ public abstract class Participant implements Runnable {
         }
         logger.trace("Listening on port "+this.getPort());
     }
-    
+
     public String getName() {
         return this.name;
     }
-    
+
     public InetAddress getHost() throws UnknownHostException {
         return InetAddress.getLocalHost();
     }
-    
+
     public int getPort() {
         return receiverDeamon.getPort();
     }
 
     abstract public void run();
-    
+
     public void parallel(Runnable... processes) {
         for (Runnable process : processes)
             executor.execute(process);
@@ -67,29 +67,29 @@ public abstract class Participant implements Runnable {
     public void ask(String... txsid) {
         new Choice(PrefixFactory.ask(txsid)).run();
     }
-    
+
     public void ask(List<String> txsid) {
         new Choice(PrefixFactory.ask(txsid)).run();
     }
-    
+
     public void check(Supplier<Boolean> condition) {
         new Choice(PrefixFactory.check(condition)).run();
     }
-    
+
     public void check() {
         new Choice(PrefixFactory.check()).run();
     }
-    
+
     public void put(String txhex) {
         new Choice(PrefixFactory.put(txhex)).run();
     }
-            
+
     public void send(Integer msg, Participant p) {
         send(msg.toString(), p);
     }
-    
+
     public void send(String msg, Participant p) {
-        
+
         try (
             Socket socket = new Socket(p.getHost(), p.getPort());
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -113,9 +113,9 @@ public abstract class Participant implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        } 
+        }
     }
-    
+
     public String receive(Participant p) {
         logger.trace("reading");
         try {
@@ -124,11 +124,11 @@ public abstract class Participant implements Runnable {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void stop() throws InterruptedException {
         logger.trace("shutting down the executor service");
         this.executor.shutdownNow();
         this.executor.awaitTermination(30, TimeUnit.DAYS);
     }
-    
+
 }

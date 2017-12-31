@@ -14,7 +14,7 @@ import it.unica.tcs.bitcoinTM.Type;
 
 public class TypeSubstitutions {
     protected Map<String, Type> substitutions = new HashMap<>();
-    
+
     protected Map<Referrable, Type> support = new HashMap<>();
 
     public void reset() {

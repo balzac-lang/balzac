@@ -15,11 +15,11 @@ import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider
  * Use this class to register components to be used within the Eclipse IDE.
  */
 class BitcoinTMUiModule extends AbstractBitcoinTMUiModule {
-    
+
     new(AbstractUIPlugin plugin) {
         super(plugin)
     }
-    
+
     def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
         return  BitcoinTMEObjectHoverProvider;
     }

@@ -73,12 +73,12 @@ validatorExtends AbstractBitcoinTMValidator
 inject LambdaUtils lambdaUtils
 
 auxiliary {
-        
+
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
-    
+
     unify(TypeSubstitutions substitutions, Type left, Type right) : Type
         error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
-    
+
     failIfTypeVariable(Type type, EObject obj)
     failIfNotPermitted(Type type, EObject obj)
 }
@@ -129,7 +129,7 @@ auxiliary unify(TypeSubstitutions substitutions, Type t1, Type t2) {
     fail
     error "Cannot unify type "+t1+" with type "+t2
     null
-} 
+}
 
 auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
     EcoreUtil::copy(t1)
@@ -194,7 +194,7 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
 
 // hash256 is a sha256
 auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
-    EcoreUtil::copy(t2)     
+    EcoreUtil::copy(t2)
 }
 
 // hash256 is a sha256
@@ -246,10 +246,10 @@ from {
     or {
         type = lambdaUtils.createFreshTypeVariable
     }
-    
+
     G |- substitutions |> c.exp : var Type expType
     type = unify(substitutions, expType, type)
-    
+
     failIfTypeVariable(type, c)
     c.type = type as PermittedType  // store the type in the AST
 }
@@ -257,7 +257,7 @@ from {
 rule Reference
     G |- TypeSubstitutions substitutions |> Reference varRef : Type type
 from {
-    
+
     if (varRef.ref instanceof Constant) {
         val const = varRef.ref as Constant
         G |- substitutions |> const : type
@@ -268,41 +268,41 @@ from {
     }
     else if (varRef.ref instanceof Transaction) {
         val tx = varRef.ref as Transaction
-        
+
         G |- substitutions |> tx : type
         type = typesubstitution(substitutions, type)
         unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createTransactionType)
 
         if (varRef.actualParams.size != tx.params.size) {
-            fail 
+            fail
                 error "Invalid number of actual parameters."
                 source varRef
         }
-        
+
         // check the actual parameters type match the formal ones
         for (var i=0; i<varRef.actualParams.size; i++) {
             var actualParam = varRef.actualParams.get(i)
             var formalParam = tx.params.get(i)
-            
+
             // get formal parameter type
             var formalParamType = env(G, formalParam, Type)
             // apply eventual substitutions to get the basic type
             formalParamType = typesubstitution(substitutions, formalParamType)
             // ensure it's basic
             failIfTypeVariable(formalParamType, formalParam)
-            
+
             // all the actual parameters are well typed
             G |- substitutions |> actualParam : var Type actualParamType
             // apply eventual substitutions
             actualParamType = typesubstitution(substitutions, actualParamType)
-            
+
             // the actual param type must be unifiable with the formal param type
             unify(substitutions, actualParamType, formalParamType)
-            
+
             // store the type in the AST
             formalParam.type = formalParamType as PermittedType
         }
-        
+
     }
 }
 
@@ -313,11 +313,11 @@ from {
 rule Transaction
     G |- TypeSubstitutions substitutions |> Transaction body : BitcoinTMFactory::eINSTANCE.createTransactionType
 from {
-    
+
     for (in : body.inputs) {
         G |- substitutions |> in : var Type t1  // all inputs are well typed
     }
-    
+
     for (out : body.outputs) {
         G |- substitutions |> out : var Type t2 // all outputs are well typed
     }
@@ -328,37 +328,37 @@ from {
  * An input is well typed if:
  * - the body of the redeemed transaction is well typed
  * - all the expressions are well typed and the type is basic (not generic)
- * - if the redeemed tx has free variables, check that the actual types corresponds to the formal ones 
+ * - if the redeemed tx has free variables, check that the actual types corresponds to the formal ones
  * - if the redeemed tx is user defined, all the expression type corresponds to the expected type of the parameter
  */
 rule Input
     G |- TypeSubstitutions substitutions |> Input input : BitcoinTMFactory::eINSTANCE.createVoidType
 from {
-    
+
     if (!input.isPlaceholder) {
-        
+
         val txType = BitcoinTMFactory::eINSTANCE.createTransactionType
-        
+
         // the body of the redeemed transaction is well typed
         G |- substitutions |> input.txRef : var Type t1     // eventual tx parameters have type BasicType
         t1 = typesubstitution(substitutions, t1)
         unify(substitutions, t1, txType)
-        
+
         val inputTxRef = input.txRef
 
         if (inputTxRef instanceof Reference
             && (inputTxRef as Reference).ref instanceof Transaction
         ) {
-            
+
             val tx = (inputTxRef as Reference).ref as Transaction
-            
-            
+
+
             // check the actual parameters type match the formal ones (Script)
             var outputIndex = input.outpoint
             var outputScript = tx.outputs.get(new Long(outputIndex).intValue).script
 
             if (input.exps.size != outputScript.params.size) {
-                fail 
+                fail
                     error "Invalid number of actual parameters."
                     source input
             }
@@ -366,22 +366,22 @@ from {
             for (var i=0; i<input.exps.size; i++) {
                 var inputExp = input.exps.get(i)
                 var outputParam = outputScript.params.get(i)
-                
+
                 // get formal parameter type
                 var formalParamType = env(G, outputParam, Type)
                 // apply eventual substitutions to get the basic type
                 formalParamType = typesubstitution(substitutions, formalParamType)
                 // ensure it's basic
                 failIfTypeVariable(formalParamType, outputParam)
-                
+
                 // all the actual parameters are well typed
                 G |- substitutions |> inputExp : var Type actualParamType
                 // apply eventual substitutions
                 actualParamType = typesubstitution(substitutions, actualParamType)
-                
+
                 // the actual param type must be unifiable with the formal param type
                 unify(substitutions, actualParamType, formalParamType)
-                
+
                 // store the type in the AST
                 outputParam.type = formalParamType as PermittedType
             }
@@ -394,7 +394,7 @@ from {
                 texp = typesubstitution(substitutions, texp)
                 failIfTypeVariable(texp, exp)
             }
-        } 
+        }
     }
 }
 
@@ -408,7 +408,7 @@ rule Output
 from {
     var satoshis = _output.value.exp
     G |- new TypeSubstitutions() |> satoshis : var IntType intType
-    
+
     var script = _output.script
     for (p : script.params) {
         G |- substitutions |> p : var Type type
@@ -416,13 +416,13 @@ from {
 
 
     G |- substitutions |> script.exp : var Type scriptType
-    scriptType = typesubstitution(substitutions, scriptType)    
+    scriptType = typesubstitution(substitutions, scriptType)
     {
         unify(substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
     } or {
         unify(substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createStringType)
     }
-    
+
     // all the parameters should have a basic type (generic types are not allowed)
     for (p : script.params) {
         var ptype = env(G, p, Type)
@@ -448,13 +448,13 @@ from {
         type = typesubstitution(substitutions, type)
         unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
     }
-    
+
     if (tlock.tx !== null) {
         G |- substitutions |> tlock.tx : var Type txtype
         txtype = typesubstitution(substitutions, txtype)
         unify(substitutions, txtype, BitcoinTMFactory::eINSTANCE.createTransactionType)
     }
-}   
+}
 
 /*
  * Expressions type system
@@ -497,7 +497,7 @@ from {
         res = BitcoinTMFactory::eINSTANCE.createKeyType
     } or {
         Address.fromBase58(null, key.value);
-        res = BitcoinTMFactory::eINSTANCE.createAddressType 
+        res = BitcoinTMFactory::eINSTANCE.createAddressType
     }
 }
 
@@ -508,10 +508,10 @@ from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> minus.left: var Type leftType
     G |- substitutions |> minus.right: var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     // the terms type must be unifiable with int type
     unify(substitutions, leftType, t)
     unify(substitutions, rightType, t)
@@ -523,10 +523,10 @@ from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> minus.left: var Type leftType
     G |- substitutions |> minus.right: var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     // the terms type must be unifiable with int type
     unify(substitutions, leftType, t)
     unify(substitutions, rightType, t)
@@ -538,10 +538,10 @@ from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> minus.left: var Type leftType
     G |- substitutions |> minus.right: var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     // the terms type must be unifiable with int type
     unify(substitutions, leftType, t)
     unify(substitutions, rightType, t)
@@ -552,10 +552,10 @@ rule Plus
 from {
     G |- substitutions |> plus.left : var Type leftType
     G |- substitutions |> plus.right : var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     {
         type = BitcoinTMFactory::eINSTANCE.createIntType
         // the terms type must be unifiable with int type
@@ -577,10 +577,10 @@ from {
     var t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> comparison.left : var Type leftType
     G |- substitutions |> comparison.right : var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     unify(substitutions, leftType, t)
     unify(substitutions, rightType, t)
 }
@@ -590,10 +590,10 @@ rule Equals
 from {
     G |- substitutions |> comparison.left : var Type leftType
     G |- substitutions |> comparison.right : var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     // equals between elements of the same type
     unify(substitutions, leftType, rightType)
 }
@@ -603,9 +603,9 @@ rule BooleanNegation
 from {
     boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
     G |- substitutions |> negation.exp : var Type t
-    
+
     t = typesubstitution(substitutions, t)
-    
+
     unify(substitutions, t, boolType)
 }
 
@@ -615,10 +615,10 @@ from {
     boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
     G |- substitutions |> orExp.left : var Type leftType
     G |- substitutions |> orExp.right : var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     unify(substitutions, leftType, boolType)
     unify(substitutions, rightType, boolType)
 }
@@ -629,10 +629,10 @@ from {
     boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
     G |- substitutions |> andExp.left : var Type leftType
     G |- substitutions |> andExp.right : var Type rightType
-    
+
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
-    
+
     unify(substitutions, leftType, boolType)
     unify(substitutions, rightType, boolType)
 }
@@ -642,9 +642,9 @@ rule ArithmeticSigned
 from {
     intType = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> signed.exp : var Type t
-    
+
     t = typesubstitution(substitutions, t)
-    
+
     unify(substitutions, t, intType)
 }
 
@@ -654,16 +654,16 @@ from {
     var boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
     G |- substitutions |> stmt.^if: var Type tIf
     G |- substitutions |> stmt.then: var Type tThen
-    
+
     tIf = typesubstitution(substitutions, tIf)
     tThen = typesubstitution(substitutions, tThen)
-    
+
     unify(substitutions, tIf, boolType)
 
     G |- substitutions |> stmt.^else: var Type tElse
     tElse = typesubstitution(substitutions, tElse)
     unify(substitutions, tThen, tElse)
-    
+
     type=tThen
 }
 
@@ -671,7 +671,7 @@ rule VerSig
     G |- TypeSubstitutions substitutions |> Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
     var addrType = BitcoinTMFactory::eINSTANCE.createAddressType
-    
+
     for (k : versig.pubkeys) {
         G |- substitutions |> k : var Type t
         t = typesubstitution(substitutions, t)
@@ -679,7 +679,7 @@ from {
     }
 
     var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
-    
+
     for (s : versig.signatures) {
         G |- substitutions |> s : var Type ts
         ts = typesubstitution(substitutions, ts)
@@ -695,13 +695,13 @@ from {
     G |- substitutions |> s.privkey : var Type t
     t = typesubstitution(substitutions, t)
     unify(substitutions, t, keyType)
-    
+
     if (s.tx !== null) {
         var txType = BitcoinTMFactory::eINSTANCE.createTransactionType
-    
+
         G |- substitutions |> s.tx : var Type t1
         t1 = typesubstitution(substitutions, t1)
-        unify(substitutions, t1, txType)        
+        unify(substitutions, t1, txType)
     }
 }
 
@@ -710,7 +710,7 @@ rule Hash160
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
-    
+
     failIfNotPermitted(t, hash)
 }
 
@@ -719,7 +719,7 @@ rule Hash256
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
-    
+
     failIfNotPermitted(t, hash)
 }
 
@@ -728,7 +728,7 @@ rule Ripemd160
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
-    
+
     failIfNotPermitted(t, hash)
 }
 
@@ -737,7 +737,7 @@ rule Sha256
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
-    
+
     failIfNotPermitted(t, hash)
 }
 
@@ -747,10 +747,10 @@ from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> min.left: var Type tleft
     G |- substitutions |> min.right: var Type tright
-    
+
     tleft = typesubstitution(substitutions, tleft)
     tright = typesubstitution(substitutions, tright)
-    
+
     unify(substitutions, tleft, t)
     unify(substitutions, tright, t)
 }
@@ -761,10 +761,10 @@ from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
     G |- substitutions |> max.left: var Type tleft
     G |- substitutions |> max.right: var Type tright
-    
+
     tleft = typesubstitution(substitutions, tleft)
     tright = typesubstitution(substitutions, tright)
-    
+
     unify(substitutions, tleft, t)
     unify(substitutions, tright, t)
 }
@@ -776,11 +776,11 @@ from {
     G |- substitutions |> between.value: var Type tValue
     G |- substitutions |> between.left: var Type tLeft
     G |- substitutions |> between.right: var Type tRight
-    
+
     tValue = typesubstitution(substitutions, tValue)
     tLeft = typesubstitution(substitutions, tLeft)
     tRight = typesubstitution(substitutions, tRight)
-    
+
     unify(substitutions, tValue, t)
     unify(substitutions, tLeft, t)
     unify(substitutions, tRight, t)
@@ -790,7 +790,7 @@ rule Size
     G |- TypeSubstitutions substitutions |> Size size: BitcoinTMFactory::eINSTANCE.createIntType
 from {
     G |- substitutions |> size.value: var Type t
-    
+
     t = typesubstitution(substitutions, t)
 }
 
@@ -798,7 +798,7 @@ rule AfterTimeLock
     G |- TypeSubstitutions substitutions |> AfterTimeLock after: Type texpr
 from {
     G |- substitutions |> after.timelock: var Type t
-    
+
     G |- substitutions |> after.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
@@ -807,7 +807,7 @@ from {
 rule Compile
     G |- TypeSubstitutions substitutions |> Compile compile: BitcoinTMFactory::eINSTANCE.createVoidType
 from {
-    for (e : compile.txs) {     
+    for (e : compile.txs) {
         G |- substitutions |> e: var Type texpr
         texpr = typesubstitution(substitutions, texpr)
         failIfNotPermitted(texpr, e)
@@ -815,9 +815,9 @@ from {
 }
 
 /*
- * 
+ *
  * rule invocations
- * 
+ *
  */
 
 checkrule CheckConstants for

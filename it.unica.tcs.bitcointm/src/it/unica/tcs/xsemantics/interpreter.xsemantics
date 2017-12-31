@@ -49,7 +49,7 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.crypto.TransactionSignature
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
- 
+
 inject extension ASTUtils astUtils
 inject extension TransactionCompilerDelegate compiler
 
@@ -76,27 +76,27 @@ rule InterpretReference
 from {
     if (v.ref instanceof Transaction) {
         val tx = v.ref as Transaction
-        
+
         for (var i=0; i<v.actualParams.size; i++) {
             val actual = v.actualParams.get(i)
             val formal = tx.params.get(i)
-            
+
             G |- actual |> rho ~> var Object value
-            rho.put(formal, value)  
+            rho.put(formal, value)
         }
-        
+
         G |- tx |> rho ~> res
     }
     else if (v.ref instanceof Constant) {
         // Constant
         val const = v.ref as Constant
-        G |- const.exp |> rho ~> res            
+        G |- const.exp |> rho ~> res
     }
     else if (v.ref instanceof Parameter) {
         // Parameter
         val param = v.ref as Parameter
         {rho.containsKey(param)}
-        res = rho.get(param)                
+        res = rho.get(param)
     }
 }
 
@@ -134,27 +134,27 @@ rule InterpretSignature
     G |- Signature s |> Rho rho ~> TransactionSignature res
 from {
     { s.tx !== null }
-    
+
     G |- s.privkey |> rho ~> var Object key
     G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
-    
+
     if (!(key instanceof DumpedPrivateKey)) {
-        fail 
-            error "Key must be private" 
+        fail
+            error "Key must be private"
             source s.privkey
     }
-    
+
     val tx = txBuilder.toTransaction
     val inputIndex = s.inputIdx
     val sigHashType = astUtils.toHashType(s.modifier)
     val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
-    
+
     val input = txBuilder.inputs.get(inputIndex as int)
     val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
-    
+
     res = tx.calculateSignature(
-        0, 
-        (key as DumpedPrivateKey).key, 
+        0,
+        (key as DumpedPrivateKey).key,
         outScript,
         sigHashType,
         anyonecanpay
@@ -174,15 +174,15 @@ from {
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
 from {
-            
+
     val txBuilder = tx.compileTransaction(rho)
-    
+
     if (!txBuilder.isReady) {
-        fail 
+        fail
             error "Transaction must be ready"
             source tx
     }
-    
+
     res = txBuilder
 }
 
@@ -215,7 +215,7 @@ rule InterpretPlus
 from {
     G |- plus.left |> rho ~> var Object leftResult
     G |- plus.right |> rho ~> var Object rightResult
-    
+
     if (leftResult instanceof String || rightResult instanceof String) {
         var leftString = leftResult.toString
         var rightString = rightResult.toString
@@ -240,25 +240,25 @@ rule InterpretAnd
 from {
     {
         G |- and.left |> rho ~> var Boolean leftResult
-        
+
         if (leftResult == false) {
             result = false
         }
         else {
             G |- and.right |> rho ~> var Boolean rightResult
-            result = rightResult.booleanValue       
+            result = rightResult.booleanValue
         }
     } or {
         G |- and.right |> rho ~> var Boolean rightResult
-        
+
         if (rightResult == false) {
             result = false
         }
         else {
             G |- and.left |> rho ~> var Boolean leftResult
-            result = leftResult.booleanValue        
+            result = leftResult.booleanValue
         }
-    }   
+    }
 }
 
 rule InterpretOr
@@ -266,23 +266,23 @@ rule InterpretOr
 from {
     {
         G |- orExp.left |> rho ~> var Boolean leftResult
-        
+
         if (leftResult == true) {
             result = true
         }
         else {
             G |- orExp.right |> rho ~> var Boolean rightResult
-            result = rightResult.booleanValue 
+            result = rightResult.booleanValue
         }
     } or {
         G |- orExp.right |> rho ~> var Boolean rightResult
-        
+
         if (rightResult == true) {
             result = true
         }
         else {
             G |- orExp.left |> rho ~> var Boolean leftResult
-            result = leftResult.booleanValue 
+            result = leftResult.booleanValue
         }
     }
 }
@@ -299,7 +299,7 @@ rule InterpretComparison
 from {
     G |- comparison.left |> rho ~> var Comparable<Object> leftResult
     G |- comparison.right |> rho ~> var Object rightResult
-    
+
     result = switch(comparison.op) {
             case ">=": leftResult >= rightResult
             case "<=": leftResult <= rightResult
@@ -307,10 +307,10 @@ from {
             case "<": leftResult < rightResult
             default: null
         }
-        
+
     if (result===null) {
-        fail 
-            error "Unexpected operator "+comparison.op 
+        fail
+            error "Unexpected operator "+comparison.op
             source comparison
     }
 }
@@ -318,60 +318,60 @@ from {
 rule InterpretEquals
     G |- Equals comparison |> Rho rho ~> Boolean result
 from {
-    
+
     {
         G |- comparison.left |> rho ~> var ITransactionBuilder leftResult
         G |- comparison.right |> rho ~> var ITransactionBuilder rightResult
 
         var areEqual = ITransactionBuilder.equals(leftResult,rightResult)
-        
+
         result = switch(comparison.op) {
             case "==": areEqual
             case "!=": !areEqual
             default: null
         }
-        
+
         if (result===null) {
-            fail 
-                error "Unexpected operator "+comparison.op 
+            fail
+                error "Unexpected operator "+comparison.op
                 source comparison
         }
-        
+
     } or {
         comparison.left instanceof Reference
         comparison.right instanceof Reference
         // two refs are the same if they point to the same parameter
-        var leftResult = (comparison.left as Reference).ref 
+        var leftResult = (comparison.left as Reference).ref
         var rightResult = (comparison.right as Reference).ref
         leftResult == rightResult
-        
+
         result = switch(comparison.op) {
             case "==": true
             case "!=": false
             default: null
         }
-        
+
         if (result===null) {
-            fail 
-                error "Unexpecter operator "+comparison.op 
+            fail
+                error "Unexpecter operator "+comparison.op
                 source comparison
         }
-        
+
     } or {
         G |- comparison.left |> rho ~> var Object leftResult
         G |- comparison.right |> rho ~> var Object rightResult
-                        
+
         var areEqual = leftResult==rightResult
-        
+
         result = switch(comparison.op) {
             case "==": areEqual
             case "!=": !areEqual
             default: null
         }
-        
+
         if (result===null) {
-            fail 
-                error "Unexpected operator "+comparison.op 
+            fail
+                error "Unexpected operator "+comparison.op
                 source comparison
         }
     }
@@ -381,7 +381,7 @@ rule InterpretIfThenElse
     G |- IfThenElse stmt |> Rho rho ~> Object result
 from {
     G |- stmt.^if |> rho ~> var Boolean ifCondition
-    
+
     if (ifCondition) {
         G |- stmt.then |> rho ~> var Object thenResult
         result = thenResult
@@ -397,10 +397,10 @@ rule InterpretMin
 from {
     G |- stmt.left |> rho ~> var Long leftRes
     G |- stmt.right |> rho ~> var Long rightRes
-    
+
     if (leftRes<=rightRes)
         result = leftRes
-    else 
+    else
         result = rightRes
 }
 
@@ -409,10 +409,10 @@ rule InterpretMax
 from {
     G |- stmt.left |> rho ~> var Long leftRes
     G |- stmt.right |> rho ~> var Long rightRes
-    
+
     if (leftRes>=rightRes)
         result = leftRes
-    else 
+    else
         result = rightRes
 }
 
@@ -430,7 +430,7 @@ rule InterpretHash
 from {
 
     G |- hash.value |> rho ~> var Object expResult
-    
+
     // hash the bytes
     if (hash instanceof Hash160)
         result = BitcoinUtils.hash(expResult, Hash.Hash160)
@@ -441,8 +441,8 @@ from {
     else if (hash instanceof Sha256)
         result = BitcoinUtils.hash(expResult, Hash.Sha256)
     else {
-        fail 
-        error "Unexpected instance "+hash.class 
+        fail
+        error "Unexpected instance "+hash.class
         source hash
     }
 }
@@ -451,8 +451,8 @@ rule InterpretSize
     G |- Size size |> Rho rho ~> Long result
 from {
     G |- size.value |> rho ~> var Long res
-    
-    if (res==0) 
+
+    if (res==0)
         result=0L
     else {
         // ⌈(log2 |n| / 7)⌉

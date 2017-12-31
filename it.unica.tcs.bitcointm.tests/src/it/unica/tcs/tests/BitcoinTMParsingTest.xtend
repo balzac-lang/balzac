@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 class BitcoinTMParsingTest {
     @Inject
     ParseHelper<Model> parseHelper
-    
+
     @Test
     def void loadModel() {
 //      val result = parseHelper.parse('''

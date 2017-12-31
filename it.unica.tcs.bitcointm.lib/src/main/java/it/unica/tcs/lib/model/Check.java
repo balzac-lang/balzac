@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class Check extends AbstractPrefix {
 
     private final Supplier<Boolean> condition;
-    
+
     Check(Supplier<Boolean> condition) {
         this.condition = condition;
     }

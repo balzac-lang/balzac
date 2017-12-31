@@ -3,7 +3,7 @@
  */
 
 /**
- * 
+ *
  */
 package it.unica.tcs.xsemantics;
 
@@ -12,7 +12,7 @@ import it.unica.tcs.bitcoinTM.TypeVariable;
 
 /**
  * @author bettini
- * 
+ *
  */
 public class LambdaUtils {
 

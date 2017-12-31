@@ -20,18 +20,18 @@ import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 
 class BitcoinTMConverterService extends DefaultTerminalConverters {
-    
+
     @Inject private BitcoinClientI bitcoin;
     @Inject private NumberValueConverter numberValueConverter;
     @Inject private HashValueConverter hashConverter;
     @Inject private TimestampValueConverter timestampTerminalConverter;
     @Inject private LongUnderscoreValueConverter longTerminalConverter;
-        
+
     @ValueConverter(rule = "Number")
     def IValueConverter<Long> getNumberConverter() {
         return numberValueConverter
     }
-    
+
     @ValueConverter(rule = "HASH_160")
     def IValueConverter<byte[]> getHash160Converter() {
         return hashConverter
@@ -55,30 +55,30 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     @ValueConverter(rule = "TIMESTAMP")
     def IValueConverter<Long> getTimestampConverter() {
         return timestampTerminalConverter
-    }   
+    }
 
     @ValueConverter(rule = "LONG")
     def IValueConverter<Long> getLongConverter() {
         return longTerminalConverter
     }
-        
+
     @ValueConverter(rule = "TXID")
     def IValueConverter<String> getTXID() {
         return new AbstractLexerBasedConverter<String>() {
             override toValue(String string, INode node) throws ValueConverterException {
                 val id = string.split(":").get(1)
-                
+
                 try {
                     return bitcoin.getRawTransaction(id);
                 }
                 catch (Exception e) {
                     throw new ValueConverterException("Couldn't convert tx id '" + id + "' to transaction hex. Unable to fetch the transaction. "+e.message, node, e);
                 }
-                
+
             }
         }
     }
-    
+
     @ValueConverter(rule = "TXSERIAL")
     def IValueConverter<String> getTX() {
         return new AbstractLexerBasedConverter<String>() {
@@ -87,7 +87,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
-    
+
     @ValueConverter(rule = "SIGHEX")
     def IValueConverter<String> getSig() {
         return new AbstractLexerBasedConverter<String>() {
@@ -96,20 +96,20 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
-        
+
     @ValueConverter(rule = "WIF")
     def IValueConverter<String> getWIF() {
         return new AbstractLexerBasedConverter<String>() {
-                                    
+
             override toValue(String string, INode node) throws ValueConverterException {
                 var value = string.substring(string.indexOf(':')+1)
-        
+
                 try {
                     DumpedPrivateKey.fromBase58(null, value);   // it ignores the network byte
                     return value;
                 }
                 catch (Exception e) {
-                    
+
                     try {
                         Address.fromBase58(null, value);    // it ignores the network byte
                         return value;
@@ -120,7 +120,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
-    
+
     @ValueConverter(rule = "MINUTE_DELAY")
     def IValueConverter<Long> getMinuteDelay() {
         return new AbstractLexerBasedConverter<Long>() {
@@ -129,7 +129,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
-    
+
     @ValueConverter(rule = "HOUR_DELAY")
     def IValueConverter<Long> getHourDelay() {
         return new AbstractLexerBasedConverter<Long>() {
@@ -138,7 +138,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
-    
+
     @ValueConverter(rule = "DAY_DELAY")
     def IValueConverter<Long> getDayDelay() {
         return new AbstractLexerBasedConverter<Long>() {

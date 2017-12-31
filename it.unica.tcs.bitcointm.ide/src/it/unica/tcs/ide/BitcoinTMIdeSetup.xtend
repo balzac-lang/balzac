@@ -20,5 +20,5 @@ class BitcoinTMIdeSetup extends BitcoinTMStandaloneSetup {
     override createInjector() {
         Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule))
     }
-    
+
 }

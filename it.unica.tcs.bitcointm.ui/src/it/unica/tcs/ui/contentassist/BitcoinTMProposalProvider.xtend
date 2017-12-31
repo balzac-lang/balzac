@@ -29,20 +29,20 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
  * on how to customize the content assistant.
  */
 class BitcoinTMProposalProvider extends AbstractBitcoinTMProposalProvider {
-    
+
     @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject private IContainer.Manager containerManager;
     @Inject private extension IQualifiedNameConverter qualifiedNameConverter
-    
+
     override void completeImport_ImportedNamespace(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
         super.completeImport_ImportedNamespace(model, assignment, context, acceptor)
 
         var packageName = (model.eContainer as PackageDeclaration).name.toQualifiedName
-        
+
         var Set<QualifiedName> names = new HashSet();
         var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(model.eResource());
         var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(model.eResource().getURI());
-        
+
         for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
             for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
                 if (!packageName.equals(od.qualifiedName))
@@ -53,7 +53,7 @@ class BitcoinTMProposalProvider extends AbstractBitcoinTMProposalProvider {
                     names.add(od.qualifiedName)
             }
         }
-        
+
         for (n : names) {
             acceptor.accept(createCompletionProposal(n.toString, context))
         }

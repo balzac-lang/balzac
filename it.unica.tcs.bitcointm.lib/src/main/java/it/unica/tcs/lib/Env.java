@@ -14,11 +14,11 @@ import com.google.common.collect.Sets;
 import it.unica.tcs.lib.utils.TablePrinter;
 
 public class Env<T> implements EnvI<T,Env<T>> {
-    
+
     private static final long serialVersionUID = 1L;
     private final Map<String,Class<? extends T>> variablesType = new HashMap<>();
     private final Map<String,T> variablesBinding = new HashMap<>();
-        
+
     @Override
     public boolean hasVariable(String name) {
         return variablesType.containsKey(name);
@@ -44,7 +44,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkArgument(hasVariable(name), "'%s' is not a variable", name);
         return variablesType.get(name);
     }
-    
+
     @Override
     public T getValue(String name) {
         checkNotNull(name, "'name' cannot be null");
@@ -52,7 +52,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkArgument(isBound(name), "'%s' is not bound", name);
         return variablesBinding.get(name);
     }
-    
+
     @Override
     public T getValueOrDefault(String name, T defaultValue) {
         checkNotNull(name, "'name' cannot be null");
@@ -60,7 +60,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkArgument(hasVariable(name), "'%s' is not a variable", name);
         return isBound(name)? getValue(name): defaultValue;
     }
-    
+
     @Override
     public <A extends T> A getValue(String name, Class<A> type) {
         checkNotNull(name, "'name' cannot be null");
@@ -78,7 +78,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         variablesType.put(name, type);
         return this;
     }
-    
+
     @Override
     public Env<T> removeVariable(String name) {
         checkNotNull(name, "'name' cannot be null");
@@ -124,7 +124,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         variablesType.clear();
         variablesBinding.clear();
     }
-    
+
     @Override
     public String toString() {
         TablePrinter tp = new TablePrinter(new String[]{"Name","Type","Binding"}, "No variables");

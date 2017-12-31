@@ -7,7 +7,7 @@ public class Put extends AbstractPrefix {
 
     private BitcoinClientI client;
     private final String txhex;
-    
+
     Put(String txhex) {
         this.txhex = txhex;
         this.client = BitcoinUtilsFactory.create().getBitcoinClient();
@@ -20,7 +20,7 @@ public class Put extends AbstractPrefix {
 
     @Override
     public void run() {
-//      String txid = 
+//      String txid =
                 client.sendRawTransaction(txhex);
 //      Prefix ask = PrefixFactory.ask(txid);
 //      ask.run();

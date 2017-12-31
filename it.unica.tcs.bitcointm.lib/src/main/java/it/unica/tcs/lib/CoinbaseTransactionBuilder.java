@@ -9,7 +9,7 @@ import org.bitcoinj.core.NetworkParameters;
 import it.unica.tcs.lib.script.InputScript;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {
-    
+
     private static final long serialVersionUID = 1L;
 
     public CoinbaseTransactionBuilder(NetworkParameters params) {

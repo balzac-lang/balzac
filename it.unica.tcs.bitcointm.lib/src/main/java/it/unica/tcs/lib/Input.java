@@ -12,51 +12,51 @@ import it.unica.tcs.lib.script.InputScript;
  * Input internal representation (not visible outside)
  */
 public class Input implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
     private static final int UNSET_OUTINDEX = -1;
     private static final int UNSET_LOCKTIME = -1;
-        
+
     private final ITransactionBuilder parentTx;
     private final int outIndex;
     private final InputScript script;
     private final long locktime;
-    
+
     private Input(ITransactionBuilder parentTx, int outIndex, InputScript script, long locktime) {
         this.parentTx = parentTx;
         this.script = script;
         this.outIndex = outIndex;
         this.locktime = locktime;
     }
-    
+
     static Input of(InputScript script){
         return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, UNSET_LOCKTIME);
     }
-    
+
     static Input of(InputScript script, long locktime){
         return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, locktime);
     }
-    
+
     static Input of(int index, InputScript script){
         return of((ITransactionBuilder) null, index, script, UNSET_LOCKTIME);
     }
-    
+
     static Input of(ITransactionBuilder tx, int index, InputScript script){
         return of(tx, index, script, UNSET_LOCKTIME);
     }
-    
+
     static Input of(ITransactionBuilder tx, int index, InputScript script, long locktime){
         return new Input(tx, index, script, locktime);
     }
-    
+
     public boolean hasParentTx() {
         return getParentTx()!=null;
     };
-    
+
     public boolean hasLocktime() {
         return locktime!=UNSET_LOCKTIME;
     };
-    
+
     public ITransactionBuilder getParentTx() {
         return parentTx;
     }
@@ -109,5 +109,5 @@ public class Input implements Serializable {
             return false;
         return true;
     }
-    
+
 }

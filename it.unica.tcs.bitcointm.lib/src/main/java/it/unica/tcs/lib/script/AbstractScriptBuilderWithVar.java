@@ -43,18 +43,18 @@ import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.KeyStoreFactory;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>> 
-    extends AbstractScriptBuilder<T> 
+public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
+    extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 
     private static final long serialVersionUID = 1L;
     private static final String SIGNATURE_PREFIX = "\u03C3";    // σ
     private static final String FREEVAR_PREFIX = "\u03F0";      // ϰ;
-    
+
     private final Env<Object> env = new Env<>();
-    
+
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
-    
+
     private static class SignatureUtil implements Serializable {
         private static final long serialVersionUID = 1L;
         private final String keyID;
@@ -99,12 +99,12 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         public String toString() {
             return "SignatureUtil [key=" + keyID + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay + "]";
         }
-        
+
         public String getUniqueKey() {
             return Utils.HEX.encode(this.keyID.concat(this.hashType.toString()).concat(this.anyoneCanPay.toString()).getBytes());
         }
     }
-    
+
     public AbstractScriptBuilderWithVar() {
         this(new Script(new byte[]{}));
     }
@@ -112,7 +112,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     public AbstractScriptBuilderWithVar(Script script) {
         super(script);
     }
-    
+
     public AbstractScriptBuilderWithVar(String serializedScript) {
         this.deserialize(serializedScript);
     }
@@ -122,12 +122,12 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
         return substituteAllBinding();
     }
-    
+
     public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
         ECKey key = KeyStoreFactory.getInstance().getKey(keyID);
         return signaturePlaceholder(key, hashType, anyoneCanPay);
     }
-    
+
     @SuppressWarnings("unchecked")
     public T signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
         checkNotNull(key, "'key' cannot be null");
@@ -142,17 +142,17 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         this.signatures.put(mapKey, sig);
         return (T) this;
     }
-    
+
     public int signatureSize() {
         return signatures.size();
     }
-    
+
     /*
      * Return a Script, binding the variables.
-     * This builder is assumed to be ready 
+     * This builder is assumed to be ready
      */
     private Script substituteAllBinding() {
-        
+
         ScriptBuilder sb = new ScriptBuilder();
 
         for (ScriptChunk chunk : getChunks()) {
@@ -173,25 +173,25 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 sb.addChunk(chunk);
             }
         }
-        
+
         return sb.build();
     }
-    
+
     /**
      * Replace all the signatures placeholder with the actual signatures.
      * Each placeholder is already associated with the key and the modifiers.
      * @param tx the transaction to be signed
      * @param inputIndex the index of the input that will contain this script
-     * @param outScript the redeemed output script 
+     * @param outScript the redeemed output script
      * @return a <b>copy</b> of this builder
      */
     @SuppressWarnings("unchecked")
     public T setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) {
-        
+
         List<ScriptChunk> newChunks = new ArrayList<>();
 
         for (ScriptChunk chunk : getChunks()) {
-            
+
             ScriptBuilder2 sb = new ScriptBuilder2();
             if (isSignature(chunk)) {
                 String mapKey = getMapKey(chunk);
@@ -199,13 +199,13 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
                 SigHash hashType = sig.hashType;
                 boolean anyoneCanPay = sig.anyoneCanPay;
-                
+
                 // check the key is correct when P2PKH
 //              Script s = new Script(outScript);
 //              if (s.isSentToAddress()) {
 //                  checkState(Arrays.equals(s.getPubKeyHash(), key.getPubKeyHash()));
 //              }
-                
+
                 TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
                 Sha256Hash hash = tx.hashForSignature(inputIndex, outScript, (byte) txSig.sighashFlags);
                 boolean isValid =  ECKey.verify(hash.getBytes(), txSig, key.getPubKey());
@@ -216,16 +216,16 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
             else {
                 sb.addChunk(chunk);
             }
-            
+
             newChunks.addAll(sb.getChunks());
         }
         super.getChunks().clear();
         super.getChunks().addAll(newChunks);
-        
+
         this.signatures.clear();
         return (T) this;
     }
-    
+
     /**
      * Append the given script to this builder.
      * @param append the script to append
@@ -235,7 +235,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         ScriptBuilder2 sb = new ScriptBuilder2(append);
         return this.append(sb);
     }
-    
+
     /**
      * Append the given script builder to this one.
      * If it contains some free variables or signatures placeholder, they are merged ensuring consistency.
@@ -245,28 +245,28 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     @SuppressWarnings("unchecked")
     public <U extends AbstractScriptBuilderWithVar<U>> T append(AbstractScriptBuilderWithVar<U> append) {
         for (ScriptChunk ch : append.getChunks()) {
-            
+
             if (isVariable(ch)) {
                 // merge free variables
                 String name = getVariableName(ch);
 
                 // check they are consistent
                 if (hasVariable(name)) {
-                    checkState(getType(name).equals(append.getType(name)), 
+                    checkState(getType(name).equals(append.getType(name)),
                             "Inconsitent state: variable '%s' is bound to type '%s' (this) and type '%s' (append)",
                             name, this.getType(name), append.getType(name));
-                    
+
                     if (isBound(name) && append.isBound(name)) {
-                        checkState(getValue(name).equals(append.getValue(name)), 
+                        checkState(getValue(name).equals(append.getValue(name)),
                                 "Inconsitent state: variable '%s' is bound to value '%s' (this) and value '%s' (append)",
                                 name, this.getValue(name), append.getValue(name));
                     }
                 }
-                
+
                 this.addVariable(name, append.getType(name));
                 if (!isBound(name) && append.isBound(name)) {
                     this.bindVariable(name, append.getValue(name));
-                }               
+                }
             }
             else if (isSignature(ch)) {
                 // merge signatures
@@ -274,7 +274,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 checkNotNull(append.signatures.containsKey(mapKey));
                 if (this.signatures.containsKey(mapKey)) {
                     // check they are consistent
-                    checkState(this.signatures.get(mapKey).equals(append.signatures.get(mapKey)), 
+                    checkState(this.signatures.get(mapKey).equals(append.signatures.get(mapKey)),
                             "Inconsitent state: sig placeholder '%s' is bound to '%s' (this) and '%s' (append)",
                             mapKey, this.signatures.get(mapKey), append.signatures.get(mapKey));
                 }
@@ -287,10 +287,10 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 this.addChunk(ch);
             }
         }
-        
+
         return (T) this;
     }
-    
+
     /**
      * Extract a string representation of this builder.
      * @return a string representing this builder
@@ -303,11 +303,11 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
         return str.toString().trim();
     }
-    
+
     /**
      * Parse the given string to initialize this {@link ScriptBuilder}
      * @param str
-     * @return 
+     * @return
      * @return
      * @see #serialize()
      */
@@ -318,35 +318,35 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
         return (T) this;
     }
-    
+
     private static boolean isSignature(ScriptChunk ch) {
         return ch.data != null && new String(ch.data).startsWith(SIGNATURE_PREFIX);
     }
-    
+
     private static boolean isVariable(ScriptChunk ch) {
         return ch.data != null && new String(ch.data).startsWith(FREEVAR_PREFIX);
     }
-    
+
     private static boolean isVariable(ScriptChunk ch, String name) {
         return ch.data != null && new String(ch.data).equals(FREEVAR_PREFIX+name);
     }
-    
+
     private static String getVariableName(ScriptChunk ch) {
         return new String(ch.data).substring(FREEVAR_PREFIX.length());
     }
-    
+
     private static String getMapKey(ScriptChunk ch) {
         return new String(ch.data).substring(SIGNATURE_PREFIX.length());
     }
-    
+
     @Override
     public String toString() {
         return this.serialize();
     }
-    
+
 
     protected String serializeChunk(ScriptChunk ch) {
-        
+
         StringBuilder str = new StringBuilder();
 
         if (isSignature(ch)) {
@@ -382,9 +382,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
         return str.toString();
     }
-    
+
     protected void deserializeChunk(String w) {
-            
+
         if (w.startsWith("[")) {
             String[] vals = w.substring(1, w.length()-1).split(",");
             if (vals[0].equals("sig")) {
@@ -412,22 +412,22 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 } else if (ScriptOpCodes.getOpCode(w) != OP_INVALIDOPCODE) {
                     // opcode, e.g. OP_ADD or OP_1:
                     out.write(ScriptOpCodes.getOpCode(w));
-                } 
+                }
                 else if (w.startsWith("PUSHDATA")) {
                     String data = w.substring("PUSHDATA".length()+1, w.length()-1);
                     Script.writeBytes(out, Utils.HEX.decode(data));
                 }
                 else {
                     throw new RuntimeException("Invalid word: '" + w + "'");
-                }                        
-                
+                }
+
                 this.getChunks().addAll(new Script(out.toByteArray()).getChunks());
             } catch (IOException e) {
                 throw new RuntimeException("Unexpected IO error for word "+w, e);
             }
         }
     }
-    
+
     @SuppressWarnings("incomplete-switch")
     protected static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
         switch (sigHash) {
@@ -437,7 +437,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
         throw new IllegalStateException();
     }
-    
+
     protected static Object[] decodeModifier(String modifier) {
         switch (modifier) {
         case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
@@ -449,7 +449,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
         throw new IllegalStateException(modifier);
     }
-    
+
     protected static int decodeFromOpN(int opcode) {
         checkArgument((opcode == OP_0 || opcode == OP_1NEGATE) || (opcode >= OP_1 && opcode <= OP_16), "decodeFromOpN called on non OP_N opcode");
         if (opcode == OP_0)
@@ -469,28 +469,28 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         else
             return value - 1 + OP_1;
     }
-    
-    
-    
+
+
+
     private void addVariableChunk(String name) {
         byte[] data = (FREEVAR_PREFIX+name).getBytes();
         checkState(data.length<256, "data too long: "+data.length);
         ScriptChunk chunk = new ScriptChunk(OP_PUSHDATA1, data);
         super.addChunk(chunk);
     }
-    
+
     private void removeVariableChunk(String name) {
         ListIterator<ScriptChunk> it = getChunks().listIterator();
-        
+
         while(it.hasNext()) {
             ScriptChunk next = it.next();
-            
+
             if (isVariable(next, name)) {
                 it.remove();
             }
         }
     }
-    
+
     @Override
     public boolean hasVariable(String name) {
         return env.hasVariable(name);
@@ -510,7 +510,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     public Class<?> getType(String name) {
         return env.getType(name);
     }
-    
+
     @Override
     public Object getValue(String name) {
         return env.getValue(name);
@@ -520,22 +520,22 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     public <E> E getValue(String name, Class<E> clazz) {
         return env.getValue(name, clazz);
     }
-    
+
     @Override
     public Object getValueOrDefault(String name, Object defaultValue) {
         return env.getValueOrDefault(name, defaultValue);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public T addVariable(String name, Class<?> type) {
-        checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type) 
+        checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
                 || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type) || TransactionSignature.class.equals(type), "invalid type "+type);
         addVariableChunk(name);
         env.addVariable(name, type);
         return (T) this;
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public T removeVariable(String name) {
@@ -565,12 +565,12 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     public Collection<String> getBoundVariables() {
         return env.getBoundVariables();
     }
-    
+
     @Override
     public boolean isReady() {
         return env.isReady();
     }
-    
+
     @Override
     public void clear() {
         env.clear();
