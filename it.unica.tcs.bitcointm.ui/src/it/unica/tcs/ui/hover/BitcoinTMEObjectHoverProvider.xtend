@@ -30,143 +30,143 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
-	
-	@Inject extension ASTUtils
-	@Inject extension TransactionCompiler
-	
-	override String getLabel(EObject eobj) {
-		return eobj.labelInternal
-	}
-	
-	override String getFirstLine(EObject eobj) {
-		return eobj.firstLineInternal
-	}
-	
-//	override boolean hasHover(EObject eobj) {
-//		if (eobj instanceof RelativeTime)
-//			return eobj.isDate;
-//		
-//		return super.hasHover(eobj)
-//	}
-	
-	override getDocumentation(EObject eobj) {
+    
+    @Inject extension ASTUtils
+    @Inject extension TransactionCompiler
+    
+    override String getLabel(EObject eobj) {
+        return eobj.labelInternal
+    }
+    
+    override String getFirstLine(EObject eobj) {
+        return eobj.firstLineInternal
+    }
+    
+//  override boolean hasHover(EObject eobj) {
+//      if (eobj instanceof RelativeTime)
+//          return eobj.isDate;
+//      
+//      return super.hasHover(eobj)
+//  }
+    
+    override getDocumentation(EObject eobj) {
         return eobj.documentationInternal
     }
-	
-	
-	
-	// base case getLabelInternal
-	dispatch def String getLabelInternal(EObject obj) {
-		return super.getLabel(obj)
-	}
+    
+    
+    
+    // base case getLabelInternal
+    dispatch def String getLabelInternal(EObject obj) {
+        return super.getLabel(obj)
+    }
 
-	dispatch def String getLabelInternal(Parameter p) {
-		return p.name+" : "+p.type?.toStringType
-	}
+    dispatch def String getLabelInternal(Parameter p) {
+        return p.name+" : "+p.type?.toStringType
+    }
 
-	dispatch def String getLabelInternal(Constant p) {
-		return p.name+" : "+p.type?.toStringType
-	}
+    dispatch def String getLabelInternal(Constant p) {
+        return p.name+" : "+p.type?.toStringType
+    }
 
-	// base case getFirstLineInternal
-	def String getFirstLineInternal(EObject obj) {
-		return super.getFirstLine(obj)
-	}
-	
-	def String getFirstLineInternal(Transaction tx) {
-		'''transaction «tx.name»'''
-	}
-	
-	// base case getDocumentationInternal
-	def dispatch String getDocumentationInternal(EObject obj) {
-		return super.getDocumentation(obj)
-	}
-	
-	def dispatch String getDocumentationInternal(Constant pvt) '''
-		«IF pvt.exp instanceof KeyLiteral»
-			«val wif = (pvt.exp as KeyLiteral).value» 
-			«val pvtEC = BitcoinUtils.wifToECKey(wif, pvt.networkParams)»
-			<pre>
-			Private key
-			    base58 (wif) = «wif»
-			    hex          = «pvtEC.privateKeyAsHex»
-			    
-			Public key
-			    base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
-			    hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
-			    hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
-			</pre>
-		«ENDIF»
-		'''
-	
-	def dispatch String getDocumentationInternal(Transaction tx) {
-		'''
-		<pre>
-		«tx.compileTransaction(new Rho).toString»
-		</pre>
-		'''		
-	}
-	
+    // base case getFirstLineInternal
+    def String getFirstLineInternal(EObject obj) {
+        return super.getFirstLine(obj)
+    }
+    
+    def String getFirstLineInternal(Transaction tx) {
+        '''transaction «tx.name»'''
+    }
+    
+    // base case getDocumentationInternal
+    def dispatch String getDocumentationInternal(EObject obj) {
+        return super.getDocumentation(obj)
+    }
+    
+    def dispatch String getDocumentationInternal(Constant pvt) '''
+        «IF pvt.exp instanceof KeyLiteral»
+            «val wif = (pvt.exp as KeyLiteral).value» 
+            «val pvtEC = BitcoinUtils.wifToECKey(wif, pvt.networkParams)»
+            <pre>
+            Private key
+                base58 (wif) = «wif»
+                hex          = «pvtEC.privateKeyAsHex»
+                
+            Public key
+                base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
+                hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
+                hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
+            </pre>
+        «ENDIF»
+        '''
+    
+    def dispatch String getDocumentationInternal(Transaction tx) {
+        '''
+        <pre>
+        «tx.compileTransaction(new Rho).toString»
+        </pre>
+        '''     
+    }
+    
 
-	
-	
-	
-	
-	
-	/*
-	 * get the string literal for the types
-	 */
-	 
-	dispatch def String toStringType(IntType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(StringType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(BooleanType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(SignatureType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(TransactionType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(KeyType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(Hash160Type type) {
-		return type.value.literal
-	}
+    
+    
+    
+    
+    
+    /*
+     * get the string literal for the types
+     */
+     
+    dispatch def String toStringType(IntType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(StringType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(BooleanType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(SignatureType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(TransactionType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(KeyType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(Hash160Type type) {
+        return type.value.literal
+    }
 
-	dispatch def String toStringType(Hash256Type type) {
-		return type.value.literal
-	}
+    dispatch def String toStringType(Hash256Type type) {
+        return type.value.literal
+    }
 
-	dispatch def String toStringType(Sha256Type type) {
-		return type.value.literal
-	}
+    dispatch def String toStringType(Sha256Type type) {
+        return type.value.literal
+    }
 
-	dispatch def String toStringType(Ripemd160Type type) {
-		return type.value.literal
-	}
+    dispatch def String toStringType(Ripemd160Type type) {
+        return type.value.literal
+    }
 
-	dispatch def String toStringType(AddressType type) {
-		return type.value.literal
-	}
-	
-	dispatch def String toStringType(TypeVariable type) {
-		return type.value
-	}
-	
-	dispatch def String toStringType(Type type) {
-		return "unknown"
-	}
-	
+    dispatch def String toStringType(AddressType type) {
+        return type.value.literal
+    }
+    
+    dispatch def String toStringType(TypeVariable type) {
+        return type.value
+    }
+    
+    dispatch def String toStringType(Type type) {
+        return "unknown"
+    }
+    
 }

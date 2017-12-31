@@ -18,9 +18,9 @@ import org.eclipse.xtext.util.Modules2
  * Initialization support for running Xtext languages in web applications.
  */
 class BitcoinTMWebSetup extends BitcoinTMStandaloneSetup {
-	
-	override Injector createInjector() {
-		return Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule, new BitcoinTMWebModule))
-	}
-	
+    
+    override Injector createInjector() {
+        return Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule, new BitcoinTMWebModule))
+    }
+    
 }

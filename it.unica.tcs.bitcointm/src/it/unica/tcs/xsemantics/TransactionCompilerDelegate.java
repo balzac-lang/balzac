@@ -14,14 +14,14 @@ import it.unica.tcs.lib.ITransactionBuilder;
  * This class solves maven-build problems of interpreter.xsemantics
  */
 class TransactionCompilerDelegate {
-	
-	@Inject private TransactionCompiler compiler;
-	
-	public ITransactionBuilder compileTransaction(TransactionLiteral tx) {
-		return compiler.compileTransaction(tx);
-	}
-	
-	public ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
-		return compiler.compileTransaction(tx, rho);
-	}
+    
+    @Inject private TransactionCompiler compiler;
+    
+    public ITransactionBuilder compileTransaction(TransactionLiteral tx) {
+        return compiler.compileTransaction(tx);
+    }
+    
+    public ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
+        return compiler.compileTransaction(tx, rho);
+    }
 }

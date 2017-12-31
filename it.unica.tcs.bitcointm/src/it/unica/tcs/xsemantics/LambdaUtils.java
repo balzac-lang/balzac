@@ -16,21 +16,21 @@ import it.unica.tcs.bitcoinTM.TypeVariable;
  */
 public class LambdaUtils {
 
-	protected int counter = 0;
+    protected int counter = 0;
 
-	public void resetCounter() {
-		counter = 0;
-	}
+    public void resetCounter() {
+        counter = 0;
+    }
 
-	public TypeVariable createTypeVariable(String name) {
-		TypeVariable typeVariable = BitcoinTMFactory.eINSTANCE
-				.createTypeVariable();
-		typeVariable.setValue(name);
-		return typeVariable;
-	}
+    public TypeVariable createTypeVariable(String name) {
+        TypeVariable typeVariable = BitcoinTMFactory.eINSTANCE
+                .createTypeVariable();
+        typeVariable.setValue(name);
+        return typeVariable;
+    }
 
-	public TypeVariable createFreshTypeVariable() {
-		return createTypeVariable("X" + counter++);
-	}
+    public TypeVariable createFreshTypeVariable() {
+        return createTypeVariable("X" + counter++);
+    }
 
 }

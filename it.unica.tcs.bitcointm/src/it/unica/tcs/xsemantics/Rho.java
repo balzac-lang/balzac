@@ -9,6 +9,6 @@ import it.unica.tcs.bitcoinTM.Referrable;
 
 public class Rho extends HashMap<Referrable,Object>{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
 }

@@ -10,24 +10,24 @@ import java.util.function.Supplier;
 
 public class Check extends AbstractPrefix {
 
-	private final Supplier<Boolean> condition;
-	
-	Check(Supplier<Boolean> condition) {
-		this.condition = condition;
-	}
+    private final Supplier<Boolean> condition;
+    
+    Check(Supplier<Boolean> condition) {
+        this.condition = condition;
+    }
 
-	@Override
-	public boolean ready() {
-		return condition.get();
-	}
+    @Override
+    public boolean ready() {
+        return condition.get();
+    }
 
-	@Override
-	public void run() {
-		checkState(ready());
-	}
+    @Override
+    public void run() {
+        checkState(ready());
+    }
 
-	@Override
-	public String toString(){
-		return "assert <e>";
-	}
+    @Override
+    public String toString(){
+        return "assert <e>";
+    }
 }

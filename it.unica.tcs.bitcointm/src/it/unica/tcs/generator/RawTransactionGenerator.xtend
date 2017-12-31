@@ -21,60 +21,60 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 
 class RawTransactionGenerator extends AbstractGenerator {
-	
-	@Inject private extension IQualifiedNameProvider	
-	@Inject private extension BitcoinTMInterpreter
-	
-	override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val model = resource.allContents.toIterable.filter(Model).get(0)
-		val packages = EcoreUtil2.getAllContentsOfType(model, PackageDeclaration)
-		val packagePath =
-			if (packages.isEmpty) {
-				""
-			}
-			else {
-				var package = packages.get(0)
-				package.fullyQualifiedName.toString(File.separator)
-			}
-		
-		
+    
+    @Inject private extension IQualifiedNameProvider    
+    @Inject private extension BitcoinTMInterpreter
+    
+    override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        val model = resource.allContents.toIterable.filter(Model).get(0)
+        val packages = EcoreUtil2.getAllContentsOfType(model, PackageDeclaration)
+        val packagePath =
+            if (packages.isEmpty) {
+                ""
+            }
+            else {
+                var package = packages.get(0)
+                package.fullyQualifiedName.toString(File.separator)
+            }
+        
+        
         fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
         fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
-	}
-	
-	def private compileTransactions(Model model) {
-		
-		val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
-		
-		if (compiles.isEmpty)
-			return "";
-			
-		val sb = new StringBuilder
-			
-		compiles.get(0).txs
-			.forEach[r | 
-				
-				val res = r.interpretE
-				
-				if (!res.failed) {
-					
-					val obj = res.first
-					
-					if (obj instanceof ITransactionBuilder) {
-						val tx = obj.toTransaction
-						sb.append(tx).append("\n")
-						sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
-					}
-					else {
-						sb.append(obj.toString).append("\n\n\n")
-					}
-				}
-				else {
-					res.ruleFailedException.printStackTrace
-					sb.append("Cannot compile expression "+NodeModelUtils.getTokenText(NodeModelUtils.getNode(r))).append("\n\n\n")
-				}
-			]
-			
-		sb.toString
-	}
+    }
+    
+    def private compileTransactions(Model model) {
+        
+        val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
+        
+        if (compiles.isEmpty)
+            return "";
+            
+        val sb = new StringBuilder
+            
+        compiles.get(0).txs
+            .forEach[r | 
+                
+                val res = r.interpretE
+                
+                if (!res.failed) {
+                    
+                    val obj = res.first
+                    
+                    if (obj instanceof ITransactionBuilder) {
+                        val tx = obj.toTransaction
+                        sb.append(tx).append("\n")
+                        sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
+                    }
+                    else {
+                        sb.append(obj.toString).append("\n\n\n")
+                    }
+                }
+                else {
+                    res.ruleFailedException.printStackTrace
+                    sb.append("Cannot compile expression "+NodeModelUtils.getTokenText(NodeModelUtils.getNode(r))).append("\n\n\n")
+                }
+            ]
+            
+        sb.toString
+    }
 }

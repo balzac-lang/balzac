@@ -17,8 +17,8 @@ import org.eclipse.xtext.util.Modules2
  */
 class BitcoinTMIdeSetup extends BitcoinTMStandaloneSetup {
 
-	override createInjector() {
-		Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule))
-	}
-	
+    override createInjector() {
+        Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule))
+    }
+    
 }

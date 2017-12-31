@@ -8,33 +8,33 @@ import org.bitcoinj.script.Script;
 
 public class OutputScriptImpl extends OutputScript {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public OutputScriptImpl() {
-		super();
-	}
+    public OutputScriptImpl() {
+        super();
+    }
 
-	public OutputScriptImpl(Script script) {
-		super(script);
-	}
+    public OutputScriptImpl(Script script) {
+        super(script);
+    }
 
-	public OutputScriptImpl(String serializedScript) {
-		super(serializedScript);
-	}
+    public OutputScriptImpl(String serializedScript) {
+        super(serializedScript);
+    }
 
-	@Override
-	public boolean isP2PKH() {
-		return build().isSentToAddress();
-	}
+    @Override
+    public boolean isP2PKH() {
+        return build().isSentToAddress();
+    }
 
-	@Override
-	public boolean isOP_RETURN() {
-		return build().isOpReturn();
-	}
-	
-	@Override
-	public boolean isP2SH() {
-		return build().isPayToScriptHash();
-	}
+    @Override
+    public boolean isOP_RETURN() {
+        return build().isOpReturn();
+    }
+    
+    @Override
+    public boolean isP2SH() {
+        return build().isPayToScriptHash();
+    }
 
 }

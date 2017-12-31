@@ -11,24 +11,24 @@ import org.eclipse.xtext.util.Strings
 
 class LONGValueConverter extends AbstractLexerBasedConverter<Long> {
 
-	override String toEscapedString(Long value) {
-		return value.toString();
-	}
-	
-	override void assertValidValue(Long value) {
-		super.assertValidValue(value);
-		if (value < 0)
-			throw new ValueConverterException(getRuleName() + "-value may not be negative (value: " + value + ").", null, null);
-	}
-	
-	override Long toValue(String string, INode node) {
-		if (Strings.isEmpty(string))
-			throw new ValueConverterException("Couldn't convert empty string to an int value.", node, null);
-		try {
-			return Long.parseLong(string, 10);
-		} catch (NumberFormatException e) {
-			throw new ValueConverterException("Couldn't convert '" + string + "' to an int value.", node, e);
-		}
-	}
+    override String toEscapedString(Long value) {
+        return value.toString();
+    }
+    
+    override void assertValidValue(Long value) {
+        super.assertValidValue(value);
+        if (value < 0)
+            throw new ValueConverterException(getRuleName() + "-value may not be negative (value: " + value + ").", null, null);
+    }
+    
+    override Long toValue(String string, INode node) {
+        if (Strings.isEmpty(string))
+            throw new ValueConverterException("Couldn't convert empty string to an int value.", node, null);
+        try {
+            return Long.parseLong(string, 10);
+        } catch (NumberFormatException e) {
+            throw new ValueConverterException("Couldn't convert '" + string + "' to an int value.", node, e);
+        }
+    }
 
 }

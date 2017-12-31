@@ -16,34 +16,34 @@ import org.eclipse.xtext.nodemodel.INode
 
 class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
 
-	override Long toValue(String s, INode node) {
+    override Long toValue(String s, INode node) {
 
-		var OffsetDateTime date = null;
-			
-		try {				
-			date = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-//			System.out.println(1);
-		}
-		catch (DateTimeParseException e) {}
-		
-		try {				
-			date = LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atOffset(ZoneOffset.UTC);
-//			System.out.println(2);
-		}
-		catch (DateTimeParseException e) {}
-		
-		try {				
-			date = LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay().atOffset(ZoneOffset.UTC);
-//			System.out.println(3);
-		}
-		catch (DateTimeParseException e) {}
-		
-		if (date===null) {
-			throw new ValueConverterException(
-				"Couldn't parse the input '" + s + "' to a valid data. 
-				The format must be like '2011-12-03' '2011-12-03T10:15', '2011-12-03T10:15:00', or '2011-12-03T10:15:30+01:00'", node, null);
-		}
-		else
-			return Long.valueOf(date.toEpochSecond)
-	}
+        var OffsetDateTime date = null;
+            
+        try {               
+            date = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+//          System.out.println(1);
+        }
+        catch (DateTimeParseException e) {}
+        
+        try {               
+            date = LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atOffset(ZoneOffset.UTC);
+//          System.out.println(2);
+        }
+        catch (DateTimeParseException e) {}
+        
+        try {               
+            date = LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay().atOffset(ZoneOffset.UTC);
+//          System.out.println(3);
+        }
+        catch (DateTimeParseException e) {}
+        
+        if (date===null) {
+            throw new ValueConverterException(
+                "Couldn't parse the input '" + s + "' to a valid data. 
+                The format must be like '2011-12-03' '2011-12-03T10:15', '2011-12-03T10:15:00', or '2011-12-03T10:15:30+01:00'", node, null);
+        }
+        else
+            return Long.valueOf(date.toEpochSecond)
+    }
 }

@@ -24,10 +24,10 @@ class BitcoinTMGenerator extends AbstractGenerator {
 //    @Inject private ParticipantGenerator participantGenerator
     @Inject private RawTransactionGenerator rawTxGenerator
     
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		txFactoryGenerator.doGenerate(resource,fsa,context)
-//		participantGenerator.doGenerate(resource,fsa,context)		
-		rawTxGenerator.doGenerate(resource,fsa,context)
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+//      txFactoryGenerator.doGenerate(resource,fsa,context)
+//      participantGenerator.doGenerate(resource,fsa,context)       
+        rawTxGenerator.doGenerate(resource,fsa,context)
     }
 
 }

@@ -8,17 +8,17 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class Send extends AbstractPrefix {
 
-	Send() {
-	}
+    Send() {
+    }
 
-	@Override
-	public boolean ready() {
-		return false;
-	}
+    @Override
+    public boolean ready() {
+        return false;
+    }
 
-	@Override
-	public void run() {
-		checkState(ready());
-	}
+    @Override
+    public void run() {
+        checkState(ready());
+    }
 
 }

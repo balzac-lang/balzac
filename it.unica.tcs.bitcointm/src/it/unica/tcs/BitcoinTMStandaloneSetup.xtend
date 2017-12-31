@@ -13,7 +13,7 @@ package it.unica.tcs
  */
 class BitcoinTMStandaloneSetup extends BitcoinTMStandaloneSetupGenerated {
 
-	def static void doSetup() {
-		new BitcoinTMStandaloneSetup().createInjectorAndDoEMFRegistration()
-	}
+    def static void doSetup() {
+        new BitcoinTMStandaloneSetup().createInjectorAndDoEMFRegistration()
+    }
 }

@@ -16,13 +16,13 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
  */
 class BitcoinTMQuickfixProvider extends DefaultQuickfixProvider {
 
-//	@Fix(BitcoinTMValidator.INVALID_NAME)
-//	def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
-//		acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
-//			context |
-//			val xtextDocument = context.xtextDocument
-//			val firstLetter = xtextDocument.get(issue.offset, 1)
-//			xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
-//		]
-//	}
+//  @Fix(BitcoinTMValidator.INVALID_NAME)
+//  def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
+//      acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
+//          context |
+//          val xtextDocument = context.xtextDocument
+//          val firstLetter = xtextDocument.get(issue.offset, 1)
+//          xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
+//      ]
+//  }
 }

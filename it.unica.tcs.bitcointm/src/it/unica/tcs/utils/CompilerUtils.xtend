@@ -31,50 +31,50 @@ import org.eclipse.xtext.EcoreUtil2
 
 @Singleton
 class CompilerUtils {
-	
-	def String compileFormalParams(List<Parameter> formalParams) {
-		formalParams.map[p|p.type.compileType+" "+p.name].join(", ")
+    
+    def String compileFormalParams(List<Parameter> formalParams) {
+        formalParams.map[p|p.type.compileType+" "+p.name].join(", ")
     }
-	
-	def String compileType(Type type) {
-    	if(type instanceof IntType) return "Long"
-    	if(type instanceof Hash160Type) return "Hash160"
-    	if(type instanceof Hash256Type) return "Hash256"
-    	if(type instanceof Ripemd160Type) return "Ripemd160"
-    	if(type instanceof Sha256Type) return "Sha256"
-    	if(type instanceof StringType) return "String"
-    	if(type instanceof BooleanType) return "Boolean"
-    	if(type instanceof SignatureType) return "byte[]"
-    	
-    	throw new CompileException("Unexpected type "+type.class.simpleName)
+    
+    def String compileType(Type type) {
+        if(type instanceof IntType) return "Long"
+        if(type instanceof Hash160Type) return "Hash160"
+        if(type instanceof Hash256Type) return "Hash256"
+        if(type instanceof Ripemd160Type) return "Ripemd160"
+        if(type instanceof Sha256Type) return "Sha256"
+        if(type instanceof StringType) return "String"
+        if(type instanceof BooleanType) return "Boolean"
+        if(type instanceof SignatureType) return "byte[]"
+        
+        throw new CompileException("Unexpected type "+type.class.simpleName)
     }
     
     def String compileNetworkParams(EObject obj) {
-		val list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network);
-			
-		if (list.size()==0)	// network undeclared, assume testnet
-			return "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)"
-			
-		if (list.size()==1)
-			return if (list.get(0).isTestnet()) 
-				   "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)" 
-				   else "NetworkParameters.fromID(NetworkParameters.ID_MAINNET)"
-			
-		throw new IllegalStateException();
-	}
+        val list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network);
+            
+        if (list.size()==0) // network undeclared, assume testnet
+            return "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)"
+            
+        if (list.size()==1)
+            return if (list.get(0).isTestnet()) 
+                   "NetworkParameters.fromID(NetworkParameters.ID_TESTNET)" 
+                   else "NetworkParameters.fromID(NetworkParameters.ID_MAINNET)"
+            
+        throw new IllegalStateException();
+    }
     
-	def Class<?> convertType(Type type) {
-    	if(type instanceof IntType) return Long
-    	if(type instanceof StringType) return String
-    	if(type instanceof BooleanType) return Boolean
-    	if(type instanceof Hash160Type) return Hash160
-    	if(type instanceof Hash256Type) return Hash256
-    	if(type instanceof Ripemd160Type) return Ripemd160
-    	if(type instanceof Sha256Type) return Sha256
-		if(type instanceof KeyType) return DumpedPrivateKey
-    	if(type instanceof TransactionType) return ITransactionBuilder
-    	if(type instanceof SignatureType) return typeof(byte[])
-    	
-    	throw new CompileException("Unexpected type "+type.class.simpleName)
+    def Class<?> convertType(Type type) {
+        if(type instanceof IntType) return Long
+        if(type instanceof StringType) return String
+        if(type instanceof BooleanType) return Boolean
+        if(type instanceof Hash160Type) return Hash160
+        if(type instanceof Hash256Type) return Hash256
+        if(type instanceof Ripemd160Type) return Ripemd160
+        if(type instanceof Sha256Type) return Sha256
+        if(type instanceof KeyType) return DumpedPrivateKey
+        if(type instanceof TransactionType) return ITransactionBuilder
+        if(type instanceof SignatureType) return typeof(byte[])
+        
+        throw new CompileException("Unexpected type "+type.class.simpleName)
     }
 }

@@ -8,16 +8,16 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class Receive extends AbstractPrefix {
 
-	Receive() {}
+    Receive() {}
 
-	@Override
-	public boolean ready() {
-		return false;
-	}
+    @Override
+    public boolean ready() {
+        return false;
+    }
 
-	@Override
-	public void run() {
-		checkState(ready());
-	}
+    @Override
+    public void run() {
+        checkState(ready());
+    }
 
 }

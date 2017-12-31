@@ -15,15 +15,15 @@ import org.junit.runner.RunWith
 @RunWith(XtextRunner)
 @InjectWith(BitcoinTMInjectorProvider)
 class BitcoinTMParsingTest {
-	@Inject
-	ParseHelper<Model> parseHelper
-	
-	@Test
-	def void loadModel() {
-//		val result = parseHelper.parse('''
-//			Hello Xtext!
-//		''')
-//		Assert.assertNotNull(result)
-//		Assert.assertTrue(result.eResource.errors.isEmpty)
-	}
+    @Inject
+    ParseHelper<Model> parseHelper
+    
+    @Test
+    def void loadModel() {
+//      val result = parseHelper.parse('''
+//          Hello Xtext!
+//      ''')
+//      Assert.assertNotNull(result)
+//      Assert.assertTrue(result.eResource.errors.isEmpty)
+    }
 }
