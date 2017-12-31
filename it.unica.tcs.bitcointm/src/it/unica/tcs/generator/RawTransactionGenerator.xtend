@@ -17,6 +17,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 
@@ -37,9 +38,12 @@ class RawTransactionGenerator extends AbstractGenerator {
                 package.fullyQualifiedName.toString(File.separator)
             }
 
-
-        fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
-        fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
+        if (fsa instanceof InMemoryFileSystemAccess) {
+            fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
+        }
+        else {
+            fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
+        }
     }
 
     def private compileTransactions(Model model) {
