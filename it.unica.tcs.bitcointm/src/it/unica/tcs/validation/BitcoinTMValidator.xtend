@@ -1,5 +1,5 @@
 /*
-O * Copyright 2017 Nicola Atzei
+ * Copyright 2017 Nicola Atzei
  */
 
 /*
@@ -8,6 +8,8 @@ O * Copyright 2017 Nicola Atzei
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AbsoluteTime
+import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage
@@ -26,9 +28,9 @@ import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
+import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureType
-import it.unica.tcs.bitcoinTM.Timelock
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionLiteral
@@ -72,7 +74,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.bitcoinTM.RelativeTime
 
 /**
  * This class contains custom validation rules. 
@@ -911,7 +912,75 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
     
     @Check
-    def void checkAbsoluteTime(Timelock tlock) {
+    def void checkUniqueAbsoluteTimelock(AbsoluteTime tlock) {
+    	
+		var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
+		for (other: tx.timelocks){
+			
+			if (tlock!=other && tlock.class==other.class) {
+				error("Duplicated absolute timelock", 
+					tlock,
+					null
+				);
+			}
+		}
+    }
+    
+    @Check
+    def void checkUniqueRelativeTimelock(RelativeTime tlock) {
+    	
+		var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
+		for (other: tx.timelocks){
+
+			if (tlock!=other && tlock.class==other.class) {
+				val tx1 = tlock.tx.interpretE.first
+				val tx2 = (other as RelativeTime).tx.interpretE.first
+				
+				if (tx1==tx2) 	
+					error("Duplicated relative timelock", 
+						tlock,
+						null
+					);
+			}
+		}
+    }
+    
+    @Check
+    def void checkRelativeTimelockFromTx(RelativeTime tlock) {
+    	
+		if (EcoreUtil2.getContainerOfType(tlock, AfterTimeLock) === null && tlock.tx === null) {
+    		error(
+                '''Missing reference to an input transaction''',
+                tlock,
+                BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+            );
+    	}
+    }
+    
+    @Check
+    def void checkRelativeTimelockFromTxIsInput(RelativeTime tlock) {
+    	
+		if (tlock.tx !== null) {
+			val tx = tlock.tx.interpretE.first
+			val containingTx = EcoreUtil2.getContainerOfType(tlock, Transaction);
+			
+			for (in : containingTx.inputs) {
+				val inTx = in.txRef.interpretE.first
+				if (tx==inTx) {
+					return
+				}
+			}
+			
+    		error(
+                '''Relative timelocks must refer to an input transaction''',
+                tlock,
+                BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+            );
+    	}
+    }
+    
+    @Check
+    def void checkAbsoluteTime(AbsoluteTime tlock) {
     	
 		val res = tlock.value.interpretE
     	
@@ -943,20 +1012,66 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 BitcoinTMPackage.Literals.TIMELOCK__VALUE
             );
     	}
+    }
+    
+    @Check
+    def void checkRelativeTime(RelativeTime tlock) {
     	
-    	if (tlock instanceof RelativeTime) {
-    		/*
-    		 * tlock.value must fit in 16-bit
-    		 */
-    		if (!value.fitIn16bits) {
-    			error(
-	                "Relative timelocks must fit within unsigned 16-bits. Max value is "+0xFFFF,
+    	if (tlock.isBlock) {
+    		
+			val res = tlock.value.interpretE
+	    	
+	    	if (res.failed)
+	    		return;
+	    	
+	    	val value = res.first as Long
+	    	
+	    	if (value<0) {
+				error(
+	                "Negative timelock is not permitted.",
 	                tlock,
 	                BitcoinTMPackage.Literals.TIMELOCK__VALUE
 	            );
-    		}
+	    	}
+	    	
+			/*
+			 * tlock.value must fit in 16-bit
+			 */
+			if (!value.fitIn16bits) {
+				error(
+	                '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is '''+0xFFFF,
+	                tlock,
+	                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+	            );
+			}
+    	}
+    	else {
+    		val value = tlock.delay.delayValue
+    		
+    		if (!value.fitIn16bits) {
+				error(
+	                '''Relative timelocks must fit within unsigned 16-bits. Delay is «value», max allowed is '''+0xFFFF,
+	                tlock,
+	                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+	            );
+			}
     	}
     }
+
+	@Check
+	def void checkAfterTimelock(AfterTimeLock after) {
+		val tlock = after.timelock
+		
+		if (tlock instanceof RelativeTime) {
+			if (tlock.tx !== null) {
+				error(
+	                "Cannot specify the tx within scripts",
+	                tlock,
+	                BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+	            );
+			}
+		}
+	}
 
 	@Check
     def boolean checkTransactionChecksOndemand(Transaction tx) {

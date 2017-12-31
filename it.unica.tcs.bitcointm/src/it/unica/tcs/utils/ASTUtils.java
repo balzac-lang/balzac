@@ -31,6 +31,7 @@ import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.Constant;
+import it.unica.tcs.bitcoinTM.Delay;
 import it.unica.tcs.bitcoinTM.Expression;
 import it.unica.tcs.bitcoinTM.Hash160Literal;
 import it.unica.tcs.bitcoinTM.Hash256Literal;
@@ -285,9 +286,12 @@ public class ASTUtils {
     	return timelocks.stream().filter(x -> x instanceof AbsoluteTime).count()>0;
     }
     
-    public boolean containsRelative(List<Timelock> timelocks, it.unica.tcs.bitcoinTM.Transaction tx) {
+    public boolean containsRelative(List<Timelock> timelocks, ITransactionBuilder tx, Rho rho) {
     	return timelocks.stream()
-    			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
+    			.filter( x -> 
+    				x instanceof RelativeTime
+    				&& tx.equals(interpreter.interpret(((RelativeTime) x).getTx(), rho).getFirst())
+    			)
     			.count()>0;
     }
 	
@@ -298,10 +302,12 @@ public class ASTUtils {
     			.collect(Collectors.toList()).get(0);
     }
     
-    public RelativeTime getRelative(List<Timelock> timelocks, it.unica.tcs.bitcoinTM.Transaction tx) {
+    public RelativeTime getRelative(List<Timelock> timelocks, ITransactionBuilder tx, Rho rho) {
     	return timelocks.stream()
-    			.filter(x -> x instanceof RelativeTime && ((RelativeTime) x).getTx()==tx)
-    			.map( x -> (RelativeTime) x)
+    			.filter( x -> 
+					x instanceof RelativeTime
+    				&& tx.equals(interpreter.interpret(((RelativeTime) x).getTx(), rho).getFirst())
+				).map( x -> (RelativeTime) x)
     			.collect(Collectors.toList()).get(0);
     }
     
@@ -347,9 +353,29 @@ public class ASTUtils {
 //    	return isRelative(time) && !isRelativeBlock(time);   
 //	}
     
-    public long getRelativeTimelock(int i) {
+    public long getDelayValue(Delay delay) {
+    	long result = 0;
+    	result += convertMinutes(delay.getMinutes());   	
+    	result += convertHours(delay.getHours());   	
+    	result += convertDays(delay.getDays());   	
+    	return result;
+    }
+    
+    private long convertMinutes(long min) {
+		return (min*60) / 512; 
+	}
+	
+	private long convertHours(long hours) {
+		return convertMinutes(hours*60);
+	}
+	
+	private long convertDays(long days) {
+		return convertHours(days*24);
+	}
+    
+    public long setRelativeTimelockFlag(long i) {
     	// true if the 22th bit is UNSET
-    	int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
+    	long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
     	return i | mask;
     }
     
@@ -358,9 +384,9 @@ public class ASTUtils {
      * @param i
      * @return
      */
-    public int castUnsignedShort(int i) {
-		int mask = 0x0000FFFF;
-		int value = i & mask;
+    public long castUnsignedShort(long i) {
+		long mask = 0x0000FFFF;
+		long value = i & mask;
 		
 		if (value!=i)
 			throw new NumberFormatException("The number does not fit in 16 bits");
@@ -377,6 +403,23 @@ public class ASTUtils {
 			return false;
 		}
 	}
+    
+    public long getSequenceNumber(RelativeTime reltime, Rho rho) {
+    	if (reltime.isBlock()) {
+    		
+    		Result<Object> res = interpreter.interpret(reltime.getValue(), rho);
+    		
+    		if (res.failed())
+    			throw new IllegalStateException("Cannot interpret relative time");
+    		
+    		Long value = (Long) res.getFirst();
+    		
+    		return castUnsignedShort(value);
+    	}
+    	else {
+    		return setRelativeTimelockFlag(getDelayValue(reltime.getDelay()));
+    	}
+    }
     
     public byte[] wifToAddressHash(String wif, NetworkParameters params) {
 		return wifToAddress(wif, params).getHash160();

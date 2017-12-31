@@ -605,6 +605,6 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 				return false;
 		} else if (!signatures.equals(other.signatures))
 			return false;
-		return getChunks().equals(super.getChunks());
+		return getChunks().equals(other.getChunks());
 	}
 }

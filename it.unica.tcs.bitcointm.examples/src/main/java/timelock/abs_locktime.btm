@@ -1,4 +1,4 @@
-package it.unica.btm.locktime
+package it.unica.btm.abs_locktime
 
 network testnet
  
@@ -15,7 +15,10 @@ transaction coinbase {
 	output = 10 BTC: fun(s) . versig(kA; s)
 }
 
-transaction T {
+/*
+ * transaction with absolute constraints within output scripts
+ */
+transaction T_cons {
 	input = coinbase: sig(kA)
 	output = [
 		1 BTC:
@@ -35,8 +38,8 @@ transaction T {
  */
 transaction T_1 {
 	input = [
-		T: sig(kA) sig(kB);
-		T@1: sig(kA) sig(kB)
+		T_cons: sig(kA) sig(kB);
+		T_cons@1: sig(kA) sig(kB);
 	]
 	output = 0: "test"
 }
@@ -46,64 +49,93 @@ transaction T_1 {
  * T_2 does not satisfy timelock constraints
  */
 transaction T_2_block {
-	input = T: sig(kA) sig(kL)
+	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
 	timelock = after block blockN - 5
 }
 
 transaction T_2_date {
-	input = T@1: sig(kA) sig(kL)
+	input = T_cons@1: sig(kA) sig(kL)
 	output = 0: "test"
 	timelock = after date deadline - aDay
 }
 
 transaction T_2_mismatch {
-	input = T: sig(kA) sig(kL)
+	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
 	timelock = after date deadline - aDay
 }
-
 
 /*
  * T_3 T_4 satisfy timelock constraints.
  */
 transaction T_3_block {
-	input = T: sig(kA) sig(kL)
+	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
 	timelock = after block blockN + 5
 }
 
 transaction T_3_date {
-	input = T@1: sig(kA) sig(kL)
+	input = T_cons@1: sig(kA) sig(kL)
 	output = 0: "test"
 	timelock = after date deadline + aDay
 }
 
 transaction T_4_block {
-	input = T: sig(kB) sig(kL)
+	input = T_cons: sig(kB) sig(kL)
 	output = 0: "test"
 	timelock = after block blockN + 5
 }
 
 transaction T_4_date {
-	input = T@1: sig(kB) sig(kL)
+	input = T_cons@1: sig(kB) sig(kL)
 	output = 0: "test"
 	timelock = after date deadline + aDay
 }
 
+/*
+ * transaction with relative constraints (same type) within output scripts
+ */
+transaction T_cons2 {
+	input = coinbase: sig(kA)
+	output = [
+		1 BTC:
+		fun(sig1, sig2) . 
+			versig(kA,kB; sig1,sig2)
+			|| after block blockN : versig(kA,kB,kL; sig1,sig2);
+			
+		1 BTC:
+		fun(sig1, sig2) . 
+			versig(kA,kB; sig1,sig2)
+			|| after block blockN + 10 : versig(kA,kB,kL; sig1,sig2);
+			
+		1 BTC: fun(s) . versig(kA; s)
+	]
+}
+
+transaction T_5 {
+	input = [
+		T_cons2: sig(kA) sig(kL);
+		T_cons2@1: sig(kA) sig(kL);
+		T_cons2@2: sig(kA)
+	]
+	output = 0: "test"
+	timelock = after block blockN + 20 // timelock must satisfy all inputs
+}
+
 compile 
-	kA
-	kB
-	kL
-	blockN
-	deadline
-	aDay
-	T 
+	T_cons
 	T_1
+	
 	T_2_block
 	T_2_date
 	T_2_mismatch
+	
 	T_3_block
 	T_3_date
+	
 	T_4_block
 	T_4_date
+	
+	T_cons2
+	T_5

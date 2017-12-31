@@ -322,6 +322,10 @@ public class TransactionBuilder implements ITransactionBuilder {
 		checkState(this.isReady(), "the transaction and all its ancestors are not ready");
 		
 		Transaction tx = new Transaction(params);
+
+		// set version
+		tx.setVersion(2);
+		
 		
 		// inputs
 		for (Input input : inputs) {

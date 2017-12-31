@@ -120,4 +120,31 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
 			}
         }
 	}
+	
+	@ValueConverter(rule = "MINUTE_DELAY")
+    def IValueConverter<Long> getMinuteDelay() {
+        return new AbstractLexerBasedConverter<Long>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				Long.parseLong(string.substring(0, string.indexOf("m")))
+			}
+        }
+	}
+	
+	@ValueConverter(rule = "HOUR_DELAY")
+    def IValueConverter<Long> getHourDelay() {
+        return new AbstractLexerBasedConverter<Long>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				Long.parseLong(string.substring(0, string.indexOf("h")))
+			}
+        }
+	}
+	
+	@ValueConverter(rule = "DAY_DELAY")
+    def IValueConverter<Long> getDayDelay() {
+        return new AbstractLexerBasedConverter<Long>() {
+			override toValue(String string, INode node) throws ValueConverterException {
+				Long.parseLong(string.substring(0, string.indexOf("d")))
+			}
+        }
+	}
 }

@@ -65,13 +65,15 @@ BitcoinValue:
 	exp=Expression;
 
 Timelock: 
-	"after" AbsoluteTime | "delay" RelativeTime;
+	"after" (AbsoluteTime | RelativeTime);
 
 AbsoluteTime:
-	(block?="block" | date?="date") value=Expression;
+	(block?="block" | "date") value=Expression;
 
 RelativeTime:
-	value=Expression (block?="block")? ("from" tx=Reference)?;
+	((value=Expression block?="block")
+	| (delay=Delay))
+	("from" tx=Expression)?;
 
 Script:
 	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
@@ -201,7 +203,7 @@ Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
-AfterTimeLock: "after" timelock=AbsoluteTime ":" continuation=AtomicExpression;
+AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
 
 
 Type:
@@ -257,6 +259,18 @@ Interpretable:
 Number returns ecore::ELong:
 	LONG ('.' LONG)? "BTC"?
 |	LONG_HEX;
+
+/*
+ * 2h 
+ * 2h 10m 
+ * 35d 5h 10m
+ */
+Delay:
+	{Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
+
+terminal MINUTE_DELAY returns ecore::ELong: LONG ("m"|"min"|"minute"|"minutes");
+terminal HOUR_DELAY   returns ecore::ELong: LONG ("h"|"hour"|"hours");
+terminal DAY_DELAY    returns ecore::ELong: LONG ("d"|"day"|"days");
 
 terminal LONG_HEX returns ecore::ELong:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 

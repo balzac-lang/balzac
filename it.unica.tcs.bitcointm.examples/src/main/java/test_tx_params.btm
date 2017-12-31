@@ -1,7 +1,4 @@
-
-package com.example
-
-//let sum(a:int,b:int) = a + b
+package it.unica.btm.test_tx_params
 
 transaction T {
 	input = _   

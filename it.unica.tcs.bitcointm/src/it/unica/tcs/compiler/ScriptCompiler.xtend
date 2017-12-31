@@ -5,6 +5,7 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AbsoluteTime
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
@@ -33,6 +34,7 @@ import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
+import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Sha256
@@ -311,10 +313,22 @@ class ScriptCompiler {
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
-        var sb = stmt.timelock.value.compileExpression(ctx)
-        sb.op(OP_CHECKLOCKTIMEVERIFY)
-        sb.op(OP_DROP)
-        sb.append(stmt.continuation.compileExpression(ctx))
+        if (stmt.timelock instanceof AbsoluteTime) {
+	        var sb = stmt.timelock.value.compileExpression(ctx)
+	        sb.op(OP_CHECKLOCKTIMEVERIFY)
+	        sb.op(OP_DROP)
+	        sb.append(stmt.continuation.compileExpression(ctx))
+        }
+        else if (stmt.timelock instanceof RelativeTime) {
+            val reltime = stmt.timelock as RelativeTime
+            val sb = new ScriptBuilder2
+            sb.number(reltime.getSequenceNumber(ctx.rho))
+            sb.op(OP_CHECKSEQUENCEVERIFY)
+            sb.op(OP_DROP)
+            sb.append(stmt.continuation.compileExpression(ctx))
+        }
+        else
+            throw new CompileException('''Unexpected class «stmt.timelock.class»''')
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AndExpression stmt, Context ctx) {

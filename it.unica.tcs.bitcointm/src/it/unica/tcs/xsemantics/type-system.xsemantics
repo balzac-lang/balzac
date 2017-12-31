@@ -346,9 +346,11 @@ from {
 		
 		val inputTxRef = input.txRef
 
-		if (inputTxRef instanceof Reference) {
+		if (inputTxRef instanceof Reference
+			&& (inputTxRef as Reference).ref instanceof Transaction
+		) {
 			
-			val tx = inputTxRef.ref as Transaction
+			val tx = (inputTxRef as Reference).ref as Transaction
 			
 			
 			// check the actual parameters type match the formal ones (Script)
@@ -441,9 +443,11 @@ from {
 rule RelativeTime
 	G |- TypeSubstitutions substitutions |> RelativeTime tlock : BitcoinTMFactory::eINSTANCE.createVoidType
 from {
-	G |- substitutions |> tlock.value : var Type type
-	type = typesubstitution(substitutions, type)
-	unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+	if (tlock.isBlock) {
+		G |- substitutions |> tlock.value : var Type type
+		type = typesubstitution(substitutions, type)
+		unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+	}
 	
 	if (tlock.tx !== null) {
 		G |- substitutions |> tlock.tx : var Type txtype
