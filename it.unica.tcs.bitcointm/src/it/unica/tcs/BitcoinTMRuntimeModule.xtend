@@ -45,10 +45,8 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
         return BitcoinTMTypeSystemValidator;
     }
 
-    /*
-     * Configure the feature name containing the imported namespace.
-     * 'importedNamespace' is the name that allows to resolve cross-file references and cannot be changed
-     */
+    // Configure the feature name containing the imported namespace.
+    // 'importedNamespace' is the name that allows to resolve cross-file references and cannot be changed
     def void configureImportUriResolver(Binder binder) {
         binder.bind(String).annotatedWith(Names.named(ImportUriResolver.IMPORT_URI_FEATURE)).toInstance("importedNamespace");
     }

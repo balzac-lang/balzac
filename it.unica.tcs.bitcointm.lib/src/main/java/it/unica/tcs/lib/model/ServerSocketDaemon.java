@@ -43,7 +43,7 @@ public class ServerSocketDaemon implements Runnable {
 
     /**
      * Block until the server is online and waiting for connections.
-     * @throws InterruptedException
+     * @throws InterruptedException if the thread is interrupted
      */
     public void waitUntilOnline() throws InterruptedException {
         while(!online) {
@@ -54,8 +54,8 @@ public class ServerSocketDaemon implements Runnable {
     /**
      * Read a value. If there is no value to read,
      * it blocks until another thread will send a value through a socket connection.
-     * @return The read value
-     * @throws InterruptedException
+     * @return the read value
+     * @throws InterruptedException if the thread is interrupted
      */
     public String read() throws InterruptedException {
         return buffer.take();
@@ -65,9 +65,11 @@ public class ServerSocketDaemon implements Runnable {
      * Read a value. If there is no value to read,
      * it blocks until another thread will send a value through a socket connection
      * or the given timeout expires.
-     * @return The read value
-     * @throws InterruptedException
-     * @throws TimeoutException
+     * @param timeout timeout value
+     * @param unit time-unit for the given timeout
+     * @return the read value
+     * @throws InterruptedException if the thread is interrupted
+     * @throws TimeoutException if the value cannot be read before the timeout
      */
     public String read(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         String value = buffer.poll(timeout, unit);

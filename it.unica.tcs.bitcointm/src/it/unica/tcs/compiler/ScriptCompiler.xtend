@@ -81,6 +81,16 @@ class ScriptCompiler {
     @Inject private extension ASTUtils
     @Inject private extension BitcoinTMInterpreter
 
+
+    /**
+     * Compile the given input (AST) to an input script class (lib).
+     * It could include the redeem-script.
+     * @param input the input to compile
+     * @param parentTx the (compiled) parent transaction of the input
+     * @param rho the environment for the interpreter
+     * @return the compiled input
+     * @see InputScript
+     */
     def InputScript compileInput(Input input, ITransactionBuilder parentTx, Rho rho) {
 
         val outpoint = input.outpoint as int
@@ -147,16 +157,17 @@ class ScriptCompiler {
             throw new CompileException("cannot redeem OP_RETURN outputs")
     }
 
-    /**
-     *
-     */
-    def InputScript compileInputExpression(Expression exp, Rho rho) {
+    def private InputScript compileInputExpression(Expression exp, Rho rho) {
         var ctx = new Context(rho)
         new InputScriptImpl().append(exp.compileExpression(ctx)) as InputScript
     }
 
     /**
-     *
+     * Compile the given output (AST) to an output script class (lib).
+     * @param output the output to compile
+     * @param rho the environment for the interpreter
+     * @return the compiled output
+     * @see OutputScript     
      */
     def OutputScript compileOutputScript(Output output, Rho rho) {
 
@@ -212,7 +223,7 @@ class ScriptCompiler {
      * <p>
      * It also prepends a magic number and altstack instruction.
      */
-    def P2SHOutputScript compileRedeemScript(Script script, Rho rho) {
+    def private P2SHOutputScript compileRedeemScript(Script script, Rho rho) {
 
         var ctx = new Context(rho)
 

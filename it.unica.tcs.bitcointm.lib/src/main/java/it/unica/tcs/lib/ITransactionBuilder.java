@@ -17,7 +17,7 @@ import org.bitcoinj.core.Utils;
 public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, Serializable {
 
     /**
-     * Check that this transaction builder is ready to be converted using {@link #toTransaction(NetworkParameters)}.
+     * Check that this transaction builder is ready to be converted using {@link #toTransaction()}.
      * @return true if this transaction builder is ready to be converted, false otherwise.
      */
     public abstract boolean isReady();
@@ -25,7 +25,6 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
     /**
      * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
      * unbound free variables.
-     * @param params network parameters.
      * @return a bitcoinj transaction.
      */
     public abstract Transaction toTransaction();

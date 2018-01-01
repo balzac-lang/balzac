@@ -381,10 +381,11 @@ public class ASTUtils {
 
     /**
      * Cast the given number to unsigned-short (16 bit)
-     * @param i
-     * @return
+     * @param i the number to cast
+     * @return the number itself
+     * @throws NumberFormatException if the number does not fit in 16-bit
      */
-    public long castUnsignedShort(long i) {
+    public long castUnsignedShort(long i) throws NumberFormatException {
         long mask = 0x0000FFFF;
         long value = i & mask;
 

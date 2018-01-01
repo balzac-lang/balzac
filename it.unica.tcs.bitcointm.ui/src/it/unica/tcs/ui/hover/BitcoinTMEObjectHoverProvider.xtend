@@ -113,9 +113,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
 
 
-    /*
-     * get the string literal for the types
-     */
+    // get the string literal for the types
 
     dispatch def String toStringType(IntType type) {
         return type.value.literal

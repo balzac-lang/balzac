@@ -129,10 +129,10 @@ public class TransactionBuilder implements ITransactionBuilder {
     }
 
     /**
-     * Add an hook that will be executed when the variable {@code name} will have been bound.
+     * Add an hook that will be executed when all the variable {@code names} will have been bound.
      * The hook is a {@link Consumer} that will take the value of the variable.
      *
-     * @param name the name of the variable
+     * @param names a set of variables names
      * @param hook the consumer
      * @return this builder
      */
@@ -314,7 +314,6 @@ public class TransactionBuilder implements ITransactionBuilder {
     /**
      * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
      * unbound free variables.
-     * @param params network parameters.
      * @return a bitcoinj transaction.
      */
     @Override

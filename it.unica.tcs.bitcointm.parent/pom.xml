@@ -21,16 +21,24 @@
 		<module>../it.unica.tcs.bitcointm.ide</module>
 		<module>../it.unica.tcs.bitcointm.ui</module>
 		<module>../it.unica.tcs.bitcointm.web</module>
- 		<module>../it.unica.tcs.bitcointm.target</module>
+		<module>../it.unica.tcs.bitcointm.target</module>
 		<module>../it.unica.tcs.bitcointm.feature</module>
 		<module>../it.unica.tcs.bitcointm.repository</module>
-<!--  	<module>../it.unica.tcs.bitcointm.tests</module> -->
-<!--  	<module>../it.unica.tcs.bitcointm.ui.tests</module> -->
+		<!-- <module>../it.unica.tcs.bitcointm.tests</module> -->
+		<!-- <module>../it.unica.tcs.bitcointm.ui.tests</module> -->
 		<module>../it.unica.tcs.bitcointm.lib</module>
 	</modules>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+				    <excludePackageNames>*.bitcoinTM.*:*.parser.*:*.serializer.*</excludePackageNames>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
@@ -259,7 +267,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<repositories>
 		<repository>
 			<id>codehaus-snapshots</id>
@@ -273,7 +281,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
-	
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>codehaus-snapshots</id>

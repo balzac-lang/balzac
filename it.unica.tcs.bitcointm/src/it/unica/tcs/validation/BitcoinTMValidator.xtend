@@ -94,9 +94,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     @Inject private BitcoinClientI bitcoinCli;
 
-    /*
-     * INFO
-     */
 //  @Check
 //  def void checkSingleElementArray(TransactionBody tbody) {
 //
@@ -121,10 +118,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 //          );
 //      }
 //  }
-
-    /*
-     * WARNING
-     */
 
     @Check
     def void checkUnusedParameters__Script(it.unica.tcs.bitcoinTM.Script script){
@@ -264,12 +257,6 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         }
     }
-
-
-
-    /*
-     * ERROR
-     */
 
     @Check
     def void checkPackageDuplicate(PackageDeclaration pkg) {
@@ -873,12 +860,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
     }
 
-    /*
-     * https://en.bitcoin.it/wiki/Script
-     * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
-     */
     @Check
     def void checkJustOneOpReturn(Transaction tx) {
+        /*
+         * https://en.bitcoin.it/wiki/Script
+         * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
+         */
 
         var boolean[] error = newBooleanArrayOfSize(tx.outputs.size);
 

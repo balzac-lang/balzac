@@ -239,6 +239,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     /**
      * Append the given script builder to this one.
      * If it contains some free variables or signatures placeholder, they are merged ensuring consistency.
+     * @param <U> the concrete type of the given builder
      * @param append the script builder to append
      * @return this builder
      */
@@ -294,7 +295,6 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     /**
      * Extract a string representation of this builder.
      * @return a string representing this builder
-     * @see #parse(String)
      */
     public String serialize() {
         StringBuilder str = new StringBuilder();
@@ -305,10 +305,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     }
 
     /**
-     * Parse the given string to initialize this {@link ScriptBuilder}
-     * @param str
-     * @return
-     * @return
+     * Parse the given string to initialize this builder.
+     * @param str a string representation of this builder
+     * @return this builder
      * @see #serialize()
      */
     @SuppressWarnings("unchecked")

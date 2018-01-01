@@ -51,10 +51,10 @@ public interface EnvI<T,ENV extends EnvI<T,ENV>> extends Serializable {
 
     /**
      * Return the value of the variable {@code name}, casted to the given class.
-     *
+     * @param <A> a type that extends T
      * @param name the variable name
      * @param clazz the expected class of the object
-     * @return
+     * @return the value associated to the variable
      */
     public <A extends T> A getValue(String name, Class<A> clazz);
 
