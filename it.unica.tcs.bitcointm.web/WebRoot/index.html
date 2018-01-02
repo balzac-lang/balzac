@@ -39,7 +39,7 @@
 					syntaxDefinition: "xtext-resources/generated/mode-btm"
 				});
 				
-				editor.setValue("package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T");
+			    editor.setValue("package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T");
 // 				editor.setTheme("ace/theme/monokai");
 				editor.setAutoScrollEditorIntoView(true);
 				
@@ -51,19 +51,42 @@
 					    });
 				    
 				});
+				
+				
 			});
 		});
-	</script>
+
+		function loadExample(url) {
+			$.load(url, function(data) {
+			    var editor = ace.edit("xtext-editor");
+	            editor.setValue(data);
+			});
+		}
+    </script>
 </head>
 <body>
 
-	<div class="container-fluid mt-3 mb-3">
+	<div class="container mt-3 mb-3">
 		<div class="card">
 			<div class="card-header text-center">
 				<h3 class="card-title">Bitcoin Transaction Model</h3>
 				<h5 class="card-title">Web Editor</h5>
 			</div>
 			<div class="card-body">
+				<div class="text-center mb-2">
+					<div class="dropdown">
+						<button class="btn btn-info dropdown-toggle" type="button"
+							id="selectExample" data-toggle="dropdown" aria-haspopup="true"
+							aria-expanded="false">Select an example</button>
+						<div class="dropdown-menu" aria-labelledby="selectExample">
+<!-- 							<button class="dropdown-item" type="button" onclick="loadExample('/examples/index.btm')">Example</button> -->
+							<button class="dropdown-item" type="button" onclick="loadExample('/examples/tc.btm')">Time Commitment</button>
+<!-- 							<h6 class="dropdown-header">Timelock</h6> -->
+<!-- 							<button class="dropdown-item" type="button" onclick="loadExample('/examples/asblock.btm')">Absolute timelock</button> -->
+<!-- 							<button class="dropdown-item" type="button" onclick="loadExample('/examples/rellock.btm')">Relative timelock</button> -->
+						</div>
+					</div>
+				</div>
 				<div class="border border-dark mb-3" >
 					<div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>				
 				</div>

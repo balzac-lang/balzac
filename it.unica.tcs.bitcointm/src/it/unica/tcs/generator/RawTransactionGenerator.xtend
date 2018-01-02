@@ -27,7 +27,8 @@ class RawTransactionGenerator extends AbstractGenerator {
     @Inject private extension BitcoinTMInterpreter
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-        val model = resource.allContents.toIterable.filter(Model).get(0)
+        val models = resource.allContents.toIterable.filter(Model)
+        val model = models.get(0)
         val packages = EcoreUtil2.getAllContentsOfType(model, PackageDeclaration)
         val packagePath =
             if (packages.isEmpty) {

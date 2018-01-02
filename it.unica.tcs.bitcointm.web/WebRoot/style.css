@@ -12,3 +12,11 @@
 	resize: vertical;
 	overflow: auto
 }
+
+.btn {
+	cursor: pointer;
+}
+
+.btn.focus, .btn:focus, .btn.active, .btn:active {
+	box-shadow: inherit !important;
+}
