@@ -1,5 +1,6 @@
 package it.unica.tcs.lib.script;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.bitcoinj.script.Script;
@@ -9,7 +10,7 @@ import org.bitcoinj.script.ScriptOpCodes;
 
 import com.google.common.collect.ImmutableList;
 
-public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder {
+public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -21,8 +22,12 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
         super(template);
     }
 
+    public List<ScriptChunk> getChunks() {
+	return chunks;
+    }
+
     public int size() {
-        return super.getChunks().size();
+        return getChunks().size();
     }
 
     @Override
@@ -48,15 +53,15 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
 
     @Override
     @SuppressWarnings("unchecked")
-    public T addTrue() {
-        super.addTrue();
+    public T opTrue() {
+        super.opTrue();
         return (T) this;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public T addFalse() {
-        super.addFalse();
+    public T opFalse() {
+        super.opFalse();
         return (T) this;
     }
 

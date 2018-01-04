@@ -185,7 +185,7 @@ public class BitcoinUtils {
             return new ScriptBuilder().data(((Hash) obj).getBytes()).build();
 
         else if (obj instanceof Boolean)
-            return ((Boolean) obj)? new ScriptBuilder().addTrue().build(): new ScriptBuilder().addFalse().build();
+            return ((Boolean) obj)? new ScriptBuilder().opTrue().build(): new ScriptBuilder().opFalse().build();
 
         else if (obj instanceof DumpedPrivateKey)
             return new ScriptBuilder().data(((DumpedPrivateKey) obj).getKey().getPubKey()).build();
