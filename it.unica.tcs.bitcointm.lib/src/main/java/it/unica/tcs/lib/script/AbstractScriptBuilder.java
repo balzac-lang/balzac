@@ -1,3 +1,6 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
 package it.unica.tcs.lib.script;
 
 import java.io.Serializable;

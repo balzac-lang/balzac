@@ -8,9 +8,6 @@ import java.io.Serializable;
 
 import it.unica.tcs.lib.script.InputScript;
 
-/*
- * Input internal representation (not visible outside)
- */
 public class Input implements Serializable {
 
     private static final long serialVersionUID = 1L;

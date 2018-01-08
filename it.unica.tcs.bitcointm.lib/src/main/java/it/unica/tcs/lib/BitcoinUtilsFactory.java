@@ -1,3 +1,6 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
 package it.unica.tcs.lib;
 
 import java.util.ArrayList;

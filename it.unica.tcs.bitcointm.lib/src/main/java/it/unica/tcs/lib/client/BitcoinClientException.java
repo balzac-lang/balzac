@@ -1,3 +1,6 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
 package it.unica.tcs.lib.client;
 
 public class BitcoinClientException extends RuntimeException {

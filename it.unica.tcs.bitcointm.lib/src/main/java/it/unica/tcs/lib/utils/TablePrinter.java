@@ -1,3 +1,6 @@
+/*
+ * Copyright 2017 Nicola Atzei
+ */
 package it.unica.tcs.lib.utils;
 
 import static com.google.common.base.Preconditions.checkArgument;
