@@ -107,7 +107,7 @@ public class ServerSocketDaemon implements Runnable {
                         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                         PrintWriter out = new PrintWriter(clientSocket.getOutputStream())
                 ) {
-                    logger.trace("connected to remote port "+clientSocket.getPort());
+                    logger.trace("accepted connection from port <- "+clientSocket.getPort());
                     logger.trace("waiting for input");
 
                     String inputLine = in.readLine();

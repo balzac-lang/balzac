@@ -42,7 +42,7 @@ public abstract class Participant implements Runnable {
         } catch (InterruptedException e) {
             throw new IllegalStateException("Cannot start the server");
         }
-        logger.trace("Listening on port "+this.getPort());
+        logger.trace("{}:{}", getName(), getPort());
     }
 
     public String getName() {
@@ -96,7 +96,7 @@ public abstract class Participant implements Runnable {
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
         ) {
             socket.setKeepAlive(true);
-            logger.trace("connected to "+socket.getInetAddress()+":"+socket.getPort()+", local port"+socket.getLocalPort());
+            logger.trace("connected to "+socket.getInetAddress()+":"+socket.getPort()+", local port "+socket.getLocalPort());
             logger.trace("isConnected "+socket.isConnected());
             logger.trace("keepalive "+socket.getKeepAlive());
             logger.trace("isBound "+socket.isBound());
