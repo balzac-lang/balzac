@@ -53,7 +53,7 @@ public abstract class Hash {
             checkArgument(bytes.length==20, "Ripemd160: expected byte array of length 20");
         }
         public String getType() {
-            return "ripemd";
+            return "ripemd160";
         }
     }
 
@@ -91,10 +91,6 @@ public abstract class Hash {
 
     @Override
     public String toString() {
-        return getType()+":"+BitcoinUtils.encode(bytes);
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new Hash160(new byte[20]).equals(new Ripemd160(new byte[20])));
+        return getType()+":"+getBytesAsString();
     }
 }
