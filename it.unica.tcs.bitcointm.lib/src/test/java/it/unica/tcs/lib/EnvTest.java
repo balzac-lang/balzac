@@ -138,4 +138,67 @@ public class EnvTest {
         assertEquals(Float.class, env.getType("c"));
     }
 
+    @Test
+    public void test_getValue() {
+        Env<Number> env = new Env<Number>();
+
+        env.addVariable("a", Integer.class);
+        
+        assertEquals(10, env.getValueOrDefault("a", 10));
+        
+        env.bindVariable("a", 5);
+
+        assertEquals(5, env.getValue("a"));
+        assertEquals(5, env.getValueOrDefault("a", 10));
+        
+        assertEquals(Integer.class, env.getValue("a", Integer.class).getClass());
+        try {
+            env.getValue("a", Long.class);
+            fail();
+        }
+        catch (IllegalArgumentException e) {}
+    }
+
+    @Test
+    public void test_removeVariable() {
+        Env<Number> env = new Env<Number>();
+
+        env.addVariable("a", Integer.class);
+        
+        assertTrue(env.hasVariable("a"));
+        
+        env.removeVariable("a");
+
+        assertFalse(env.hasVariable("a"));
+    }
+
+    @Test
+    public void test_equals() {
+        Env<Number> env1 = new Env<Number>();
+        Env<Integer> env2 = new Env<Integer>();
+        assertFalse(env1.equals(null)); // null
+        assertTrue(env1.equals(env1));  // same obj
+        assertFalse(env1.equals(5));    // different class
+        
+        assertTrue(env1.equals(env2));
+        assertTrue(env1.hashCode() == env2.hashCode());
+
+        env1.addVariable("a", Integer.class);
+        assertFalse(env1.equals(env2));         // env1 has variable "a"
+        assertFalse(env1.hashCode() == env2.hashCode());
+
+        env2.addVariable("a", Integer.class);
+        assertTrue(env1.equals(env2));          // both have variable "a"
+        assertTrue(env1.hashCode() == env2.hashCode());
+        
+        env1.bindVariable("a", 42);
+        assertFalse(env1.equals(env2));         // "a" is bound in env1 
+        assertFalse(env1.hashCode() == env2.hashCode());
+
+        env1.addVariable("b", Long.class);
+        env2.addVariable("b", Integer.class);
+
+        assertFalse(env1.equals(env2));         // "b" has different type
+        assertFalse(env1.hashCode() == env2.hashCode());
+    }
 }

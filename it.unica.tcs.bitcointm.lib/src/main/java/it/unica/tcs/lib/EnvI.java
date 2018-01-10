@@ -68,6 +68,7 @@ public interface EnvI<T,ENV extends EnvI<T,ENV>> extends Serializable {
      * @param name the variable name
      * @param defaultValue a default value if the variable is unbound
      * @return the value associated to the variable
+     * @throws IllegalArgumentException if name is not a variable
      */
     public T getValueOrDefault(String name, T defaultValue);
 

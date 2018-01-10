@@ -5,7 +5,6 @@ package it.unica.tcs.lib;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +68,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkNotNull(name, "'name' cannot be null");
         checkNotNull(type, "'type' cannot be null");
         Class<? extends T> expectedType = getType(name);
-        checkState(expectedType.equals(type));
+        checkArgument(expectedType.equals(type));
         return type.cast(variablesBinding.get(name));
     }
 
@@ -142,8 +141,8 @@ public class Env<T> implements EnvI<T,Env<T>> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((variablesBinding == null) ? 0 : variablesBinding.hashCode());
-        result = prime * result + ((variablesType == null) ? 0 : variablesType.hashCode());
+        result = prime * result + variablesBinding.hashCode();
+        result = prime * result + variablesType.hashCode();
         return result;
     }
 
@@ -156,17 +155,10 @@ public class Env<T> implements EnvI<T,Env<T>> {
         if (getClass() != obj.getClass())
             return false;
         Env<?> other = (Env<?>) obj;
-        if (variablesBinding == null) {
-            if (other.variablesBinding != null)
-                return false;
-        } else if (!variablesBinding.equals(other.variablesBinding))
+        if (!variablesBinding.equals(other.variablesBinding))
             return false;
-        if (variablesType == null) {
-            if (other.variablesType != null)
-                return false;
-        } else if (!variablesType.equals(other.variablesType))
+        if (!variablesType.equals(other.variablesType))
             return false;
         return true;
     }
-
 }
