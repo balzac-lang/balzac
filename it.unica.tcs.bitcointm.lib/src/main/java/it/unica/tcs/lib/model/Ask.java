@@ -9,7 +9,6 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import it.unica.tcs.lib.BitcoinUtilsFactory;
 import it.unica.tcs.lib.client.BitcoinClientI;
 
 public class Ask extends AbstractPrefix {
@@ -17,9 +16,9 @@ public class Ask extends AbstractPrefix {
     private BitcoinClientI client;
     private final List<String> txsid;
 
-    Ask(List<String> txsid) {
+    Ask(List<String> txsid, BitcoinClientI client) {
         this.txsid = txsid;
-        this.client = BitcoinUtilsFactory.create().getBitcoinClient();
+        this.client = client;
     }
 
     @Override

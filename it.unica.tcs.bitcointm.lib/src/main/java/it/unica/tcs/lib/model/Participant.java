@@ -16,12 +16,15 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 import it.unica.tcs.lib.model.ServerSocketDaemon.ServerSocketClient;
 
 public abstract class Participant implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(Participant.class);
 
+    @Inject private PrefixFactory factory; 
     private final String name;
     private final ExecutorService executor;
     private final ServerSocketDaemon receiverDeamon;
@@ -67,23 +70,23 @@ public abstract class Participant implements Runnable {
     }
 
     public void ask(String... txsid) {
-        new Choice(PrefixFactory.ask(txsid)).run();
+        new Choice(factory.ask(txsid)).run();
     }
 
     public void ask(List<String> txsid) {
-        new Choice(PrefixFactory.ask(txsid)).run();
+        new Choice(factory.ask(txsid)).run();
     }
 
     public void check(Supplier<Boolean> condition) {
-        new Choice(PrefixFactory.check(condition)).run();
+        new Choice(factory.check(condition)).run();
     }
 
     public void check() {
-        new Choice(PrefixFactory.check()).run();
+        new Choice(factory.check()).run();
     }
 
     public void put(String txhex) {
-        new Choice(PrefixFactory.put(txhex)).run();
+        new Choice(factory.put(txhex)).run();
     }
 
     public void send(Integer msg, Participant p) {

@@ -3,7 +3,7 @@
  */
 package it.unica.tcs.lib.client;
 
-public class TransactionNotFoundException extends Exception {
+public class TransactionNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 }

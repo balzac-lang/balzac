@@ -13,6 +13,8 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApiFactory;
+import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
+import com.sulacosoft.bitcoindconnector4j.core.RPCErrorCode;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
 import it.unica.tcs.lib.client.BitcoinClientException;
@@ -78,6 +80,8 @@ public class RPCBitcoinClient implements BitcoinClientI {
 
     @Override
     public String getRawTransaction(String txid) throws TransactionNotFoundException {
+        if (!isMined(txid, Confidentiality.LOW))
+            throw new TransactionNotFoundException();
         try {
             return getApi().getrawtransaction(txid);
         }
@@ -88,12 +92,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
 
     @Override
     public boolean isMined(String txid) {
-        try {
-            return isMined(txid, Confidentiality.HIGH);
-        }
-        catch (Throwable e) {
-            throw new BitcoinClientException(e);
-        }
+        return isMined(txid, Confidentiality.HIGH);
     }
 
     @Override
@@ -101,6 +100,11 @@ public class RPCBitcoinClient implements BitcoinClientI {
         try {
             RawTransaction tx = getApi().getrawtransaction(txid, true);
             return tx.getConfirmations() >= reliability.getConfirmations();
+        }
+        catch (BitcoindException e) {
+            if (e.getCode() == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY)
+                return false;
+            throw new BitcoinClientException(e);
         }
         catch (Throwable e) {
             throw new BitcoinClientException(e);
@@ -118,17 +122,14 @@ public class RPCBitcoinClient implements BitcoinClientI {
     }
 
     @Override
-    public boolean isUTXO(String txid) {
-        try {
-            return isUTXO(txid, 0);
-        }
-        catch (Throwable e) {
-            throw new BitcoinClientException(e);
-        }
+    public boolean isUTXO(String txid) throws TransactionNotFoundException {
+        return isUTXO(txid, 0);
     }
 
     @Override
-    public boolean isUTXO(String txid, int n) {
+    public boolean isUTXO(String txid, int n) throws TransactionNotFoundException {
+        if (!isMined(txid, Confidentiality.LOW))
+            throw new TransactionNotFoundException();
         try {
             return this.getApi().gettxout(txid, n)!=null;
         }

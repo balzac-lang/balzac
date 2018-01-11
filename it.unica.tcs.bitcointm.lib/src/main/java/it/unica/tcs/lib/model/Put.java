@@ -1,6 +1,5 @@
 package it.unica.tcs.lib.model;
 
-import it.unica.tcs.lib.BitcoinUtilsFactory;
 import it.unica.tcs.lib.client.BitcoinClientI;
 
 public class Put extends AbstractPrefix {
@@ -8,9 +7,9 @@ public class Put extends AbstractPrefix {
     private BitcoinClientI client;
     private final String txhex;
 
-    Put(String txhex) {
+    Put(String txhex, BitcoinClientI client) {
         this.txhex = txhex;
-        this.client = BitcoinUtilsFactory.create().getBitcoinClient();
+        this.client = client;
     }
 
     @Override
