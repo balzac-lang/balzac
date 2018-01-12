@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import it.unica.tcs.lib.model.ServerSocketDaemon.ServerSocketClient;
 
+@Ignore
 public class ServerSocketDaemonTest {
 
     @Test

@@ -12,6 +12,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>net.sf.xsemantics</groupId>
+			<artifactId>it.xsemantics.dsl</artifactId>
+			<version>${xsemantics.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>it.unica.tcs.bitcointm</groupId>
 			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
 			<version>${lib.version}</version>
