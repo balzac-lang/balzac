@@ -138,16 +138,5 @@
 			<version>1.7.21</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>it.unica.tcs.bitcointm</groupId>
-			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
-			<version>0.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject</groupId>
-			<artifactId>guice</artifactId>
-			<version>4.0</version>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 </project>
