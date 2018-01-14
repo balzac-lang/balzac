@@ -8,3 +8,10 @@ script:
 
 after_success:
   - mvn -f it.unica.tcs.bitcointm.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
+
+notifications:
+  email:
+    recipients:
+      - atzeinicola@gmail.com
+    on_success: change # default: change
+    on_failure: always # default: always
