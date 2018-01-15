@@ -10,8 +10,10 @@ import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
 import it.unica.tcs.lib.client.BitcoinClientI
+import it.unica.tcs.lib.utils.BitcoinUtils
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.crypto.TransactionSignature
 import org.eclipse.xtext.common.services.DefaultTerminalConverters
 import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
@@ -92,7 +94,15 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     def IValueConverter<String> getSig() {
         return new AbstractLexerBasedConverter<String>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                string.split(":").get(1)
+                val value = string.split(":").get(1)
+                
+                try {
+                    TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(value), true, true)
+                }
+                catch (Exception e) {
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid signature.\n\nDetails: "+e.message, node, e);
+                }
+                value
             }
         }
     }

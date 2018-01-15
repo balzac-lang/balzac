@@ -40,7 +40,7 @@ public class BitcoinUtils {
     }
 
     public static byte[] decode(String chars) {
-        return Utils.HEX.decode(chars);
+        return Utils.HEX.decode(chars.toLowerCase());
     }
 
     public static <T extends Hash> T hash(Object input, Class<T> clazz) {
