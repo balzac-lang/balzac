@@ -43,7 +43,7 @@ import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.KeyStoreFactory;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
+abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 
@@ -105,15 +105,15 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
     }
 
-    public AbstractScriptBuilderWithVar() {
+    protected AbstractScriptBuilderWithVar() {
         this(new Script(new byte[]{}));
     }
 
-    public AbstractScriptBuilderWithVar(Script script) {
+    protected AbstractScriptBuilderWithVar(Script script) {
         super(script);
     }
 
-    public AbstractScriptBuilderWithVar(String serializedScript) {
+    protected AbstractScriptBuilderWithVar(String serializedScript) {
         this.deserialize(serializedScript);
     }
 

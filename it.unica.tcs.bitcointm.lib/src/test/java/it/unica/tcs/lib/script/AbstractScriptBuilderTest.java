@@ -16,8 +16,38 @@ import it.unica.tcs.lib.script.ScriptBuilder2;
 public class AbstractScriptBuilderTest {
 
     @Test
-    public void test_optimize() {
+    public void test_size() {
+        @SuppressWarnings({ "serial", "rawtypes" })
+        AbstractScriptBuilder<?> sb = new AbstractScriptBuilder() {};
+        assertEquals(0, sb.size());
+        sb.number(42);
+        assertEquals(1, sb.size());      // PUSHDATA
+        sb.number(5);
+        assertEquals(2, sb.size());      // OP_5
+    }
 
+    @Test
+    public void test_chain_of_instruction() {
+        @SuppressWarnings({ "serial", "rawtypes" })
+        AbstractScriptBuilder<?> sb = new AbstractScriptBuilder() {};
+        assertEquals(0, sb.size());
+        sb.number(42).number(5).data(new byte[]{});
+        assertEquals(3, sb.size());
+    }
+
+    @Test
+    public void test_overridden_methods() {
+        @SuppressWarnings({ "serial", "rawtypes" })
+        AbstractScriptBuilder<?> sb = new AbstractScriptBuilder() {};
+        assertTrue(sb.data(new byte[]{}) instanceof AbstractScriptBuilder);
+        assertTrue(sb.number(42) instanceof AbstractScriptBuilder);
+        assertTrue(sb.op(OP_16) instanceof AbstractScriptBuilder);
+        assertTrue(sb.opTrue() instanceof AbstractScriptBuilder);
+        assertTrue(sb.opFalse() instanceof AbstractScriptBuilder);
+    }
+
+    @Test
+    public void test_optimize() {
         Script s = new ScriptBuilder()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -34,7 +64,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize2() {
-
         Script s = new ScriptBuilder()
                 .op(OP_TOALTSTACK)
                 .number(4)
@@ -52,7 +81,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize3() {
-
         Script s = new ScriptBuilder()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -72,7 +100,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize4() {
-
         Script s = new ScriptBuilder()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
@@ -92,7 +119,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize5() {
-
         Script s = new ScriptBuilder()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
@@ -110,14 +136,8 @@ public class AbstractScriptBuilderTest {
         assertArrayEquals(s.getProgram(), opt.getProgram());
     }
 
-
-
-
-
-
     @Test
     public void test_optimize_sb() {
-
         Script s = new ScriptBuilder2()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -130,7 +150,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize2_sb() {
-
         Script s = new ScriptBuilder2()
                 .op(OP_TOALTSTACK)
                 .number(4)
@@ -144,7 +163,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize3_sb() {
-
         Script s = new ScriptBuilder2()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -160,7 +178,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize4_sb() {
-
         Script s = new ScriptBuilder2()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
@@ -176,7 +193,6 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize5_sb() {
-
         Script s = new ScriptBuilder2()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
