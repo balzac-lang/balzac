@@ -65,6 +65,8 @@ import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import it.unica.tcs.bitcoinTM.RelativeTime
+import it.unica.tcs.bitcoinTM.PubKeyLiteral
+import it.unica.tcs.bitcoinTM.PubkeyType
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -175,6 +177,10 @@ auxiliary unify(TypeSubstitutions substitutions, TransactionType t1, Transaction
     EcoreUtil::copy(t1)
 }
 
+auxiliary unify(TypeSubstitutions substitutions, PubkeyType t1, PubkeyType t2) {
+    EcoreUtil::copy(t1)
+}
+
 auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, PermittedType basicType) {
     substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
@@ -214,6 +220,16 @@ auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t
 
 // key is subtype of address: you can derive an address from its private part
 auxiliary unify(TypeSubstitutions substitutions, KeyType t1, AddressType t2) {
+    EcoreUtil::copy(t2)
+}
+
+// key is subtype of a pubkey: you can derive the public part from its private part
+auxiliary unify(TypeSubstitutions substitutions, KeyType t1, PubkeyType t2) {
+    EcoreUtil::copy(t2)
+}
+
+// pubkey is subtype of an address: you can derive the address from its pubkey
+auxiliary unify(TypeSubstitutions substitutions, PubkeyType t1, AddressType t2) {
     EcoreUtil::copy(t2)
 }
 
@@ -483,8 +499,15 @@ axiom Sha256Literal
 axiom TransactionLiteral
     G |- TypeSubstitutions substitutions |> TransactionLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
 
-axiom SignatureLiteral
+rule SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BitcoinTMFactory::eINSTANCE.createSignatureType
+from {
+    if (s.key !== null) {
+        G |- substitutions |> s.key : var Type type
+        type = typesubstitution(substitutions, type)
+        unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createPubkeyType)
+    }
+}
 
 axiom DateLiteral
     G |- TypeSubstitutions substitutions |> DateLiteral d : BitcoinTMFactory::eINSTANCE.createIntType
@@ -500,6 +523,10 @@ from {
         res = BitcoinTMFactory::eINSTANCE.createAddressType
     }
 }
+
+axiom PubkeyLiteral
+    G |- TypeSubstitutions substitutions |> PubKeyLiteral pk : BitcoinTMFactory::eINSTANCE.createPubkeyType
+
 
 
 rule Times

@@ -53,6 +53,35 @@ transaction A_bis(inTx:transaction) {
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
+/*
+ * signature as parameter
+ */
+
+const k = wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC
+const k_address = wif:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
+const k_pubkey = pubkey:032b6cb7aa033a063d2dc39573bde12a2d01e20a971d6d4f85eb27ad0793b3689c
+
+const k1 = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+
+transaction coinbase_B {
+	input = _
+	output = 10 BTC : fun(s) . versig(wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC; s)
+}
+
+transaction B {
+	input = coinbase_B: sig(wif:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC)
+	output = 0.5 BTC : fun(a:int) . a==42
+}
+
+const s = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01
+const s1 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k] 
+const s2 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k_pubkey] 
+
+transaction B_bis {
+	input = coinbase_B: s1
+	
+	output = 0.5 BTC : fun(a:int) . a==42
+}
 
 compile
 	T
@@ -66,4 +95,6 @@ compile
 
 	A
 	A_bis(inTx) 
- 
+	
+	coinbase_B
+	B

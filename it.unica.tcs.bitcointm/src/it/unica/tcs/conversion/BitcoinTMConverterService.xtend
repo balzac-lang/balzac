@@ -157,4 +157,13 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
             }
         }
     }
+
+    @ValueConverter(rule = "PUBKEY")
+    def IValueConverter<String> getPUBKEY() {
+        return new AbstractLexerBasedConverter<String>() {
+            override toValue(String string, INode node) throws ValueConverterException {
+                string.split(":").get(1)
+            }
+        }
+    }
 }

@@ -74,6 +74,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.utils.SignatureAndKey
 
 /**
  * This class contains custom validation rules.
@@ -643,6 +644,23 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             input.failIfRedeemScriptIsDefined
         }
 
+        if (inputTx.outputs.get(outputIdx).script.isP2PKH) {
+            for (e : input.exps) {
+                val res = e.interpretE
+                if (!res.failed && res.first instanceof SignatureAndKey) {
+                    val sig = res.first as SignatureAndKey
+                    if (sig.pubkey === null) {
+                        error(
+                            "The given signature does not specify a pubkey, needed to redeem a P2PKH (e.g. fun(s) . versig(k;s)).",
+                            e,
+                            null
+                        );
+                        return false
+                    }
+                }
+            }
+        }
+
         return true
     }
 
@@ -1145,5 +1163,4 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             }
         }
     }
-
 }

@@ -64,6 +64,7 @@ import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.utils.SignatureAndKey
 
 /*
  * EXPRESSIONS
@@ -100,24 +101,43 @@ class ScriptCompiler {
             /*
              * P2PKH
              */
-            var sig = input.exps.get(0) as Signature
-            var sb = sig.compileInputExpression(rho)
-
-            val resKey = sig.privkey.interpret(rho)
-
-            if (resKey.failed)
-                throw new CompileException('''Unable to evaluate to a private key''')
-
-            val key = resKey.first
-            if (key instanceof DumpedPrivateKey) {
-                sb.data(key.key.pubKey)
+            var sigE = input.exps.get(0)
+            if (sigE instanceof Signature) {                
+                var sig = input.exps.get(0) as Signature
+                var sb = sig.compileInputExpression(rho)
+    
+                val resKey = sig.privkey.interpret(rho)
+    
+                if (resKey.failed)
+                    throw new CompileException('''Unable to evaluate to a private key''')
+    
+                val key = resKey.first
+                if (key instanceof DumpedPrivateKey) {
+                    sb.data(key.key.pubKey)
+                }
+                else {
+                    throw new CompileException('''Unable to evaluate to a private key: «key»''')
+                }
+    
+                /* <sig> <pubkey> */
+                return new InputScriptImpl().append(sb) as InputScript
             }
-            else {
-                throw new CompileException('''Unable to evaluate to a private key: «key»''')
+            else {                
+                val sigI = input.exps.get(0).interpret(rho)
+                if (sigI.failed)
+                    throw new CompileException('''Unable to evaluate to a valid signature''')
+                
+                val sig = sigI.first as SignatureAndKey
+                
+                if (sig.pubkey === null)
+                    throw new CompileException('''The signature must be defined with a public key''')
+                
+                val sb = new InputScriptImpl()
+                sb.data(sig.sig.encodeToBitcoin)
+                sb.data(sig.pubkey.pubKey)
+                return new InputScriptImpl().append(sb) as InputScript
             }
 
-            /* <sig> <pubkey> */
-            return new InputScriptImpl().append(sb) as InputScript
         }
         else if (outScript.isP2SH) {
 

@@ -31,7 +31,6 @@ import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
-import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -42,11 +41,14 @@ import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.SignatureAndKey
 import java.math.BigInteger
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.crypto.TransactionSignature
+import it.unica.tcs.bitcoinTM.PubKeyLiteral
+import org.bitcoinj.core.ECKey
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
@@ -121,8 +123,19 @@ axiom InterpretRipemd160Literal
 axiom InterpretSha256Literal
     G |- Sha256Literal hash |> Rho rho ~> new Hash.Sha256(hash.value)
 
-axiom InterpretSignatureLiteral
-    G |- SignatureLiteral s |> Rho rho ~> TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(s.value), true, false)
+rule InterpretSignatureLiteral
+    G |- SignatureLiteral s |> Rho rho ~> SignatureAndKey result
+from {
+    val sig = TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(s.value), true, true)
+    val key = if (s.key !== null) {
+        G |- s.key |> rho ~> var Object key
+        if (key instanceof DumpedPrivateKey)
+            key.key
+        else
+            key as ECKey
+    }
+    result = new SignatureAndKey(sig, key)
+}
 
 axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
@@ -130,36 +143,36 @@ axiom InterpretDateLiteral
 axiom InterpretTransactionLiteral
     G |- TransactionLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
-rule InterpretSignature
-    G |- Signature s |> Rho rho ~> TransactionSignature res
-from {
-    { s.tx !== null }
-
-    G |- s.privkey |> rho ~> var Object key
-    G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
-
-    if (!(key instanceof DumpedPrivateKey)) {
-        fail
-            error "Key must be private"
-            source s.privkey
-    }
-
-    val tx = txBuilder.toTransaction
-    val inputIndex = s.inputIdx
-    val sigHashType = astUtils.toHashType(s.modifier)
-    val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
-
-    val input = txBuilder.inputs.get(inputIndex as int)
-    val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
-
-    res = tx.calculateSignature(
-        0,
-        (key as DumpedPrivateKey).key,
-        outScript,
-        sigHashType,
-        anyonecanpay
-    )
-}
+//rule InterpretSignature
+//    G |- Signature s |> Rho rho ~> TransactionSignature res
+//from {
+//    { s.tx !== null }
+//
+//    G |- s.privkey |> rho ~> var Object key
+//    G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
+//
+//    if (!(key instanceof DumpedPrivateKey)) {
+//        fail
+//            error "Key must be private"
+//            source s.privkey
+//    }
+//
+//    val tx = txBuilder.toTransaction
+//    val inputIndex = s.inputIdx
+//    val sigHashType = astUtils.toHashType(s.modifier)
+//    val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
+//
+//    val input = txBuilder.inputs.get(inputIndex as int)
+//    val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
+//
+//    res = tx.calculateSignature(
+//        0,
+//        (key as DumpedPrivateKey).key,
+//        outScript,
+//        sigHashType,
+//        anyonecanpay
+//    )
+//}
 
 rule InterpretKeyLiteral
     G |- KeyLiteral key |> Rho rho ~> Object res
@@ -171,6 +184,9 @@ from {
     }
 }
 
+axiom InterpretPubkeyLiteral
+    G |- PubKeyLiteral d |> Rho rho ~> ECKey.fromPublicOnly(BitcoinUtils.decode(d.value))
+    
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
 from {

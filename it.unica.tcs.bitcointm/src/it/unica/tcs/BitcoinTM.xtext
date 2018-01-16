@@ -151,6 +151,7 @@ Literal:
 |	DateLiteral
 |	HashLiteral
 |	KeyLiteral
+|   PubKeyLiteral
 |	TransactionLiteral
 |	SignatureLiteral;
 
@@ -169,8 +170,9 @@ Hash256Literal: value=HASH_256;
 Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
 KeyLiteral: value=WIF;
+PubKeyLiteral: value=PUBKEY;
 TransactionLiteral: value=(TXSERIAL|TXID);		// TXID is automatically converted into a hex by fetching the transaction from the network
-SignatureLiteral: value=SIGHEX;
+SignatureLiteral: value=SIGHEX (-> "[" key=Expression "]")?;
 
 IfThenElse:
 	'if' if=Expression
@@ -217,6 +219,7 @@ PermittedType:
 |   {BooleanType} value=BoolTypeEnum
 |	HashType
 |   {KeyType} value=KeyTypeEnum
+|   {PubkeyType} value=PubkeyTypeEnum
 |   {AddressType} value=AddressTypeEnum
 |   {TransactionType} value=TransactionTypeEnum
 |   {SignatureType} value=SignatureTypeEnum;
@@ -233,6 +236,7 @@ enum IntTypeEnum: int;
 enum StringTypeEnum: string;
 enum BoolTypeEnum: bool | boolean;
 enum KeyTypeEnum: key;
+enum PubkeyTypeEnum: pubkey;
 enum AddressTypeEnum: address;
 enum SignatureTypeEnum: signature;
 enum TransactionTypeEnum: transaction;
@@ -279,16 +283,17 @@ terminal LONG_HEX returns ecore::ELong:
 terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
-terminal WIF:
-	'wif:' ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
-
 terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXID returns ecore::EString:      'txid:' ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXSERIAL returns ecore::EString:  'tx:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal SIGHEX returns ecore::EString:  'sig:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXID returns ecore::EString:          'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL returns ecore::EString:      'tx:'        ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal SIGHEX returns ecore::EString:        'sig:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal PUBKEY returns ecore::EString:        'pubkey:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
+
+// both private keys and public addresses
+terminal WIF returns ecore::EString:           'wif:'       ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
 /*
  * 2011-12-03T10:15:30+01:00

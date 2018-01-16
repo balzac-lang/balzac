@@ -6,7 +6,7 @@
 	<classpathentry kind="src" path="xtend-gen"/>
 	<classpathentry kind="src" path="xsemantics-gen"/>
 	<classpathentry exported="true" kind="lib" path=".antlr-generator-3.2.0-patch.jar"/>
-	<classpathentry exported="true" kind="lib" path="it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar" sourcepath="/it.unica.tcs.bitcointm.lib"/>
+	<classpathentry exported="true" kind="lib" path="it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar" sourcepath="/bitcoinj-core"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="owner.project.facets" value="java"/>
