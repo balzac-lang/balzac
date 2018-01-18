@@ -67,6 +67,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.PubkeyType
+import it.unica.tcs.bitcoinTM.HashableType
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -326,12 +327,24 @@ rule Transaction
     G |- TypeSubstitutions substitutions |> Transaction body : BitcoinTMFactory::eINSTANCE.createTransactionType
 from {
 
+    for (p : body.params) {
+        G |- substitutions |> p : var Type t    // type the parameters, possibly TypeVariable
+    }
+    
     for (in : body.inputs) {
         G |- substitutions |> in : var Type t1  // all inputs are well typed
     }
 
     for (out : body.outputs) {
         G |- substitutions |> out : var Type t2 // all outputs are well typed
+    }
+
+    // after typing the parameters, all should have a basic type (generic types are not allowed)
+    for (p : body.params) {
+        var ptype = env(G, p, Type)
+        ptype = typesubstitution(substitutions, ptype)
+        failIfTypeVariable(ptype, p)
+        p.type = ptype as PermittedType
     }
 }
 
@@ -361,9 +374,7 @@ from {
         if (inputTxRef instanceof Reference
             && (inputTxRef as Reference).ref instanceof Transaction
         ) {
-
             val tx = (inputTxRef as Reference).ref as Transaction
-
 
             // check the actual parameters type match the formal ones (Script)
             var outputIndex = input.outpoint
@@ -583,15 +594,15 @@ from {
         type = BitcoinTMFactory::eINSTANCE.createIntType
         // the terms type must be unifiable with int type
         unify(op.left, substitutions, leftType, type)
-        unify(op.right, substitutions, rightType, type)
     }
     or
     {
         type = BitcoinTMFactory::eINSTANCE.createStringType
         // the terms type must be unifiable with string type
         unify(op.left, substitutions, leftType, type)
-        unify(op.right, substitutions, rightType, type)
     }
+    
+    unify(op.right, substitutions, rightType, type)
 }
 
 rule Comparison
@@ -733,7 +744,11 @@ from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
 
-    failIfNotPermitted(t, hash)
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Cannot hash type "+stringRep(t)
+        source hash.value
+    }
 }
 
 rule Hash256
@@ -742,7 +757,11 @@ from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
 
-    failIfNotPermitted(t, hash)
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Cannot hash type "+stringRep(t)
+        source hash.value
+    }
 }
 
 rule Ripemd160
@@ -751,7 +770,11 @@ from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
 
-    failIfNotPermitted(t, hash)
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Cannot hash type "+stringRep(t)
+        source hash.value
+    }
 }
 
 rule Sha256
@@ -760,7 +783,11 @@ from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
 
-    failIfNotPermitted(t, hash)
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Cannot hash type "+stringRep(t)
+        source hash.value
+    }
 }
 
 rule Min

@@ -30,7 +30,6 @@ import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionLiteral
@@ -46,6 +45,7 @@ import it.unica.tcs.lib.client.BitcoinClientException
 import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.SignatureAndKey
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
@@ -74,7 +74,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.utils.SignatureAndKey
 
 /**
  * This class contains custom validation rules.
@@ -520,28 +519,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check(CheckType.NORMAL)
     def void checkUserDefinedTx(Transaction tx) {
 
+        if (tx.isCoinbase)
+            return;
+
         var hasError = false;
-
-        /*
-         * Check transaction parameters
-         */
-        for (param: tx.params) {
-            if (param.type instanceof SignatureType) {
-                error(
-                    "Signature parameters are not allowed yet.",
-                    param,
-                    BitcoinTMPackage.Literals.TRANSACTION__NAME
-                );
-                hasError = hasError || true
-            }
-        }
-
-        if(hasError) return;  // interrupt the check
-
-        /*
-         * Cannot
-         */
-        if (tx.isCoinbase) return;
 
         /*
          * Verify that inputs are valid

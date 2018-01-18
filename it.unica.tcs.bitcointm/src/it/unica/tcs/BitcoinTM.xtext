@@ -217,19 +217,24 @@ PermittedType:
 	{IntType} value=IntTypeEnum 
 |	{StringType} value=StringTypeEnum 
 |   {BooleanType} value=BoolTypeEnum
-|	HashType
+|   {Hash160Type} value=Hash160TypeEnum
+|   {Hash256Type} value=Hash256TypeEnum
+|   {Ripemd160Type} value=Ripemd160TypeEnum
+|   {Sha256Type} value=Sha256TypeEnum
 |   {KeyType} value=KeyTypeEnum
 |   {PubkeyType} value=PubkeyTypeEnum
 |   {AddressType} value=AddressTypeEnum
 |   {TransactionType} value=TransactionTypeEnum
 |   {SignatureType} value=SignatureTypeEnum;
 
-HashType:
-	{Hash160Type} value=Hash160TypeEnum
-|	{Hash256Type} value=Hash256TypeEnum
-|	{Ripemd160Type} value=Ripemd160TypeEnum
-|	{Sha256Type} value=Sha256TypeEnum;
-
+HashableType:
+    {IntType} value=IntTypeEnum 
+|   {StringType} value=StringTypeEnum 
+|   {BooleanType} value=BoolTypeEnum
+|   {Hash160Type} value=Hash160TypeEnum
+|   {Hash256Type} value=Hash256TypeEnum
+|   {Ripemd160Type} value=Ripemd160TypeEnum
+|   {Sha256Type} value=Sha256TypeEnum;
 
 
 enum IntTypeEnum: int;

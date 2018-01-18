@@ -77,9 +77,14 @@ const s = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb
 const s1 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k] 
 const s2 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k_pubkey] 
 
-transaction B_bis {
+transaction B1 {
 	input = coinbase_B: s1
 	
+	output = 0.5 BTC : fun(a:int) . a==42
+}
+
+transaction B2(s) {
+	input = coinbase_B: s
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
@@ -94,7 +99,12 @@ compile
 	T4("5")
 
 	A
-	A_bis(inTx) 
+	A_bis(inTx)
 	
 	coinbase_B
 	B
+	B1  
+	B2(s1) 
+	
+	
+	 
