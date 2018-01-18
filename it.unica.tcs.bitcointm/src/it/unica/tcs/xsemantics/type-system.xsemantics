@@ -75,18 +75,13 @@ validatorExtends AbstractBitcoinTMValidator
 inject LambdaUtils lambdaUtils
 
 auxiliary {
-
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
-
-    unify(TypeSubstitutions substitutions, Type left, Type right) : Type
-        error "Cannot unify " + stringRep(left) + " with " + stringRep(right)
-
+    unify(EObject obj, TypeSubstitutions substitutions, Type left, Type right) : Type
     failIfTypeVariable(Type type, EObject obj)
     failIfNotPermitted(Type type, EObject obj)
 }
 
 judgments {
-
     typeExpression |- TypeSubstitutions substitutions |> Typeable exp : output Type
         error "Cannot type " + stringRep(exp)
         source exp
@@ -126,71 +121,72 @@ auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variabl
         variable
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Type t1, Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Type actual, Type expected) {
     // if we get here we cannot unify the two types
     fail
-    error "Cannot unify type "+t1+" with type "+t2
+    error 'Invalid type '+stringRep(actual)+", expected type "+stringRep(expected)
+    source obj
     null
 }
 
-auxiliary unify(TypeSubstitutions substitutions, IntType t1, IntType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, IntType t1, IntType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Hash160Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash160Type t1, Hash160Type t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Hash256Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash256Type t1, Hash256Type t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Ripemd160Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Ripemd160Type t1, Ripemd160Type t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, StringType t1, StringType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, StringType t1, StringType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, BooleanType t1, BooleanType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, BooleanType t1, BooleanType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, KeyType t1, KeyType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, KeyType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, AddressType t1, AddressType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, AddressType t1, AddressType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, TransactionType t1, TransactionType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TransactionType t1, TransactionType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, PubkeyType t1, PubkeyType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, PubkeyType t2) {
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, TypeVariable typeVar, PermittedType basicType) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable typeVar, PermittedType basicType) {
     substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, PermittedType basicType, TypeVariable typeVar) {
-    unify(substitutions, typeVar, basicType)
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, PermittedType basicType, TypeVariable typeVar) {
+    unify(obj, substitutions, typeVar, basicType)
 }
 
-auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable right) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable left, TypeVariable right) {
     // unify both variables with a fresh new variable
     val fresh = lambdaUtils.createFreshTypeVariable
     substitutions.add(left.value, fresh)
@@ -199,37 +195,37 @@ auxiliary unify(TypeSubstitutions substitutions, TypeVariable left, TypeVariable
 }
 
 // hash256 is a sha256
-auxiliary unify(TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
     EcoreUtil::copy(t2)
 }
 
 // hash256 is a sha256
-auxiliary unify(TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
     EcoreUtil::copy(t1)
 }
 
 // hash160 is a sha256
-auxiliary unify(TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
     EcoreUtil::copy(t2)
 }
 
 // hash160 is a sha256
-auxiliary unify(TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
     EcoreUtil::copy(t1)
 }
 
 // key is subtype of address: you can derive an address from its private part
-auxiliary unify(TypeSubstitutions substitutions, KeyType t1, AddressType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, AddressType t2) {
     EcoreUtil::copy(t2)
 }
 
 // key is subtype of a pubkey: you can derive the public part from its private part
-auxiliary unify(TypeSubstitutions substitutions, KeyType t1, PubkeyType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, PubkeyType t2) {
     EcoreUtil::copy(t2)
 }
 
 // pubkey is subtype of an address: you can derive the address from its pubkey
-auxiliary unify(TypeSubstitutions substitutions, PubkeyType t1, AddressType t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, AddressType t2) {
     EcoreUtil::copy(t2)
 }
 
@@ -264,7 +260,7 @@ from {
     }
 
     G |- substitutions |> c.exp : var Type expType
-    type = unify(substitutions, expType, type)
+    type = unify(c.exp, substitutions, expType, type)
 
     failIfTypeVariable(type, c)
     c.type = type as PermittedType  // store the type in the AST
@@ -287,7 +283,7 @@ from {
 
         G |- substitutions |> tx : type
         type = typesubstitution(substitutions, type)
-        unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createTransactionType)
+        unify(tx, substitutions, type, BitcoinTMFactory::eINSTANCE.createTransactionType)
 
         if (varRef.actualParams.size != tx.params.size) {
             fail
@@ -313,7 +309,7 @@ from {
             actualParamType = typesubstitution(substitutions, actualParamType)
 
             // the actual param type must be unifiable with the formal param type
-            unify(substitutions, actualParamType, formalParamType)
+            unify(actualParam, substitutions, actualParamType, formalParamType)
 
             // store the type in the AST
             formalParam.type = formalParamType as PermittedType
@@ -358,7 +354,7 @@ from {
         // the body of the redeemed transaction is well typed
         G |- substitutions |> input.txRef : var Type t1     // eventual tx parameters have type BasicType
         t1 = typesubstitution(substitutions, t1)
-        unify(substitutions, t1, txType)
+        unify(input.txRef, substitutions, t1, txType)
 
         val inputTxRef = input.txRef
 
@@ -396,7 +392,7 @@ from {
                 actualParamType = typesubstitution(substitutions, actualParamType)
 
                 // the actual param type must be unifiable with the formal param type
-                unify(substitutions, actualParamType, formalParamType)
+                unify(inputExp, substitutions, actualParamType, formalParamType)
 
                 // store the type in the AST
                 outputParam.type = formalParamType as PermittedType
@@ -434,9 +430,9 @@ from {
     G |- substitutions |> script.exp : var Type scriptType
     scriptType = typesubstitution(substitutions, scriptType)
     {
-        unify(substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
+        unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
     } or {
-        unify(substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createStringType)
+        unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createStringType)
     }
 
     // all the parameters should have a basic type (generic types are not allowed)
@@ -453,7 +449,7 @@ rule AbsoluteTime
 from {
     G |- substitutions |> tlock.value : var Type type
     type = typesubstitution(substitutions, type)
-    unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+    unify(tlock.value, substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
 }
 
 rule RelativeTime
@@ -462,13 +458,13 @@ from {
     if (tlock.isBlock) {
         G |- substitutions |> tlock.value : var Type type
         type = typesubstitution(substitutions, type)
-        unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
+        unify(tlock.value, substitutions, type, BitcoinTMFactory::eINSTANCE.createIntType)
     }
 
     if (tlock.tx !== null) {
         G |- substitutions |> tlock.tx : var Type txtype
         txtype = typesubstitution(substitutions, txtype)
-        unify(substitutions, txtype, BitcoinTMFactory::eINSTANCE.createTransactionType)
+        unify(tlock.value, substitutions, txtype, BitcoinTMFactory::eINSTANCE.createTransactionType)
     }
 }
 
@@ -505,7 +501,7 @@ from {
     if (s.key !== null) {
         G |- substitutions |> s.key : var Type type
         type = typesubstitution(substitutions, type)
-        unify(substitutions, type, BitcoinTMFactory::eINSTANCE.createPubkeyType)
+        unify(s.key, substitutions, type, BitcoinTMFactory::eINSTANCE.createPubkeyType)
     }
 }
 
@@ -530,55 +526,55 @@ axiom PubkeyLiteral
 
 
 rule Times
-    G |- TypeSubstitutions substitutions |> Times minus : IntType t
+    G |- TypeSubstitutions substitutions |> Times op : IntType t
 from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
-    G |- substitutions |> minus.left: var Type leftType
-    G |- substitutions |> minus.right: var Type rightType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
     // the terms type must be unifiable with int type
-    unify(substitutions, leftType, t)
-    unify(substitutions, rightType, t)
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
 }
 
 rule Div
-    G |- TypeSubstitutions substitutions |> Div minus : IntType t
+    G |- TypeSubstitutions substitutions |> Div op : IntType t
 from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
-    G |- substitutions |> minus.left: var Type leftType
-    G |- substitutions |> minus.right: var Type rightType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
     // the terms type must be unifiable with int type
-    unify(substitutions, leftType, t)
-    unify(substitutions, rightType, t)
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
 }
 
 rule Minus
-    G |- TypeSubstitutions substitutions |> Minus minus : IntType t
+    G |- TypeSubstitutions substitutions |> Minus op : IntType t
 from {
     t = BitcoinTMFactory::eINSTANCE.createIntType
-    G |- substitutions |> minus.left: var Type leftType
-    G |- substitutions |> minus.right: var Type rightType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
     // the terms type must be unifiable with int type
-    unify(substitutions, leftType, t)
-    unify(substitutions, rightType, t)
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
 }
 
 rule Plus
-    G |- TypeSubstitutions substitutions |> Plus plus : Type type
+    G |- TypeSubstitutions substitutions |> Plus op : Type type
 from {
-    G |- substitutions |> plus.left : var Type leftType
-    G |- substitutions |> plus.right : var Type rightType
+    G |- substitutions |> op.left : var Type leftType
+    G |- substitutions |> op.right : var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
@@ -586,43 +582,43 @@ from {
     {
         type = BitcoinTMFactory::eINSTANCE.createIntType
         // the terms type must be unifiable with int type
-        unify(substitutions, leftType, type)
-        unify(substitutions, rightType, type)
+        unify(op.left, substitutions, leftType, type)
+        unify(op.right, substitutions, rightType, type)
     }
     or
     {
         type = BitcoinTMFactory::eINSTANCE.createStringType
         // the terms type must be unifiable with string type
-        unify(substitutions, leftType, type)
-        unify(substitutions, rightType, type)
+        unify(op.left, substitutions, leftType, type)
+        unify(op.right, substitutions, rightType, type)
     }
 }
 
 rule Comparison
-    G |- TypeSubstitutions substitutions |> Comparison comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
+    G |- TypeSubstitutions substitutions |> Comparison op : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
     var t = BitcoinTMFactory::eINSTANCE.createIntType
-    G |- substitutions |> comparison.left : var Type leftType
-    G |- substitutions |> comparison.right : var Type rightType
+    G |- substitutions |> op.left : var Type leftType
+    G |- substitutions |> op.right : var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
-    unify(substitutions, leftType, t)
-    unify(substitutions, rightType, t)
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
 }
 
 rule Equals
-    G |- TypeSubstitutions substitutions |> Equals comparison : BitcoinTMFactory::eINSTANCE.createBooleanType
+    G |- TypeSubstitutions substitutions |> Equals op : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
-    G |- substitutions |> comparison.left : var Type leftType
-    G |- substitutions |> comparison.right : var Type rightType
+    G |- substitutions |> op.left : var Type leftType
+    G |- substitutions |> op.right : var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
     // equals between elements of the same type
-    unify(substitutions, leftType, rightType)
+    unify(op.right, substitutions, rightType, leftType)
 }
 
 rule BooleanNegation
@@ -633,7 +629,7 @@ from {
 
     t = typesubstitution(substitutions, t)
 
-    unify(substitutions, t, boolType)
+    unify(negation.exp, substitutions, t, boolType)
 }
 
 rule Or
@@ -646,8 +642,8 @@ from {
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
-    unify(substitutions, leftType, boolType)
-    unify(substitutions, rightType, boolType)
+    unify(orExp.left, substitutions, leftType, boolType)
+    unify(orExp.right, substitutions, rightType, boolType)
 }
 
 rule And
@@ -660,8 +656,8 @@ from {
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
-    unify(substitutions, leftType, boolType)
-    unify(substitutions, rightType, boolType)
+    unify(andExp.left, substitutions, leftType, boolType)
+    unify(andExp.right, substitutions, rightType, boolType)
 }
 
 rule ArithmeticSigned
@@ -672,7 +668,7 @@ from {
 
     t = typesubstitution(substitutions, t)
 
-    unify(substitutions, t, intType)
+    unify(signed.exp, substitutions, t, intType)
 }
 
 rule IfThenElse
@@ -681,15 +677,14 @@ from {
     var boolType = BitcoinTMFactory::eINSTANCE.createBooleanType
     G |- substitutions |> stmt.^if: var Type tIf
     G |- substitutions |> stmt.then: var Type tThen
+    G |- substitutions |> stmt.^else: var Type tElse
 
     tIf = typesubstitution(substitutions, tIf)
     tThen = typesubstitution(substitutions, tThen)
-
-    unify(substitutions, tIf, boolType)
-
-    G |- substitutions |> stmt.^else: var Type tElse
     tElse = typesubstitution(substitutions, tElse)
-    unify(substitutions, tThen, tElse)
+
+    unify(stmt.^if, substitutions, tIf, boolType)
+    unify(stmt.^else, substitutions, tElse, tThen)
 
     type=tThen
 }
@@ -702,7 +697,7 @@ from {
     for (k : versig.pubkeys) {
         G |- substitutions |> k : var Type t
         t = typesubstitution(substitutions, t)
-        unify(substitutions, t, addrType)
+        unify(k, substitutions, t, addrType)
     }
 
     var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
@@ -710,7 +705,7 @@ from {
     for (s : versig.signatures) {
         G |- substitutions |> s : var Type ts
         ts = typesubstitution(substitutions, ts)
-        unify(substitutions, ts, sigType)
+        unify(s, substitutions, ts, sigType)
     }
 }
 
@@ -721,14 +716,14 @@ from {
 
     G |- substitutions |> s.privkey : var Type t
     t = typesubstitution(substitutions, t)
-    unify(substitutions, t, keyType)
+    unify(s.privkey, substitutions, t, keyType)
 
     if (s.tx !== null) {
         var txType = BitcoinTMFactory::eINSTANCE.createTransactionType
 
         G |- substitutions |> s.tx : var Type t1
         t1 = typesubstitution(substitutions, t1)
-        unify(substitutions, t1, txType)
+        unify(s.tx, substitutions, t1, txType)
     }
 }
 
@@ -778,8 +773,8 @@ from {
     tleft = typesubstitution(substitutions, tleft)
     tright = typesubstitution(substitutions, tright)
 
-    unify(substitutions, tleft, t)
-    unify(substitutions, tright, t)
+    unify(min.left, substitutions, tleft, t)
+    unify(min.right, substitutions, tright, t)
 }
 
 rule Max
@@ -792,8 +787,8 @@ from {
     tleft = typesubstitution(substitutions, tleft)
     tright = typesubstitution(substitutions, tright)
 
-    unify(substitutions, tleft, t)
-    unify(substitutions, tright, t)
+    unify(max.left, substitutions, tleft, t)
+    unify(max.right, substitutions, tright, t)
 }
 
 rule Between
@@ -808,9 +803,9 @@ from {
     tLeft = typesubstitution(substitutions, tLeft)
     tRight = typesubstitution(substitutions, tRight)
 
-    unify(substitutions, tValue, t)
-    unify(substitutions, tLeft, t)
-    unify(substitutions, tRight, t)
+    unify(between.value, substitutions, tValue, t)
+    unify(between.left, substitutions, tLeft, t)
+    unify(between.right, substitutions, tRight, t)
 }
 
 rule Size

@@ -5,27 +5,18 @@
 package it.unica.tcs.ui.hover
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.AddressType
-import it.unica.tcs.bitcoinTM.BooleanType
 import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.Hash160Type
-import it.unica.tcs.bitcoinTM.Hash256Type
-import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyLiteral
-import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.Ripemd160Type
-import it.unica.tcs.bitcoinTM.Sha256Type
-import it.unica.tcs.bitcoinTM.SignatureType
-import it.unica.tcs.bitcoinTM.StringType
+import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionType
-import it.unica.tcs.bitcoinTM.Type
-import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.Rho
+import org.bitcoinj.core.Address
+import org.bitcoinj.core.ECKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
 
@@ -33,6 +24,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
     @Inject extension ASTUtils
     @Inject extension TransactionCompiler
+    @Inject extension BitcoinTMStringRepresentation
 
     override String getLabel(EObject eobj) {
         return eobj.labelInternal
@@ -42,15 +34,20 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
         return eobj.firstLineInternal
     }
 
-//  override boolean hasHover(EObject eobj) {
-//      if (eobj instanceof RelativeTime)
-//          return eobj.isDate;
-//
-//      return super.hasHover(eobj)
-//  }
+  override boolean hasHover(EObject eobj) {
+      if (eobj instanceof KeyLiteral)
+          return true;
+          
+      if (eobj instanceof PubKeyLiteral)
+          return true;
+
+      return super.hasHover(eobj)
+  }
 
     override getDocumentation(EObject eobj) {
-        return eobj.documentationInternal
+        var doc = super.getDocumentation(eobj)
+        doc = if (doc === null) "" else doc+"</br></br>"
+        return doc+eobj.documentationInternal
     }
 
 
@@ -61,11 +58,11 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
     }
 
     dispatch def String getLabelInternal(Parameter p) {
-        return p.name+" : "+p.type?.toStringType
+        return p.name+" : "+p.type.stringRep
     }
 
     dispatch def String getLabelInternal(Constant p) {
-        return p.name+" : "+p.type?.toStringType
+        return p.name+" : "+p.type.stringRep
     }
 
     // base case getFirstLineInternal
@@ -77,94 +74,48 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
         '''transaction «tx.name»'''
     }
 
+
     // base case getDocumentationInternal
-    def dispatch String getDocumentationInternal(EObject obj) {
-        return super.getDocumentation(obj)
+    def dispatch String getDocumentationInternal(EObject obj) ''''''
+
+    def dispatch String getDocumentationInternal(Constant c) {
+        c.exp.documentationInternal
     }
 
-    def dispatch String getDocumentationInternal(Constant pvt) '''
-        «IF pvt.exp instanceof KeyLiteral»
-            «val wif = (pvt.exp as KeyLiteral).value»
-            «val pvtEC = BitcoinUtils.wifToECKey(wif, pvt.networkParams)»
-            <pre>
+    def dispatch String getDocumentationInternal(KeyLiteral key) '''
+        «val wif = key.value»
+        <pre>
+        «IF key.value.isPrivateKey»
+            «val pvtEC = BitcoinUtils.wifToECKey(wif, key.networkParams)»
             Private key
                 base58 (wif) = «wif»
                 hex          = «pvtEC.privateKeyAsHex»
-
+            
             Public key
-                base58 (wif) = «pvtEC.toAddress(pvt.networkParams).toBase58»
+                base58 (wif) = «pvtEC.toAddress(key.networkParams).toBase58»
                 hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
                 hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
-            </pre>
         «ENDIF»
+        «IF key.value.isAddress»
+            «val pubEC = Address.fromBase58(key.networkParams, wif)»
+            Public key
+                base58 (wif) = «wif»
+                hash160      = «BitcoinUtils.encode(pubEC.hash160)»
+        «ENDIF»
+        </pre>
         '''
 
-    def dispatch String getDocumentationInternal(Transaction tx) {
+    def dispatch String getDocumentationInternal(PubKeyLiteral pubkey) '''
+        <pre>
+        Public key
+            hex     = «pubkey.value»
+            address = «ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value)).toAddress(pubkey.networkParams)»
+        </pre>
         '''
+
+    def dispatch String getDocumentationInternal(Transaction tx) '''
         <pre>
         «tx.compileTransaction(new Rho).toString»
         </pre>
         '''
-    }
-
-
-
-
-
-
-
-    // get the string literal for the types
-
-    dispatch def String toStringType(IntType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(StringType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(BooleanType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(SignatureType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(TransactionType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(KeyType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(Hash160Type type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(Hash256Type type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(Sha256Type type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(Ripemd160Type type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(AddressType type) {
-        return type.value.literal
-    }
-
-    dispatch def String toStringType(TypeVariable type) {
-        return type.value
-    }
-
-    dispatch def String toStringType(Type type) {
-        return "unknown"
-    }
-
 }
