@@ -23,7 +23,7 @@ import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.Confidentiality;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
-//@Ignore
+@Ignore
 public class RPCBitcoinClientTest {
 
     protected Injector injector = Guice.createInjector(new Module() {
