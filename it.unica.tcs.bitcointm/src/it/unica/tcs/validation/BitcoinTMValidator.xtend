@@ -84,40 +84,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
 //  private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
-//  @Inject private extension IQualifiedNameProvider qnm
     @Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils
     @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject private IContainer.Manager containerManager;
-//  @Inject private KeyStore keyStore
-
     @Inject private BitcoinClientI bitcoinCli;
-
-//  @Check
-//  def void checkSingleElementArray(TransactionBody tbody) {
-//
-////        logger.trace("--- TRACE TEST --- ")
-////        logger.info ("--- INFO  TEST --- ")
-////        logger.warn ("--- WARN  TEST --- ")
-////        logger.error("--- ERROR TEST --- ")
-////        logger.fatal("--- FATAL TEST --- ")
-//
-//      var inputs = tbody.inputs
-//      var outputs = tbody.outputs
-//
-//      if (tbody.isMultiIn && inputs.size==1) {
-//          info("Single element arrays can be replaced by the element itself.",
-//              BitcoinTMPackage.Literals.TRANSACTION_BODY__INPUTS
-//          );
-//      }
-//
-//      if (tbody.isIsMultiOut && outputs.size==1) {
-//          info("Single element arrays can be replaced by the element itself.",
-//              BitcoinTMPackage.Literals.TRANSACTION_BODY__OUTPUTS
-//          );
-//      }
-//  }
 
     @Check
     def void checkUnusedParameters__Script(it.unica.tcs.bitcoinTM.Script script){
@@ -863,7 +835,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def void checkJustOneOpReturn(Transaction tx) {
         /*
          * https://en.bitcoin.it/wiki/Script
-         * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op. "
+         * "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op."
          */
 
         var boolean[] error = newBooleanArrayOfSize(tx.outputs.size);
@@ -878,16 +850,16 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 if (outputA.script.isOpReturn(new Rho) && outputB.script.isOpReturn(new Rho)
                 ) {
                     if (!error.get(i) && (error.set(i,true) && true))
-                        error(
-                            "You cannot define more than one OP_RETURN script per transaction.",
+                        warning(
+                            "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op.",
                             outputA.eContainer,
                             outputA.eContainingFeature,
                             i
                         );
 
                     if (!error.get(j) && (error.set(j,true) && true))
-                        error(
-                            "You cannot define more than one OP_RETURN script per transaction.",
+                        warning(
+                            "Currently it is usually considered non-standard (though valid) for a transaction to have more than one OP_RETURN output or an OP_RETURN output with more than one pushdata op.",
                             outputB.eContainer,
                             outputB.eContainingFeature,
                             j
@@ -904,7 +876,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         for (other: tx.timelocks){
 
             if (tlock!=other && tlock.class==other.class) {
-                error("Duplicated absolute timelock",
+                error(
+                	"Duplicated absolute timelock",
                     tlock,
                     null
                 );
@@ -923,7 +896,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 val tx2 = (other as RelativeTime).tx.interpretE.first
 
                 if (tx1==tx2)
-                    error("Duplicated relative timelock",
+                    error(
+                    	"Duplicated relative timelock",
                         tlock,
                         null
                     );
@@ -936,7 +910,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         if (EcoreUtil2.getContainerOfType(tlock, AfterTimeLock) === null && tlock.tx === null) {
             error(
-                '''Missing reference to an input transaction''',
+                'Missing reference to an input transaction',
                 tlock,
                 BitcoinTMPackage.Literals.RELATIVE_TIME__TX
             );
@@ -958,7 +932,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             }
 
             error(
-                '''Relative timelocks must refer to an input transaction''',
+                'Relative timelocks must refer to an input transaction',
                 tlock,
                 BitcoinTMPackage.Literals.RELATIVE_TIME__TX
             );
@@ -1025,7 +999,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
              */
             if (!value.fitIn16bits) {
                 error(
-                    '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is '''+0xFFFF,
+                    '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is «0xFFFF»''',
                     tlock,
                     BitcoinTMPackage.Literals.TIMELOCK__VALUE
                 );
@@ -1036,7 +1010,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
             if (!value.fitIn16bits) {
                 error(
-                    '''Relative timelocks must fit within unsigned 16-bits. Delay is «value», max allowed is '''+0xFFFF,
+                    '''Relative timelocks must fit within unsigned 16-bits. Delay is «value», max allowed is «0xFFFF»''',
                     tlock,
                     BitcoinTMPackage.Literals.TIMELOCK__VALUE
                 );
