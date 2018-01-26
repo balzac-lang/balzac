@@ -71,6 +71,9 @@ mvn install
 
 ### IDE
 
-The project is currently developed using [Eclipse Xtext](https://www.eclipse.org/Xtext/download.html).
+The project is currently developed using [Eclipse Xtext](https://www.eclipse.org/Xtext/download.html), version 2.12.
 
+Install Xsemantics 2.12 ([update site](https://dl.bintray.com/lorenzobettini/xsemantics/updates/)).
+
+Optional: install Jacoco (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html)).
 
