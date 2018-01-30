@@ -24,4 +24,5 @@ Export-Package: it.unica.tcs.ui.quickfix,
  it.unica.tcs.ui.contentassist,
  it.unica.tcs.bitcointm.ui.internal
 Bundle-Activator: it.unica.tcs.bitcointm.ui.internal.BitcointmActivator
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ swing2swt.jar

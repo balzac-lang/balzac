@@ -97,6 +97,42 @@
 			name="Templates">
 			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
 		</page>
+  <page
+        category="it.unica.tcs.BitcoinTM"
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+        id="it.unica.tcs.BitcoinTM.refactoring"
+        name="Refactoring">
+     <keywordReference
+           id="it.unica.tcs.ui.keyword_BitcoinTM">
+     </keywordReference>
+  </page>
+  <page
+        category="it.unica.tcs.BitcoinTM"
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+        id="it.unica.tcs.BitcoinTM.compiler.preferencePage"
+        name="Compiler">
+     <keywordReference
+           id="it.unica.tcs.ui.keyword_BitcoinTM">
+     </keywordReference>
+  </page>
+  <page
+        category="it.unica.tcs.BitcoinTM"
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.KeystorePreferencePage"
+        id="it.unica.tcs.BitcoinTM.keystore"
+        name="Keystore">
+     <keywordReference
+           id="it.unica.tcs.ui.keyword_BitcoinTM">
+     </keywordReference>
+  </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.BitcoinNodesPreferences"
+          id="it.unica.tcs.BitcoinTM.node"
+          name="Bitcoin Nodes">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
 	</extension>
 	<extension
 			point="org.eclipse.ui.propertyPages">
@@ -110,6 +146,24 @@
 			</enabledWhen>
 			<filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature"/>
 		</page>
+  <page
+        category="it.unica.tcs.BitcoinTM"
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+        id="it.unica.tcs.BitcoinTM.compiler.propertyPage"
+        name="Compiler">
+     <keywordReference
+           id="it.unica.tcs.ui.keyword_BitcoinTM">
+     </keywordReference>
+     <enabledWhen>
+        <adapt
+              type="org.eclipse.core.resources.IProject">
+        </adapt>
+     </enabledWhen>
+     <filter
+           name="projectNature"
+           value="org.eclipse.xtext.ui.shared.xtextNature">
+     </filter>
+  </page>
 	</extension>
 	<extension
 		point="org.eclipse.ui.keywords">
@@ -245,28 +299,6 @@
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
 			fileExtensions="btm"/>
 	</extension>
-	<extension point="org.eclipse.ui.preferencePages">
-		<page
-			category="it.unica.tcs.BitcoinTM"
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="it.unica.tcs.BitcoinTM.compiler.preferencePage"
-			name="Compiler">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-		</page>
-	</extension>
-	<extension point="org.eclipse.ui.propertyPages">
-		<page
-			category="it.unica.tcs.BitcoinTM"
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="it.unica.tcs.BitcoinTM.compiler.propertyPage"
-			name="Compiler">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-			<enabledWhen>
-				<adapt type="org.eclipse.core.resources.IProject"/>
-			</enabledWhen>
-			<filter name="projectNature" value="org.eclipse.xtext.ui.shared.xtextNature"/>
-		</page>
-	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
 			<command
@@ -374,15 +406,6 @@
 			</command>
 		</menuContribution>
 	</extension>
-	<extension point="org.eclipse.ui.preferencePages">
-		<page
-			category="it.unica.tcs.BitcoinTM"
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
-			id="it.unica.tcs.BitcoinTM.refactoring"
-			name="Refactoring">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-		</page>
-	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="it.unica.tcs.BitcoinTM.compare.contentViewers"
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
@@ -407,4 +430,10 @@
 			type="text">
 		</fileTypes>
 	</extension>
+ <extension
+       point="org.eclipse.core.runtime.preferences">
+    <initializer
+          class="it.unica.tcs.ui.preferences.PreferenceInitializer">
+    </initializer>
+ </extension>
 </plugin>
