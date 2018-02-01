@@ -263,11 +263,11 @@ public class ASTUtils {
         }
     }
 
-    public boolean isP2PKH(Script script, Rho rho) {
-        boolean onlyOneSignatureParam = script.getParams().size() == 1 && script.getParams().get(0).getType() instanceof SignatureType;
-        boolean onlyOnePubkey = (interpretSafe(script.getExp(), rho) instanceof Versig) && ((Versig) interpretSafe(script.getExp(), rho)).getPubkeys().size() == 1;
+    public boolean isP2PKH(Script script) {
+        boolean isVersig = script.getExp() instanceof Versig;
+        boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
 
-        return onlyOneSignatureParam && onlyOnePubkey;
+        return isVersig && onlyOnePubkey;
     }
 
     public boolean isOpReturn(Script script, Rho rho) {
@@ -277,7 +277,7 @@ public class ASTUtils {
     }
 
     public boolean isP2SH(Script script, Rho rho) {
-        return !isP2PKH(script, rho) && !isOpReturn(script, rho);
+        return !isP2PKH(script) && !isOpReturn(script, rho);
     }
 
 

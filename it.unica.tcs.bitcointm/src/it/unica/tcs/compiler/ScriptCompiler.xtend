@@ -65,6 +65,8 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.utils.SignatureAndKey
+import org.bitcoinj.core.ECKey
+import org.bitcoinj.core.Address
 
 /*
  * EXPRESSIONS
@@ -118,7 +120,7 @@ class ScriptCompiler {
                 else {
                     throw new CompileException('''Unable to evaluate to a private key: «key»''')
                 }
-    
+
                 /* <sig> <pubkey> */
                 return new InputScriptImpl().append(sb) as InputScript
             }
@@ -193,7 +195,7 @@ class ScriptCompiler {
 
         var outScript = output.script
 
-        if (outScript.isP2PKH(rho)) {
+        if (outScript.isP2PKH) {
             var versig = outScript.exp as Versig
 
             val resKey = versig.pubkeys.get(0).interpret(rho)
@@ -208,6 +210,26 @@ class ScriptCompiler {
                 sb.op(OP_DUP)
                   .op(OP_HASH160)
                   .data(key.key.pubKeyHash)
+                  .op(OP_EQUALVERIFY)
+                  .op(OP_CHECKSIG)
+                return sb
+            }
+            else if (key instanceof Address) {
+                                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+                val sb = new P2PKHOutputScript()
+                sb.op(OP_DUP)
+                  .op(OP_HASH160)
+                  .data(key.hash160)
+                  .op(OP_EQUALVERIFY)
+                  .op(OP_CHECKSIG)
+                return sb
+            }
+            else if (key instanceof ECKey) {
+                                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+                val sb = new P2PKHOutputScript()
+                sb.op(OP_DUP)
+                  .op(OP_HASH160)
+                  .data(key.pubKeyHash)
                   .op(OP_EQUALVERIFY)
                   .op(OP_CHECKSIG)
                 return sb
@@ -468,14 +490,17 @@ class ScriptCompiler {
             val resKey = stmt.pubkeys.get(0).interpret(ctx.rho)
 
             if (resKey.failed)
-                throw new CompileException('''Unable to evaluate to a public key''')
+                throw new CompileException('''Unable to evaluate the key''')
 
             val key = resKey.first
             if (key instanceof DumpedPrivateKey) {
                 sb.data(key.key.pubKey)
             }
+            else if (key instanceof ECKey) {
+                sb.data(key.pubKey)
+            }
             else {
-                throw new CompileException('''Unable to evaluate to a private key: «key»''')
+                throw new CompileException('''Unable to evaluate key «key»''')
             }
 
             sb.op(OP_CHECKSIG)
@@ -487,14 +512,17 @@ class ScriptCompiler {
                 val resKey = k.interpret(ctx.rho)
 
                 if (resKey.failed)
-                    throw new CompileException('''Unable to evaluate to a public key''')
+                    throw new CompileException('''Unable to evaluate key «k»''')
 
                 val key = resKey.first
                 if (key instanceof DumpedPrivateKey) {
                     sb.data(key.key.pubKey)
                 }
+                else if (key instanceof ECKey) {
+                    sb.data(key.pubKey)
+                }
                 else {
-                    throw new CompileException('''Unable to evaluate to a private key: «key»''')
+                    throw new CompileException('''Unable to evaluate key «key»''')
                 }
             ]
             sb.number(stmt.pubkeys.size)

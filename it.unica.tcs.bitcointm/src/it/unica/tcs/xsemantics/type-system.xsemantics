@@ -24,6 +24,7 @@ import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.Hash256Literal
 import it.unica.tcs.bitcoinTM.Hash256Type
+import it.unica.tcs.bitcoinTM.HashableType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
 import it.unica.tcs.bitcoinTM.IntType
@@ -38,10 +39,14 @@ import it.unica.tcs.bitcoinTM.Output
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.PermittedType
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.PubKeyLiteral
+import it.unica.tcs.bitcoinTM.PubkeyType
 import it.unica.tcs.bitcoinTM.Reference
+import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.Ripemd160Type
+import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.Sha256Type
@@ -59,21 +64,20 @@ import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
 import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
-import it.unica.tcs.bitcoinTM.RelativeTime
-import it.unica.tcs.bitcoinTM.PubKeyLiteral
-import it.unica.tcs.bitcoinTM.PubkeyType
-import it.unica.tcs.bitcoinTM.HashableType
+import org.eclipse.xtext.EcoreUtil2
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
 validatorExtends AbstractBitcoinTMValidator
 
 inject LambdaUtils lambdaUtils
+inject extension ASTUtils astUtils
 
 auxiliary {
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
@@ -703,20 +707,22 @@ from {
 rule VerSig
     G |- TypeSubstitutions substitutions |> Versig versig : BitcoinTMFactory::eINSTANCE.createBooleanType
 from {
-    var addrType = BitcoinTMFactory::eINSTANCE.createAddressType
-
-    for (k : versig.pubkeys) {
-        G |- substitutions |> k : var Type t
-        t = typesubstitution(substitutions, t)
-        unify(k, substitutions, t, addrType)
-    }
-
     var sigType = BitcoinTMFactory::eINSTANCE.createSignatureType
 
     for (s : versig.signatures) {
         G |- substitutions |> s : var Type ts
         ts = typesubstitution(substitutions, ts)
         unify(s, substitutions, ts, sigType)
+    }
+
+    val script = EcoreUtil2.getContainerOfType(versig, Script)
+    var addrType =  if (script.isP2PKH) BitcoinTMFactory::eINSTANCE.createAddressType
+					else BitcoinTMFactory::eINSTANCE.createPubkeyType
+
+    for (k : versig.pubkeys) {
+        G |- substitutions |> k : var Type t
+        t = typesubstitution(substitutions, t)
+        unify(k, substitutions, t, addrType)
     }
 }
 
