@@ -17,6 +17,7 @@ import static org.bitcoinj.script.ScriptOpCodes.getOpCodeName;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ import org.bitcoinj.script.ScriptOpCodes;
 import it.unica.tcs.lib.Env;
 import it.unica.tcs.lib.EnvI;
 import it.unica.tcs.lib.Hash;
-import it.unica.tcs.lib.KeyStoreFactory;
+import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
@@ -54,6 +55,7 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
     private final Env<Object> env = new Env<>();
 
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
+    private ECKeyStore keystore;
 
     private static class SignatureUtil implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -117,22 +119,24 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
         this.deserialize(serializedScript);
     }
 
+    public void setKeyStore(ECKeyStore ks) {
+        this.keystore = ks;
+    }
+
     @Override
     public Script build() {
         checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
         return substituteAllBinding();
     }
 
-    public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
-        ECKey key = KeyStoreFactory.getInstance().getKey(keyID);
-        return signaturePlaceholder(key, hashType, anyoneCanPay);
+    public T signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
+        return signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, anyoneCanPay);
     }
 
     @SuppressWarnings("unchecked")
-    public T signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
-        checkNotNull(key, "'key' cannot be null");
+    public T signaturePlaceholder(String keyID, SigHash hashType, boolean anyoneCanPay) {
+        checkNotNull(keyID, "'keyID' cannot be null");
         checkNotNull(hashType, "'hashType' cannot be null");
-        String keyID = KeyStoreFactory.getInstance().addKey(key);
         SignatureUtil sig = new SignatureUtil(keyID, hashType, anyoneCanPay);
         String mapKey = sig.getUniqueKey();
         byte[] data = (SIGNATURE_PREFIX+mapKey).getBytes();
@@ -184,9 +188,10 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
      * @param inputIndex the index of the input that will contain this script
      * @param outScript the redeemed output script
      * @return a <b>copy</b> of this builder
+     * @throws KeyStoreException if an error occurs retrieving private keys
      */
     @SuppressWarnings("unchecked")
-    public T setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) {
+    public T setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) throws KeyStoreException {
 
         List<ScriptChunk> newChunks = new ArrayList<>();
 
@@ -196,7 +201,11 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
             if (isSignature(chunk)) {
                 String mapKey = getMapKey(chunk);
                 SignatureUtil sig = this.signatures.get(mapKey);
-                ECKey key = KeyStoreFactory.getInstance().getKey(sig.keyID);
+
+                checkState(keystore != null, "keystore must be set to retrieve the private keys");
+                checkState(keystore.contains(sig.keyID), "key "+sig.keyID+" not found on keystore "+keystore.getKeyStoreFile());
+
+                ECKey key = keystore.getKey(sig.keyID);
                 SigHash hashType = sig.hashType;
                 boolean anyoneCanPay = sig.anyoneCanPay;
 
@@ -308,7 +317,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
      * Parse the given string to initialize this builder.
      * @param str a string representation of this builder
      * @return this builder
-     * @see #serialize()
      */
     @SuppressWarnings("unchecked")
     public T deserialize(String str) {

@@ -28,6 +28,8 @@ import java.io.FileInputStream
 import java.io.File
 import java.util.Properties
 import java.io.IOException
+import org.eclipse.equinox.security.storage.ISecurePreferences
+import org.eclipse.equinox.security.storage.SecurePreferencesFactory
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
@@ -90,5 +92,9 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
         } catch (IOException e) {
             println(e.message)
         }
+    }
+
+    def ISecurePreferences bindISecurePreferences() {
+        return SecurePreferencesFactory.getDefault()
     }
 }

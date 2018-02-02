@@ -20,6 +20,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
+import it.unica.tcs.lib.ECKeyStore
 
 class RawTransactionGenerator extends AbstractGenerator {
 
@@ -40,14 +41,14 @@ class RawTransactionGenerator extends AbstractGenerator {
             }
 
         if (fsa instanceof InMemoryFileSystemAccess) {
-            fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
+            fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions(new ECKeyStore(packagePath + File.separator + KeyStoreGenerator.KEYSTORE__FILENAME)))
         }
         else {
-            fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
+            fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions(new ECKeyStore(packagePath + File.separator + KeyStoreGenerator.KEYSTORE__FILENAME)))
         }
     }
 
-    def private compileTransactions(Model model) {
+    def private compileTransactions(Model model, ECKeyStore ecks) {
 
         val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
 
@@ -66,6 +67,11 @@ class RawTransactionGenerator extends AbstractGenerator {
                     val obj = res.first
 
                     if (obj instanceof ITransactionBuilder) {
+                        // TODO: this is temporary
+                        for (s : obj.inputs.map[i|i.script]) {
+                            s.keyStore = ecks
+                        }
+
                         val tx = obj.toTransaction
                         sb.append(tx).append("\n")
                         sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")

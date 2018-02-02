@@ -8,21 +8,38 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import it.unica.tcs.lib.script.ScriptBuilder2;
 
 public class ScriptBuilder2Test {
 
-    /*
-     * TODO: la classe KeyStore dovrebbe essere mockata
-     */
+    ECKeyStore ecks;
+
+    @Before
+    public void before() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+        ecks = ECKeyStore.create();
+        ecks.changePassword(new char[]{'t','e','s','t'});
+    }
+
+    @After
+    public void after() {
+        ecks.getKeyStoreFile().delete();
+    }
+
     @Test
     public void test_size() {
         ScriptBuilder2 sb = new ScriptBuilder2();
@@ -78,15 +95,22 @@ public class ScriptBuilder2Test {
 
 
     @Test
-    public void test_signature() {
+    public void test_signature() throws KeyStoreException {
         ScriptBuilder2 sb = new ScriptBuilder2();
 
         assertEquals(0, sb.size());
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
 
-        sb.signaturePlaceholder(new ECKey(), SigHash.ALL, false);
-        sb.signaturePlaceholder(new ECKey(), SigHash.ALL, false);
+        ECKey k1 = new ECKey();
+        ECKey k2 = new ECKey();
+
+        sb.setKeyStore(ecks);
+        ecks.addKey(k1);
+        ecks.addKey(k2);
+
+        sb.signaturePlaceholder(k1, SigHash.ALL, false);
+        sb.signaturePlaceholder(k2, SigHash.ALL, false);
         System.out.println(sb);
 
         assertEquals(2, sb.size());
@@ -125,100 +149,87 @@ public class ScriptBuilder2Test {
 
     @Test
     public void test_serialize_signature1() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.ALL;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, false);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",**]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",**]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature2() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.ALL;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, true);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",1*]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",1*]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature3() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, false);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",*1]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",*1]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature4() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, true);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",11]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",11]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature5() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.NONE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, false);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",*0]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",*0]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_serialize_signature6() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
         ECKey key = new ECKey();
         SigHash hashType = SigHash.NONE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
         sb.signaturePlaceholder(key, hashType, true);
 
-        String expected = "15 [sig,"+store.getUniqueID(key)+",10]";
+        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",10]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
     @Test
-    public void test_derialize_signature() {
-        KeyStore store = KeyStoreFactory.getInstance();
-
+    public void test_derialize_signature() throws KeyStoreException {
         ECKey key = new ECKey();
-        String keyID = store.addKey(key);
+        String keyID = ECKeyStore.getUniqueID(key);
         String serialScript = "15 [sig,"+keyID+",**]";
+
         ScriptBuilder2 res = new ScriptBuilder2(serialScript);
 
         assertEquals(1, res.signatureSize());

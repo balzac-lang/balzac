@@ -11,8 +11,10 @@ import static com.google.common.base.Preconditions.checkState;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -417,7 +419,11 @@ public class TransactionBuilder implements ITransactionBuilder {
                 else
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
             }
-            sb.setAllSignatures(tx, i, outScript);
+            try {
+                sb.setAllSignatures(tx, i, outScript);
+            } catch (KeyStoreException e) {
+                throw new RuntimeException(e);
+            }
             checkState(sb.signatureSize()==0,  "all the signatures should have been set");
 
             // update scriptSig

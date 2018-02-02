@@ -66,6 +66,14 @@ public class ASTUtils {
     @Inject private BitcoinClientI bitcoin;
     @Inject private BitcoinTMInterpreter interpreter;
 
+    public boolean isAddress(KeyLiteral k) {
+        return isAddress(k.getValue());
+    }
+
+    public boolean isPrivateKey(KeyLiteral k) {
+        return isPrivateKey(k.getValue());
+    }
+
     public boolean isAddress(String wif) {
         try {
             Address.fromBase58(null, wif);
