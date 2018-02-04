@@ -50,13 +50,13 @@ public class RPCBitcoinClientTest {
     @Test
     public void test_getRawTransaction() {
         String expected = "01000000018a636a44915cb0e7bbd038819cd1455cd974e007778de40f918d988c5d216831000000008e483045022100bd0370e1868ab7bfbdbc58442212450f3bb06eac5daced1995f610e50ce29cda02202b9d2b384097d63791cb64f03009e937095393414f368c45e9ab178a26406fce0104626172743f6b6b6c21032b6cb7aa033a063d2dc39573bde12a2d01e20a971d6d4f85eb27ad0793b3689cac6ca91443dacdc2e924bf0429e3b5f904659ed9fd00e71e879affffffff02e0e29a0b000000001976a91472832b2c182d98fc38b98bbdc76318ee20ac9c3588ac00000000000000000b6a09697420776f726b732100000000";
-        
+
         try {
             String hex = client.getRawTransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845");
             assertEquals(expected, hex);
         } catch (TransactionNotFoundException e) {
             fail();
-        }        
+        }
     }
 
     @Test(expected=TransactionNotFoundException.class)

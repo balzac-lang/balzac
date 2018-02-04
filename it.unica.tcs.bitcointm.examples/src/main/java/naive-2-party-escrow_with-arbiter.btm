@@ -2,7 +2,7 @@
  * A: arbiter
  * B: businessman
  * C: customer
- * 
+ *
  * https://bitcoin.org/en/developer-guide#contracts
  */
 
@@ -22,9 +22,9 @@ transaction T {
 }
 
 transaction TA {
-	input = T: sig(kA) sig(kC) 
+	input = T: sig(kA) sig(kC)
 	output = [
 		4BTC-15: fun(x). versig(kA; x);
-		6BTC-15: fun(y). versig(kB; y) 
+		6BTC-15: fun(y). versig(kB; y)
 	]
 }

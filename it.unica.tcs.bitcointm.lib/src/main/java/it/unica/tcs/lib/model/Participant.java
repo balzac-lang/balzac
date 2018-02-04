@@ -24,7 +24,7 @@ public abstract class Participant implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(Participant.class);
 
-    @Inject private PrefixFactory factory; 
+    @Inject private PrefixFactory factory;
     private final String name;
     private final ExecutorService executor;
     private final ServerSocketDaemon receiverDeamon;

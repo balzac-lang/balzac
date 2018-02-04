@@ -7,7 +7,7 @@ grammar it.unica.tcs.BitcoinTM with org.eclipse.xtext.common.Terminals
 generate bitcoinTM "http://www.unica.it/tcs/BitcoinTM"
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
-    
+
 Model:
 	package=PackageDeclaration?
 //	imports+=Import*
@@ -23,24 +23,24 @@ QualifiedName: ID ('.' ID)*;
 
 Import:
     'import' importedNamespace=QualifiedNameWithWildcard;
-    
+
 QualifiedNameWithWildcard:
     QualifiedName '.*'?;
 
-Element: 
+Element:
 	Constant
-|	Transaction; 
+|	Transaction;
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
 Parameter:
-	name=ID 
+	name=ID
 	(":" type=PermittedType)?;
 
 /*
  * transactions (special case of Declaration)
  */
- 
+
 Constant:
 	"const" name=ID (":" type=PermittedType)? "=" exp=Expression;
 
@@ -64,7 +64,7 @@ Output:
 BitcoinValue:
 	exp=Expression;
 
-Timelock: 
+Timelock:
 	"after" (AbsoluteTime | RelativeTime);
 
 AbsoluteTime:
@@ -106,13 +106,13 @@ Comparison returns Expression:
 
 Equals returns Expression:
 	Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
- 
+
 Addition returns Expression:
-    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*; 
+    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*;
 
 Multiply returns Expression:
     Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*;
-    
+
 Prefixed returns Expression:
     {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
     {ArithmeticSigned} =>"-" exp=AtomicExpression | /* right associativity */
@@ -120,27 +120,27 @@ Prefixed returns Expression:
 
 
 AtomicExpression returns Expression:
-'(' Expression ')' 
+'(' Expression ')'
 |	Literal
 |	Reference
 
 |	Hash
-|   Signature 
-|	Versig 
-|	IfThenElse 
-|	Min 
+|   Signature
+|	Versig
+|	IfThenElse
+|	Min
 |   Max
 |   Between
 |   Size
 |	AfterTimeLock
 ;
 
-Reference: 
+Reference:
 	ref=[Referrable|QualifiedName]
 	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Referrable:
-	Parameter 
+	Parameter
 |	Transaction
 |	Constant;
 
@@ -181,18 +181,18 @@ IfThenElse:
 
 Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? ("of" tx=AtomicExpression (=>"@" inputIdx=LONG)?)?;
 
-enum Modifier: 
-	AIAO 
-|	AISO 
+enum Modifier:
+	AIAO
+|	AISO
 |	AINO
 |	SIAO
 |	SISO
 |	SINO;
-	
+
 Versig:
-	"versig" "(" 
+	"versig" "("
 		pubkeys+=Expression ("," pubkeys+=Expression)* ";"
-		signatures+=Expression ("," signatures+=Expression)* 
+		signatures+=Expression ("," signatures+=Expression)*
 	")";
 
 Hash: Hash160 | Hash256 | Ripemd160 | Sha256;
@@ -209,13 +209,13 @@ AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=A
 
 
 Type:
-	PermittedType 
+	PermittedType
 |   {VoidType} value=VoidTypeEnum
 |	{TypeVariable} value=ID;
 
 PermittedType:
-	{IntType} value=IntTypeEnum 
-|	{StringType} value=StringTypeEnum 
+	{IntType} value=IntTypeEnum
+|	{StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
 |   {Hash160Type} value=Hash160TypeEnum
 |   {Hash256Type} value=Hash256TypeEnum
@@ -228,8 +228,8 @@ PermittedType:
 |   {SignatureType} value=SignatureTypeEnum;
 
 HashableType:
-    {IntType} value=IntTypeEnum 
-|   {StringType} value=StringTypeEnum 
+    {IntType} value=IntTypeEnum
+|   {StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
 |   {Hash160Type} value=Hash160TypeEnum
 |   {Hash256Type} value=Hash256TypeEnum
@@ -270,8 +270,8 @@ Number returns ecore::ELong:
 |	LONG_HEX;
 
 /*
- * 2h 
- * 2h 10m 
+ * 2h
+ * 2h 10m
  * 35d 5h 10m
  */
 Delay:
@@ -282,7 +282,7 @@ terminal HOUR_DELAY   returns ecore::ELong: LONG ("h"|"hour"|"hours");
 terminal DAY_DELAY    returns ecore::ELong: LONG ("d"|"day"|"days");
 
 terminal LONG_HEX returns ecore::ELong:
-	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F') 
+	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F')
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
 terminal LONG returns ecore::ELong:
@@ -314,7 +314,7 @@ terminal OFFSET:  OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE;
 
 terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
 terminal MONTH: ('0'..'9')('1'..'9');
-terminal DAY: ('0'..'9')('1'..'9');	 
+terminal DAY: ('0'..'9')('1'..'9');
 terminal HOUR: ('0'..'2')('0'..'9');
 terminal MINUTE: ('0'..'5')('0'..'9');
 terminal SECOND: ('0'..'5')('0'..'9');
@@ -328,4 +328,3 @@ terminal INT returns ecore::EInt: LONG;
 Compile:
 	{Compile} "compile" txs+=Reference*
 ;
-	

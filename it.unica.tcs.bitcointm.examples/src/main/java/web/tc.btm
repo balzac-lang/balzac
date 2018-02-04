@@ -12,7 +12,7 @@ const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 
 // tx with your funds, redeemable with kA
-transaction A_funds { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}   
+transaction A_funds { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
 
 transaction T_commit {
     input = A_funds: sig(kA)

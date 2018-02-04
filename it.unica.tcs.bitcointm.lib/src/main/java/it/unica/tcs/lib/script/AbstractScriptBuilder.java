@@ -27,11 +27,11 @@ import com.google.common.collect.ImmutableList;
  * new AbstractScriptBuilder{@code <ScriptBuilder2>}(){}.number(42).number(5).data(new byte[]{})
  * // OK
  * new ScriptBuilder2().number(42).number(5).data(new byte[]{})
- * </pre>  
- * 
+ * </pre>
+ *
  * <p>This class is extended by {@code AbstractScriptBuilderWithVar}, that, in turn,
  * is extended by {@code ScriptBuilder2} (which is concrete and public).</p>
- * 
+ *
  * @param <T> a class extending {@code AbstractScriptBuilder}
  * @see AbstractScriptBuilderWithVar
  * @see ScriptBuilder2
@@ -93,9 +93,9 @@ abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends
     }
 
     /**
-     * Optimize this script builder. 
+     * Optimize this script builder.
      * Removed the opcodes that don't change the semantic of the resulting script.
-     * 
+     *
      * <table BORDER CELLPADDING=3 CELLSPACING=1>
      * <caption>Examples of optimization</caption>
      *  <tr>

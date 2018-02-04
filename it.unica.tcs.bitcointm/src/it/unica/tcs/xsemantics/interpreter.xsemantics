@@ -186,7 +186,7 @@ from {
 
 axiom InterpretPubkeyLiteral
     G |- PubKeyLiteral d |> Rho rho ~> ECKey.fromPublicOnly(BitcoinUtils.decode(d.value))
-    
+
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
 from {

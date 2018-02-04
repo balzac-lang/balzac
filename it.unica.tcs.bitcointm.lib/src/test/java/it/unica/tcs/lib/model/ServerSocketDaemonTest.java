@@ -25,7 +25,7 @@ public class ServerSocketDaemonTest {
         server.start();
 
         List<Integer> expectedExecution = new ArrayList<>();
-        
+
         // producer
         Thread t1 = new Thread(()-> {
             ServerSocketClient client;
@@ -37,7 +37,7 @@ public class ServerSocketDaemonTest {
                 client.write("2");
                 expectedExecution.add(3);
                 client.write("3");
-            } catch (IOException e) {} 
+            } catch (IOException e) {}
         });
         t1.start();
 
@@ -61,7 +61,7 @@ public class ServerSocketDaemonTest {
             assertTrue("prev "+prev+", i "+i,i>=prev);
             prev = i;
         }
-        
+
         server.stop();
     }
 }

@@ -143,14 +143,14 @@ public class EnvTest {
         Env<Number> env = new Env<Number>();
 
         env.addVariable("a", Integer.class);
-        
+
         assertEquals(10, env.getValueOrDefault("a", 10));
-        
+
         env.bindVariable("a", 5);
 
         assertEquals(5, env.getValue("a"));
         assertEquals(5, env.getValueOrDefault("a", 10));
-        
+
         assertEquals(Integer.class, env.getValue("a", Integer.class).getClass());
         try {
             env.getValue("a", Long.class);
@@ -164,9 +164,9 @@ public class EnvTest {
         Env<Number> env = new Env<Number>();
 
         env.addVariable("a", Integer.class);
-        
+
         assertTrue(env.hasVariable("a"));
-        
+
         env.removeVariable("a");
 
         assertFalse(env.hasVariable("a"));
@@ -179,7 +179,7 @@ public class EnvTest {
         assertFalse(env1.equals(null)); // null
         assertTrue(env1.equals(env1));  // same obj
         assertFalse(env1.equals(5));    // different class
-        
+
         assertTrue(env1.equals(env2));
         assertTrue(env1.hashCode() == env2.hashCode());
 
@@ -190,9 +190,9 @@ public class EnvTest {
         env2.addVariable("a", Integer.class);
         assertTrue(env1.equals(env2));          // both have variable "a"
         assertTrue(env1.hashCode() == env2.hashCode());
-        
+
         env1.bindVariable("a", 42);
-        assertFalse(env1.equals(env2));         // "a" is bound in env1 
+        assertFalse(env1.equals(env2));         // "a" is bound in env1
         assertFalse(env1.hashCode() == env2.hashCode());
 
         env1.addVariable("b", Long.class);

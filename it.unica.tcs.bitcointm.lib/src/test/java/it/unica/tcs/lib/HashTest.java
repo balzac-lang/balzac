@@ -24,7 +24,7 @@ public class HashTest {
         assertEquals("sha256", new Hash.Sha256(bytes256).getType());
         assertEquals("hash256", new Hash.Hash256(bytes256).getType());
     }
-    
+
     @Test
     public void test_getBytes() {
         assertEquals(bytes160, new Hash.Ripemd160(bytes160).getBytes());
@@ -76,7 +76,7 @@ public class HashTest {
         }
         catch (IllegalArgumentException e) {}
     }
-    
+
     @Test
     public void test_equals() {
         // same bytes, type must be any Hash

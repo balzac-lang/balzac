@@ -1,4 +1,4 @@
-package it.unica.btm.constants 
+package it.unica.btm.constants
 
 network mainnet
 
@@ -26,7 +26,7 @@ const T_serial:transaction = tx:010000000100000000000000000000000000000000000000
 
 const signature_a = sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1d5bf2cc96df3380f70722cc6b022054800339a6cb56593f4e0725d9231c8435b478965214918661e720773f8663c701
 
-compile 
+compile
 	a
 	b
 	s

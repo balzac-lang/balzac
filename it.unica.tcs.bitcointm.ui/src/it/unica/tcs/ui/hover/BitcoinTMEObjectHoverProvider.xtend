@@ -37,7 +37,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
   override boolean hasHover(EObject eobj) {
       if (eobj instanceof KeyLiteral)
           return true;
-          
+
       if (eobj instanceof PubKeyLiteral)
           return true;
 
@@ -90,7 +90,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
             Private key
                 base58 (wif) = «wif»
                 hex          = «pvtEC.privateKeyAsHex»
-            
+
             Public key
                 base58 (wif) = «pvtEC.toAddress(key.networkParams).toBase58»
                 hex          = «BitcoinUtils.encode(pvtEC.pubKey)»

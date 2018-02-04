@@ -5,15 +5,15 @@ network mainnet
 const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 const kB = kA
 
-transaction ALFA { 
+transaction ALFA {
 	input = _
 	output = [
 		1 BTC: fun(n) . n==42;		// P2SH
 		1 BTC: fun(y) . versig(kA; y);	// P2PKH
-		0 BTC: "DATA";					// OP_RETURN 
+		0 BTC: "DATA";					// OP_RETURN
 		1 BTC: fun(y,s) . versig(kA; y) && s == "s"
-	] 
-} 
+	]
+}
 
 //transaction ALFA_serial = "01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a9144b72af382a4d07269c1379f937b17c0a4f25af448700e1f5050000000017a914a3f8ae3c775711c597ef7fdcfd5c3bfc2b6c47c4870000000000000000066a044441544100000000"
 const ALFA_serial = tx:01000000017acf6994b653ebddde17aeef1be904fc9bd60e05b8316a942de28fa8fd4244e9000000000151ffffffff0300e1f5050000000017a914afc0a51d093e9fc21dd64ef3add6130f4e4020878700e1f505000000001976a914a9776115106b0599bf5f6f82c22e83429babad4d88ac0000000000000000066a044441544100000000
@@ -28,69 +28,69 @@ transaction T {
 		550:				fun(y2, n2: int, b:bool) . versig(kA, kB; y2) && 2==n2 && b
 	]
 }
- 
-const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001
-const sig_of_T1_at_7_bis = sig(kB) of T1@7 
 
-transaction T1 {  
+const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001
+const sig_of_T1_at_7_bis = sig(kB) of T1@7
+
+transaction T1 {
 	input = [
-		T@0: (0.00000043 BTC);  
+		T@0: (0.00000043 BTC);
 		T@1: if (10+2==12) then "screen" else "xyz";
 		T@2: sig(kA)[AIAO] sig(kA)[AIAO];
-		T@3: sig(kA)[AIAO];  
-		T@4: sig(kA)[AIAO] 2 true; 
-		
-//		ALFA@0:	42 ; 
+		T@3: sig(kA)[AIAO];
+		T@4: sig(kA)[AIAO] 2 true;
+
+//		ALFA@0:	42 ;
 //		ALFA@1:	sig(kB)[];
 		ALFA_serial@0:	42 [fun(n) . n==42];	// P2SH
 		ALFA_serial@1:	sig(kB);
 		ALFA@3:	sig (kB) "s"
 	]
 
-	output = [  
-		4444: 	fun (n) . 2147483647+1==n+1;  
-		2222:	fun (a) . 45!=45 && a-45==2 ; 
+	output = [
+		4444: 	fun (n) . 2147483647+1==n+1;
+		2222:	fun (a) . 45!=45 && a-45==2 ;
 		1111:	if (12==10+2) then 3 else 4 == 3
 	]
 }
 
-transaction Th { 
+transaction Th {
 	input = _
-	output = 
-		10 BTC:	fun(secret:string). 
-			sha256(secret)==sha256:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b && 
+	output =
+		10 BTC:	fun(secret:string).
+			sha256(secret)==sha256:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b &&
 			hash256(secret)==hash256:3881219d087dd9c634373fd33dfa33a2cb6bfc6c520b64b8bb60ef2ceb534ae7 &&
 			ripemd160(secret)==ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
 			hash160(secret)==hash160:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
-			hash160(secret)==ripemd160(sha256(secret)) && 
+			hash160(secret)==ripemd160(sha256(secret)) &&
 			hash256("mario")==sha256(sha256("mario")) &&
 			hash160("")==ripemd160(sha256(""))&&
-			hash160("")==ripemd160(sha256("")) && 
-			hash160("")==hash160("") && 
-			secret==secret 
-} 
-
-transaction Th1 {  
-	input = Th: "secretq2"
-	output = 0: "HELLO WORLD" 
+			hash160("")==ripemd160(sha256("")) &&
+			hash160("")==hash160("") &&
+			secret==secret
 }
 
-transaction test(p) { 
+transaction Th1 {
+	input = Th: "secretq2"
+	output = 0: "HELLO WORLD"
+}
+
+transaction test(p) {
 	input = Th : (""+p)
-	output = 1000: fun(secret:string). p==secret 
+	output = 1000: fun(secret:string). p==secret
 	timelock = after block 499_999_999
 }
 
 //transaction test2(p) {
 //	input = test(p) : ""
-//	output = 900: fun(secret:string). p==secret  
+//	output = 900: fun(secret:string). p==secret
 //	after block 499_999_999
 //}
 
 
 transaction bar {
 	input = _
-	output = 1 BTC: fun(sigma) . versig(kA ; sigma) 
+	output = 1 BTC: fun(sigma) . versig(kA ; sigma)
 }
 
 transaction Y {
@@ -98,8 +98,8 @@ transaction Y {
 	output = [
 		550: fun(n) . n==42;				// P2SH
 		550: fun(y) . versig(kA; y);	// P2PKH
-		0 BTC: "DATA"						// OP_RETURN 
-	] 	
+		0 BTC: "DATA"						// OP_RETURN
+	]
 }
 
 compile T1

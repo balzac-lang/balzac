@@ -95,7 +95,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
         return new AbstractLexerBasedConverter<String>() {
             override toValue(String string, INode node) throws ValueConverterException {
                 val value = string.split(":").get(1)
-                
+
                 try {
                     TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(value), true, true)
                 }

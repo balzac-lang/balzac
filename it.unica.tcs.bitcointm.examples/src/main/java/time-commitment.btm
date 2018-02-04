@@ -10,48 +10,48 @@ const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 /*
  * funds
  */
-transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}   
-transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(kB; sigma)} 
+transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
+transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(kB; sigma)}
 
-transaction T_funds(k:key) { 
-	input = _ 
+transaction T_funds(k:key) {
+	input = _
 	output = 20 BTC: fun(sigma) . versig(k; sigma)
 }
 
 /*
  * commit
  */
-transaction T_commitA { 
+transaction T_commitA {
 	input = _
-	output = 10 BTC: 
+	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
 			||
 			versig(kA, kB; sigma1, sigma2)
 }
 
-transaction T_commitB { 
+transaction T_commitB {
 	input = _
-	output = 10 BTC: 
+	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
-			||  
+			||
 			versig(kA, kB; sigma1, sigma2)
 }
- 
+
 transaction T_commit(hSecret:hash160, k:key) {
 	input = _
-	output = 10 BTC: 
+	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
 			hash160(x) == hSecret && versig(k; sigma1)
-			||  
+			||
 			versig(kA, kB; sigma1, sigma2)
 }
 
 /*
  * open
  */
-transaction T_openA { 
+transaction T_openA {
 	input = T_commitA: sig(kA) sig(kA) "secretA"	// second item is useless
 	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
 }
@@ -78,7 +78,7 @@ transaction T_payDepositA {
 transaction T_payDepositB {
     input = T_commitB: sig(kA) sig(kB) ""
  	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
-	timelock = after block 45 
+	timelock = after block 45
 }
 
 /*
@@ -87,15 +87,15 @@ transaction T_payDepositB {
 transaction T_compute {
     input = _
 	output =
-		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) . 
+		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) .
 			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
 			hash160(xB) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
-			(size(xA) == 128 || size(xA) == 127) && 
+			(size(xA) == 128 || size(xA) == 127) &&
 			(size(xB) == 128 || size(xB) == 127) &&
-			if size(xA) == size(xB) 
-			then versig(kA; sigma1)  
-			else versig(kB; sigma2) 
-} 
+			if size(xA) == size(xB)
+			then versig(kA; sigma1)
+			else versig(kB; sigma2)
+}
 
 
 

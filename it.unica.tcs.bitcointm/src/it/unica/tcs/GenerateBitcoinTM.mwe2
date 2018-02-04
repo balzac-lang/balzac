@@ -11,7 +11,7 @@ import org.eclipse.xtext.xtext.generator.scoping.*
 var rootPath = ".."
 
 Workflow {
-	
+
 	component = XtextGenerator {
 		configuration = {
 			project = StandardProjectConfig {
@@ -47,9 +47,9 @@ Workflow {
 			validator = {
 //				composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"
 			}
-			
-			
-					
+
+
+
 		}
 	}
 }

@@ -334,7 +334,7 @@ from {
     for (p : body.params) {
         G |- substitutions |> p : var Type t    // type the parameters, possibly TypeVariable
     }
-    
+
     for (in : body.inputs) {
         G |- substitutions |> in : var Type t1  // all inputs are well typed
     }
@@ -605,7 +605,7 @@ from {
         // the terms type must be unifiable with string type
         unify(op.left, substitutions, leftType, type)
     }
-    
+
     unify(op.right, substitutions, rightType, type)
 }
 

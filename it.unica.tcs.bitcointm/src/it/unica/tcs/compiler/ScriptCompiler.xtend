@@ -104,15 +104,15 @@ class ScriptCompiler {
              * P2PKH
              */
             var sigE = input.exps.get(0)
-            if (sigE instanceof Signature) {                
+            if (sigE instanceof Signature) {
                 var sig = input.exps.get(0) as Signature
                 var sb = sig.compileInputExpression(rho)
-    
+
                 val resKey = sig.privkey.interpret(rho)
-    
+
                 if (resKey.failed)
                     throw new CompileException('''Unable to evaluate to a private key''')
-    
+
                 val key = resKey.first
                 if (key instanceof DumpedPrivateKey) {
                     sb.data(key.key.pubKey)
@@ -124,16 +124,16 @@ class ScriptCompiler {
                 /* <sig> <pubkey> */
                 return new InputScriptImpl().append(sb) as InputScript
             }
-            else {                
+            else {
                 val sigI = input.exps.get(0).interpret(rho)
                 if (sigI.failed)
                     throw new CompileException('''Unable to evaluate to a valid signature''')
-                
+
                 val sig = sigI.first as SignatureAndKey
-                
+
                 if (sig.pubkey === null)
                     throw new CompileException('''The signature must be defined with a public key''')
-                
+
                 val sb = new InputScriptImpl()
                 sb.data(sig.sig.encodeToBitcoin)
                 sb.data(sig.pubkey.pubKey)
@@ -189,7 +189,7 @@ class ScriptCompiler {
      * @param output the output to compile
      * @param rho the environment for the interpreter
      * @return the compiled output
-     * @see OutputScript     
+     * @see OutputScript
      */
     def OutputScript compileOutputScript(Output output, Rho rho) {
 
