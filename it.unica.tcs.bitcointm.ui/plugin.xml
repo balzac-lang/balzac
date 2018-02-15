@@ -126,9 +126,9 @@
   </page>
     <page
           category="it.unica.tcs.BitcoinTM"
-          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.BitcoinNodesPreferences"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.TrustedNodesPreferences"
           id="it.unica.tcs.BitcoinTM.node"
-          name="Bitcoin Nodes">
+          name="Trusted Nodes">
        <keywordReference
              id="it.unica.tcs.ui.keyword_BitcoinTM">
        </keywordReference>

@@ -42,7 +42,7 @@ import it.unica.tcs.bitcointm.ui.internal.BitcointmActivator;
 import it.unica.tcs.lib.client.impl.RPCBitcoinClient;
 import it.unica.tcs.utils.SecureStorageUtils;
 
-public class BitcoinNodesPreferences extends PreferencePage implements IWorkbenchPreferencePage {
+public class TrustedNodesPreferences extends PreferencePage implements IWorkbenchPreferencePage {
     private Text testnetHostText;
     private Spinner testnetPortSpinner;
     private Text testnetUsernameText;
@@ -65,7 +65,7 @@ public class BitcoinNodesPreferences extends PreferencePage implements IWorkbenc
     /**
      * Create the preference page.
      */
-    public BitcoinNodesPreferences() {
+    public TrustedNodesPreferences() {
         setDescription("Configure your trusted Bitcoin nodes to enable further static checks of your code");
         setTitle("Trusted Nodes");
         setPreferenceStore(BitcointmActivator.getInstance().getPreferenceStore());
