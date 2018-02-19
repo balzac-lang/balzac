@@ -57,11 +57,6 @@ cd bitcoin-transaction-model/it.unica.tcs.bitcointm
 ln -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
 ```
 
-```
-cd bitcoin-transaction-model/it.unica.tcs.bitcointm.ui
-ln -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
-```
-
 
 ### Compile
 ```

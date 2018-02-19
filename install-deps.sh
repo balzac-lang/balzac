@@ -12,6 +12,3 @@ rm -rf $HOME/bitcoinj
 echo "Symlink it.unica.tcs.bitcointm/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar -> ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar"
 ln -t it.unica.tcs.bitcointm -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
 
-echo "Symlink it.unica.tcs.bitcointm.ui/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar -> ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar"
-ln -t it.unica.tcs.bitcointm.ui -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
-
