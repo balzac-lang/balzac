@@ -32,7 +32,8 @@ import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionLiteral
+import it.unica.tcs.bitcoinTM.TransactionHexLiteral
+import it.unica.tcs.bitcoinTM.TransactionIDLiteral
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.lib.Hash.Hash160
 import it.unica.tcs.lib.Hash.Hash256
@@ -42,9 +43,10 @@ import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.client.BitcoinClientException
-import it.unica.tcs.lib.client.BitcoinClientI
+import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.utils.SignatureAndKey
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
@@ -89,7 +91,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Inject private extension ASTUtils
     @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject private IContainer.Manager containerManager;
-    @Inject private BitcoinClientI bitcoinCli;
+    @Inject private BitcoinClientFactory clientFactory;
 
     @Check
     def void checkUnusedParameters__Script(it.unica.tcs.bitcoinTM.Script script){
@@ -473,11 +475,37 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
 
     @Check
-    def void checkSerialTransaction(TransactionLiteral tx) {
+    def void checkSerialTransaction(TransactionHexLiteral tx) {
 
         try {
             val txJ = new org.bitcoinj.core.Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
             txJ.verify
+        }
+        catch (VerificationException e) {
+            error(
+                '''Transaction is invalid. Details: «e.message»''',
+                tx,
+                null
+            );
+        }
+    }
+
+    @Check
+    def void checkSerialTransaction(TransactionIDLiteral tx) {
+
+        try {
+            val id = tx.value
+            val client = clientFactory.getBitcoinClient(tx.networkParams)
+            val hex = client.getRawTransaction(id)
+            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams, BitcoinUtils.decode(hex))
+            txJ.verify
+        }
+        catch (TransactionNotFoundException e) {
+            error(
+                '''Transaction not found, check you are in the right network. Details: «e.message»''',
+                tx,
+                null
+            );
         }
         catch (VerificationException e) {
             error(
@@ -1087,7 +1115,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             val txid = txBuilder.toTransaction.hashAsString
 
             try {
-                val mined = bitcoinCli.isMined(txid)
+                val client = clientFactory.getBitcoinClient(tx.networkParams)
+                val mined = client.isMined(txid)
 
                 if (check.isMined && !mined) {
                     warning(

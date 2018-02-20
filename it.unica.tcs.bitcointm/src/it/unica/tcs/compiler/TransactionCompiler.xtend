@@ -5,6 +5,7 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Transaction
@@ -18,7 +19,6 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.bitcoinTM.Constant
 
 class TransactionCompiler {
 
@@ -28,8 +28,10 @@ class TransactionCompiler {
     @Inject private extension CompilerUtils
 
     def ITransactionBuilder compileTransaction(TransactionLiteral tx) {
-        val txBuilder = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, tx.value);
-        return txBuilder
+        val res = tx.interpretE
+        if (res.failed)
+            throw new CompileException("Cannot compile "+tx)
+        return res.first as ITransactionBuilder
     }
 
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {

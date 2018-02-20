@@ -152,7 +152,7 @@ Literal:
 |	HashLiteral
 |	KeyLiteral
 |   PubKeyLiteral
-|	TransactionLiteral
+|   TransactionLiteral
 |	SignatureLiteral;
 
 HashLiteral:
@@ -160,6 +160,10 @@ HashLiteral:
 |	Hash256Literal
 |	Ripemd160Literal
 |	Sha256Literal;
+
+TransactionLiteral:
+    TransactionHexLiteral
+|   TransactionIDLiteral;
 
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
@@ -171,7 +175,8 @@ Ripemd160Literal: value=RIPMED_160;
 Sha256Literal: value=SHA_256;
 KeyLiteral: value=WIF;
 PubKeyLiteral: value=PUBKEY;
-TransactionLiteral: value=(TXSERIAL|TXID);		// TXID is automatically converted into a hex by fetching the transaction from the network
+TransactionHexLiteral: value=TXSERIAL;
+TransactionIDLiteral: value=TXID;
 SignatureLiteral: value=SIGHEX (-> "[" key=Expression "]")?;
 
 IfThenElse:

@@ -26,6 +26,7 @@ import it.unica.tcs.bitcoinTM.NumberLiteral
 import it.unica.tcs.bitcoinTM.OrExpression
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Plus
+import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Ripemd160Literal
@@ -36,7 +37,8 @@ import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionLiteral
+import it.unica.tcs.bitcoinTM.TransactionHexLiteral
+import it.unica.tcs.bitcoinTM.TransactionIDLiteral
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
@@ -45,15 +47,17 @@ import it.unica.tcs.utils.SignatureAndKey
 import java.math.BigInteger
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.crypto.TransactionSignature
-import it.unica.tcs.bitcoinTM.PubKeyLiteral
-import org.bitcoinj.core.ECKey
+import it.unica.tcs.utils.BitcoinClientFactory
+import com.google.common.base.Throwables
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
 inject extension ASTUtils astUtils
 inject extension TransactionCompilerDelegate compiler
+inject BitcoinClientFactory clientFactory
 
 judgments {
     interpret |- Interpretable expression |> Rho rho ~> output Object
@@ -140,9 +144,25 @@ from {
 axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
 
-axiom InterpretTransactionLiteral
-    G |- TransactionLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+axiom InterpretTransactionHexLiteral
+    G |- TransactionHexLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
 
+rule InterpretTransactionIDLiteral
+    G |- TransactionIDLiteral tx |> Rho rho ~> ITransactionBuilder res
+from {
+    val id = tx.value
+    val client = clientFactory.getBitcoinClient(tx.networkParams)
+
+    try {
+        val hex = client.getRawTransaction(id);
+        res = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(hex))
+    }
+    catch (Exception e) {
+        fail
+            error "Cannot interpret transaction with ID "+id+". Error: "+Throwables.getStackTraceAsString(e)
+            source tx
+    }
+}
 //rule InterpretSignature
 //    G |- Signature s |> Rho rho ~> TransactionSignature res
 //from {

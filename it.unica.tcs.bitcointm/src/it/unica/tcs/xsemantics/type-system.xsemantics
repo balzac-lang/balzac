@@ -58,7 +58,8 @@ import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.Times
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionLiteral
+import it.unica.tcs.bitcoinTM.TransactionHexLiteral
+import it.unica.tcs.bitcoinTM.TransactionIDLiteral
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.bitcoinTM.TypeVariable
@@ -507,8 +508,11 @@ axiom Ripemd160Literal
 axiom Sha256Literal
     G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
 
-axiom TransactionLiteral
-    G |- TypeSubstitutions substitutions |> TransactionLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
+axiom TransactionHexLiteral
+    G |- TypeSubstitutions substitutions |> TransactionHexLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
+
+axiom TransactionIDLiteral
+    G |- TypeSubstitutions substitutions |> TransactionIDLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
 
 rule SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BitcoinTMFactory::eINSTANCE.createSignatureType

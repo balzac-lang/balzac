@@ -10,10 +10,13 @@ package it.unica.tcs
 import com.google.inject.Binder
 import com.google.inject.name.Names
 import it.unica.tcs.conversion.BitcoinTMConverterService
+import it.unica.tcs.lib.client.BitcoinClientI
+import it.unica.tcs.lib.client.impl.RPCBitcoinClient
 import it.unica.tcs.scoping.BitcoinTMGlobalScopeProvider
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
+import java.util.concurrent.TimeUnit
 import org.eclipse.xtext.conversion.IValueConverterService
 import org.eclipse.xtext.scoping.IGlobalScopeProvider
 import org.eclipse.xtext.scoping.IScopeProvider
@@ -66,4 +69,8 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
         return BitcoinTMGlobalScopeProvider;
     }
 
+    def void configureBitcoinClient(Binder binder) {
+        binder.bind(BitcoinClientI).toInstance(new RPCBitcoinClient("co2.unica.it", 8332, "http", "bitcoin", "L4mbWnzC35BNrmTK", 3, TimeUnit.SECONDS));
+        binder.bind(BitcoinClientI).annotatedWith(Names.named("testnet")).toInstance(new RPCBitcoinClient("co2.unica.it", 18332, "http", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS));
+    }
 }

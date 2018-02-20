@@ -9,7 +9,6 @@ import it.unica.tcs.conversion.converter.HashValueConverter
 import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
-import it.unica.tcs.lib.client.BitcoinClientI
 import it.unica.tcs.lib.utils.BitcoinUtils
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
@@ -23,7 +22,6 @@ import org.eclipse.xtext.nodemodel.INode
 
 class BitcoinTMConverterService extends DefaultTerminalConverters {
 
-    @Inject private BitcoinClientI bitcoin;
     @Inject private NumberValueConverter numberValueConverter;
     @Inject private HashValueConverter hashConverter;
     @Inject private TimestampValueConverter timestampTerminalConverter;
@@ -68,15 +66,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
     def IValueConverter<String> getTXID() {
         return new AbstractLexerBasedConverter<String>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                val id = string.split(":").get(1)
-
-                try {
-                    return bitcoin.getRawTransaction(id);
-                }
-                catch (Exception e) {
-                    throw new ValueConverterException("Couldn't convert tx id '" + id + "' to transaction hex. Unable to fetch the transaction. "+e.message, node, e);
-                }
-
+                string.split(":").get(1)
             }
         }
     }
