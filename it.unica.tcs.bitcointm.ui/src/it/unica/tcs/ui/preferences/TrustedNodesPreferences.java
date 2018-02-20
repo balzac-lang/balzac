@@ -2,7 +2,6 @@ package it.unica.tcs.ui.preferences;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
@@ -11,8 +10,6 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.ExpandEvent;
-import org.eclipse.swt.events.ExpandListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
@@ -23,19 +20,16 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.PlatformUI;
 
+import com.google.common.base.Throwables;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 
 import it.unica.tcs.bitcointm.ui.internal.BitcointmActivator;
@@ -251,7 +245,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                     } catch (StorageException e1) {
                         e1.printStackTrace();
                         testnetErrorDetailsText.append("Error fetching the password from the secure store.\n\n");
-                        testnetErrorDetailsText.append(ExceptionUtils.getStackTrace(e1));
+                        testnetErrorDetailsText.append(Throwables.getStackTraceAsString(e1));
                         testneNetworkFeedbackERR.setVisible(true);
                         return;
                     }
@@ -275,7 +269,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                 } catch (Exception e1) {
                     e1.printStackTrace();
                     testnetErrorDetailsText.append("Cannot connect to the node.\n\n");
-                    testnetErrorDetailsText.append(ExceptionUtils.getStackTrace(e1));
+                    testnetErrorDetailsText.append(Throwables.getStackTraceAsString(e1));
                     testneNetworkFeedbackERR.setVisible(true);
                     return;
                 }

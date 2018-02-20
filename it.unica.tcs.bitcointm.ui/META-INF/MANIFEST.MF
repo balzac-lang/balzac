@@ -16,6 +16,7 @@ Require-Bundle: it.xsemantics.runtime;bundle-version="[1.12.1,1.13.0)",
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
  org.eclipse.xtext.xbase.lib,
+ org.eclipse.equinox.security;bundle-version="1.2.300",
  it.unica.tcs.bitcointm,
  it.unica.tcs.bitcointm.ide
 Import-Package: org.apache.log4j
