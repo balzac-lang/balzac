@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Nicola Atzei
  */
-package it.unica.tcs.lib.model;
+package it.unica.tcs.lib.utils;
 
 import static org.junit.Assert.assertTrue;
 
@@ -12,7 +12,8 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import it.unica.tcs.lib.model.ServerSocketDaemon.ServerSocketClient;
+import it.unica.tcs.lib.utils.ServerSocketDaemon;
+import it.unica.tcs.lib.utils.ServerSocketDaemon.ServerSocketClient;
 
 @Ignore
 public class ServerSocketDaemonTest {

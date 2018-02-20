@@ -8,9 +8,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApiFactory;
 import com.sulacosoft.bitcoindconnector4j.core.BitcoindException;
@@ -22,7 +19,6 @@ import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.Confidentiality;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
-@Singleton
 public class RPCBitcoinClient implements BitcoinClientI {
 
     private static final Logger logger = LoggerFactory.getLogger(RPCBitcoinClient.class);
@@ -36,16 +32,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
     private final int timeout;
     private final TimeUnit unit;
 
-    @Inject
-    public RPCBitcoinClient(
-            @Named("bitcoind.address") String address,
-            @Named("bitcoind.port") int port,
-            @Named("bitcoind.protocol") String protocol,
-            @Named("bitcoind.user") String user,
-            @Named("bitcoind.password") String password,
-            @Named("bitcoind.timeout") int timeout,
-            @Named("bitcoind.timeunit") TimeUnit unit
-            ) {
+    public RPCBitcoinClient(String address, int port, String protocol, String user, String password, int timeout, TimeUnit unit) {
         this.address = address;
         this.port = port;
         this.protocol = protocol;

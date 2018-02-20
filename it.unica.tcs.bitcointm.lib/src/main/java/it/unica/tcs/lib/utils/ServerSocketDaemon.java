@@ -2,7 +2,7 @@
  * Copyright 2018 Nicola Atzei
  */
 
-package it.unica.tcs.lib.model;
+package it.unica.tcs.lib.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
