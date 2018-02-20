@@ -10,16 +10,18 @@ import org.bitcoinj.params.TestNet3Params;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
 import it.unica.tcs.lib.client.BitcoinClientI;
 
+@Singleton
 public class BitcoinClientFactory {
 
-    @Inject
+    @Inject(optional=true)
     private BitcoinClientI mainnetClient;
 
-    @Inject
+    @Inject(optional=true)
     @Named("testnet")
     private BitcoinClientI testnetClient;
 
@@ -33,5 +35,21 @@ public class BitcoinClientFactory {
             return mainnetClient;
         }
         throw new IllegalArgumentException("Invalid parameter "+params);
+    }
+
+    public BitcoinClientI getMainnetClient() {
+        return mainnetClient;
+    }
+
+    public void setMainnetClient(BitcoinClientI mainnetClient) {
+        this.mainnetClient = mainnetClient;
+    }
+
+    public BitcoinClientI getTestnetClient() {
+        return testnetClient;
+    }
+
+    public void setTestnetClient(BitcoinClientI testnetClient) {
+        this.testnetClient = testnetClient;
     }
 }

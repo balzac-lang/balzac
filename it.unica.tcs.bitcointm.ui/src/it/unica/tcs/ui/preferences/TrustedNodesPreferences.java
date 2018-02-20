@@ -30,10 +30,13 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.google.common.base.Throwables;
+import com.google.inject.Injector;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 
 import it.unica.tcs.bitcointm.ui.internal.BitcointmActivator;
+import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.impl.RPCBitcoinClient;
+import it.unica.tcs.utils.BitcoinClientFactory;
 import it.unica.tcs.utils.SecureStorageUtils;
 
 public class TrustedNodesPreferences extends PreferencePage implements IWorkbenchPreferencePage {
@@ -364,7 +367,41 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                 return false;
             }
         }
+
+        try {
+            setBitcoinClientFactoryNodes(store);
+        } catch (StorageException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         return true;
+    }
+
+    public static void setBitcoinClientFactoryNodes(IPreferenceStore store) throws StorageException {
+        ISecurePreferences secureStore = SecurePreferencesFactory.getDefault();
+
+        String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
+        int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
+        String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
+        int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
+        String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE).get(
+                        SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
+
+        String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
+        int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
+        String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
+        int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
+        String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE).get(
+                        SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
+
+        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+
+        Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
+        BitcoinClientFactory factory = injector.getInstance(BitcoinClientFactory.class);
+        factory.setMainnetClient(mainnetClient);
+        factory.setTestnetClient(testnetClient);
     }
 
     private boolean isTestnetPasswordSaved() {

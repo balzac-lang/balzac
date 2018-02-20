@@ -14,6 +14,15 @@
 	</extension>
 	<extension
 		point="org.eclipse.ui.handlers">
+    <handler
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+          commandId="it.unica.tcs.BitcoinTM.validate">
+       <activeWhen>
+          <reference
+                definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+          </reference>
+       </activeWhen>
+    </handler>
 		<handler
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
 			commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
@@ -22,15 +31,6 @@
 					definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
 				</reference>
 			</activeWhen>
-		</handler>
-		<handler
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
-			commandId="it.unica.tcs.BitcoinTM.validate">
-		<activeWhen>
-			<reference
-					definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-			</reference>
-		</activeWhen>
 		</handler>
 		<!-- copy qualified name -->
 		<handler
@@ -52,6 +52,42 @@
 				</and>
 			</activeWhen>
 		</handler>
+  <handler
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+        commandId="org.eclipse.xtext.ui.editor.FindReferences">
+     <activeWhen>
+        <reference
+              definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+        </reference>
+     </activeWhen>
+  </handler>
+  <handler
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+        commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
+     <activeWhen>
+        <reference
+              definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+        </reference>
+     </activeWhen>
+  </handler>
+  <handler
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
+        commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
+     <activeWhen>
+        <reference
+              definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+        </reference>
+     </activeWhen>
+  </handler>
+  <handler
+        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
+        commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
+     <activeWhen>
+        <reference
+              definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+        </reference>
+     </activeWhen>
+  </handler>
 	</extension>
 	<extension point="org.eclipse.core.expressions.definitions">
 		<definition id="it.unica.tcs.BitcoinTM.Editor.opened">
@@ -74,65 +110,6 @@
 				</with>
 			</and>
 		</definition>
-	</extension>
-	<extension
-			point="org.eclipse.ui.preferencePages">
-		<page
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="it.unica.tcs.BitcoinTM"
-			name="BitcoinTM">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-		</page>
-		<page
-			category="it.unica.tcs.BitcoinTM"
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
-			id="it.unica.tcs.BitcoinTM.coloring"
-			name="Syntax Coloring">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-		</page>
-		<page
-			category="it.unica.tcs.BitcoinTM"
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
-			id="it.unica.tcs.BitcoinTM.templates"
-			name="Templates">
-			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
-		</page>
-  <page
-        category="it.unica.tcs.BitcoinTM"
-        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
-        id="it.unica.tcs.BitcoinTM.refactoring"
-        name="Refactoring">
-     <keywordReference
-           id="it.unica.tcs.ui.keyword_BitcoinTM">
-     </keywordReference>
-  </page>
-  <page
-        category="it.unica.tcs.BitcoinTM"
-        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-        id="it.unica.tcs.BitcoinTM.compiler.preferencePage"
-        name="Compiler">
-     <keywordReference
-           id="it.unica.tcs.ui.keyword_BitcoinTM">
-     </keywordReference>
-  </page>
-  <page
-        category="it.unica.tcs.BitcoinTM"
-        class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.KeystorePreferencePage"
-        id="it.unica.tcs.BitcoinTM.keystore"
-        name="Keystore">
-     <keywordReference
-           id="it.unica.tcs.ui.keyword_BitcoinTM">
-     </keywordReference>
-  </page>
-    <page
-          category="it.unica.tcs.BitcoinTM"
-          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.TrustedNodesPreferences"
-          id="it.unica.tcs.BitcoinTM.node"
-          name="Trusted Nodes">
-       <keywordReference
-             id="it.unica.tcs.ui.keyword_BitcoinTM">
-       </keywordReference>
-    </page>
 	</extension>
 	<extension
 			point="org.eclipse.ui.propertyPages">
@@ -191,6 +168,16 @@
 			description="Copy the qualified name for the selected element"
 			name="Copy Qualified Name">
 	</command>
+ <command
+       description="Open the quick outline."
+       id="org.eclipse.xtext.ui.editor.outline.QuickOutline"
+       name="Quick Outline">
+ </command>
+ <command
+       description="Initialize trusted nodes from properties"
+       id="it.unica.tcs.BitcoinTM.initializeTrustedNodes"
+       name="Trusted Nodes Inizializer">
+ </command>
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution
@@ -236,27 +223,59 @@
 				</visibleWhen>
 			</command>
 		</menuContribution>
-	</extension>
-	<extension point="org.eclipse.ui.menus">
-		<menuContribution locationURI="popup:#TextEditorContext?endof=group.find">
-			<command commandId="org.eclipse.xtext.ui.editor.FindReferences">
-				<visibleWhen checkEnabled="false">
-					<reference definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-					</reference>
-				</visibleWhen>
-			</command>
-		</menuContribution>
-	</extension>
-	<extension point="org.eclipse.ui.handlers">
-		<handler
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
-			commandId="org.eclipse.xtext.ui.editor.FindReferences">
-			<activeWhen>
-				<reference
-					definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-				</reference>
-			</activeWhen>
-		</handler>
+  <menuContribution
+        locationURI="popup:#TextEditorContext?endof=group.find">
+     <command
+           commandId="org.eclipse.xtext.ui.editor.FindReferences">
+        <visibleWhen
+              checkEnabled="false">
+           <reference
+                 definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+           </reference>
+        </visibleWhen>
+     </command>
+  </menuContribution>
+  <menuContribution
+        locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
+     <command
+           commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand"
+           id="it.unica.tcs.BitcoinTM.OpenGeneratedCode"
+           style="push">
+        <visibleWhen
+              checkEnabled="false">
+           <reference
+                 definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+           </reference>
+        </visibleWhen>
+     </command>
+  </menuContribution>
+  <menuContribution
+        locationURI="popup:#TextEditorContext?after=group.open">
+     <command
+           commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline"
+           style="push"
+           tooltip="Open Quick Outline">
+        <visibleWhen
+              checkEnabled="false">
+           <reference
+                 definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+           </reference>
+        </visibleWhen>
+     </command>
+  </menuContribution>
+  <menuContribution
+        locationURI="popup:#TextEditorContext?after=group.edit">
+     <command
+           commandId="org.eclipse.xtext.ui.refactoring.RenameElement"
+           style="push">
+        <visibleWhen
+              checkEnabled="false">
+           <reference
+                 definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
+           </reference>
+        </visibleWhen>
+     </command>
+  </menuContribution>
 	</extension>
 	<!-- adding resource factories -->
 	<extension
@@ -299,60 +318,7 @@
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
 			fileExtensions="btm"/>
 	</extension>
-	<extension point="org.eclipse.ui.menus">
-		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
-			<command
-				commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand"
-				id="it.unica.tcs.BitcoinTM.OpenGeneratedCode"
-				style="push">
-				<visibleWhen checkEnabled="false">
-					<reference definitionId="it.unica.tcs.BitcoinTM.Editor.opened" />
-				</visibleWhen>
-			</command>
-		</menuContribution>
-	</extension>
-	<extension point="org.eclipse.ui.handlers">
-		<handler
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
-			commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
-			<activeWhen>
-				<reference definitionId="it.unica.tcs.BitcoinTM.Editor.opened" />
-			</activeWhen>
-		</handler>
-	</extension>
 	<!-- Quick Outline -->
-	<extension
-		point="org.eclipse.ui.handlers">
-		<handler 
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
-			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
-			<activeWhen>
-				<reference
-					definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-				</reference>
-			</activeWhen>
-		</handler>
-	</extension>
-	<extension
-		point="org.eclipse.ui.commands">
-		<command
-			description="Open the quick outline."
-			id="org.eclipse.xtext.ui.editor.outline.QuickOutline"
-			name="Quick Outline">
-		</command>
-	</extension>
-	<extension point="org.eclipse.ui.menus">
-		<menuContribution
-			locationURI="popup:#TextEditorContext?after=group.open">
-			<command commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline"
-				style="push"
-				tooltip="Open Quick Outline">
-				<visibleWhen checkEnabled="false">
-					<reference definitionId="it.unica.tcs.BitcoinTM.Editor.opened"/>
-				</visibleWhen>
-			</command>
-		</menuContribution>
-	</extension>
 	<!-- quickfix marker resolution generator for it.unica.tcs.BitcoinTM -->
 	<extension
 			point="org.eclipse.ui.ide.markerResolution">
@@ -382,30 +348,6 @@
 		</markerResolutionGenerator>
 	</extension>
 	<!-- Rename Refactoring -->
-	<extension point="org.eclipse.ui.handlers">
-		<handler 
-			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
-			commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
-			<activeWhen>
-				<reference
-					definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-				</reference>
-			</activeWhen>
-		</handler>
-	</extension>
-	<extension point="org.eclipse.ui.menus">
-		<menuContribution
-			locationURI="popup:#TextEditorContext?after=group.edit">
-			<command commandId="org.eclipse.xtext.ui.refactoring.RenameElement"
-				style="push">
-				<visibleWhen checkEnabled="false">
-					<reference
-						definitionId="it.unica.tcs.BitcoinTM.Editor.opened">
-					</reference>
-				</visibleWhen>
-			</command>
-		</menuContribution>
-	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="it.unica.tcs.BitcoinTM.compare.contentViewers"
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
@@ -430,6 +372,71 @@
 			type="text">
 		</fileTypes>
 	</extension>
+ <extension
+       point="org.eclipse.ui.preferencePages">
+    <page
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+          id="it.unica.tcs.BitcoinTM"
+          name="BitcoinTM">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+          id="it.unica.tcs.BitcoinTM.coloring"
+          name="Syntax Coloring">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+          id="it.unica.tcs.BitcoinTM.templates"
+          name="Templates">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+          id="it.unica.tcs.BitcoinTM.refactoring"
+          name="Refactoring">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+          id="it.unica.tcs.BitcoinTM.compiler.preferencePage"
+          name="Compiler">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.KeystorePreferencePage"
+          id="it.unica.tcs.BitcoinTM.keystore"
+          name="Keystore">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.TrustedNodesPreferences"
+          id="it.unica.tcs.BitcoinTM.node"
+          name="Trusted Nodes">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+    </page>
+ </extension>
  <extension
        point="org.eclipse.core.runtime.preferences">
     <initializer

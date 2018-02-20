@@ -514,6 +514,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 null
             );
         }
+        catch (Exception e) {
+            error(
+                '''Unable to fetch the transaction from its ID. Check that trusted nodes are configured correctly''',
+                tx,
+                null
+            );
+        }
     }
 
     @Check(CheckType.NORMAL)

@@ -5,6 +5,7 @@
 package it.unica.tcs.ui.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import it.unica.tcs.bitcointm.ui.internal.BitcointmActivator;
@@ -30,6 +31,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.P_MAINNET_PORT, 8332);
         store.setDefault(PreferenceConstants.P_MAINNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_MAINNET_TIMEOUT, 3000);
+        
+        try {
+            TrustedNodesPreferences.setBitcoinClientFactoryNodes(store);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
     }
 
 }
