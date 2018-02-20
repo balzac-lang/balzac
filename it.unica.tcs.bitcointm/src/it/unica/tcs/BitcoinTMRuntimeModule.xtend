@@ -24,17 +24,11 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.scoping.impl.SimpleLocalScopeProvider
 import org.eclipse.xtext.service.SingletonBinding
-import it.unica.tcs.lib.BitcoinUtilsFactory
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
-
-    override configure(Binder binder) {
-        binder.install(BitcoinUtilsFactory.create().module)
-        super.configure(binder)
-    }
 
     def Class<? extends StringRepresentation> bindStringRepresentation() {
         return BitcoinTMStringRepresentation;

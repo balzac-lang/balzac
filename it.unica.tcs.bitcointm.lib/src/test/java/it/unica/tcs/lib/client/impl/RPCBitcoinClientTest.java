@@ -3,49 +3,25 @@
  */
 package it.unica.tcs.lib.client.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.name.Names;
 import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 
-import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.Confidentiality;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
 @Ignore
 public class RPCBitcoinClientTest {
 
-    protected Injector injector = Guice.createInjector(new Module() {
-        @Override
-        public void configure(Binder builder) {
-            builder.bind(BitcoinClientI.class).to(RPCBitcoinClient.class);
-            builder.bind(String.class).annotatedWith(Names.named("bitcoind.address")).toInstance("co2.unica.it");
-            builder.bind(Integer.class).annotatedWith(Names.named("bitcoind.port")).toInstance(18332);
-            builder.bind(String.class).annotatedWith(Names.named("bitcoind.protocol")).toInstance("http");
-            builder.bind(String.class).annotatedWith(Names.named("bitcoind.user")).toInstance("bitcoin");
-            builder.bind(String.class).annotatedWith(Names.named("bitcoind.password")).toInstance("L4mbWnzC35BNrmTJ");
-            builder.bind(Integer.class).annotatedWith(Names.named("bitcoind.timeout")).toInstance(3);
-            builder.bind(TimeUnit.class).annotatedWith(Names.named("bitcoind.timeunit")).toInstance(TimeUnit.SECONDS);
-        }
-    });
-
-    @Before
-    public void setup () {
-        injector.injectMembers(this);
-    }
-
-    @Inject RPCBitcoinClient client;
+    RPCBitcoinClient client = new RPCBitcoinClient("co2.unica.it", 18332, "http", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS);
 
     @Test
     public void test_getRawTransaction() {
