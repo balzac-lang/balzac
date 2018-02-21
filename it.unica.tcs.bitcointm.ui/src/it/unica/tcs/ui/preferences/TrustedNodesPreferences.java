@@ -20,8 +20,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.ExpandBar;
-import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
@@ -84,6 +82,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
      * Create contents of the preference page.
      * 
      * @param parent
+     *            the parent composite
      */
     @Override
     public Control createContents(Composite parent) {
@@ -151,21 +150,9 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         gd_timeoutSpinner.widthHint = 163;
         timeoutSpinner.setLayoutData(gd_timeoutSpinner);
 
-        // bar
-        ExpandBar bar = new ExpandBar(grpTestnet, SWT.NONE);
-        GridData gd_bar = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
-        gd_bar.horizontalSpan = 2;
-        bar.setLayoutData(gd_bar);
-
-        // bar item
-        Composite expandItemContent = new Composite(bar, SWT.NONE);
-        GridLayout gLayout = new GridLayout(2, false);
-        gLayout.marginWidth = 0;
-        gLayout.marginHeight = 0;
-        expandItemContent.setLayout(gLayout);
-
         // test button with feedbacks
-        Composite compositeBtnTest = new Composite(expandItemContent, SWT.NONE);
+        Composite compositeBtnTest = new Composite(grpTestnet, SWT.NONE);
+        compositeBtnTest.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
         GridLayout gl_composite = new GridLayout(2, false);
         gl_composite.horizontalSpacing = 10;
         gl_composite.marginWidth = 0;
@@ -183,40 +170,12 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         testneNetworkFeedbackERR.setVisible(false);
 
         // error details
-        StyledText testnetErrorDetailsText = new StyledText(expandItemContent,
+        StyledText testnetErrorDetailsText = new StyledText(grpTestnet,
                 SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+        GridData gd_testnetErrorDetailsText = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+        gd_testnetErrorDetailsText.heightHint = -1;
+        testnetErrorDetailsText.setLayoutData(gd_testnetErrorDetailsText);
         testnetErrorDetailsText.setAlwaysShowScrollBars(false);
-        GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-        gd.heightHint = 150;
-        gd.widthHint = 300;
-        testnetErrorDetailsText.setLayoutData(gd);
-
-        ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
-        expandItem.setText("Check connection");
-        expandItem.setControl(expandItemContent);
-        expandItem.setExpanded(true);
-        expandItem.setHeight(expandItemContent.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 5);
-
-        if (testnet)
-            testnetHostText = hostText;
-        else
-            mainnetHostText = hostText;
-        if (testnet)
-            testnetPortSpinner = portSpinner;
-        else
-            mainnetPortSpinner = portSpinner;
-        if (testnet)
-            testnetUsernameText = usernameText;
-        else
-            mainnetUsernameText = usernameText;
-        if (testnet)
-            testnetPasswordText = passwordText;
-        else
-            mainnetPasswordText = passwordText;
-        if (testnet)
-            testnetTimeoutSpinner = timeoutSpinner;
-        else
-            mainnetTimeoutSpinner = timeoutSpinner;
 
         btnTestConnection.addMouseListener(new MouseAdapter() {
 
@@ -239,12 +198,14 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                 if (password.isEmpty()) {
                     try {
                         if (testnet)
-                            password = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
-                                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
+                            password = secureStorage
+                                    .node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
+                                    .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
                         else
-                            password = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
-                                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
-                        
+                            password = secureStorage
+                                    .node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
+                                    .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
+
                     } catch (StorageException e1) {
                         e1.printStackTrace();
                         testnetErrorDetailsText.append("Error fetching the password from the secure store.\n\n");
@@ -280,6 +241,27 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                 testnetNetworkFeedbackOK.setVisible(true);
             }
         });
+
+        if (testnet)
+            testnetHostText = hostText;
+        else
+            mainnetHostText = hostText;
+        if (testnet)
+            testnetPortSpinner = portSpinner;
+        else
+            mainnetPortSpinner = portSpinner;
+        if (testnet)
+            testnetUsernameText = usernameText;
+        else
+            mainnetUsernameText = usernameText;
+        if (testnet)
+            testnetPasswordText = passwordText;
+        else
+            mainnetPasswordText = passwordText;
+        if (testnet)
+            testnetTimeoutSpinner = timeoutSpinner;
+        else
+            mainnetTimeoutSpinner = timeoutSpinner;
     }
 
     private void initialize() {
@@ -385,18 +367,20 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
         String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
         int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
-        String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE).get(
-                        SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
+        String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
+                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
 
         String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
         int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
         String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
         int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
-        String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE).get(
-                        SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
+        String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
+                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
 
-        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUsername,
+                testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUsername,
+                mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
         Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
         BitcoinClientFactory factory = injector.getInstance(BitcoinClientFactory.class);
