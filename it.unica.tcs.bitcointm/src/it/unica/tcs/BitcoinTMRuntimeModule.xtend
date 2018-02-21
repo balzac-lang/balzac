@@ -64,7 +64,7 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
     }
 
     def void configureBitcoinClient(Binder binder) {
-        binder.bind(BitcoinClientI).toInstance(new RPCBitcoinClient("localhost", 8332, "http", "bitcoin", "L4mbWnzC35BNrmTK", 3, TimeUnit.SECONDS));
-        binder.bind(BitcoinClientI).annotatedWith(Names.named("testnet")).toInstance(new RPCBitcoinClient("co2.unica.it", 18332, "http", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS));
+        binder.bind(BitcoinClientI).toInstance(new RPCBitcoinClient("localhost", 8332, "http", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
+        binder.bind(BitcoinClientI).annotatedWith(Names.named("testnet")).toInstance(new RPCBitcoinClient("localhost", 18332, "http", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
     }
 }
