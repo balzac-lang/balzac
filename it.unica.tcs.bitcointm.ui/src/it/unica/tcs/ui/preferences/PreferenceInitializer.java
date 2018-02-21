@@ -25,10 +25,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         IPreferenceStore store = BitcointmActivator.getInstance().getPreferenceStore();
         store.setDefault(PreferenceConstants.P_TESTNET_HOST, "localhost");
         store.setDefault(PreferenceConstants.P_TESTNET_PORT, 18332);
+        store.setDefault(PreferenceConstants.P_TESTNET_URL, "/");
         store.setDefault(PreferenceConstants.P_TESTNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_TESTNET_TIMEOUT, 3000);
         store.setDefault(PreferenceConstants.P_MAINNET_HOST, "localhost");
         store.setDefault(PreferenceConstants.P_MAINNET_PORT, 8332);
+        store.setDefault(PreferenceConstants.P_MAINNET_URL, "/");
         store.setDefault(PreferenceConstants.P_MAINNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_MAINNET_TIMEOUT, 3000);
         

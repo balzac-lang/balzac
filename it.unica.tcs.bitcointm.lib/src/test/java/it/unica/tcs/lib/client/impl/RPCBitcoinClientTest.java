@@ -21,7 +21,7 @@ import it.unica.tcs.lib.client.TransactionNotFoundException;
 @Ignore
 public class RPCBitcoinClientTest {
 
-    RPCBitcoinClient client = new RPCBitcoinClient("co2.unica.it", 18332, "http", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS);
+    RPCBitcoinClient client = new RPCBitcoinClient("co2.unica.it", 18332, "http", "/", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS);
 
     @Test
     public void test_getRawTransaction() {

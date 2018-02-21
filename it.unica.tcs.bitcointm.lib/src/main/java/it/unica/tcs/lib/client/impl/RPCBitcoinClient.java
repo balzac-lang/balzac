@@ -27,15 +27,17 @@ public class RPCBitcoinClient implements BitcoinClientI {
     private final String address;
     private final int port;
     private final String protocol;
+    private final String url;
     private final String user;
     private final String password;
     private final int timeout;
     private final TimeUnit unit;
 
-    public RPCBitcoinClient(String address, int port, String protocol, String user, String password, int timeout, TimeUnit unit) {
+    public RPCBitcoinClient(String address, int port, String protocol, String url, String user, String password, int timeout, TimeUnit unit) {
         this.address = address;
         this.port = port;
         this.protocol = protocol;
+        this.url = url;
         this.user = user;
         this.password = password;
         this.timeout = timeout;
@@ -45,7 +47,7 @@ public class RPCBitcoinClient implements BitcoinClientI {
     public BitcoindApi getApi() throws BitcoinClientException {
         if (this.api==null) {
             try {
-                this.api = BitcoindApiFactory.createConnection(address, port, protocol, "/", user, password, timeout, unit);
+                this.api = BitcoindApiFactory.createConnection(address, port, protocol, url, user, password, timeout, unit);
             }
             catch (Throwable e) {
                 logger.warn("Unable to create a BitcoinApi object. Error: '{}'", e.getMessage());

@@ -10,6 +10,8 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
@@ -41,12 +43,14 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
     private Text testnetHostText;
     private Spinner testnetPortSpinner;
     private Text testnetUsernameText;
+    private Text testnetUrlText;
     private Text testnetPasswordText;
     private Spinner testnetTimeoutSpinner;
 
     private Text mainnetHostText;
     private Spinner mainnetPortSpinner;
     private Text mainnetUsernameText;
+    private Text mainnetUrlText;
     private Text mainnetPasswordText;
     private Spinner mainnetTimeoutSpinner;
 
@@ -109,8 +113,8 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         gl_grpTestnet.marginLeft = 10;
         grpTestnet.setLayout(gl_grpTestnet);
 
-        Label testnetHostLabel = new Label(grpTestnet, SWT.NONE);
-        testnetHostLabel.setText("Host");
+        Label hostLabel = new Label(grpTestnet, SWT.NONE);
+        hostLabel.setText("Host");
 
         Text hostText = new Text(grpTestnet, SWT.BORDER);
         hostText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -126,11 +130,30 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         gd_portSpinner.widthHint = 163;
         portSpinner.setLayoutData(gd_portSpinner);
 
-        Label testnetUsernameLabel = new Label(grpTestnet, SWT.NONE);
-        testnetUsernameLabel.setText("Username");
+        Label usernameLabel = new Label(grpTestnet, SWT.NONE);
+        usernameLabel.setText("Username");
 
         Text usernameText = new Text(grpTestnet, SWT.BORDER);
         usernameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+
+        Label urlLabel = new Label(grpTestnet, SWT.NONE);
+        urlLabel.setText("URL");
+
+        Text urlText = new Text(grpTestnet, SWT.BORDER);
+        urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        urlText.addFocusListener(new FocusListener() {
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String text = urlText.getText();
+                if (!text.startsWith("/"))
+                    urlText.setText("/"+text);
+            }
+
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+        });
 
         Label testnetPasswordLabel = new Label(grpTestnet, SWT.NONE);
         testnetPasswordLabel.setText("Password");
@@ -138,8 +161,8 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         Text passwordText = new Text(grpTestnet, SWT.BORDER | SWT.PASSWORD);
         passwordText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-        Label testnetTimeoutLabel = new Label(grpTestnet, SWT.NONE);
-        testnetTimeoutLabel.setText("Timeout");
+        Label timeoutLabel = new Label(grpTestnet, SWT.NONE);
+        timeoutLabel.setText("Timeout");
 
         Spinner timeoutSpinner = new Spinner(grpTestnet, SWT.BORDER);
         timeoutSpinner.setMaximum(Integer.MAX_VALUE);
@@ -191,6 +214,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                 String address = hostText.getText();
                 Integer port = portSpinner.getSelection();
                 String protocol = "http";
+                String url = urlText.getText();
                 String user = usernameText.getText();
                 String password = passwordText.getText();
                 Integer timeout = timeoutSpinner.getSelection();
@@ -214,7 +238,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                         return;
                     }
                 }
-                RPCBitcoinClient bitcoinClient = new RPCBitcoinClient(address, port, protocol, user, password, timeout,
+                RPCBitcoinClient bitcoinClient = new RPCBitcoinClient(address, port, protocol, url, user, password, timeout,
                         TimeUnit.MILLISECONDS);
 
                 try {
@@ -251,6 +275,10 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         else
             mainnetPortSpinner = portSpinner;
         if (testnet)
+            testnetUrlText = urlText;
+        else
+            mainnetUrlText = urlText;
+        if (testnet)
             testnetUsernameText = usernameText;
         else
             mainnetUsernameText = usernameText;
@@ -269,6 +297,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         testnetHostText.setText(store.getString(PreferenceConstants.P_TESTNET_HOST));
         testnetPortSpinner.setSelection(store.getInt(PreferenceConstants.P_TESTNET_PORT));
+        testnetUrlText.setText(store.getString(PreferenceConstants.P_TESTNET_URL));
         testnetUsernameText.setText(store.getString(PreferenceConstants.P_TESTNET_USERNAME));
         testnetTimeoutSpinner.setSelection(store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT));
 
@@ -279,6 +308,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         mainnetHostText.setText(store.getString(PreferenceConstants.P_MAINNET_HOST));
         mainnetPortSpinner.setSelection(store.getInt(PreferenceConstants.P_MAINNET_PORT));
+        mainnetUrlText.setText(store.getString(PreferenceConstants.P_MAINNET_URL));
         mainnetUsernameText.setText(store.getString(PreferenceConstants.P_MAINNET_USERNAME));
         mainnetTimeoutSpinner.setSelection(store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT));
 
@@ -301,6 +331,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         IPreferenceStore store = getPreferenceStore();
         testnetHostText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_HOST));
         testnetPortSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_TESTNET_PORT));
+        testnetUrlText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_URL));
         testnetUsernameText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_USERNAME));
         testnetTimeoutSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_TESTNET_TIMEOUT));
         secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE).removeNode();
@@ -308,6 +339,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         mainnetHostText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_HOST));
         mainnetPortSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_MAINNET_PORT));
+        mainnetUrlText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_URL));
         mainnetUsernameText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_USERNAME));
         mainnetTimeoutSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_MAINNET_TIMEOUT));
         secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE).removeNode();
@@ -320,6 +352,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         IPreferenceStore store = getPreferenceStore();
         store.setValue(PreferenceConstants.P_TESTNET_HOST, testnetHostText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_PORT, testnetPortSpinner.getSelection());
+        store.setValue(PreferenceConstants.P_TESTNET_URL, testnetUrlText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_USERNAME, testnetUsernameText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_TIMEOUT, testnetTimeoutSpinner.getSelection());
 
@@ -336,6 +369,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         store.setValue(PreferenceConstants.P_MAINNET_HOST, mainnetHostText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_PORT, mainnetPortSpinner.getSelection());
+        store.setValue(PreferenceConstants.P_MAINNET_URL, mainnetUrlText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_USERNAME, mainnetUsernameText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_TIMEOUT, mainnetTimeoutSpinner.getSelection());
 
@@ -365,6 +399,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
         int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
+        String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
         String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
         int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
         String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
@@ -372,14 +407,15 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
         int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
+        String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
         String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
         int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
         String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
                 .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
 
-        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUsername,
+        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUrl, testnetUsername,
                 testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUsername,
+        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUrl, mainnetUsername,
                 mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
         Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
