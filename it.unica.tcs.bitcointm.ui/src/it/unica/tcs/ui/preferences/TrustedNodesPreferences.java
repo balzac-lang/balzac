@@ -1,3 +1,6 @@
+/*
+ * Copyright 2018 Nicola Atzei
+ */
 package it.unica.tcs.ui.preferences;
 
 import java.util.concurrent.TimeUnit;
@@ -10,6 +13,8 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -105,24 +110,25 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
     private void createNetworkContents(Composite parent, boolean testnet) {
 
-        Group grpTestnet = new Group(parent, SWT.NONE);
-        grpTestnet.setText(testnet ? " Testnet node " : " Mainnet node ");
+        Group group = new Group(parent, SWT.NONE);
+        group.setText(testnet ? " Testnet node " : " Mainnet node ");
         GridLayout gl_grpTestnet = new GridLayout(2, false);
         gl_grpTestnet.marginTop = 5;
-        gl_grpTestnet.marginRight = 10;
-        gl_grpTestnet.marginLeft = 10;
-        grpTestnet.setLayout(gl_grpTestnet);
+        gl_grpTestnet.marginRight = 5;
+        gl_grpTestnet.marginLeft = 5;
+        gl_grpTestnet.marginBottom = 5;
+        group.setLayout(gl_grpTestnet);
 
-        Label hostLabel = new Label(grpTestnet, SWT.NONE);
+        Label hostLabel = new Label(group, SWT.NONE);
         hostLabel.setText("Host");
 
-        Text hostText = new Text(grpTestnet, SWT.BORDER);
+        Text hostText = new Text(group, SWT.BORDER);
         hostText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-        Label lblPort = new Label(grpTestnet, SWT.NONE);
+        Label lblPort = new Label(group, SWT.NONE);
         lblPort.setText("Port");
 
-        Spinner portSpinner = new Spinner(grpTestnet, SWT.BORDER);
+        Spinner portSpinner = new Spinner(group, SWT.BORDER);
         portSpinner.setMaximum(65535);
         portSpinner.setMinimum(1);
         GridData gd_portSpinner = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -130,16 +136,16 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         gd_portSpinner.widthHint = 163;
         portSpinner.setLayoutData(gd_portSpinner);
 
-        Label usernameLabel = new Label(grpTestnet, SWT.NONE);
+        Label usernameLabel = new Label(group, SWT.NONE);
         usernameLabel.setText("Username");
 
-        Text usernameText = new Text(grpTestnet, SWT.BORDER);
+        Text usernameText = new Text(group, SWT.BORDER);
         usernameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 
-        Label urlLabel = new Label(grpTestnet, SWT.NONE);
+        Label urlLabel = new Label(group, SWT.NONE);
         urlLabel.setText("URL");
 
-        Text urlText = new Text(grpTestnet, SWT.BORDER);
+        Text urlText = new Text(group, SWT.BORDER);
         urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         urlText.addFocusListener(new FocusListener() {
 
@@ -147,24 +153,25 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
             public void focusLost(FocusEvent e) {
                 String text = urlText.getText();
                 if (!text.startsWith("/"))
-                    urlText.setText("/"+text);
+                    urlText.setText("/" + text);
             }
 
             @Override
-            public void focusGained(FocusEvent e) {}
+            public void focusGained(FocusEvent e) {
+            }
 
         });
 
-        Label testnetPasswordLabel = new Label(grpTestnet, SWT.NONE);
+        Label testnetPasswordLabel = new Label(group, SWT.NONE);
         testnetPasswordLabel.setText("Password");
 
-        Text passwordText = new Text(grpTestnet, SWT.BORDER | SWT.PASSWORD);
+        Text passwordText = new Text(group, SWT.BORDER | SWT.PASSWORD);
         passwordText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-        Label timeoutLabel = new Label(grpTestnet, SWT.NONE);
+        Label timeoutLabel = new Label(group, SWT.NONE);
         timeoutLabel.setText("Timeout");
 
-        Spinner timeoutSpinner = new Spinner(grpTestnet, SWT.BORDER);
+        Spinner timeoutSpinner = new Spinner(group, SWT.BORDER);
         timeoutSpinner.setMaximum(Integer.MAX_VALUE);
         timeoutSpinner.setMinimum(-1);
         timeoutSpinner.setToolTipText("Set -1 for undefined waiting time (not recommended)");
@@ -174,7 +181,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         timeoutSpinner.setLayoutData(gd_timeoutSpinner);
 
         // test button with feedbacks
-        Composite compositeBtnTest = new Composite(grpTestnet, SWT.NONE);
+        Composite compositeBtnTest = new Composite(group, SWT.NONE);
         compositeBtnTest.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
         GridLayout gl_composite = new GridLayout(2, false);
         gl_composite.horizontalSpacing = 10;
@@ -183,30 +190,49 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         Button btnTestConnection = new Button(compositeBtnTest, SWT.NONE);
         btnTestConnection.setText("Test");
         Composite compositeFeedbacks = new Composite(compositeBtnTest, SWT.NONE);
-        Canvas testnetNetworkFeedbackOK = new Canvas(compositeFeedbacks, SWT.NONE);
-        testnetNetworkFeedbackOK.setBounds(0, 0, 16, 16);
-        testnetNetworkFeedbackOK.setBackgroundImage(imageSuccess);
-        testnetNetworkFeedbackOK.setVisible(false);
-        Canvas testneNetworkFeedbackERR = new Canvas(compositeFeedbacks, SWT.NONE);
-        testneNetworkFeedbackERR.setBounds(0, 0, 16, 16);
-        testneNetworkFeedbackERR.setBackgroundImage(imageError);
-        testneNetworkFeedbackERR.setVisible(false);
+        Canvas networkFeedbackOK = new Canvas(compositeFeedbacks, SWT.NONE);
+        networkFeedbackOK.setBounds(0, 0, 16, 16);
+        networkFeedbackOK.setBackgroundImage(imageSuccess);
+        networkFeedbackOK.setVisible(false);
+        Canvas networkFeedbackERR = new Canvas(compositeFeedbacks, SWT.NONE);
+        networkFeedbackERR.setBounds(0, 0, 16, 16);
+        networkFeedbackERR.setBackgroundImage(imageError);
+        networkFeedbackERR.setVisible(false);
 
         // error details
-        StyledText testnetErrorDetailsText = new StyledText(grpTestnet,
-                SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
-        GridData gd_testnetErrorDetailsText = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-        gd_testnetErrorDetailsText.heightHint = -1;
-        testnetErrorDetailsText.setLayoutData(gd_testnetErrorDetailsText);
-        testnetErrorDetailsText.setAlwaysShowScrollBars(false);
+        Composite errorDetailsComposite = new Composite(group, SWT.BORDER);
+        StyledText errorDetailsTextArea = new StyledText(errorDetailsComposite,
+                SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+        GridData gd_errorDetailsTextArea = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+        gd_errorDetailsTextArea.grabExcessVerticalSpace = true;
+        errorDetailsComposite.setLayoutData(gd_errorDetailsTextArea);
+        errorDetailsComposite.setBackground(errorDetailsTextArea.getBackground());
+        errorDetailsTextArea.setAlwaysShowScrollBars(false);
+        errorDetailsComposite.addControlListener(new ControlListener() {
+
+            private int TOP_MARGIN = 4;
+            private int LEFT_MARGIN = 8;
+
+            @Override
+            public void controlResized(ControlEvent e) {
+                Composite parent = errorDetailsTextArea.getParent();
+                errorDetailsTextArea.setBounds(LEFT_MARGIN, TOP_MARGIN,
+                        parent.getSize().x - 2 * parent.getBorderWidth() - LEFT_MARGIN,
+                        parent.getSize().y - 2 * parent.getBorderWidth() - TOP_MARGIN);
+            }
+
+            @Override
+            public void controlMoved(ControlEvent e) {
+            }
+        });
 
         btnTestConnection.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mouseDown(MouseEvent e) {
-                testnetErrorDetailsText.setText("");
-                testnetNetworkFeedbackOK.setVisible(false);
-                testneNetworkFeedbackERR.setVisible(false);
+                errorDetailsTextArea.setText("");
+                networkFeedbackOK.setVisible(false);
+                networkFeedbackERR.setVisible(false);
             }
 
             @Override
@@ -232,14 +258,14 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
                     } catch (StorageException e1) {
                         e1.printStackTrace();
-                        testnetErrorDetailsText.append("Error fetching the password from the secure store.\n\n");
-                        testnetErrorDetailsText.append(Throwables.getStackTraceAsString(e1));
-                        testneNetworkFeedbackERR.setVisible(true);
+                        errorDetailsTextArea.append("Error fetching the password from the secure store.\n\n");
+                        errorDetailsTextArea.append(Throwables.getStackTraceAsString(e1));
+                        networkFeedbackERR.setVisible(true);
                         return;
                     }
                 }
-                RPCBitcoinClient bitcoinClient = new RPCBitcoinClient(address, port, protocol, url, user, password, timeout,
-                        TimeUnit.MILLISECONDS);
+                RPCBitcoinClient bitcoinClient = new RPCBitcoinClient(address, port, protocol, url, user, password,
+                        timeout, TimeUnit.MILLISECONDS);
 
                 try {
                     BitcoindApi api = bitcoinClient.getApi();
@@ -248,21 +274,21 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                     if (isTestnet != testnet) {
                         String expected = testnet ? "testnet" : "mainnet";
                         String actual = isTestnet ? "testnet" : "mainnet";
-                        testnetErrorDetailsText
+                        errorDetailsTextArea
                                 .append("Wrong network type: expected " + expected + ", found " + actual + ".");
-                        testneNetworkFeedbackERR.setVisible(true);
+                        networkFeedbackERR.setVisible(true);
                         return;
                     }
 
                 } catch (Exception e1) {
                     e1.printStackTrace();
-                    testnetErrorDetailsText.append("Cannot connect to the node.\n\n");
-                    testnetErrorDetailsText.append(Throwables.getStackTraceAsString(e1));
-                    testneNetworkFeedbackERR.setVisible(true);
+                    errorDetailsTextArea.append("Cannot connect to the node.\n\n");
+                    errorDetailsTextArea.append(Throwables.getStackTraceAsString(e1));
+                    networkFeedbackERR.setVisible(true);
                     return;
                 }
-                testnetErrorDetailsText.append("ok");
-                testnetNetworkFeedbackOK.setVisible(true);
+                errorDetailsTextArea.append("ok");
+                networkFeedbackOK.setVisible(true);
             }
         });
 
@@ -413,10 +439,10 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
                 .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
 
-        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUrl, testnetUsername,
-                testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUrl, mainnetUsername,
-                mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUrl,
+                testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUrl,
+                mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
         Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
         BitcoinClientFactory factory = injector.getInstance(BitcoinClientFactory.class);
