@@ -445,11 +445,22 @@ from {
 
     G |- substitutions |> script.exp : var Type scriptType
     scriptType = typesubstitution(substitutions, scriptType)
-    {
-        unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
-    } or {
-        unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createStringType)
+    
+    if (script.params.size == 0) {
+        {
+            unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
+        } or {
+            unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createStringType)
+        } or {
+            fail
+            error "expected type boolean or string"
+            source script.exp
+        }     
     }
+    else {
+        unify(script.exp, substitutions, scriptType, BitcoinTMFactory::eINSTANCE.createBooleanType)
+    }
+    
 
     // all the parameters should have a basic type (generic types are not allowed)
     for (p : script.params) {
