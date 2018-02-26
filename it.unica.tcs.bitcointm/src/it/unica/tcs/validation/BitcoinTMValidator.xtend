@@ -520,6 +520,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 tx,
                 null
             );
+            println(e.message)
         }
     }
 

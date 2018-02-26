@@ -24,11 +24,22 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.scoping.impl.SimpleLocalScopeProvider
 import org.eclipse.xtext.service.SingletonBinding
+import java.io.FileInputStream
+import java.io.File
+import java.util.Properties
+import java.io.IOException
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
+
+    override void configure(Binder binder) {
+        val trustedNodeConf = System.properties.getProperty("trustedNodesConfFile")
+        if (trustedNodeConf !== null)
+            tryBindPropertiesFromAbsoluteFile(binder, trustedNodeConf);
+        super.configure(binder);
+    }
 
     def Class<? extends StringRepresentation> bindStringRepresentation() {
         return BitcoinTMStringRepresentation;
@@ -66,5 +77,18 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
     def void configureBitcoinClient(Binder binder) {
         binder.bind(BitcoinClientI).toInstance(new RPCBitcoinClient("localhost", 8332, "http", "/", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
         binder.bind(BitcoinClientI).annotatedWith(Names.named("testnet")).toInstance(new RPCBitcoinClient("localhost", 18332, "http", "/", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
+    }
+
+    def void tryBindPropertiesFromAbsoluteFile(Binder binder, String propertyFilePath) {
+        try {
+            val in = new FileInputStream(new File(propertyFilePath));
+            if (in !== null) {
+                val properties = new Properties();
+                properties.load(in);
+                Names.bindProperties(binder, properties);
+            }
+        } catch (IOException e) {
+            println(e.message)
+        }
     }
 }
