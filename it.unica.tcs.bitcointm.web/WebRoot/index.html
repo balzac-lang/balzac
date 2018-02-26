@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Language" content="en-us">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <title>Bitcoin Transaction Model - Web Editor</title>
+    <title>Bitcoin Transactions Modeling Tool - Web Editor (beta)</title>
     
     <link rel="stylesheet" type="text/css" href="xtext/2.12.0/xtext-ace.css"/>
     <link rel="stylesheet" type="text/css" href="style.css"/>
@@ -49,7 +49,6 @@
                     editor.xtextServices.generate()
                         .done(function(result){
                             $("#result").html(result)
-                            
                         });
                     
                 });
@@ -76,8 +75,9 @@
     <div class="container mt-3 mb-3">
         <div class="card">
             <div class="card-header text-center">
-                <h3 class="card-title">Bitcoin Transaction Model</h3>
+                <h3 class="card-title">Bitcoin Transactions Modeling Tool</h3>
                 <h5 class="card-title">Web Editor</h5>
+                <p class="small">* beta version *</p>
             </div>
             <div class="card-body">
                 <div class="text-center mb-2">
@@ -86,16 +86,9 @@
                             id="selectExample" data-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false">Select an example</button>
                         <div class="dropdown-menu" aria-labelledby="selectExample">
-<!--                             <button class="dropdown-item" type="button" onclick="loadExample('/examples/index.btm')">Example</button> -->
                             <button class="dropdown-item" type="button" onclick="loadExample('examples/tc.btm')">Time Commitment</button>
-<!--                             <h6 class="dropdown-header">Timelock</h6> -->
-<!--                             <button class="dropdown-item" type="button" onclick="loadExample('/examples/asblock.btm')">Absolute timelock</button> -->
-<!--                             <button class="dropdown-item" type="button" onclick="loadExample('/examples/rellock.btm')">Relative timelock</button> -->
                         </div>
                     </div>
-<!--                     <div> -->
-<!--                         <button id="download" type="button" class="btn btn-primary"><i class="fas fa-download" title="Download"></i></button> -->
-<!--                     </div> -->
                 </div>
                 <div class="border border-dark mb-3" >
                     <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
@@ -105,8 +98,13 @@
                 </div>
             </div>
             <div class="card-footer">
-                <pre id="result" class="bg-white border border-dark resizable">
-               </pre>
+                <pre id="result" class="mt-2 bg-white border border-dark resizable">
+                </pre>
+            </div>
+        </div>
+        <div class="row text-center small mt-3">
+            <div class="col">
+            Copyright &copy; 2018  <a href="http://blockchain.unica.it" target="_blank">Blockchain@Unica</a>, <a href="http://unica.it" target="_blank">University of Cagliari</a>
             </div>
         </div>
     </div>
