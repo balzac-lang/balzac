@@ -3,7 +3,7 @@ package tc
 // definitions
 const fee = 0.00113 BTC
 const secret = 42
-const hash = hash160(secret)
+const h = hash160(secret)
 const deposit = 10 BTC
 const blockN = 150
 
@@ -17,7 +17,7 @@ transaction A_funds { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
 transaction T_commit {
     input = A_funds: sig(kA)
     output = deposit - fee:
-        fun(x,s:int) . hash160(s) == hash && versig(kA;x)
+        fun(x,s:int) . hash160(s) == h && versig(kA;x)
             || after block blockN : versig(kB;x)
 }
 

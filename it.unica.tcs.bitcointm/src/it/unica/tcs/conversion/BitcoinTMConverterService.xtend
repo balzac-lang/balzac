@@ -5,7 +5,6 @@
 package it.unica.tcs.conversion
 
 import com.google.inject.Inject
-import it.unica.tcs.conversion.converter.HashValueConverter
 import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
@@ -23,7 +22,6 @@ import org.eclipse.xtext.nodemodel.INode
 class BitcoinTMConverterService extends DefaultTerminalConverters {
 
     @Inject private NumberValueConverter numberValueConverter;
-    @Inject private HashValueConverter hashConverter;
     @Inject private TimestampValueConverter timestampTerminalConverter;
     @Inject private LongUnderscoreValueConverter longTerminalConverter;
 
@@ -32,24 +30,13 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
         return numberValueConverter
     }
 
-    @ValueConverter(rule = "HASH_160")
+    @ValueConverter(rule = "HASH_TERM")
     def IValueConverter<byte[]> getHash160Converter() {
-        return hashConverter
-    }
-
-    @ValueConverter(rule = "HASH_256")
-    def IValueConverter<byte[]> getHash256Converter() {
-        return hashConverter
-    }
-
-    @ValueConverter(rule = "RIPMED_160")
-    def IValueConverter<byte[]> getRipmed160Converter() {
-        return hashConverter
-    }
-
-    @ValueConverter(rule = "SHA_256")
-    def IValueConverter<byte[]> getSha256Converter() {
-        return hashConverter
+        return new AbstractLexerBasedConverter<byte[]>() {
+            override toValue(String string, INode node) throws ValueConverterException {
+                return BitcoinUtils.decode(string.split(":").get(1).toLowerCase)
+            }
+        }
     }
 
     @ValueConverter(rule = "TIMESTAMP")

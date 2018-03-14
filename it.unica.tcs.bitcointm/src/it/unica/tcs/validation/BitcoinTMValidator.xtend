@@ -35,10 +35,7 @@ import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionHexLiteral
 import it.unica.tcs.bitcoinTM.TransactionIDLiteral
 import it.unica.tcs.bitcoinTM.Versig
-import it.unica.tcs.lib.Hash.Hash160
-import it.unica.tcs.lib.Hash.Hash256
-import it.unica.tcs.lib.Hash.Ripemd160
-import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
@@ -215,10 +212,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
             var compilationResult =
                 switch (value) {
-                    Hash160:    BitcoinTMFactory.eINSTANCE.createHash160Type.value+":"+BitcoinUtils.encode(value.bytes)
-                    Hash256:    BitcoinTMFactory.eINSTANCE.createHash256Type.value+":"+BitcoinUtils.encode(value.bytes)
-                    Ripemd160:  BitcoinTMFactory.eINSTANCE.createRipemd160Type.value+":"+BitcoinUtils.encode(value.bytes)
-                    Sha256:     BitcoinTMFactory.eINSTANCE.createSha256Type.value+":"+BitcoinUtils.encode(value.bytes)
+                    Hash:    BitcoinTMFactory.eINSTANCE.createHashType.value+":"+BitcoinUtils.encode(value.bytes)
                     String:     '"'+value+'"'
                     default:    value.toString
                 }

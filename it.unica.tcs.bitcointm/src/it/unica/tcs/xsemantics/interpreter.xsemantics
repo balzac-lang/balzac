@@ -2,6 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
+import com.google.common.base.Throwables
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.Between
@@ -13,9 +14,7 @@ import it.unica.tcs.bitcoinTM.DateLiteral
 import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Hash160
-import it.unica.tcs.bitcoinTM.Hash160Literal
 import it.unica.tcs.bitcoinTM.Hash256
-import it.unica.tcs.bitcoinTM.Hash256Literal
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Interpretable
 import it.unica.tcs.bitcoinTM.KeyLiteral
@@ -29,9 +28,7 @@ import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Ripemd160
-import it.unica.tcs.bitcoinTM.Ripemd160Literal
 import it.unica.tcs.bitcoinTM.Sha256
-import it.unica.tcs.bitcoinTM.Sha256Literal
 import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -43,6 +40,7 @@ import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.utils.SignatureAndKey
 import java.math.BigInteger
 import org.bitcoinj.core.Address
@@ -50,8 +48,8 @@ import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.crypto.TransactionSignature
-import it.unica.tcs.utils.BitcoinClientFactory
-import com.google.common.base.Throwables
+import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.lib.Hash.HashAlgorithm
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
@@ -115,17 +113,8 @@ axiom InterpretStringLiteral
 axiom InterpretBooleanLiteral
     G |- BooleanLiteral bool |> Rho rho ~> bool.^true
 
-axiom InterpretHash160Literal
-    G |- Hash160Literal hash |> Rho rho ~> new Hash.Hash160(hash.value)
-
-axiom InterpretHash256Literal
-    G |- Hash256Literal hash |> Rho rho ~> new Hash.Hash256(hash.value)
-
-axiom InterpretRipemd160Literal
-    G |- Ripemd160Literal hash |> Rho rho ~> new Hash.Ripemd160(hash.value)
-
-axiom InterpretSha256Literal
-    G |- Sha256Literal hash |> Rho rho ~> new Hash.Sha256(hash.value)
+axiom InterpretHashLiteral
+    G |- HashLiteral hash |> Rho rho ~> new Hash(hash.value)
 
 rule InterpretSignatureLiteral
     G |- SignatureLiteral s |> Rho rho ~> SignatureAndKey result
@@ -469,13 +458,13 @@ from {
 
     // hash the bytes
     if (hash instanceof Hash160)
-        result = BitcoinUtils.hash(expResult, Hash.Hash160)
+        result = BitcoinUtils.hash(expResult, HashAlgorithm.HASH160)
     else if (hash instanceof Hash256)
-        result = BitcoinUtils.hash(expResult, Hash.Hash256)
+        result = BitcoinUtils.hash(expResult, HashAlgorithm.HASH256)
     else if (hash instanceof Ripemd160)
-        result = BitcoinUtils.hash(expResult, Hash.Ripemd160)
+        result = BitcoinUtils.hash(expResult, HashAlgorithm.RIPEMD160)
     else if (hash instanceof Sha256)
-        result = BitcoinUtils.hash(expResult, Hash.Sha256)
+        result = BitcoinUtils.hash(expResult, HashAlgorithm.SHA256)
     else {
         fail
         error "Unexpected instance "+hash.class

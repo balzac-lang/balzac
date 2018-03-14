@@ -6,23 +6,17 @@ package it.unica.tcs.utils
 
 import com.google.inject.Singleton
 import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.Hash160Type
-import it.unica.tcs.bitcoinTM.Hash256Type
+import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.IntType
 import it.unica.tcs.bitcoinTM.KeyType
 import it.unica.tcs.bitcoinTM.Network
 import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.Ripemd160Type
-import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.StringType
 import it.unica.tcs.bitcoinTM.TransactionType
 import it.unica.tcs.bitcoinTM.Type
 import it.unica.tcs.compiler.CompileException
-import it.unica.tcs.lib.Hash.Hash160
-import it.unica.tcs.lib.Hash.Hash256
-import it.unica.tcs.lib.Hash.Ripemd160
-import it.unica.tcs.lib.Hash.Sha256
+import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import java.util.List
 import org.bitcoinj.core.DumpedPrivateKey
@@ -38,10 +32,7 @@ class CompilerUtils {
 
     def String compileType(Type type) {
         if(type instanceof IntType) return "Long"
-        if(type instanceof Hash160Type) return "Hash160"
-        if(type instanceof Hash256Type) return "Hash256"
-        if(type instanceof Ripemd160Type) return "Ripemd160"
-        if(type instanceof Sha256Type) return "Sha256"
+        if(type instanceof HashType) return "Hash"
         if(type instanceof StringType) return "String"
         if(type instanceof BooleanType) return "Boolean"
         if(type instanceof SignatureType) return "byte[]"
@@ -67,10 +58,7 @@ class CompilerUtils {
         if(type instanceof IntType) return Long
         if(type instanceof StringType) return String
         if(type instanceof BooleanType) return Boolean
-        if(type instanceof Hash160Type) return Hash160
-        if(type instanceof Hash256Type) return Hash256
-        if(type instanceof Ripemd160Type) return Ripemd160
-        if(type instanceof Sha256Type) return Sha256
+        if(type instanceof HashType) return Hash
         if(type instanceof KeyType) return DumpedPrivateKey
         if(type instanceof TransactionType) return ITransactionBuilder
         if(type instanceof SignatureType) return typeof(byte[])

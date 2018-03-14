@@ -33,8 +33,7 @@ import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.Constant;
 import it.unica.tcs.bitcoinTM.Delay;
 import it.unica.tcs.bitcoinTM.Expression;
-import it.unica.tcs.bitcoinTM.Hash160Literal;
-import it.unica.tcs.bitcoinTM.Hash256Literal;
+import it.unica.tcs.bitcoinTM.HashLiteral;
 import it.unica.tcs.bitcoinTM.Interpretable;
 import it.unica.tcs.bitcoinTM.KeyLiteral;
 import it.unica.tcs.bitcoinTM.Literal;
@@ -45,18 +44,12 @@ import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.Reference;
 import it.unica.tcs.bitcoinTM.Referrable;
 import it.unica.tcs.bitcoinTM.RelativeTime;
-import it.unica.tcs.bitcoinTM.Ripemd160Literal;
 import it.unica.tcs.bitcoinTM.Script;
-import it.unica.tcs.bitcoinTM.Sha256Literal;
 import it.unica.tcs.bitcoinTM.SignatureLiteral;
-import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Timelock;
 import it.unica.tcs.bitcoinTM.Versig;
-import it.unica.tcs.lib.Hash.Hash160;
-import it.unica.tcs.lib.Hash.Hash256;
-import it.unica.tcs.lib.Hash.Ripemd160;
-import it.unica.tcs.lib.Hash.Sha256;
+import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 import it.unica.tcs.lib.SerialTransactionBuilder;
 import it.unica.tcs.lib.client.BitcoinClientI;
@@ -169,24 +162,9 @@ public class ASTUtils {
             res.setTrue((Boolean) value);
             return res;
         }
-        else if (value instanceof Hash160) {
-            Hash160Literal res = BitcoinTMFactory.eINSTANCE.createHash160Literal();
-            res.setValue(((Hash160) value).getBytes());
-            return res;
-        }
-        else if (value instanceof Hash256) {
-            Hash256Literal res = BitcoinTMFactory.eINSTANCE.createHash256Literal();
-            res.setValue(((Hash256) value).getBytes());
-            return res;
-        }
-        else if (value instanceof Ripemd160) {
-            Ripemd160Literal res = BitcoinTMFactory.eINSTANCE.createRipemd160Literal();
-            res.setValue(((Ripemd160) value).getBytes());
-            return res;
-        }
-        else if (value instanceof Sha256) {
-            Sha256Literal res = BitcoinTMFactory.eINSTANCE.createSha256Literal();
-            res.setValue(((Sha256) value).getBytes());
+        else if (value instanceof Hash) {
+            HashLiteral res = BitcoinTMFactory.eINSTANCE.createHashLiteral();
+            res.setValue(((Hash) value).getBytes());
             return res;
         }
         else if (value instanceof DumpedPrivateKey) {

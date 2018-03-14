@@ -9,15 +9,12 @@ import java.util.Map.Entry;
 import it.unica.tcs.bitcoinTM.AddressType;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.BooleanType;
-import it.unica.tcs.bitcoinTM.Hash160Type;
-import it.unica.tcs.bitcoinTM.Hash256Type;
+import it.unica.tcs.bitcoinTM.HashType;
 import it.unica.tcs.bitcoinTM.IntType;
 import it.unica.tcs.bitcoinTM.KeyType;
 import it.unica.tcs.bitcoinTM.Parameter;
 import it.unica.tcs.bitcoinTM.PubkeyType;
 import it.unica.tcs.bitcoinTM.Reference;
-import it.unica.tcs.bitcoinTM.Ripemd160Type;
-import it.unica.tcs.bitcoinTM.Sha256Type;
 import it.unica.tcs.bitcoinTM.SignatureType;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.StringType;
@@ -75,17 +72,8 @@ public class BitcoinTMStringRepresentation extends StringRepresentation {
         else if (type instanceof KeyType) {
             return ((KeyType) type).getValue().getLiteral();
         }
-        else if (type instanceof Hash160Type) {
-            return ((Hash160Type) type).getValue().getLiteral();
-        }
-        else if (type instanceof Hash256Type) {
-            return ((Hash256Type) type).getValue().getLiteral();
-        }
-        else if (type instanceof Sha256Type) {
-            return ((Sha256Type) type).getValue().getLiteral();
-        }
-        else if (type instanceof Ripemd160Type) {
-            return ((Ripemd160Type) type).getValue().getLiteral();
+        else if (type instanceof HashType) {
+            return ((HashType) type).getValue().getLiteral();
         }
         else if (type instanceof AddressType) {
             return ((AddressType) type).getValue().getLiteral();

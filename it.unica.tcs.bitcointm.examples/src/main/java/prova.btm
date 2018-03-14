@@ -58,10 +58,10 @@ transaction Th {
 	input = _
 	output =
 		10 BTC:	fun(secret:string).
-			sha256(secret)==sha256:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b &&
-			hash256(secret)==hash256:3881219d087dd9c634373fd33dfa33a2cb6bfc6c520b64b8bb60ef2ceb534ae7 &&
-			ripemd160(secret)==ripemd160:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
-			hash160(secret)==hash160:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
+			sha256(secret)==hash:2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b &&
+			hash256(secret)==hash:3881219d087dd9c634373fd33dfa33a2cb6bfc6c520b64b8bb60ef2ceb534ae7 &&
+			ripemd160(secret)==hash:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78 &&
+			hash160(secret)==hash:d1b64100879ad93ceaa3c15929b6fe8550f54967 &&
 			hash160(secret)==ripemd160(sha256(secret)) &&
 			hash256("mario")==sha256(sha256("mario")) &&
 			hash160("")==ripemd160(sha256(""))&&
@@ -71,7 +71,7 @@ transaction Th {
 }
 
 transaction Th1 {
-	input = Th: "secretq2"
+	input = Th: "secret"
 	output = 0: "HELLO WORLD"
 }
 

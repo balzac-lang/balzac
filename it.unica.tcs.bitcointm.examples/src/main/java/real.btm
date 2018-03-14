@@ -23,7 +23,7 @@ transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276
 
 transaction T1 { // id: 3168215d8c988d910fe48d7707e074d95c45d19c8138d0bbe7b05c91446a638a
 	input = T : sig(k)
-	output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(k; sigma) && hash160(secret)==hash160:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
+	output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(k; sigma) && hash160(secret)==hash:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
 }
 
 transaction T2 { // id: 17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845

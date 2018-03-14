@@ -30,6 +30,7 @@ import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.script.InputScript;
@@ -107,7 +108,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             checkState(!out.getScript().hasVariable(name), "output script "+out.getScript()+" use variable '"+name+"'");
         }
         env.removeVariable(name);
-        variablesHook.remove(name);
+        variablesHook.remove(ImmutableSet.of(name));
         return this;
     }
 
@@ -144,8 +145,8 @@ public class TransactionBuilder implements ITransactionBuilder {
             checkArgument(hasVariable(name), "'"+name+"' is not a variable");
             checkArgument(isFree(name), "'"+name+"' is not a free");
         }
-        checkArgument(!variablesHook.containsKey(names), "an hook for variables "+names+" is already defined");
-        variablesHook.put(names, hook);
+        checkArgument(!variablesHook.containsKey(ImmutableSet.copyOf(names)), "an hook for variables "+names+" is already defined");
+        variablesHook.put(ImmutableSet.copyOf(names), hook);
         return this;
     }
 

@@ -19,11 +19,7 @@ import it.unica.tcs.bitcoinTM.DateLiteral
 import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Hash160
-import it.unica.tcs.bitcoinTM.Hash160Literal
-import it.unica.tcs.bitcoinTM.Hash160Type
 import it.unica.tcs.bitcoinTM.Hash256
-import it.unica.tcs.bitcoinTM.Hash256Literal
-import it.unica.tcs.bitcoinTM.Hash256Type
 import it.unica.tcs.bitcoinTM.HashableType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
@@ -44,12 +40,8 @@ import it.unica.tcs.bitcoinTM.PubkeyType
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160
-import it.unica.tcs.bitcoinTM.Ripemd160Literal
-import it.unica.tcs.bitcoinTM.Ripemd160Type
 import it.unica.tcs.bitcoinTM.Script
 import it.unica.tcs.bitcoinTM.Sha256
-import it.unica.tcs.bitcoinTM.Sha256Literal
-import it.unica.tcs.bitcoinTM.Sha256Type
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
 import it.unica.tcs.bitcoinTM.SignatureType
@@ -72,6 +64,8 @@ import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.HashType
+import it.unica.tcs.bitcoinTM.HashLiteral
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -139,19 +133,7 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, IntType t1, IntTyp
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash160Type t1, Hash160Type t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash256Type t1, Hash256Type t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Ripemd160Type t1, Ripemd160Type t2) {
-    EcoreUtil::copy(t1)
-}
-
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Sha256Type t1, Sha256Type t2) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, HashType t1, HashType t2) {
     EcoreUtil::copy(t1)
 }
 
@@ -198,26 +180,6 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable left,
     substitutions.add(left.value, fresh)
     substitutions.add(right.value, fresh)
     fresh
-}
-
-// hash256 is a sha256
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash256Type t1, Sha256Type t2) {
-    EcoreUtil::copy(t2)
-}
-
-// hash256 is a sha256
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Sha256Type t1, Hash256Type t2) {
-    EcoreUtil::copy(t1)
-}
-
-// hash160 is a sha256
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Hash160Type t1, Ripemd160Type t2) {
-    EcoreUtil::copy(t2)
-}
-
-// hash160 is a sha256
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, Ripemd160Type t1, Hash160Type t2) {
-    EcoreUtil::copy(t1)
 }
 
 // key is subtype of address: you can derive an address from its private part
@@ -507,17 +469,8 @@ axiom BooleanLiteral
 axiom StringLiteral
     G |- TypeSubstitutions substitutions |> StringLiteral str : BitcoinTMFactory::eINSTANCE.createStringType
 
-axiom Hash160Literal
-    G |- TypeSubstitutions substitutions |> Hash160Literal h : BitcoinTMFactory::eINSTANCE.createHash160Type
-
-axiom Hash256Literal
-    G |- TypeSubstitutions substitutions |> Hash256Literal h : BitcoinTMFactory::eINSTANCE.createHash256Type
-
-axiom Ripemd160Literal
-    G |- TypeSubstitutions substitutions |> Ripemd160Literal h : BitcoinTMFactory::eINSTANCE.createRipemd160Type
-
-axiom Sha256Literal
-    G |- TypeSubstitutions substitutions |> Sha256Literal h : BitcoinTMFactory::eINSTANCE.createSha256Type
+axiom HashLiteral
+    G |- TypeSubstitutions substitutions |> HashLiteral h : BitcoinTMFactory::eINSTANCE.createHashType
 
 axiom TransactionHexLiteral
     G |- TypeSubstitutions substitutions |> TransactionHexLiteral tx : BitcoinTMFactory::eINSTANCE.createTransactionType
@@ -760,7 +713,7 @@ from {
 }
 
 rule Hash160
-    G |- TypeSubstitutions substitutions |> Hash160 hash: BitcoinTMFactory::eINSTANCE.createHash160Type
+    G |- TypeSubstitutions substitutions |> Hash160 hash: BitcoinTMFactory::eINSTANCE.createHashType
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
@@ -773,7 +726,7 @@ from {
 }
 
 rule Hash256
-    G |- TypeSubstitutions substitutions |> Hash256 hash: BitcoinTMFactory::eINSTANCE.createHash256Type
+    G |- TypeSubstitutions substitutions |> Hash256 hash: BitcoinTMFactory::eINSTANCE.createHashType
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
@@ -786,7 +739,7 @@ from {
 }
 
 rule Ripemd160
-    G |- TypeSubstitutions substitutions |> Ripemd160 hash: BitcoinTMFactory::eINSTANCE.createRipemd160Type
+    G |- TypeSubstitutions substitutions |> Ripemd160 hash: BitcoinTMFactory::eINSTANCE.createHashType
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)
@@ -799,7 +752,7 @@ from {
 }
 
 rule Sha256
-    G |- TypeSubstitutions substitutions |> Sha256 hash: BitcoinTMFactory::eINSTANCE.createSha256Type
+    G |- TypeSubstitutions substitutions |> Sha256 hash: BitcoinTMFactory::eINSTANCE.createHashType
 from {
     G |- substitutions |> hash.value: var Type t
     t = typesubstitution(substitutions, t)

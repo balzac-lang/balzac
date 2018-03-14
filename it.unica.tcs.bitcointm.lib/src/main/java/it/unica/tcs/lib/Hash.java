@@ -9,9 +9,10 @@ import static com.google.common.base.Preconditions.*;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-public abstract class Hash {
+public class Hash {
 
     private final byte[] bytes;
+    public enum HashAlgorithm { SHA256, RIPEMD160, HASH256, HASH160 }
 
     public Hash(byte[] bytes) {
         this.bytes = bytes;
@@ -25,8 +26,12 @@ public abstract class Hash {
         return BitcoinUtils.encode(bytes);
     }
 
-    abstract public String getType();
+    @Deprecated
+    public String getType() {
+        return "";
+    }
 
+    @Deprecated
     public static final class Hash160 extends Hash {
         public Hash160(byte[] bytes) {
             super(bytes);
@@ -37,6 +42,7 @@ public abstract class Hash {
         }
     }
 
+    @Deprecated
     public static final class Hash256 extends Hash {
         public Hash256(byte[] bytes) {
             super(bytes);
@@ -47,6 +53,7 @@ public abstract class Hash {
         }
     }
 
+    @Deprecated
     public static final class Ripemd160 extends Hash {
         public Ripemd160(byte[] bytes) {
             super(bytes);
@@ -57,6 +64,7 @@ public abstract class Hash {
         }
     }
 
+    @Deprecated
     public static final class Sha256 extends Hash {
         public Sha256(byte[] bytes) {
             super(bytes);

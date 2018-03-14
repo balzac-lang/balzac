@@ -155,12 +155,6 @@ Literal:
 |   TransactionLiteral
 |	SignatureLiteral;
 
-HashLiteral:
-	Hash160Literal
-|	Hash256Literal
-|	Ripemd160Literal
-|	Sha256Literal;
-
 TransactionLiteral:
     TransactionHexLiteral
 |   TransactionIDLiteral;
@@ -169,10 +163,7 @@ NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 DateLiteral: value=TIMESTAMP;
-Hash160Literal: value=HASH_160;
-Hash256Literal: value=HASH_256;
-Ripemd160Literal: value=RIPMED_160;
-Sha256Literal: value=SHA_256;
+HashLiteral: value=HASH_TERM;
 KeyLiteral: value=WIF;
 PubKeyLiteral: value=PUBKEY;
 TransactionHexLiteral: value=TXSERIAL;
@@ -222,10 +213,7 @@ PermittedType:
 	{IntType} value=IntTypeEnum
 |	{StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
-|   {Hash160Type} value=Hash160TypeEnum
-|   {Hash256Type} value=Hash256TypeEnum
-|   {Ripemd160Type} value=Ripemd160TypeEnum
-|   {Sha256Type} value=Sha256TypeEnum
+|   {HashType} value=HashTypeEnum
 |   {KeyType} value=KeyTypeEnum
 |   {PubkeyType} value=PubkeyTypeEnum
 |   {AddressType} value=AddressTypeEnum
@@ -236,11 +224,7 @@ HashableType:
     {IntType} value=IntTypeEnum
 |   {StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
-|   {Hash160Type} value=Hash160TypeEnum
-|   {Hash256Type} value=Hash256TypeEnum
-|   {Ripemd160Type} value=Ripemd160TypeEnum
-|   {Sha256Type} value=Sha256TypeEnum;
-
+|   {HashType} value=HashTypeEnum;
 
 enum IntTypeEnum: int;
 enum StringTypeEnum: string;
@@ -250,10 +234,7 @@ enum PubkeyTypeEnum: pubkey;
 enum AddressTypeEnum: address;
 enum SignatureTypeEnum: signature;
 enum TransactionTypeEnum: transaction;
-enum Hash160TypeEnum: hash160;
-enum Hash256TypeEnum: hash256;
-enum Ripemd160TypeEnum: ripemd160;
-enum Sha256TypeEnum: sha256;
+enum HashTypeEnum: hash;
 enum VoidTypeEnum: void;
 
 Typeable:
@@ -293,10 +274,7 @@ terminal LONG_HEX returns ecore::ELong:
 terminal LONG returns ecore::ELong:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
 
-terminal SHA_256 returns ecore::EByteArray:    'sha256:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal RIPMED_160 returns ecore::EByteArray: 'ripemd160:' ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal HASH_256 returns ecore::EByteArray:   'hash256:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal HASH_160 returns ecore::EByteArray:   'hash160:'   ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal HASH_TERM returns ecore::EByteArray:  'hash:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXID returns ecore::EString:          'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL returns ecore::EString:      'tx:'        ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal SIGHEX returns ecore::EString:        'sig:'       ('0'..'9'|'a'..'f'|'A'..'F')+;

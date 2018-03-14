@@ -25,7 +25,7 @@ transaction T_commitA {
 	input = _
 	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
-			hash160(x) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
+			hash160(x) == hash:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
 			||
 			versig(kA, kB; sigma1, sigma2)
 }
@@ -34,12 +34,12 @@ transaction T_commitB {
 	input = _
 	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
-			hash160(x) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
+			hash160(x) == hash:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
 			||
 			versig(kA, kB; sigma1, sigma2)
 }
 
-transaction T_commit(hSecret:hash160, k:key) {
+transaction T_commit(hSecret:hash, k:key) {
 	input = _
 	output = 10 BTC:
 		fun(sigma1, sigma2, x:string).
@@ -88,8 +88,8 @@ transaction T_compute {
     input = _
 	output =
 		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) .
-			hash160(xA) == hash160:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
-			hash160(xB) == hash160:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
+			hash160(xA) == hash:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
+			hash160(xB) == hash:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
 			(size(xA) == 128 || size(xA) == 127) &&
 			(size(xB) == 128 || size(xB) == 127) &&
 			if size(xA) == size(xB)
