@@ -14,7 +14,6 @@ import java.io.ObjectOutputStream;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -321,6 +320,12 @@ public class TransactionBuilder implements ITransactionBuilder {
      */
     @Override
     public Transaction toTransaction() {
+        // TODO: check there are not signatures to compute
+        return toTransaction(null);
+    }
+    
+    @Override
+    public Transaction toTransaction(ECKeyStore keystore) {
         checkState(this.isReady(), "the transaction and all its ancestors are not ready");
 
         Transaction tx = new Transaction(params);
@@ -341,7 +346,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             }
             else {
                 ITransactionBuilder parentTransaction2 = input.getParentTx();
-                Transaction parentTransaction = parentTransaction2.toTransaction();
+                Transaction parentTransaction = parentTransaction2.toTransaction(keystore);
                 TransactionOutPoint outPoint = new TransactionOutPoint(params, input.getOutIndex(), parentTransaction);
                 byte[] script = new byte[]{};   // script will be set later
                 TransactionInput txInput = new TransactionInput(params, tx, script, outPoint);
@@ -420,7 +425,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
             }
             try {
-                sb.setAllSignatures(tx, i, outScript);
+                sb.setAllSignatures(keystore, tx, i, outScript);
             } catch (KeyStoreException e) {
                 throw new RuntimeException(e);
             }

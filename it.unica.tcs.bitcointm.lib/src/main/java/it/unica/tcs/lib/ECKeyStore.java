@@ -3,14 +3,12 @@
  */
 
 package it.unica.tcs.lib;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStore.Entry;
@@ -43,86 +41,62 @@ public class ECKeyStore {
         return getUniqueID(DumpedPrivateKey.fromBase58(null, wif).getKey());
     }
 
-    /**
-     * Create a new ECKeyStore.
-     * The keystore file is <b>temporary</b> and <b>the password is empty</b>.
-     *
-     * <p>Use methods {@link #changeKeyStoreFile(File, boolean)} and
-     * {@link #changePassword(char[])} to set a new file and a new password.</p>
-     *
-     * <p><b>Don't add keys before invoking your password</b></p>
-     * @return an instance of ECKeyStore
-     * @throws KeyStoreException if an error occur creating the {@link KeyStore}
-     */
-    public static ECKeyStore create() throws KeyStoreException {
-        try {
-            KeyStore ks = KeyStore.getInstance("pkcs12");
-            File ksFile = File.createTempFile("keystore-tmp", ".p12");
-            ks.load(null);
-            ks.store(new FileOutputStream(ksFile), new char[0]);
-            return new ECKeyStore(ksFile);
-        }
-        catch(KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-            throw new KeyStoreException(e);
-        }
-    }
-
-    private File ksFile;
     private char[] password;
     private KeyStore ks;
 
-    public ECKeyStore(String keystorePath) throws KeyStoreException {
-        this(keystorePath, new char[0]);
+    /**
+     * Create a new ECKeyStore with an <b>empty password</b>.
+     * Use {@link #changePassword(char[])} to set a new password.
+     * @return an instance of ECKeyStore
+     * @throws KeyStoreException if an error occur creating the {@link KeyStore}
+     */
+    public ECKeyStore() throws KeyStoreException {
+        this(new char[0]);
     }
 
-    public ECKeyStore(String keystorePath, char[] password) throws KeyStoreException {
-        this(new File(keystorePath), password);
+    /**
+     * Create a new ECKeyStore with the specified password.
+     * The same password is used to store the keystore via {@link #store(File)} and for entries. 
+     * Use {@link #changePassword(char[])} to set a new password.
+     * @param password a password for the store and its entries.
+     * @return an instance of ECKeyStore.
+     * @throws KeyStoreException if an error occur creating the {@link KeyStore}
+     */
+    public ECKeyStore(char[] password) throws KeyStoreException {
+        this(null, password);
     }
 
-    public ECKeyStore(File keystoreFile) throws KeyStoreException {
-        this(keystoreFile, new char[0]);
-    }
-
-    public ECKeyStore(File keystoreFile, char[] password) throws KeyStoreException {
-        checkNotNull(keystoreFile);
-        checkArgument(keystoreFile.isFile(), "Cannot find file "+keystoreFile.getAbsolutePath());
-        checkArgument(keystoreFile.canRead(), "Cannot have read permission to file "+keystoreFile.getAbsolutePath());
-        checkArgument(keystoreFile.canWrite(), "Cannot have write permission to file "+keystoreFile.getAbsolutePath());
-        this.ksFile = keystoreFile;
+    /**
+     * Load the keystore from the given input stream, or create a new one if null.
+     * The password is used to decrypt the keystore <b>and each entry</b>.
+     * @param input the input stream from which load the keystore.
+     * @param password a password for the store and its entries.
+     * @throws KeyStoreException
+     */
+    public ECKeyStore(InputStream input, char[] password) throws KeyStoreException {
         this.password = Arrays.copyOf(password, password.length);
         this.ks = KeyStore.getInstance("pkcs12");
-        init();
-    }
-
-    private void init() throws KeyStoreException {
-        try (FileInputStream fis = new FileInputStream(ksFile)) {
-            ks.load(fis, password);
+        try {
+            ks.load(input, password);
         } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
-            throw new KeyStoreException("Cannot load keystore "+ksFile.getAbsolutePath()+": "+e.getMessage(), e);
+            throw new KeyStoreException("Cannot create the keystore: "+e.getMessage(), e);
         }
     }
 
-    public File getKeyStoreFile() {
-        return ksFile;
-    }
-
-    public KeyStore getKeyStore() {
-        return ks;
+    public String addKey(String wif) throws KeyStoreException {
+        return addKey(DumpedPrivateKey.fromBase58(null, wif).getKey());
     }
 
     public String addKey(ECKey key) throws KeyStoreException {
         checkState(!key.isPubKeyOnly(), "Only private key are allowed.");
-        KeyStore ks = getKeyStore();
         String alias = getUniqueID(key);
         SecretKey secretKey = new SecretKeySpec(key.getPrivKeyBytes(), "EC");
         SecretKeyEntry kEntry = new SecretKeyEntry(secretKey);
         ks.setEntry(alias, kEntry, new PasswordProtection(password));
-        flush();
         return alias;
     }
 
     public ECKey getKey(String keyID) throws KeyStoreException {
-        KeyStore ks = getKeyStore();
         checkState(ks.containsAlias(keyID));
         Key entryKey;
         try {
@@ -134,7 +108,11 @@ public class ECKeyStore {
         }
     }
 
-    public void flush() throws KeyStoreException {
+    public boolean containsKey(String keyID) throws KeyStoreException {
+        return ks.containsAlias(keyID);
+    }
+
+    public void store(File ksFile) throws KeyStoreException {
         try (FileOutputStream fos = new FileOutputStream(ksFile)) {
             ks.store(fos, password);
         } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
@@ -142,39 +120,17 @@ public class ECKeyStore {
         }
     }
 
-    public boolean contains(String keyID) throws KeyStoreException {
-        return getKeyStore().containsAlias(keyID);
-    }
-
-    public void changeKeyStoreFile(File ksFile, boolean deleteOld) throws KeyStoreException{
-        File tmp = this.ksFile;
-        this.ksFile = ksFile;
-        flush();
-        if (deleteOld)
-            tmp.delete();
-    }
-
     public void changePassword(char[] password) throws KeyStoreException {
-        flush();
-        ECKeyStore tmp = ECKeyStore.create();
-
         try {
-            // populate the temporary store
             for (String alias : Collections.list(ks.aliases())) {
-                Entry entry = ks.getEntry(alias, new PasswordProtection(this.password));
-                tmp.ks.setEntry(alias, entry, new PasswordProtection(password));    // new password
+                Entry entry = ks.getEntry(alias, new PasswordProtection(this.password));    // read
+                ks.setEntry(alias, entry, new PasswordProtection(password));                // override
             }
 
             // update the password
             Arrays.fill(this.password, '0');
             this.password = Arrays.copyOf(password, password.length);
 
-            // override the previous keystore file
-            this.ks = tmp.ks;
-            flush();
-
-            // cleanup
-            tmp.ksFile.delete();
         } catch (NoSuchAlgorithmException | UnrecoverableEntryException e) {
             throw new KeyStoreException(e);
         }

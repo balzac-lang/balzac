@@ -41,14 +41,14 @@ class RawTransactionGenerator extends AbstractGenerator {
             }
 
         if (fsa instanceof InMemoryFileSystemAccess) {
-            fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions(new ECKeyStore(packagePath + File.separator + KeyStoreGenerator.KEYSTORE__FILENAME)))
+            fsa.generateFile('/DEFAULT_ARTIFACT', model.compileTransactions)
         }
         else {
-            fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions(new ECKeyStore(packagePath + File.separator + KeyStoreGenerator.KEYSTORE__FILENAME)))
+            fsa.generateFile(packagePath + File.separator + "transactions", model.compileTransactions)
         }
     }
 
-    def private compileTransactions(Model model, ECKeyStore ecks) {
+    def private compileTransactions(Model model) {
 
         val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
 
@@ -67,12 +67,7 @@ class RawTransactionGenerator extends AbstractGenerator {
                     val obj = res.first
 
                     if (obj instanceof ITransactionBuilder) {
-                        // TODO: this is temporary
-                        for (s : obj.inputs.map[i|i.script]) {
-                            s.keyStore = ecks
-                        }
-
-                        val tx = obj.toTransaction
+                        val tx = obj.toTransaction(astUtils.getECKeyStore(model))
                         sb.append(tx).append("\n")
                         sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
                     }

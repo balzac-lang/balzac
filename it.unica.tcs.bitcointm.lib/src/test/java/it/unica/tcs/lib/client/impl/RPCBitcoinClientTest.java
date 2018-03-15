@@ -57,7 +57,6 @@ public class RPCBitcoinClientTest {
     }
 
     @Test
-    @Ignore
     public void test() {
 
         BitcoindApi api = ((RPCBitcoinClient)client).getApi();
@@ -76,4 +75,21 @@ public class RPCBitcoinClientTest {
         System.out.println("Is mined (reliability low): " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66", Confidentiality.LOW));
     }
 
+    public static void main(String[] args) {
+        RPCBitcoinClient client = new RPCBitcoinClient("co2.unica.it", 80, "http", "/bitcoin-testnet", "bitcoin", "L4mbWnzC35BNrmTJ", 3, TimeUnit.SECONDS);
+        BitcoindApi api = ((RPCBitcoinClient)client).getApi();
+
+        System.out.println("Best block count: " + client.getBlockCount());
+        System.out.println("Get raw transaction: " + client.getRawTransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
+        System.out.println("Get raw transaction: " + api.getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
+        System.out.println("Get raw transaction: " + api.getrawtransaction("ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468"));
+        System.out.println("Get raw transaction: " + api.getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", true));
+        System.out.println("Get raw transaction: " + api.getrawtransaction("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", false));
+        System.out.println("Get UTXO: " + api.gettxout("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", 0));
+        System.out.println("Get UTXO: " + api.gettxout("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", 2));
+        System.out.println("Get isUTXO: " + client.isUTXO("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845"));
+        System.out.println("Get isUTXO: " + client.isUTXO("17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845", 1));
+        System.out.println("Is mined: " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66"));
+        System.out.println("Is mined (reliability low): " + client.isMined("82a560381ac769d778ad42d72c0355123c0df55282fe12630638740a18cc7b66", Confidentiality.LOW));
+    }
 }

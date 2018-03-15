@@ -53,6 +53,11 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
     }
 
     @Override
+    public Transaction toTransaction(ECKeyStore kstore) {
+        return toTransaction();
+    }
+
+    @Override
     public boolean isCoinbase() {
         return getTx().isCoinBase();
     }

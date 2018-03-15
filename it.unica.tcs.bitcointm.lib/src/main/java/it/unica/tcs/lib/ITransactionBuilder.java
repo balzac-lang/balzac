@@ -30,6 +30,14 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
     public abstract Transaction toTransaction();
 
     /**
+     * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
+     * unbound free variables.
+     * @param kstore a keystore containing the private keys needed for transaction building.
+     * @return a bitcoinj transaction.
+     */
+    public abstract Transaction toTransaction(ECKeyStore kstore);
+
+    /**
      * Return the inputs.
      * @return the inputs
      */

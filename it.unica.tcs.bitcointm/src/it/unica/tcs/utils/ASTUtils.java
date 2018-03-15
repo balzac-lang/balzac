@@ -4,6 +4,7 @@
 
 package it.unica.tcs.utils;
 
+import java.security.KeyStoreException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,6 +50,7 @@ import it.unica.tcs.bitcoinTM.SignatureLiteral;
 import it.unica.tcs.bitcoinTM.StringLiteral;
 import it.unica.tcs.bitcoinTM.Timelock;
 import it.unica.tcs.bitcoinTM.Versig;
+import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 import it.unica.tcs.lib.SerialTransactionBuilder;
@@ -65,6 +67,18 @@ public class ASTUtils {
 
     @Inject private BitcoinClientI bitcoin;
     @Inject private BitcoinTMInterpreter interpreter;
+
+    public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
+        ECKeyStore kstore = new ECKeyStore();
+        EObject root = EcoreUtil2.getRootContainer(obj);
+        List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
+        for (KeyLiteral k : keys) {
+            if (isPrivateKey(k)) {
+                kstore.addKey(k.getValue());
+            }
+        }
+        return kstore;
+    }
 
     public boolean isAddress(KeyLiteral k) {
         return isAddress(k.getValue());

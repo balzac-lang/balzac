@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Nicola Atzei
+za * Copyright 2017 Nicola Atzei
  */
 
 package it.unica.tcs.lib.script;
@@ -55,7 +55,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
     private final Env<Object> env = new Env<>();
 
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
-    private ECKeyStore keystore;
 
     private static class SignatureUtil implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -117,10 +116,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
 
     protected AbstractScriptBuilderWithVar(String serializedScript) {
         this.deserialize(serializedScript);
-    }
-
-    public void setKeyStore(ECKeyStore ks) {
-        this.keystore = ks;
     }
 
     @Override
@@ -191,7 +186,7 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
      * @throws KeyStoreException if an error occurs retrieving private keys
      */
     @SuppressWarnings("unchecked")
-    public T setAllSignatures(Transaction tx, int inputIndex, byte[] outScript) throws KeyStoreException {
+    public T setAllSignatures(ECKeyStore keystore, Transaction tx, int inputIndex, byte[] outScript) throws KeyStoreException {
 
         List<ScriptChunk> newChunks = new ArrayList<>();
 
@@ -203,7 +198,7 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
                 SignatureUtil sig = this.signatures.get(mapKey);
 
                 checkState(keystore != null, "keystore must be set to retrieve the private keys");
-                checkState(keystore.contains(sig.keyID), "key "+sig.keyID+" not found on keystore "+keystore.getKeyStoreFile());
+                checkState(keystore.containsKey(sig.keyID), "key "+sig.keyID+" not found on the specified keystore");
 
                 ECKey key = keystore.getKey(sig.keyID);
                 SigHash hashType = sig.hashType;
@@ -346,12 +341,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
         return new String(ch.data).substring(SIGNATURE_PREFIX.length());
     }
 
-    @Override
-    public String toString() {
-        return this.serialize();
-    }
-
-
     protected String serializeChunk(ScriptChunk ch) {
 
         StringBuilder str = new StringBuilder();
@@ -477,8 +466,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
             return value - 1 + OP_1;
     }
 
-
-
     private void addVariableChunk(String name) {
         byte[] data = (FREEVAR_PREFIX+name).getBytes();
         checkState(data.length<256, "data too long: "+data.length);
@@ -496,91 +483,6 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
                 it.remove();
             }
         }
-    }
-
-    @Override
-    public boolean hasVariable(String name) {
-        return env.hasVariable(name);
-    }
-
-    @Override
-    public boolean isFree(String name) {
-        return env.isFree(name);
-    }
-
-    @Override
-    public boolean isBound(String name) {
-        return env.isBound(name);
-    }
-
-    @Override
-    public Class<?> getType(String name) {
-        return env.getType(name);
-    }
-
-    @Override
-    public Object getValue(String name) {
-        return env.getValue(name);
-    }
-
-    @Override
-    public <E> E getValue(String name, Class<E> clazz) {
-        return env.getValue(name, clazz);
-    }
-
-    @Override
-    public Object getValueOrDefault(String name, Object defaultValue) {
-        return env.getValueOrDefault(name, defaultValue);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public T addVariable(String name, Class<?> type) {
-        checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
-                || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type) || TransactionSignature.class.equals(type), "invalid type "+type);
-        addVariableChunk(name);
-        env.addVariable(name, type);
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public T removeVariable(String name) {
-        removeVariableChunk(name);
-        env.removeVariable(name);
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public T bindVariable(String name, Object value) {
-        env.bindVariable(name, value);
-        return (T) this;
-    }
-
-    @Override
-    public Collection<String> getVariables() {
-        return env.getVariables();
-    }
-
-    @Override
-    public Collection<String> getFreeVariables() {
-        return env.getFreeVariables();
-    }
-
-    @Override
-    public Collection<String> getBoundVariables() {
-        return env.getBoundVariables();
-    }
-
-    @Override
-    public boolean isReady() {
-        return env.isReady();
-    }
-
-    @Override
-    public void clear() {
-        env.clear();
     }
 
     @Override
@@ -613,5 +515,99 @@ abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithV
         } else if (!signatures.equals(other.signatures))
             return false;
         return getChunks().equals(other.getChunks());
+    }
+
+    @Override
+    public String toString() {
+        return this.serialize();
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    //                           EnvI interface                             //
+    //////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public boolean hasVariable(String name) {
+        return env.hasVariable(name);
+    }
+    
+    @Override
+    public boolean isFree(String name) {
+        return env.isFree(name);
+    }
+    
+    @Override
+    public boolean isBound(String name) {
+        return env.isBound(name);
+    }
+    
+    @Override
+    public Class<?> getType(String name) {
+        return env.getType(name);
+    }
+    
+    @Override
+    public Object getValue(String name) {
+        return env.getValue(name);
+    }
+    
+    @Override
+    public <E> E getValue(String name, Class<E> clazz) {
+        return env.getValue(name, clazz);
+    }
+    
+    @Override
+    public Object getValueOrDefault(String name, Object defaultValue) {
+        return env.getValueOrDefault(name, defaultValue);
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public T addVariable(String name, Class<?> type) {
+        checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
+                || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type) || TransactionSignature.class.equals(type), "invalid type "+type);
+        addVariableChunk(name);
+        env.addVariable(name, type);
+        return (T) this;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public T removeVariable(String name) {
+        removeVariableChunk(name);
+        env.removeVariable(name);
+        return (T) this;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public T bindVariable(String name, Object value) {
+        env.bindVariable(name, value);
+        return (T) this;
+    }
+    
+    @Override
+    public Collection<String> getVariables() {
+        return env.getVariables();
+    }
+    
+    @Override
+    public Collection<String> getFreeVariables() {
+        return env.getFreeVariables();
+    }
+    
+    @Override
+    public Collection<String> getBoundVariables() {
+        return env.getBoundVariables();
+    }
+    
+    @Override
+    public boolean isReady() {
+        return env.isReady();
+    }
+    
+    @Override
+    public void clear() {
+        env.clear();
     }
 }

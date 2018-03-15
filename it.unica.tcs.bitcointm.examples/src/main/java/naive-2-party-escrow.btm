@@ -33,7 +33,7 @@ transaction T {
 }
 
 // finalize A
-transaction TA_finalize {
+transaction TA_finalize { 
 	input = T: sig(kA) sig(kB)
 	output = 1BTC - 16: fun(x). versig(kA; x)
 }

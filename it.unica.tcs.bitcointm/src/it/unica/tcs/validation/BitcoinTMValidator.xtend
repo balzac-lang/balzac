@@ -699,7 +699,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (!txA.ready || !txB.ready)
             return true
 
-        if (txA.toTransaction==txB.toTransaction && inputA.outpoint==inputB.outpoint
+        if (txA.toTransaction(inputA.ECKeyStore)==txB.toTransaction(inputB.ECKeyStore) && inputA.outpoint==inputB.outpoint
         ) {
             error(
                 "Double spending. You cannot redeem the output twice.",
@@ -782,7 +782,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
                 try {
                     // compile the transaction to BitcoinJ representation
-                    var txJ = txBuilder.toTransaction()
+                    var txJ = txBuilder.toTransaction(tx.ECKeyStore)
 
                     println()
                     println(txJ.toString)
@@ -1114,7 +1114,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         }
         else {
             val txBuilder = res.first as ITransactionBuilder
-            val txid = txBuilder.toTransaction.hashAsString
+            val txid = txBuilder.toTransaction(tx.ECKeyStore).hashAsString
 
             try {
                 val client = clientFactory.getBitcoinClient(tx.networkParams)

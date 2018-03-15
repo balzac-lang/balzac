@@ -31,13 +31,12 @@ public class ScriptBuilder2Test {
 
     @Before
     public void before() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        ecks = ECKeyStore.create();
+        ecks = new ECKeyStore();
         ecks.changePassword(new char[]{'t','e','s','t'});
     }
 
     @After
     public void after() {
-        ecks.getKeyStoreFile().delete();
     }
 
     @Test
@@ -105,7 +104,6 @@ public class ScriptBuilder2Test {
         ECKey k1 = new ECKey();
         ECKey k2 = new ECKey();
 
-        sb.setKeyStore(ecks);
         ecks.addKey(k1);
         ecks.addKey(k2);
 
@@ -119,7 +117,7 @@ public class ScriptBuilder2Test {
 
         Transaction tx = new Transaction(new MainNetParams());
         tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-        sb.setAllSignatures(tx, 0, new byte[]{});
+        sb.setAllSignatures(ecks, tx, 0, new byte[]{});
         System.out.println(sb);
 
         assertEquals(2, sb.size());

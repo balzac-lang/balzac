@@ -58,8 +58,7 @@ class KeyStoreGenerator extends AbstractGenerator {
         val keys = EcoreUtil2.getAllContentsOfType(model, KeyLiteral).filter[k|k.isPrivateKey]
 
         try {
-            val ecks = ECKeyStore.create
-            ecks.changePassword(getKsPassword())    // change default empty password
+            val ecks = new ECKeyStore(getKsPassword())
 
             for (k : keys) {
                 val key = DumpedPrivateKey.fromBase58(k.networkParams, k.value).key
@@ -67,7 +66,9 @@ class KeyStoreGenerator extends AbstractGenerator {
             	println('''adding key with alias «alias»''')
             }
 
-            return ecks.keyStoreFile.absolutePath
+            val tmpFile = File.createTempFile("kstore", ".p12")
+            ecks.store(tmpFile)
+            return tmpFile.absolutePath
         }
         catch(KeyStoreException e) {
         	e.printStackTrace

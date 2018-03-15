@@ -269,7 +269,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
                 try {
                     BitcoindApi api = bitcoinClient.getApi();
-                    boolean isTestnet = api.getinfo().getTestnet();
+                    boolean isTestnet = api.getblockchaininfo().getChain().equals("test");
 
                     if (isTestnet != testnet) {
                         String expected = testnet ? "testnet" : "mainnet";
