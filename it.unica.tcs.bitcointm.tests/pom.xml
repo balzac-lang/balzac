@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>it.unica.tcs.bitcointm</groupId>
 		<artifactId>it.unica.tcs.bitcointm.parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../it.unica.tcs.bitcointm.parent</relativePath>
 	</parent>
 	<artifactId>it.unica.tcs.bitcointm.tests</artifactId>

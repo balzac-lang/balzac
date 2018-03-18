@@ -2,7 +2,7 @@
 <feature
       id="it.unica.tcs.bitcointm.feature"
       label="BitcoinTM Feature "
-      version="0.0.1.qualifier">
+      version="1.0.0.qualifier">
 
    <plugin
          id="it.unica.tcs.bitcointm"

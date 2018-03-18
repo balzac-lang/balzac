@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: it.unica.tcs.bitcointm
 Bundle-Vendor: My Company
-Bundle-Version: 0.0.1.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: it.unica.tcs.bitcointm; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;bundle-version="[2.12.0,2.13.0)",
@@ -46,4 +46,4 @@ Export-Package: com.sulacosoft.bitcoindconnector4j,
 Import-Package: org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,
  .,
- it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
+ it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar
