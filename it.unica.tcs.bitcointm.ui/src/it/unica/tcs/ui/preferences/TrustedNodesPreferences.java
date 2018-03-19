@@ -3,6 +3,7 @@
  */
 package it.unica.tcs.ui.preferences;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.equinox.security.storage.ISecurePreferences;
@@ -471,11 +472,13 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
     }
 
     private boolean isTestnetPasswordSaved() {
-        return secureStorage.nodeExists(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE);
+        ISecurePreferences node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE);
+        return Arrays.asList(node.keys()).contains(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD);
     }
 
     private boolean isMainnetPasswordSaved() {
-        return secureStorage.nodeExists(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE);
+        ISecurePreferences node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE);
+        return Arrays.asList(node.keys()).contains(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD);
     }
 
 }
