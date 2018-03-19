@@ -50,18 +50,10 @@ cd ..
 [Compare versions](https://github.com/SulacoSoft/BitcoindConnector4J/compare/master...natzei:master)
 
 
-### Simbolic Links
-
-```
-cd bitcoin-transaction-model/it.unica.tcs.bitcointm
-ln -s ../it.unica.tcs.bitcointm.lib/target/it.unica.tcs.bitcointm.lib-0.0.1-bundled.jar
-```
-
 
 ### Compile
 ```
-cd bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/
-mvn install
+mvn -f bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/ clean install
 ```
 
 ### IDE
