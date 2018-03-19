@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="it.unica.tcs.bitcointm.feature"
-      label="BitcoinTM Feature "
+      label="Bitcoin Transaction Modeling Tool - Feature"
       version="1.0.0.qualifier"
       provider-name="University of Cagliari">
 
