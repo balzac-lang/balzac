@@ -28,11 +28,13 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.P_TESTNET_URL, "/");
         store.setDefault(PreferenceConstants.P_TESTNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_TESTNET_TIMEOUT, 3000);
+        store.setDefault(PreferenceConstants.P_TESTNET_HTTPS, false);
         store.setDefault(PreferenceConstants.P_MAINNET_HOST, "localhost");
         store.setDefault(PreferenceConstants.P_MAINNET_PORT, 8332);
         store.setDefault(PreferenceConstants.P_MAINNET_URL, "/");
         store.setDefault(PreferenceConstants.P_MAINNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_MAINNET_TIMEOUT, 3000);
+        store.setDefault(PreferenceConstants.P_MAINNET_HTTPS, false);
         
         try {
             TrustedNodesPreferences.setBitcoinClientFactoryNodes(store);

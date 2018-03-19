@@ -47,6 +47,7 @@ import it.unica.tcs.utils.SecureStorageUtils;
 public class TrustedNodesPreferences extends PreferencePage implements IWorkbenchPreferencePage {
     private Text testnetHostText;
     private Spinner testnetPortSpinner;
+    private Button testnetHttpsCheckbox;
     private Text testnetUsernameText;
     private Text testnetUrlText;
     private Text testnetPasswordText;
@@ -54,6 +55,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
     private Text mainnetHostText;
     private Spinner mainnetPortSpinner;
+    private Button mainnetHttpsCheckbox;
     private Text mainnetUsernameText;
     private Text mainnetUrlText;
     private Text mainnetPasswordText;
@@ -135,6 +137,12 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         gd_portSpinner.heightHint = 19;
         gd_portSpinner.widthHint = 163;
         portSpinner.setLayoutData(gd_portSpinner);
+
+        Label lblHttpsButton = new Label(group, SWT.NONE);
+        lblHttpsButton.setText("Https");
+
+        Button httpsCheckbox = new Button(group, SWT.CHECK);
+        httpsCheckbox.setToolTipText("Recommended if the server accepts SSL connections");
 
         Label usernameLabel = new Label(group, SWT.NONE);
         usernameLabel.setText("Username");
@@ -239,7 +247,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
             public void mouseUp(MouseEvent e) {
                 String address = hostText.getText();
                 Integer port = portSpinner.getSelection();
-                String protocol = "http";
+                String protocol = httpsCheckbox.getSelection() ? "https" : "http";
                 String url = urlText.getText();
                 String user = usernameText.getText();
                 String password = passwordText.getText();
@@ -301,6 +309,10 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         else
             mainnetPortSpinner = portSpinner;
         if (testnet)
+            testnetHttpsCheckbox = httpsCheckbox;
+        else
+            mainnetHttpsCheckbox = httpsCheckbox;
+        if (testnet)
             testnetUrlText = urlText;
         else
             mainnetUrlText = urlText;
@@ -323,6 +335,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         testnetHostText.setText(store.getString(PreferenceConstants.P_TESTNET_HOST));
         testnetPortSpinner.setSelection(store.getInt(PreferenceConstants.P_TESTNET_PORT));
+        testnetHttpsCheckbox.setSelection(store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS));
         testnetUrlText.setText(store.getString(PreferenceConstants.P_TESTNET_URL));
         testnetUsernameText.setText(store.getString(PreferenceConstants.P_TESTNET_USERNAME));
         testnetTimeoutSpinner.setSelection(store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT));
@@ -334,6 +347,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         mainnetHostText.setText(store.getString(PreferenceConstants.P_MAINNET_HOST));
         mainnetPortSpinner.setSelection(store.getInt(PreferenceConstants.P_MAINNET_PORT));
+        mainnetHttpsCheckbox.setSelection(store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS));
         mainnetUrlText.setText(store.getString(PreferenceConstants.P_MAINNET_URL));
         mainnetUsernameText.setText(store.getString(PreferenceConstants.P_MAINNET_USERNAME));
         mainnetTimeoutSpinner.setSelection(store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT));
@@ -357,6 +371,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         IPreferenceStore store = getPreferenceStore();
         testnetHostText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_HOST));
         testnetPortSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_TESTNET_PORT));
+        testnetHttpsCheckbox.setSelection(store.getDefaultBoolean(PreferenceConstants.P_TESTNET_HTTPS));
         testnetUrlText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_URL));
         testnetUsernameText.setText(store.getDefaultString(PreferenceConstants.P_TESTNET_USERNAME));
         testnetTimeoutSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_TESTNET_TIMEOUT));
@@ -365,6 +380,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         mainnetHostText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_HOST));
         mainnetPortSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_MAINNET_PORT));
+        mainnetHttpsCheckbox.setSelection(store.getDefaultBoolean(PreferenceConstants.P_MAINNET_HTTPS));
         mainnetUrlText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_URL));
         mainnetUsernameText.setText(store.getDefaultString(PreferenceConstants.P_MAINNET_USERNAME));
         mainnetTimeoutSpinner.setSelection(store.getDefaultInt(PreferenceConstants.P_MAINNET_TIMEOUT));
@@ -378,6 +394,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         IPreferenceStore store = getPreferenceStore();
         store.setValue(PreferenceConstants.P_TESTNET_HOST, testnetHostText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_PORT, testnetPortSpinner.getSelection());
+        store.setValue(PreferenceConstants.P_TESTNET_HTTPS, testnetHttpsCheckbox.getSelection());
         store.setValue(PreferenceConstants.P_TESTNET_URL, testnetUrlText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_USERNAME, testnetUsernameText.getText());
         store.setValue(PreferenceConstants.P_TESTNET_TIMEOUT, testnetTimeoutSpinner.getSelection());
@@ -395,6 +412,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         store.setValue(PreferenceConstants.P_MAINNET_HOST, mainnetHostText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_PORT, mainnetPortSpinner.getSelection());
+        store.setValue(PreferenceConstants.P_MAINNET_HTTPS, mainnetHttpsCheckbox.getSelection());
         store.setValue(PreferenceConstants.P_MAINNET_URL, mainnetUrlText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_USERNAME, mainnetUsernameText.getText());
         store.setValue(PreferenceConstants.P_MAINNET_TIMEOUT, mainnetTimeoutSpinner.getSelection());
@@ -425,6 +443,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
         int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
+        String testnetProtocol = store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS) ? "https" : "http";
         String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
         String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
         int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
@@ -433,15 +452,16 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
         String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
         int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
+        String mainnetProtocol = store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS) ? "https" : "http";
         String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
         String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
         int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
         String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
                 .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
 
-        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetUrl,
+        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
                 testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetUrl,
+        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
                 mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
         Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
