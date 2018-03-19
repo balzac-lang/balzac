@@ -427,6 +427,18 @@
              id="it.unica.tcs.ui.keyword_BitcoinTM">
        </keywordReference>
     </page>
+    <page
+          category="it.unica.tcs.BitcoinTM"
+          class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:it.unica.tcs.ui.preferences.KeystoreGenerationPreferences"
+          id="it.unica.tcs.BitcoinTM.node"
+          name="Keystore">
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_BitcoinTM">
+       </keywordReference>
+       <keywordReference
+             id="it.unica.tcs.ui.keyword_Keystore">
+       </keywordReference>
+    </page>
  </extension>
  <extension
        point="org.eclipse.core.runtime.preferences">
