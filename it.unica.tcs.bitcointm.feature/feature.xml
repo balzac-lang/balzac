@@ -2,7 +2,8 @@
 <feature
       id="it.unica.tcs.bitcointm.feature"
       label="BitcoinTM Feature "
-      version="1.0.0.qualifier">
+      version="1.0.0.qualifier"
+      provider-name="University of Cagliari">
 
    <plugin
          id="it.unica.tcs.bitcointm"
