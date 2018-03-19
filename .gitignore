@@ -2,10 +2,6 @@
 #.project   # eclipse
 
 .*
-!.gitignore
-!.classpath
-!.project
-!.travis.yml
 
 bin
 target
@@ -20,3 +16,9 @@ xsemantics-gen
 
 **.jar
 
+# Push these files
+!.gitignore
+!.classpath
+!.project
+!.travis.yml
+!it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar
