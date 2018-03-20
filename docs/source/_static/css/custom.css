@@ -1,0 +1,42 @@
+@import "theme.css";
+
+
+.wy-nav-content {
+    max-width: 1024px;
+}
+
+.codecompare-block {
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: left;
+    width: calc(50% - 2px);
+}
+
+/* Code snippets */
+
+.codesnippet-widgets {
+    min-width: 100%;
+    display: block;
+    background: #2980b9;
+    color: white;
+    padding: 10px 0;
+    margin: 0 0 -1px 0;
+}
+
+.codesnippet-widgets > span {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.codesnippet-widgets > .current {
+    background: #095099;
+}
+
+.codeset > .highlight-java {
+    display: none;
+}
+
+/* fix misaligned line numbers */
+.rst-content .highlight > pre {
+    line-height: 1.5 !important;
+}
