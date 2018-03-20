@@ -6,6 +6,5 @@
 	<classpathentry kind="src" path="src-gen"/>
 	<classpathentry kind="src" path="xtend-gen"/>
 	<classpathentry kind="src" path="images"/>
-	<classpathentry kind="lib" path="swing2swt.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
