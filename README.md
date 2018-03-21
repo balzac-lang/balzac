@@ -43,6 +43,7 @@ cd ..
 ```
 git clone https://github.com/natzei/BitcoindConnector4J.git
 cd BitcoindConnector4J
+git checkout release-0.16
 gradle install
 cd ..
 ```
@@ -55,6 +56,16 @@ cd ..
 ```
 mvn -f bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/ clean install
 ```
+
+### Run standalone server
+
+In order to locally run the server (same of [http://blockchain.unica.it/btm/](http://blockchain.unica.it/btm/)):
+
+```
+mvn -f it.unica.tcs.bitcointm.web/ jetty:run
+```
+
+
 
 ### IDE
 
