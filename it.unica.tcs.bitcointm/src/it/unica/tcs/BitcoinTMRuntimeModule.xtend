@@ -10,13 +10,14 @@ package it.unica.tcs
 import com.google.inject.Binder
 import com.google.inject.name.Names
 import it.unica.tcs.conversion.BitcoinTMConverterService
-import it.unica.tcs.lib.client.BitcoinClientI
-import it.unica.tcs.lib.client.impl.RPCBitcoinClient
 import it.unica.tcs.scoping.BitcoinTMGlobalScopeProvider
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
 import it.xsemantics.runtime.StringRepresentation
-import java.util.concurrent.TimeUnit
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+import java.util.Properties
 import org.eclipse.xtext.conversion.IValueConverterService
 import org.eclipse.xtext.scoping.IGlobalScopeProvider
 import org.eclipse.xtext.scoping.IScopeProvider
@@ -24,12 +25,6 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.scoping.impl.SimpleLocalScopeProvider
 import org.eclipse.xtext.service.SingletonBinding
-import java.io.FileInputStream
-import java.io.File
-import java.util.Properties
-import java.io.IOException
-import org.eclipse.equinox.security.storage.ISecurePreferences
-import org.eclipse.equinox.security.storage.SecurePreferencesFactory
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
@@ -76,11 +71,6 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
         return BitcoinTMGlobalScopeProvider;
     }
 
-    def void configureBitcoinClient(Binder binder) {
-        binder.bind(BitcoinClientI).toInstance(new RPCBitcoinClient("localhost", 8332, "http", "/", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
-        binder.bind(BitcoinClientI).annotatedWith(Names.named("testnet")).toInstance(new RPCBitcoinClient("localhost", 18332, "http", "/", "bitcoin", "bitcoin", 3, TimeUnit.SECONDS));
-    }
-
     def void tryBindPropertiesFromAbsoluteFile(Binder binder, String propertyFilePath) {
         try {
             val in = new FileInputStream(new File(propertyFilePath));
@@ -92,9 +82,5 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
         } catch (IOException e) {
             println(e.message)
         }
-    }
-
-    def ISecurePreferences bindISecurePreferences() {
-        return SecurePreferencesFactory.getDefault()
     }
 }

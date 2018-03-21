@@ -21,6 +21,11 @@
 			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
 			<version>${lib.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.equinox.security</artifactId>
+			<version>1.2.300</version>
+		</dependency>
 	</dependencies>
 
 	<build>

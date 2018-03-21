@@ -8,6 +8,8 @@
 package it.unica.tcs.ui
 
 import it.unica.tcs.ui.hover.BitcoinTMEObjectHoverProvider
+import org.eclipse.equinox.security.storage.ISecurePreferences
+import org.eclipse.equinox.security.storage.SecurePreferencesFactory
 import org.eclipse.ui.plugin.AbstractUIPlugin
 import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider
 
@@ -22,5 +24,9 @@ class BitcoinTMUiModule extends AbstractBitcoinTMUiModule {
 
     def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
         return  BitcoinTMEObjectHoverProvider;
+    }
+
+    def ISecurePreferences bindISecurePreferences() {
+        return SecurePreferencesFactory.getDefault()
     }
 }

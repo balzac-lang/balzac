@@ -54,7 +54,6 @@ import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 import it.unica.tcs.lib.SerialTransactionBuilder;
-import it.unica.tcs.lib.client.BitcoinClientI;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
@@ -65,7 +64,7 @@ import it.xsemantics.runtime.Result;
 @Singleton
 public class ASTUtils {
 
-    @Inject private BitcoinClientI bitcoin;
+    @Inject private BitcoinClientFactory bitcoinClientFactory;
     @Inject private BitcoinTMInterpreter interpreter;
 
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
@@ -485,7 +484,7 @@ public class ASTUtils {
     }
 
     public Transaction getTransactionById(String txid, NetworkParameters params) throws TransactionNotFoundException {
-        byte[] payloadBytes = BitcoinUtils.decode(bitcoin.getRawTransaction(txid));
+        byte[] payloadBytes = BitcoinUtils.decode(bitcoinClientFactory.getBitcoinClient(params).getRawTransaction(txid));
         return new Transaction(params, payloadBytes);
     }
 
