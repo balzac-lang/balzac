@@ -1,5 +1,5 @@
 
-Smart Contracts
+|langname|
 ===============
 
 Available soon
@@ -21,6 +21,8 @@ Contents:
     :maxdepth: 3
     :caption: Language Specification
 
+    example
+    transactions
     types
 
 

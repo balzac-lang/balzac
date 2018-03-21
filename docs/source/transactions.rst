@@ -1,5 +1,5 @@
 ===========
-Transaction
+Transactions
 ===========
 
 .. highlight:: btm
