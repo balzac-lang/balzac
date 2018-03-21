@@ -20,7 +20,6 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
-import it.unica.tcs.lib.ECKeyStore
 
 class RawTransactionGenerator extends AbstractGenerator {
 
