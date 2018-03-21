@@ -10,6 +10,7 @@ import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.lib.ECKeyStore
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.SecureStorageUtils
 import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStoreException
@@ -20,8 +21,8 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import it.unica.tcs.utils.SecureStorageUtils
 
 class KeyStoreGenerator extends AbstractGenerator {
 
@@ -29,7 +30,7 @@ class KeyStoreGenerator extends AbstractGenerator {
 
     @Inject private extension IQualifiedNameProvider
     @Inject private extension ASTUtils
-    @Inject private ISecurePreferences secureStorage
+    @Inject(optional=true) private ISecurePreferences secureStorage
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val models = resource.allContents.toIterable.filter(Model)
@@ -43,10 +44,11 @@ class KeyStoreGenerator extends AbstractGenerator {
                 var package = packages.get(0)
                 package.fullyQualifiedName.toString(File.separator)
             }
-
-        val ksPath = createTempKeyStore(model)
-        // TODO: merge with other declared keystores
-        fsa.generateFile(packagePath + File.separator + KEYSTORE__FILENAME, new FileInputStream(ksPath))
+println(fsa)
+        if (!(fsa instanceof InMemoryFileSystemAccess)) {
+            val ksPath = createTempKeyStore(model)
+            fsa.generateFile(packagePath + File.separator + KEYSTORE__FILENAME, new FileInputStream(ksPath))
+        }
     }
 
     /**
@@ -92,12 +94,13 @@ class KeyStoreGenerator extends AbstractGenerator {
     	}
 
     	// Eclipse secure storage
-    	val node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__KEYSTORE)
-    	pass = node.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, null)
-
-    	if (pass !== null) {
-            println("Reading password from secure storage")
-            return pass.toCharArray
+        if (secureStorage !== null) {
+            val node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__KEYSTORE)
+            pass = node.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, null)
+            if (pass !== null) {
+                println("Reading password from secure storage")
+                return pass.toCharArray
+            }
         }
 
         throw new KeyStoreGenerationException('''Keystore password cannot be found. Specify it through system property -D«SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD» or plugin properties (it will be stored within Eclipse secure storage)''')
