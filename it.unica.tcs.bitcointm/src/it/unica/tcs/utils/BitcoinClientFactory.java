@@ -35,11 +35,7 @@ public class BitcoinClientFactory {
     @Inject(optional=true) @Named("tnMainnetPassword") private String mainnetPassword;
     @Inject(optional=true) @Named("tnMainnetTimeout") private Integer mainnetTimeout;
 
-    @Inject(optional=true)
     private BitcoinClientI mainnetClient;
-
-    @Inject(optional=true)
-    @Named("testnet")
     private BitcoinClientI testnetClient;
 
     public BitcoinClientI getBitcoinClient(NetworkParameters params) {
