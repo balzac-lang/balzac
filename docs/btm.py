@@ -25,10 +25,9 @@ class BtmLexer(RegexLexer):
     For `Java <http://www.sun.com/java/>`_ source code.
     """
 
-    name = 'Java'
-    aliases = ['java']
-    filenames = ['*.java']
-    mimetypes = ['text/x-java']
+    name = 'BTM'
+    aliases = ['btm']
+    filenames = ['*.btm']
 
     flags = re.MULTILINE | re.DOTALL | re.UNICODE
 
@@ -40,19 +39,19 @@ class BtmLexer(RegexLexer):
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
             #(r'(assert|break|case|catch|continue|default|do|else|finally|for|if|goto|instanceof|new|return|switch|this|throw|try|while)\b', Keyword),
-            (r'(BTC)\b', Keyword),
+            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|min|max|between|size|compile)\b', Keyword),
             # method names
             (r'((?:(?:[^\W\d]|\$)[\w.\[\]$<>]*\s+)+?)'  # return arguments
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
              r'(\s*)(\()',                              # signature start
              bygroups(using(this), Name.Function, Text, Operator)),
             (r'@[^\W\d][\w.]*', Name.Decorator),
+            (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             #(r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', Keyword.Declaration),
             #(r'(boolean|byte|char|double|float|int|long|short|void)\b', Keyword.Type),
             (r'(bool|boolean|string|hash|int|signature|transaction|address|key|pubkey)\b', Keyword.Type),
             (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text),
              'import'),
             (r'"(\\\\|\\"|[^"])*"', String),
