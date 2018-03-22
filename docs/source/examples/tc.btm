@@ -1,0 +1,35 @@
+package tc
+
+// definitions
+const fee = 0.00113 BTC
+const secret = 42
+const hash = hash160(secret)
+const deposit = 10 BTC
+const blockN = 150
+
+// your private key
+const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+
+// tx with your funds, redeemable with kA
+transaction A_funds { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
+
+transaction T_commit {
+    input = A_funds: sig(kA)
+    output = deposit - fee:
+        fun(x,s:int) . hash160(s) == hash && versig(kA;x)
+            || after block blockN : versig(kB;x)
+}
+
+transaction T_reveal {
+    input =  T_commit: sig(kA) secret
+    output = deposit - fee*2: fun(x) . versig(kA;x)
+}
+
+transaction T_timeout {
+    input = T_commit: sig(kB) 0
+    output = deposit - fee*2: fun(x) . versig(kB;x)
+    timelock = after block blockN
+}
+
+compile T_commit T_reveal T_timeout
