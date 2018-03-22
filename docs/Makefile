@@ -226,21 +226,36 @@ clean-doc:
 	make clean
 
 install-lexer:
-	PY_SITE=`python -c "import site; print (site.getsitepackages()[0])"` && \
-	LEXER_NAME=btm.py && \
-	LEXER_FILE=$$LEXER_NAME && \
-	sudo rm -f $$PY_SITE/pygments/lexers/$$LEXER_NAME && \
-	sudo mv $$LEXER_FILE $$PY_SITE/pygments/lexers/ && \
-	PWD=`pwd` && \
-	cd $$PY_SITE/pygments/lexers/ && \
-	sudo python _mapping.py && \
-	cd $$PWD
+	LEXER_NAME=btm.py; \
+	LEXER_FILE=$$LEXER_NAME; \
+	PY_SITES=`python -c "import site; print (\",\".join(site.getsitepackages()))"`; \
+	for s in $$PY_SITES; do \
+		LEXERS_DIR=$$s/pygments/lexers; \
+		echo $$LEXERS_DIR; \
+		if [ -d $$LEXERS_DIR ]; then \
+			echo "Installing lexer in $$LEXERS_DIR"; \
+			sudo rm -f $$LEXERS_DIR/$$LEXER_NAME; \
+			sudo cp $$LEXER_FILE $$LEXERS_DIR; \
+			PWD=`pwd`; \
+			cd $$LEXERS_DIR; \
+			sudo python _mapping.py; \
+			cd $$PWD; \
+		fi \
+	done
 
 remove-lexer:
-	PY_SITE=`python -c "import site; print (site.getsitepackages()[0])"` && \
-	echo "removing btm.py from pygments: $$PY_SITE" && \
-	sudo rm -f $$PY_SITE/pygments/lexers/btm.py && \
-	PWD=`pwd` && \
-	cd $$PY_SITE/pygments/lexers/ && \
-	sudo python _mapping.py && \
-	cd $$PWD
+	LEXER_NAME=btm.py; \
+	LEXER_FILE=$$LEXER_NAME; \
+	PY_SITES=`python -c "import site; print (\",\".join(site.getsitepackages()))"`; \
+	for s in $$PY_SITES; do \
+		LEXERS_DIR=$$s/pygments/lexers; \
+		echo $$LEXERS_DIR; \
+		if [ -d $$LEXERS_DIR ]; then \
+			echo "Removing lexer in $$LEXERS_DIR"; \
+			sudo rm -f $$LEXERS_DIR/$$LEXER_NAME; \
+			PWD=`pwd`; \
+			cd $$LEXERS_DIR; \
+			sudo python _mapping.py; \
+			cd $$PWD; \
+		fi \
+	done
