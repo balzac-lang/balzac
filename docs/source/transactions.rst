@@ -1,6 +1,6 @@
-===========
-Transactions
-===========
+======================
+Modeling transactions
+======================
 
 .. highlight:: btm
 
@@ -45,3 +45,34 @@ To do so, we create ``T1`` as follows.
 i.e. :code:`fun(x) . x==42`. But, differently from the previous example, the transaction splits the bitcoins
 it redeems between two outputs. The first contains 20 BTC and can be redeemed whit a witness different from 0,
 while the other contains 30 BTC and can be redeemed solving a simple equation.
+
+This time we want to redeem our bitcoins and secure them in a transaction that can be spent only by us. 
+
+.. code-block:: btm
+	:linenos:
+
+	const k = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+
+	transaction T2 {
+		input = [
+			T1@0: 1
+			T1@1: 0
+			]
+		output = 50 BTC: fun(x) . versig(k; s)
+	}
+
+Now that we are redeeming ``T1``, a transaction with multiple input, we have to specify which output we want to redeem.
+In this case ``T2`` the fist and the second output of ``T1``, i.e. ``T1@1`` and ``T1@2`` respectively. 
+The output of ``T2`` requires the parameter ``x`` to be a signature that matches the key ``k``.
+The key is declared at line 1, and it is prefixed by the keyword ``wif:`` to denote that it is expressed in the Wallet Import Format [#f1]_.
+In this way, the output can only be redeemed by the owner of the key.
+
+Bitcoin offers the flexibility to express more complex scripts than simply verifying a signature, as you can see at :doc:`expressions`.
+This features can be exploited to design smart contracts, i.e. cryptographic protocols that can handle transfers of bitcoins.
+You can see a series of :doc:`smart-contracts`.
+
+
+
+.. rubric:: Footnotes
+
+.. [#f1] https://bitcoin.org/en/developer-guide#wallet-import-format-wif 
