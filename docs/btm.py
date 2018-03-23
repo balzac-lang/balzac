@@ -13,7 +13,7 @@
 import re
 
 from pygments.lexer import Lexer, RegexLexer, include, bygroups, using, this, combined, default, words
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
+from pygments.token import Generic, Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
 from pygments.util import shebang_matches
 from pygments import unistring as uni
 
@@ -45,7 +45,7 @@ class BtmLexer(RegexLexer):
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
              r'(\s*)(\()',                              # signature start
              bygroups(using(this), Name.Function, Text, Operator)),
-            (r'@[^\W\d][\w.]*', Name.Decorator),
+            (r'\s*@\s*', Generic.Emph),
             (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             #(r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', Keyword.Declaration),
             #(r'(boolean|byte|char|double|float|int|long|short|void)\b', Keyword.Type),
@@ -81,3 +81,89 @@ class BtmLexer(RegexLexer):
             (r'[\w.]+\*?', Name.Namespace, '#pop')
         ],
     }
+
+
+"""
+    Text:                          '',
+    Whitespace:                    'w',
+    Escape:                        'esc',
+    Error:                         'err',
+    Other:                         'x',
+
+    Keyword:                       'k',
+    Keyword.Constant:              'kc',
+    Keyword.Declaration:           'kd',
+    Keyword.Namespace:             'kn',
+    Keyword.Pseudo:                'kp',
+    Keyword.Reserved:              'kr',
+    Keyword.Type:                  'kt',
+
+    Name:                          'n',
+    Name.Attribute:                'na',
+    Name.Builtin:                  'nb',
+    Name.Builtin.Pseudo:           'bp',
+    Name.Class:                    'nc',
+    Name.Constant:                 'no',
+    Name.Decorator:                'nd',
+    Name.Entity:                   'ni',
+    Name.Exception:                'ne',
+    Name.Function:                 'nf',
+    Name.Property:                 'py',
+    Name.Label:                    'nl',
+    Name.Namespace:                'nn',
+    Name.Other:                    'nx',
+    Name.Tag:                      'nt',
+    Name.Variable:                 'nv',
+    Name.Variable.Class:           'vc',
+    Name.Variable.Global:          'vg',
+    Name.Variable.Instance:        'vi',
+
+    Literal:                       'l',
+    Literal.Date:                  'ld',
+
+    String:                        's',
+    String.Backtick:               'sb',
+    String.Char:                   'sc',
+    String.Doc:                    'sd',
+    String.Double:                 's2',
+    String.Escape:                 'se',
+    String.Heredoc:                'sh',
+    String.Interpol:               'si',
+    String.Other:                  'sx',
+    String.Regex:                  'sr',
+    String.Single:                 's1',
+    String.Symbol:                 'ss',
+
+    Number:                        'm',
+    Number.Bin:                    'mb',
+    Number.Float:                  'mf',
+    Number.Hex:                    'mh',
+    Number.Integer:                'mi',
+    Number.Integer.Long:           'il',
+    Number.Oct:                    'mo',
+
+    Operator:                      'o',
+    Operator.Word:                 'ow',
+
+    Punctuation:                   'p',
+
+    Comment:                       'c',
+    Comment.Hashbang:              'ch',
+    Comment.Multiline:             'cm',
+    Comment.Preproc:               'cp',
+    Comment.PreprocFile:           'cpf',
+    Comment.Single:                'c1',
+    Comment.Special:               'cs',
+
+    Generic:                       'g',
+    Generic.Deleted:               'gd',
+    Generic.Emph:                  'ge',
+    Generic.Error:                 'gr',
+    Generic.Heading:               'gh',
+    Generic.Inserted:              'gi',
+    Generic.Output:                'go',
+    Generic.Prompt:                'gp',
+    Generic.Strong:                'gs',
+    Generic.Subheading:            'gu',
+    Generic.Traceback:             'gt'
+"""
