@@ -1,0 +1,41 @@
+{% extends "!breadcrumbs.html" %}
+
+{% set display_github = True %}
+{% set github_user = 'bitcoin-transaction-model' %}
+{% set github_repo = 'bitcoin-transaction-model' %}
+{% set github_version = 'docs/' %}
+{% set conf_py_path = 'docs/source/' %}
+
+{% block breadcrumbs_aside %}
+  <li class="wy-breadcrumbs-aside">
+    {% if pagename != "search" %}
+      {% if display_github %}
+        {% if check_meta and 'github_url' in meta %}
+          <!-- User defined GitHub URL -->
+          <a target="_blank" href="{{ meta['github_url'] }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
+        {% else %}
+          <a target="_blank" href="https://{{ github_host|default("github.com") }}/{{ github_user }}/{{ github_repo }}/blob/{{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-github"> {{ _('Edit on GitHub') }}</a>
+        {% endif %}
+      {% elif display_bitbucket %}
+        {% if check_meta and 'bitbucket_url' in meta %}
+          <!-- User defined Bitbucket URL -->
+          <a target="_blank" href="{{ meta['bitbucket_url'] }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
+        {% else %}
+          <a target="_blank" href="https://bitbucket.org/{{ bitbucket_user }}/{{ bitbucket_repo }}/src/{{ bitbucket_version}}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-bitbucket"> {{ _('Edit on Bitbucket') }}</a>
+        {% endif %}
+      {% elif display_gitlab %}
+        {% if check_meta and 'gitlab_url' in meta %}
+          <!-- User defined GitLab URL -->
+          <a target="_blank" href="{{ meta['gitlab_url'] }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
+        {% else %}
+          <a href="https://{{ gitlab_host|default("gitlab.com") }}/{{ gitlab_user }}/{{ gitlab_repo }}/blob/{{ gitlab_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}" class="fa fa-gitlab"> {{ _('Edit on GitLab') }}</a>
+        {% endif %}
+      {% endif %}
+      {% if show_source and source_url_prefix %}
+        <a target="_blank" href="{{ source_url_prefix }}{{ pagename }}{{ suffix }}">{{ _('View page source') }}</a>
+      {% elif show_source and has_source and sourcename %}
+        <a target="_blank" href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow"> {{ _('View page source') }}</a>
+      {% endif %}
+    {% endif %}
+  </li>
+{% endblock %}
