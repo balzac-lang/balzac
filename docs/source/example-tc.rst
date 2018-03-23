@@ -1,5 +1,6 @@
+----------------
 Time Commitment
-===============
+----------------
 	
 .. literalinclude:: examples/tc.btm
    :language: btm
