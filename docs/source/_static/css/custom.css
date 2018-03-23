@@ -5,6 +5,16 @@
     max-width: 1024px;
 }
 
+.wy-table thead th, .rst-content table.docutils thead th, .rst-content table.field-list thead th {
+    border-top: solid 2px #e1e4e5;
+    border-left: solid 1px #e1e4e5;
+}
+
+.wy-table thead, .rst-content table.docutils thead, .rst-content table.field-list thead {
+    vertical-align: middle;
+    height: 3em;
+}
+
 .codecompare-block {
     box-sizing: border-box;
     display: inline-block;
