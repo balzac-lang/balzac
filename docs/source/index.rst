@@ -21,8 +21,8 @@ Contents:
     :maxdepth: 3
     :caption: Language Specification
 
-    example
     transactions
+    expressions
     types
 
 
@@ -30,9 +30,9 @@ Contents:
 
 .. toctree::
     :maxdepth: 3
-    :caption: Examples
+    :caption: Smart contracts
 
-    example-tc
+    smart-contracts    
 
 ..        # with overline, for parts
 ..        * with overline, for chapters
