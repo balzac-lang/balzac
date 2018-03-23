@@ -221,6 +221,10 @@ pseudoxml:
 build-doc:
 	make html
 
+build-doc-warning:
+	$(SPHINXBUILD) -W -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+
+
 ## Clean the documentation
 clean-doc:
 	make clean
@@ -228,7 +232,7 @@ clean-doc:
 install-lexer:
 	LEXER_NAME=btm.py; \
 	LEXER_FILE=$$LEXER_NAME; \
-	PY_SITES=`python -c "import site; print (\",\".join(site.getsitepackages()))"`; \
+	PY_SITES=`pip show pygments | grep Location | cut -f2 -d\ `; \
 	for s in $$PY_SITES; do \
 		LEXERS_DIR=$$s/pygments/lexers; \
 		echo $$LEXERS_DIR; \
@@ -246,7 +250,7 @@ install-lexer:
 remove-lexer:
 	LEXER_NAME=btm.py; \
 	LEXER_FILE=$$LEXER_NAME; \
-	PY_SITES=`python -c "import site; print (\",\".join(site.getsitepackages()))"`; \
+	PY_SITES=`pip show pygments | grep Location | cut -f2 -d\ `; \
 	for s in $$PY_SITES; do \
 		LEXERS_DIR=$$s/pygments/lexers; \
 		echo $$LEXERS_DIR; \
