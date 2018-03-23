@@ -12,6 +12,13 @@ Contents:
 
 .. toctree::
     :maxdepth: 3
+    :caption: Installation and Configuration
+
+    eclipse-conf
+
+
+.. toctree::
+    :maxdepth: 3
     :caption: Language Specification
 
     types
