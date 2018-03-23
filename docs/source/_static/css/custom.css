@@ -15,6 +15,10 @@
     height: 3em;
 }
 
+p.caption {
+    margin-top: 12px;
+}
+
 .codecompare-block {
     box-sizing: border-box;
     display: inline-block;
