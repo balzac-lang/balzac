@@ -18,18 +18,15 @@ The table below shows the list of types
 
                                                                                            ``'bar'``
    ``boolean``          Either true or false value                                         ``true`` ``false``
-   ``hash``             A string of bytes in hexadecimal                                   ``hash:c51b66bced5e4491001bd702669770dccf440982``
-                        representation
-   ``key``              A Bitcoin private key as Wallet Input Format                       ``wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW``
-                        (`WIF <https://bitcoin.org/en/glossary/wallet-import-format>`__)
-   ``address``          A Bitcoin address as Wallet Input Format                           ``wif:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz``
-                        (`WIF <https://bitcoin.org/en/glossary/wallet-import-format>`__)
-   ``pubkey``           A raw public key as hexadecimal                                    ``pubkey:032b6cb7aa033a063dd01e20a971d6d4f85eb27ad0793b...``
-   ``signature``        A raw signature as hexadecimal                                     ``sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1...``
-   ``transaction``      A Bitcoin transaction, serialized as hexadecimal string or         ``txid:0d7748674c8395cf288500b1c64330605fec54ae0dfdb22a...``
-                        fetched from a trusted node using the txid
+   ``hash``             A string of bytes in hexadecimal representation                    ``hash:c51b66bced5e4491001bd702669770dccf440982``
+   ``key``              A Bitcoin private key in the Wallet Input Format [#f1]_            ``wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW``
+   ``address``          A Bitcoin address in the Wallet Input Format [#f1]_                ``wif:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz``
 
-                                                                                           ``tx:0100000001cab433976b8a3dfeeb82fe6a10a59381d2f91341...``
+   ``pubkey``           A raw public key as hexadecimal string                             ``pubkey:032b6cb7aa033a063dd01e20a971d6d4f85eb27ad0793b...``
+   ``signature``        A raw signature as hexadecimal string                              ``sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1...``
+   ``transaction``      A Bitcoin transaction, as hex payload or txid                      ``tx:0100000001cab433976b8a3dfeeb82fe6a10a59381d2f91341...``
+
+                                                                                           ``txid:0d7748674c8395cf288500b1c64330605fec54ae0dfdb22a...``
    ==================== ================================================================== =========
 
 .. Hint:: 
@@ -58,3 +55,7 @@ The table below shows the list of types
       .. code-block:: btm
          
          const n = 42
+
+.. rubric:: References
+
+.. [#f1] https://bitcoin.org/en/glossary/wallet-import-format
