@@ -30,7 +30,7 @@ import time
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = []
+extensions = ["sphinxcontrib.inlinesyntaxhighlight"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -288,9 +288,21 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
+# This (boolean) setting triggers, if language, which is set by highlight directive, 
+# shall be used in code role, if no language is set by a customization. 
+inline_highlight_respect_highlight = True
+
+# This (boolean) setting triggers, if ``literals`` shall be highlighted. Default is True.
+inline_highlight_literals = False
 
 langname = 'BitMoTo'
 
+highlight_language = "btm"
+
 rst_prolog = """
 .. |langname| replace:: {0}
+
+.. role:: btm(code)
+   :language: btm
+
 """.format(langname)
