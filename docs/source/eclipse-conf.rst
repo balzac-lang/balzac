@@ -60,7 +60,7 @@ The text area will display the text **ok** or a stack trace reporting an error m
 
 .. Warning::
 
-	In order to work properly, the bitcoind should be executed with RPC enabled and
+	In order to work properly, bitcoind should be executed with RPC enabled and
 	with option ``txindex``.
 	For example:
 
