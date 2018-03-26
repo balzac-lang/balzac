@@ -15,6 +15,10 @@
     height: 3em;
 }
 
+.rst-content tt.literal, .rst-content tt.literal, .rst-content code.literal {
+    color: inherit;
+}
+
 p.caption {
     margin-top: 12px;
 }
