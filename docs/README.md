@@ -6,8 +6,9 @@ The documentation is generated in Python (version 3, but it may work with Python
 
 Use `pip` to install the following Python packages:
 
-* sphinx
-* pygments
+```
+pip install sphinx pygments sphinxcontrib-inlinesyntaxhighlight
+```
 
 # Available commands
 
