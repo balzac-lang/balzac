@@ -1,0 +1,240 @@
+package ivy
+
+/*
+ * contract LockWithPublicKey(publicKey: PublicKey, val: Value) {
+ *   clause spend(sig: Signature) {
+ *     verify checkSig(publicKey, sig)
+ *     unlock val
+ *   }
+ * }
+ * PUSH(publicKey) CHECKSIG	(P2PKH)
+ */
+transaction LockWithPublicKey(publicKey, val) {
+	input = _
+	output = val : fun(x) . versig(publicKey; x)	// compiles P2PKH
+}
+
+/*
+ * contract LockWithMultisig(
+ *   pubKey1: PublicKey,
+ *   pubKey2: PublicKey,
+ *   pubKey3: PublicKey,
+ *   val: Value
+ * ) {
+ *   clause spend(sig1: Signature, sig2: Signature) {
+ *     verify checkMultiSig([pubKey1, pubKey2, pubKey3], [sig1, sig2])
+ *     unlock val
+ *   }
+ * }
+ * ... CHECKMULTISIG
+ */
+transaction LockWithMultisig(publicKey1, publicKey2, publicKey3, val) {
+	input = _
+	output = val : fun(x, y) . versig(publicKey1, publicKey2, publicKey3; x, y)	// compiles P2SH
+}
+
+/*
+ * contract LockWithPublicKeyHash(pubKeyHash: Sha256(PublicKey), val: Value) {
+ *   clause spend(pubKey: PublicKey, sig: Signature) {
+ *     verify sha256(pubKey) == pubKeyHash
+ *     verify checkSig(pubKey, sig)
+ *     unlock val
+ *   }
+ * }
+ * DUP SHA256 PUSH(pubKeyHash) EQUALVERIFY CHECKSIG	(P2PKH)
+ */
+transaction LockWithPublicKeyHash(publicKey, val) {	// same of LockWithPublicKey
+	input = _
+	output = val : fun(x) . versig(publicKey; x)	// compiles P2PKH
+}
+
+/*
+ * contract RevealPreimage(hash: Sha256(Bytes), val: Value) {
+ *   clause reveal(string: Bytes) {
+ *     verify sha256(string) == hash
+ *     unlock val
+ *   }
+ * }
+ * SHA256 PUSH(hash) EQUAL (non standard!)
+ */
+transaction RevealPreimage(h, val) {	// same of LockWithPublicKey
+	input = _
+	output = val : fun(x:string) . h == sha256(x)	// compiles P2SH
+}
+
+/*
+ * contract RevealCollision(val: Value) {
+ *   clause reveal(string1: Bytes, string2: Bytes) {
+ *     verify string1 != string2
+ *     verify sha1(string1) == sha1(string2)
+ *     unlock val
+ *   }
+ * }
+ * 
+ * 2DUP EQUAL NOT VERIFY SHA1 SWAP SHA1 EQUAL (non standard!)
+ */
+transaction RevealCollision(val) {
+	input = _
+	output = val : fun(x:string, y:string) . x!=y && sha256(x) == sha256(y)	// compiles P2SH
+}
+
+/*
+ * contract RevealFixedPoint(val: Value) {
+ *   clause reveal(hash: Bytes) {
+ *     verify bytes(sha256(hash)) == hash
+ *     unlock val
+ *   }
+ * }
+ * 
+ * DUP SHA256 EQUAL (non standard!)
+ */
+transaction RevealFixedPoint(val) {
+	input = _
+	output = val : fun(h: hash) . sha256(h) == h	// compiles P2SH
+}
+
+/*
+ * contract LockUntil(publicKey: PublicKey, time: Time, val: Value) {
+ *     clause spend(sig: Signature) {
+ *     verify after(time)
+ *     verify checkSig(publicKey, sig)
+ *     unlock val
+ *   }
+ * }
+ * PUSH(time) CHECKLOCKTIMEVERIFY DROP PUSH(publicKey) CHECKSIG
+ */
+transaction LockUntil(publicKey, time, val) {
+	input = _
+	output = [
+		val : fun(x) . after date time : versig(publicKey; x);	// compiles P2SH
+		val : fun(x) . after block time : versig(publicKey; x)	// compiles P2SH
+	]
+}
+
+/*
+ * contract LockDelay(publicKey: PublicKey, delay: Duration, val: Value) {
+ *   clause spend(sig: Signature) {
+ *     verify checkSig(publicKey, sig)
+ *     verify older(delay)
+ *     unlock val
+ *   }
+ * }
+ * PUSH(publicKey) CHECKSIGVERIFY PUSH(delay) CHECKSEQUENCEVERIFY DROP 1
+ */
+transaction LockDelay(publicKey, time, val) {
+	input = _
+	output = [
+		val : fun(x) . after time block : versig(publicKey; x);	// compiles P2SH
+		val : fun(x) . after 2h : versig(publicKey; x)	// compiles P2SH
+	]
+}
+
+/*
+ * contract TransferWithTimeout(
+ *   sender: PublicKey,
+ *   recipient: PublicKey,
+ *   timeout: Time,
+ *   val: Value
+ * ) {
+ *   clause transfer(senderSig: Signature, recipientSig: Signature) {
+ *     verify checkSig(sender, senderSig)
+ *     verify checkSig(recipient, recipientSig)
+ *     unlock val
+ *   }
+ *   clause timeout(senderSig: Signature) {
+ *     verify after(timeout)
+ *     verify checkSig(sender, senderSig)
+ *     unlock val
+ *   }
+ * }
+ * PUSH(sender) SWAP IF PUSH(timeout) CHECKLOCKTIMEVERIFY DROP ELSE CHECKSIGVERIFY PUSH(recipient) ENDIF CHECKSIG
+ */
+transaction TransferWithTimeout(sender, recipient, timeout, val) {
+	input = _
+	output = val : fun(senderSig,recipientSig) . 						// compiles P2SH
+		versig(sender, recipient; senderSig, recipientSig)
+		|| after timeout block : versig(sender; senderSig)
+}
+
+/*
+ * contract EscrowWithDelay(
+ *   sender: PublicKey,
+ *   recipient: PublicKey,
+ *   escrow: PublicKey,
+ *   delay: Duration,
+ *   val: Value
+ * ) {
+ *   clause transfer(sig1: Signature, sig2: Signature) {
+ *     verify checkMultiSig(
+ *       [sender, recipient, escrow],
+ *       [sig1, sig2]
+ *     )
+ *     unlock val
+ *   }
+ *   clause timeout(sig: Signature) {
+ *     verify checkSig(sender, sig)
+ *     verify older(delay)
+ *     unlock val
+ *   }
+ * }
+ * PUSH(sender) SWAP IF CHECKSIGVERIFY PUSH(delay) CHECKSEQUENCEVERIFY DROP 1 ELSE 0 2SWAP 2 PUSH(escrow) PUSH(recipient) 6 ROLL 3 CHECKMULTISIG ENDIF
+ */
+ transaction EscrowWithDelay(sender, recipient, escrow, val) {
+	input = _
+	output = val : fun(x,y) . 						// compiles P2SH
+		versig(sender, recipient, escrow; x, y)
+		|| after 2d : versig(sender; x)
+}
+
+/*
+ * contract VaultSpend(
+ *   hotKey: PublicKey,
+ *   coldKey: PublicKey,
+ *   delay: Duration,
+ *   val: Value
+ * ) {
+ *   clause cancel(sig: Signature) {
+ *     verify checkSig(coldKey, sig)
+ *     unlock val
+ *   }
+ *   clause complete(sig: Signature) {
+ *     verify older(delay)
+ *     verify checkSig(hotKey, sig)
+ *     unlock val
+ *   }
+ * }
+ * IF PUSH(delay) CHECKSEQUENCEVERIFY DROP PUSH(hotKey) ELSE PUSH(coldKey) ENDIF CHECKSIG
+ */
+ transaction VaultSpend(hotKey, coldKey, val) {
+	input = _
+	output = val : fun(x) . 						// compiles P2SH
+		versig(coldKey; x)
+		|| after 2d : versig(hotKey; x)
+}
+
+// public keys
+const k1 = pubkey:032b6cb7aa033a063d2dc39573bde12a2d01e20a971d6d4f85eb27ad0793b3689c
+const k2 = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+const k3 = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+
+// addresses
+const addr1 = wif:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
+const addr2 = wif:mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz
+const addr3 = wif:n3s2D2TSroNtMdAFV88YfhExUmNidqesD1
+
+const value = 1 BTC
+
+compile
+    LockWithPublicKey(k1, value)
+    LockWithPublicKey(addr1, value)
+    LockWithMultisig(k1, k2, k3, value)
+    LockWithPublicKeyHash(k1, value)
+    LockWithPublicKeyHash(addr1, value)
+    RevealPreimage(sha256("secret"), value)
+    RevealCollision(value)
+    RevealFixedPoint(value)
+    LockUntil(k1, 500, value)
+    LockDelay(k1, 500, value)
+    TransferWithTimeout(k1, k2, 500, value)
+    EscrowWithDelay(k1, k2, k3, value)
+    VaultSpend(k1, k2, value)
