@@ -397,7 +397,9 @@ rule Output
     G |- TypeSubstitutions substitutions |> Output _output : BitcoinTMFactory::eINSTANCE.createVoidType
 from {
     var satoshis = _output.value.exp
-    G |- new TypeSubstitutions() |> satoshis : var IntType intType
+    G |- new TypeSubstitutions() |> satoshis : var Type valType
+    valType = typesubstitution(substitutions, valType)
+    unify(satoshis, substitutions, valType, BitcoinTMFactory::eINSTANCE.createIntType)
 
     var script = _output.script
     for (p : script.params) {
