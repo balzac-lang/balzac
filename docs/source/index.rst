@@ -21,6 +21,7 @@ Contents:
     :maxdepth: 3
     :caption: Language Specification
 
+    file-structure
     transactions
     expressions
     types
