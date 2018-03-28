@@ -10,11 +10,9 @@ import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.compiler.TransactionCompiler
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
-import it.unica.tcs.xsemantics.Rho
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.eclipse.emf.ecore.EObject
@@ -23,7 +21,6 @@ import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
     @Inject extension ASTUtils
-    @Inject extension TransactionCompiler
     @Inject extension BitcoinTMStringRepresentation
 
     override String getLabel(EObject eobj) {
@@ -110,12 +107,6 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
         Public key
             hex     = «pubkey.value»
             address = «ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value)).toAddress(pubkey.networkParams)»
-        </pre>
-        '''
-
-    def dispatch String getDocumentationInternal(Transaction tx) '''
-        <pre>
-        «tx.compileTransaction(new Rho).toString»
         </pre>
         '''
 }
