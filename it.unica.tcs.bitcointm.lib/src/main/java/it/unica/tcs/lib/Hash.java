@@ -5,8 +5,6 @@ package it.unica.tcs.lib;
 
 import java.util.Arrays;
 
-import static com.google.common.base.Preconditions.*;
-
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public class Hash {
@@ -24,55 +22,6 @@ public class Hash {
 
     public String getBytesAsString() {
         return BitcoinUtils.encode(bytes);
-    }
-
-    @Deprecated
-    public String getType() {
-        return "";
-    }
-
-    @Deprecated
-    public static final class Hash160 extends Hash {
-        public Hash160(byte[] bytes) {
-            super(bytes);
-            checkArgument(bytes.length==20, "Hash160: expected byte array of length 20");
-        }
-        public String getType() {
-            return "hash160";
-        }
-    }
-
-    @Deprecated
-    public static final class Hash256 extends Hash {
-        public Hash256(byte[] bytes) {
-            super(bytes);
-            checkArgument(bytes.length==32, "Hash256: expected byte array of length 32");
-        }
-        public String getType() {
-            return "hash256";
-        }
-    }
-
-    @Deprecated
-    public static final class Ripemd160 extends Hash {
-        public Ripemd160(byte[] bytes) {
-            super(bytes);
-            checkArgument(bytes.length==20, "Ripemd160: expected byte array of length 20");
-        }
-        public String getType() {
-            return "ripemd160";
-        }
-    }
-
-    @Deprecated
-    public static final class Sha256 extends Hash {
-        public Sha256(byte[] bytes) {
-            super(bytes);
-            checkArgument(bytes.length==32, "Sha256: expected byte array of length 32");
-        }
-        public String getType() {
-            return "sha256";
-        }
     }
 
     @Override
@@ -99,6 +48,6 @@ public class Hash {
 
     @Override
     public String toString() {
-        return getType()+":"+getBytesAsString();
+        return getBytesAsString();
     }
 }
