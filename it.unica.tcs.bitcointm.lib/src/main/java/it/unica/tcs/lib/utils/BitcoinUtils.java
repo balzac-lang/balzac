@@ -21,6 +21,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
+import org.spongycastle.crypto.digests.SHA1Digest;
 
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.Hash.HashAlgorithm;
@@ -49,6 +50,7 @@ public class BitcoinUtils {
         case HASH256: methodName = "hash256"; break;
         case RIPEMD160: methodName = "ripemd160"; break;
         case SHA256: methodName = "sha256"; break;
+        case SHA1: methodName = "sha1"; break;
             default: throw new IllegalArgumentException("unexpected class "+alg);
         }
             
@@ -80,6 +82,14 @@ public class BitcoinUtils {
         return new Hash(ripmemdHash);
     }
 
+    public static Hash sha1(byte[] bytes) {
+        SHA1Digest digest = new SHA1Digest();
+        digest.update(bytes, 0, bytes.length);
+        byte[] sha1Hash = new byte[20];
+        digest.doFinal(sha1Hash, 0);
+        return new Hash(sha1Hash);
+    }
+
     public static Hash hash160(Hash obj) {
         return hash160(obj.getBytes());
     }
@@ -94,6 +104,10 @@ public class BitcoinUtils {
 
     public static Hash sha256(Hash obj) {
         return sha256(obj.getBytes());
+    }
+
+    public static Hash sha1(Hash obj) {
+        return sha1(obj.getBytes());
     }
 
     public static Hash hash160(String obj) {
@@ -112,6 +126,10 @@ public class BitcoinUtils {
         return sha256(obj.getBytes(Charset.forName("UTF-8")));
     }
 
+    public static Hash sha1(String obj) {
+        return sha1(obj.getBytes(Charset.forName("UTF-8")));
+    }
+
     public static Hash hash160(Boolean obj) {
         return hash160(obj ? TRUE : FALSE);
     }
@@ -126,6 +144,10 @@ public class BitcoinUtils {
 
     public static Hash sha256(Boolean obj) {
         return sha256(obj ? TRUE : FALSE);
+    }
+
+    public static Hash sha1(Boolean obj) {
+        return sha1(obj ? TRUE : FALSE);
     }
 
     public static Hash hash160(Number obj) {
@@ -146,6 +168,11 @@ public class BitcoinUtils {
     public static Hash sha256(Number obj) {
         byte[] bytes = getIntegerBytes(obj);
         return sha256(bytes);
+    }
+
+    public static Hash sha1(Number obj) {
+        byte[] bytes = getIntegerBytes(obj);
+        return sha1(bytes);
     }
 
     private static byte[] getIntegerBytes(Number n1) {
