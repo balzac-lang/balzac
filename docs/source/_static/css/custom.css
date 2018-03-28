@@ -28,6 +28,7 @@ p.caption {
     display: inline-block;
     text-align: left;
     width: calc(50% - 2px);
+    vertical-align: top;
 }
 
 /* Code snippets */
