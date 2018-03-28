@@ -12,7 +12,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 public class Hash {
 
     private final byte[] bytes;
-    public enum HashAlgorithm { SHA256, RIPEMD160, HASH256, HASH160 }
+    public enum HashAlgorithm { SHA256, RIPEMD160, HASH256, HASH160, SHA1 }
 
     public Hash(byte[] bytes) {
         this.bytes = bytes;

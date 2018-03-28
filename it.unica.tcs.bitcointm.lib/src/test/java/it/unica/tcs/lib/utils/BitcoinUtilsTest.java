@@ -19,7 +19,7 @@ public class BitcoinUtilsTest {
 
     @Test
     public void test_hash_refl() {
-        HashAlgorithm[] hashClasses = new HashAlgorithm[]{HashAlgorithm.HASH160,  HashAlgorithm.HASH256, HashAlgorithm.RIPEMD160, HashAlgorithm.SHA256};
+        HashAlgorithm[] hashClasses = new HashAlgorithm[]{HashAlgorithm.HASH160,  HashAlgorithm.HASH256, HashAlgorithm.RIPEMD160, HashAlgorithm.SHA256, HashAlgorithm.SHA1};
         Object[] values = new Object[]{1, 1L,"",true,new byte[42], new Hash(new byte[20]), new Hash(new byte[20]), new Hash(new byte[32]), new Hash(new byte[32])};
 
         for (HashAlgorithm hashCls : hashClasses) {
@@ -34,6 +34,10 @@ public class BitcoinUtilsTest {
 
     @Test
     public void test_hashes_empty() {
+        assertArrayEquals(
+                executeScript(new byte[]{}, HashAlgorithm.SHA1),
+                BitcoinUtils.sha1(new byte[]{}).getBytes()
+        );
         assertArrayEquals(
                 executeScript(new byte[]{}, HashAlgorithm.RIPEMD160),
                 BitcoinUtils.ripemd160(new byte[]{}).getBytes()
@@ -71,6 +75,10 @@ public class BitcoinUtilsTest {
     @Test
     public void test_hashes_boolean() {
         assertArrayEquals(
+                executeScript(true, HashAlgorithm.SHA1),
+                BitcoinUtils.sha1(true).getBytes()
+        );
+        assertArrayEquals(
                 executeScript(true, HashAlgorithm.RIPEMD160),
                 BitcoinUtils.ripemd160(true).getBytes()
         );
@@ -104,6 +112,10 @@ public class BitcoinUtilsTest {
         );
 
 
+        assertArrayEquals(
+                executeScript(false, HashAlgorithm.SHA1),
+                BitcoinUtils.sha1(false).getBytes()
+        );
         assertArrayEquals(
                 executeScript(false, HashAlgorithm.RIPEMD160),
                 BitcoinUtils.ripemd160(false).getBytes()
@@ -141,6 +153,10 @@ public class BitcoinUtilsTest {
     @Test
     public void test_hashes_integers() {
         for (long i=-100; i<100; i++) {
+            assertArrayEquals(
+                    executeScript(i, HashAlgorithm.SHA1),
+                    BitcoinUtils.sha1(i).getBytes()
+            );
             assertArrayEquals(
                     executeScript(i, HashAlgorithm.RIPEMD160),
                     BitcoinUtils.ripemd160(i).getBytes()
@@ -207,6 +223,9 @@ public class BitcoinUtilsTest {
             break;
         case SHA256: 
             operation = ScriptOpCodes.OP_SHA256;
+            break;
+        case SHA1: 
+            operation = ScriptOpCodes.OP_SHA1;
             break;
             default: throw new IllegalArgumentException("unexpected class "+alg);
         }
