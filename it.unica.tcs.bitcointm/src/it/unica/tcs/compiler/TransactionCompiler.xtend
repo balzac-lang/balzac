@@ -233,7 +233,7 @@ class TransactionCompiler {
         // outputs
         for (output : tx.outputs) {
             val outScript = output.compileOutputScript(rho)
-            val satoshis = output.value.exp.interpretE.first as Long
+            val satoshis = output.value.exp.interpret(rho).first as Long
             tb.addOutput(outScript, satoshis)
         }
 
