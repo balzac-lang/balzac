@@ -10,11 +10,13 @@ const h1:hash   = sha256(42)
 const h2:hash   = ripemd160("secret")
 const h160:hash = hash160(true)          // ripemd160(sha256(..))
 const h256:hash = hash256(h1)            // sha256(sha256(..))
+const h3:hash   = sha1("secret")
 
 const h1_bis:hash   = hash:684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1
 const h2_bis:hash   = hash:cd98bf0202ef07e38e87f6bd9445e5e7331e2c78
 const h160_bis:hash = hash:c51b66bced5e4491001bd702669770dccf440982
 const h256_bis:hash = hash:3e60b464ea3bb214e7fee339baff43195bf00dd1f8bc384896ea527139eced55
+const h3_bis:hash   = hash:e5e9fa1ba31ecd1ae84f75caaa474f3a663f05f4
 
 const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 const k = kA
@@ -34,10 +36,12 @@ compile
 	h2
 	h160
 	h256
+	h3
 	h1_bis
 	h2_bis
 	h160_bis
 	h256_bis
+	h3_bis
 	kA
 	k
 	k_address
