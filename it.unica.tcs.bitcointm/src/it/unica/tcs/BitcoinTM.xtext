@@ -191,11 +191,12 @@ Versig:
 		signatures+=Expression ("," signatures+=Expression)*
 	")";
 
-Hash: Hash160 | Hash256 | Ripemd160 | Sha256;
+Hash: Hash160 | Hash256 | Ripemd160 | Sha256 | Sha1;
 Hash160: 	'hash160' "(" value=Expression ")";
 Hash256: 	'hash256' "(" value=Expression ")";
 Ripemd160: 	'ripemd160' "(" value=Expression ")";
-Sha256: 	'sha256' "(" value=Expression ")";
+Sha256:     'sha256' "(" value=Expression ")";
+Sha1:       'sha1' "(" value=Expression ")";
 
 Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";

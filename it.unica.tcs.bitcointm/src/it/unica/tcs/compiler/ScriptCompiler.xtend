@@ -67,6 +67,7 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.utils.SignatureAndKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Address
+import it.unica.tcs.bitcoinTM.Sha1
 
 /*
  * EXPRESSIONS
@@ -363,6 +364,12 @@ class ScriptCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(Sha256 hash, Context ctx) {
         var sb = hash.value.compileExpression(ctx)
         sb.op(OP_SHA256)
+    }
+
+
+    def private dispatch ScriptBuilder2 compileExpressionInternal(Sha1 hash, Context ctx) {
+        var sb = hash.value.compileExpression(ctx)
+        sb.op(OP_SHA1)
     }
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(AfterTimeLock stmt, Context ctx) {

@@ -66,6 +66,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.bitcoinTM.Sha1
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -766,6 +767,18 @@ from {
     }
 }
 
+rule Sha1
+    G |- TypeSubstitutions substitutions |> Sha1 hash: BitcoinTMFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Cannot hash type "+stringRep(t)
+        source hash.value
+    }
+}
 rule Min
     G |- TypeSubstitutions substitutions |> Min min: IntType t
 from {

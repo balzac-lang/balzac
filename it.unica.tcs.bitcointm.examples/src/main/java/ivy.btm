@@ -75,7 +75,7 @@ transaction RevealPreimage(h, val) {	// same of LockWithPublicKey
  */
 transaction RevealCollision(val) {
 	input = _
-	output = val : fun(x:string, y:string) . x!=y && sha256(x) == sha256(y)	// compiles P2SH
+	output = val : fun(x:string, y:string) . x!=y && sha1(x) == sha1(y)	// compiles P2SH
 }
 
 /*

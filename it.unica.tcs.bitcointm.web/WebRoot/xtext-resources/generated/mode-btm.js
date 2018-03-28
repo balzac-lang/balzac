@@ -1,6 +1,6 @@
 define(["ace/lib/oop", "ace/mode/text", "ace/mode/text_highlight_rules"], function(oop, mText, mTextHighlightRules) {
 	var HighlightRules = function() {
-		var keywords = "AIAO|AINO|AISO|BTC|SIAO|SINO|SISO|_|address|after|between|block|bool|boolean|compile|const|date|else|false|from|fun|hash|hash160|hash256|if|import|input|int|key|mainnet|max|min|network|of|output|package|pubkey|regtest|ripemd160|sha256|sig|signature|size|string|testnet|then|timelock|transaction|true|versig|void";
+		var keywords = "AIAO|AINO|AISO|BTC|SIAO|SINO|SISO|_|address|after|between|block|bool|boolean|compile|const|date|else|false|from|fun|hash|hash160|hash256|if|import|input|int|key|mainnet|max|min|network|of|output|package|pubkey|regtest|ripemd160|sha1|sha256|sig|signature|size|string|testnet|then|timelock|transaction|true|versig|void";
 		this.$rules = {
 			"start": [
 				{token: "comment", regex: "\\/\\/.*$"},

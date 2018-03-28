@@ -50,6 +50,7 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.crypto.TransactionSignature
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.lib.Hash.HashAlgorithm
+import it.unica.tcs.bitcoinTM.Sha1
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
@@ -465,6 +466,8 @@ from {
         result = BitcoinUtils.hash(expResult, HashAlgorithm.RIPEMD160)
     else if (hash instanceof Sha256)
         result = BitcoinUtils.hash(expResult, HashAlgorithm.SHA256)
+    else if (hash instanceof Sha1)
+        result = BitcoinUtils.hash(expResult, HashAlgorithm.SHA1)
     else {
         fail
         error "Unexpected instance "+hash.class
