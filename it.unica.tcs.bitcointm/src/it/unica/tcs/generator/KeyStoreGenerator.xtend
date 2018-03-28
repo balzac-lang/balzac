@@ -44,7 +44,7 @@ class KeyStoreGenerator extends AbstractGenerator {
                 var package = packages.get(0)
                 package.fullyQualifiedName.toString(File.separator)
             }
-println(fsa)
+
         if (!(fsa instanceof InMemoryFileSystemAccess)) {
             val ksPath = createTempKeyStore(model)
             fsa.generateFile(packagePath + File.separator + KEYSTORE__FILENAME, new FileInputStream(ksPath))
