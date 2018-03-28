@@ -22,6 +22,9 @@ import java.util.List
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.PubkeyType
+import it.unica.tcs.bitcoinTM.AddressType
+import org.bitcoinj.core.Address
 
 @Singleton
 class CompilerUtils {
@@ -60,6 +63,8 @@ class CompilerUtils {
         if(type instanceof BooleanType) return Boolean
         if(type instanceof HashType) return Hash
         if(type instanceof KeyType) return DumpedPrivateKey
+        if(type instanceof PubkeyType) return typeof(byte[])
+        if(type instanceof AddressType) return Address
         if(type instanceof TransactionType) return ITransactionBuilder
         if(type instanceof SignatureType) return typeof(byte[])
 
