@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Smart Contracts'
+project = 'Balzac'
 copyright = '2018, N. Atzei N., M. Bartoletti, T. Cimoli, S. Lande, S.A. Podda, L. Pompianu, S. Serusi, R. Zunino'
 author = 'N. Atzei N., M. Bartoletti, T. Cimoli, S. Lande, S.A. Podda, L. Pompianu, S. Serusi, R. Zunino'
 
@@ -205,7 +205,7 @@ html_style = 'css/custom.css'
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SmartContractsdoc'
+htmlhelp_basename = 'BalzacDoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -227,7 +227,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'SmartContracts.tex', 'Smart Contracts Documentation',
+    (master_doc, 'Balzac.tex', 'Balzac Documentation',
      'N. Atzei N., M. Bartoletti, T. Cimoli, S. Lande, S.A. Podda, L. Pompianu, S. Serusi, R. Zunino', 'manual'),
 ]
 
@@ -257,7 +257,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'smart-contracts', 'Smart Contracts Documentation',
+    (master_doc, 'balzac', 'Balzac Documentation',
      [author], 1)
 ]
 
@@ -271,8 +271,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Smart Contracts', 'Smart Contracts Documentation',
-     author, 'Smart Contracts', 'One line description of project.',
+    (master_doc, 'Balzac', 'Balzac Documentation',
+     author, '', '',
      'Miscellaneous'),
 ]
 
@@ -295,7 +295,7 @@ inline_highlight_respect_highlight = True
 # This (boolean) setting triggers, if ``literals`` shall be highlighted. Default is True.
 inline_highlight_literals = False
 
-langname = 'BitMoTo'
+langname = 'Balzac'
 
 highlight_language = "btm"
 
