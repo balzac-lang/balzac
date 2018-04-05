@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Balzac'
+project = 'BALZaC'
 copyright = '2018, N. Atzei N., M. Bartoletti, T. Cimoli, S. Lande, R. Zunino'
 author = 'N. Atzei N., M. Bartoletti, T. Cimoli, S. Lande, R. Zunino'
 
@@ -295,7 +295,7 @@ inline_highlight_respect_highlight = True
 # This (boolean) setting triggers, if ``literals`` shall be highlighted. Default is True.
 inline_highlight_literals = False
 
-langname = 'Balzac'
+langname = 'BALZaC'
 
 highlight_language = "btm"
 
