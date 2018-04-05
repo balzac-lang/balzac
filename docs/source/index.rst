@@ -2,19 +2,20 @@
 |langname|
 ===============
 
-Available soon
+*Bitcoin Abstract Language, analyZer and Compiler*
+
+|langname| is an high level language based on the formal model proposed in [ABLZ]_.
 
 
 
 Contents:
 
 
-
 .. toctree::
     :maxdepth: 3
-    :caption: Installation and Configuration
+    :caption: Overview
 
-    eclipse-conf
+    overview
 
 
 .. toctree::
@@ -26,14 +27,18 @@ Contents:
     expressions
     types
 
+.. toctree::
+    :maxdepth: 3
+    :caption: Installation and Configuration
 
-
+    eclipse-conf
 
 .. toctree::
     :maxdepth: 3
     :caption: Smart contracts
 
-    smart-contracts    
+    smart-contracts
+
 
 ..        # with overline, for parts
 ..        * with overline, for chapters
