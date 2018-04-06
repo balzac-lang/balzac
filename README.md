@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/bitcoin-transaction-model/bitcoin-transaction-model.svg?branch=master)](https://travis-ci.org/bitcoin-transaction-model/bitcoin-transaction-model)
-[![Coverage Status](https://coveralls.io/repos/github/bitcoin-transaction-model/bitcoin-transaction-model/badge.svg?branch=master)](https://coveralls.io/github/bitcoin-transaction-model/bitcoin-transaction-model?branch=master)
+[![Build Status](https://travis-ci.org/balzac-lang/balzac.svg?branch=master)](https://travis-ci.org/balzac-lang/balzac)
+[![Coverage Status](https://coveralls.io/repos/github/balzac-lang/balzac/badge.svg)](https://coveralls.io/github/balzac-lang/balzac)
 
-# Bitcoin transaction model
+# Balzac
 
 A domain-specific language to write Bitcoin transactions, based on the paper
 [A formal model of Bitcoin transactions](https://eprint.iacr.org/2017/1124.pdf) presented at [Financial Cryptography and Data Security 2018](http://fc18.ifca.ai/).
@@ -9,7 +9,7 @@ A domain-specific language to write Bitcoin transactions, based on the paper
 
 ## Online editor
 
-Try the online editor [http://blockchain.unica.it/btm/](http://blockchain.unica.it/btm/).
+Try the online editor [http://blockchain.unica.it/balzac/](http://blockchain.unica.it/balzac/).
 
 ## Development Setup
 
@@ -20,7 +20,7 @@ Try the online editor [http://blockchain.unica.it/btm/](http://blockchain.unica.
 
 ### Clone the repository
 ```
-git clone https://github.com/bitcoin-transaction-model/bitcoin-transaction-model.git
+git clone https://github.com/balzac-lang/balzac.git
 ```
 
 ### Install dependencies
@@ -54,7 +54,7 @@ cd ..
 
 ### Compile
 ```
-mvn -f bitcoin-transaction-model/it.unica.tcs.bitcointm.parent/ clean install
+mvn -f it.unica.tcs.bitcointm.parent/ clean install
 ```
 
 ### Run standalone server
