@@ -71,7 +71,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + (anyoneCanPay ? 1231 : 1237);
+            result = prime * result + ((anyoneCanPay == null) ? 0 : anyoneCanPay.hashCode());
             result = prime * result + ((hashType == null) ? 0 : hashType.hashCode());
             result = prime * result + ((keyID == null) ? 0 : keyID.hashCode());
             return result;
@@ -85,7 +85,10 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
             if (getClass() != obj.getClass())
                 return false;
             SignatureUtil other = (SignatureUtil) obj;
-            if (anyoneCanPay != other.anyoneCanPay)
+            if (anyoneCanPay == null) {
+                if (other.anyoneCanPay != null)
+                    return false;
+            } else if (!anyoneCanPay.equals(other.anyoneCanPay))
                 return false;
             if (hashType != other.hashType)
                 return false;
@@ -96,6 +99,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 return false;
             return true;
         }
+
         @Override
         public String toString() {
             return "SignatureUtil [key=" + keyID + ", hashType=" + hashType + ", anyoneCanPay=" + anyoneCanPay + "]";
