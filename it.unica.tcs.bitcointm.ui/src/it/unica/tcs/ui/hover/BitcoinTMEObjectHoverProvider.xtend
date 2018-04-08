@@ -17,6 +17,7 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
+import org.bitcoinj.core.LegacyAddress
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
@@ -89,15 +90,15 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
                 hex          = «pvtEC.privateKeyAsHex»
 
             Public key
-                base58 (wif) = «pvtEC.toAddress(key.networkParams).toBase58»
+                base58 (wif) = «LegacyAddress.fromKey(key.networkParams, pvtEC).toBase58»
                 hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
                 hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
         «ENDIF»
         «IF key.value.isAddress»
-            «val pubEC = Address.fromBase58(key.networkParams, wif)»
+            «val pubEC = Address.fromString(key.networkParams, wif)»
             Public key
                 base58 (wif) = «wif»
-                hash160      = «BitcoinUtils.encode(pubEC.hash160)»
+                hash160      = «BitcoinUtils.encode(pubEC.hash)»
         «ENDIF»
         </pre>
         '''
@@ -106,7 +107,7 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
         <pre>
         Public key
             hex     = «pubkey.value»
-            address = «ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value)).toAddress(pubkey.networkParams)»
+            address = «LegacyAddress.fromKey(pubkey.networkParams, ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value))).toBase58»
         </pre>
         '''
 }

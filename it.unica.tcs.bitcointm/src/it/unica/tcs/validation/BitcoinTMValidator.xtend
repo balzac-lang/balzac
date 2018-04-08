@@ -56,7 +56,6 @@ import org.bitcoinj.core.AddressFormatException
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.core.VerificationException
-import org.bitcoinj.core.WrongNetworkException
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -370,7 +369,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             try {
                 DumpedPrivateKey.fromBase58(k.networkParams, k.value)
             }
-            catch (WrongNetworkException e) {
+            catch (AddressFormatException.WrongNetwork e) {
                 error("Key is not valid for the given network.",
                     k,
                     BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
@@ -386,9 +385,9 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         if (k.value.isAddress) {
             try {
-                Address.fromBase58(k.networkParams, k.value)
+                Address.fromString(k.networkParams, k.value)
             }
-            catch (WrongNetworkException e) {
+            catch (AddressFormatException.WrongNetwork e) {
                 error("Address is not valid for the given network.",
                     k,
                     BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
@@ -789,13 +788,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
                     inScript = txJ.getInput(i).scriptSig
                     outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey
-                    val value = txJ.getInput(i).outpoint.connectedOutput.value
+//                    val value = txJ.getInput(i).outpoint.connectedOutput.value
 
                     inScript.correctlySpends(
                             txJ,
                             i,
                             outScript,
-                            value,
+//                            value,
                             ALL_VERIFY_FLAGS
                         )
                 } catch(ScriptException e) {

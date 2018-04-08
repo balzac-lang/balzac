@@ -20,13 +20,11 @@ import org.eclipse.xtext.generator.IGeneratorContext
  */
 class BitcoinTMGenerator extends AbstractGenerator {
 
-//    @Inject private TransactionFactoryGenerator txFactoryGenerator
 //    @Inject private ParticipantGenerator participantGenerator
     @Inject private RawTransactionGenerator rawTxGenerator
     @Inject private KeyStoreGenerator keyStoreGenerator
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//      txFactoryGenerator.doGenerate(resource,fsa,context)
 //      participantGenerator.doGenerate(resource,fsa,context)
         keyStoreGenerator.doGenerate(resource,fsa,context)
         rawTxGenerator.doGenerate(resource,fsa,context)

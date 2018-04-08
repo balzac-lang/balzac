@@ -98,7 +98,7 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
                 catch (Exception e) {
 
                     try {
-                        Address.fromBase58(null, value);    // it ignores the network byte
+                        Address.fromString(null, value);    // it ignores the network byte
                         return value;
                     }
                     catch(Exception e1)

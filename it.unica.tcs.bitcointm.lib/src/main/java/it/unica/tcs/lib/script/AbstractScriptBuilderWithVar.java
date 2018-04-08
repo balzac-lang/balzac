@@ -44,7 +44,7 @@ import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
+public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 

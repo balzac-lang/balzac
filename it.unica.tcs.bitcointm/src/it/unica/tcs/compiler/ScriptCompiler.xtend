@@ -220,7 +220,7 @@ class ScriptCompiler {
                 val sb = new P2PKHOutputScript()
                 sb.op(OP_DUP)
                   .op(OP_HASH160)
-                  .data(key.hash160)
+                  .data(key.hash)
                   .op(OP_EQUALVERIFY)
                   .op(OP_CHECKSIG)
                 return sb

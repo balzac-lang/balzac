@@ -501,7 +501,7 @@ from {
         DumpedPrivateKey.fromBase58(null, key.value);
         res = BitcoinTMFactory::eINSTANCE.createKeyType
     } or {
-        Address.fromBase58(null, key.value);
+        Address.fromString(null, key.value);
         res = BitcoinTMFactory::eINSTANCE.createAddressType
     }
 }

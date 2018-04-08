@@ -89,7 +89,7 @@ public class ASTUtils {
 
     public boolean isAddress(String wif) {
         try {
-            Address.fromBase58(null, wif);
+            Address.fromString(null, wif);
             return true;
         }
         catch(AddressFormatException e) {
@@ -422,11 +422,11 @@ public class ASTUtils {
     }
 
     public byte[] wifToAddressHash(String wif, NetworkParameters params) {
-        return wifToAddress(wif, params).getHash160();
+        return wifToAddress(wif, params).getHash();
     }
 
     public Address wifToAddress(String wif, NetworkParameters params) {
-        Address pubkeyAddr = Address.fromBase58(params, wif);
+        Address pubkeyAddr = Address.fromString(params, wif);
         return pubkeyAddr;
     }
 
@@ -454,7 +454,7 @@ public class ASTUtils {
 
     public ValidationResult isValidPublicKey(String key, NetworkParameters params) {
         try {
-            Address.fromBase58(params, key);
+            Address.fromString(params, key);
             return ValidationResult.VALIDATION_OK;
         } catch (AddressFormatException e2) {
             return new ValidationResult(false, e2.getMessage());

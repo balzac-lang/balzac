@@ -27,7 +27,7 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 
     transient private Transaction tx;
 
-    private NetworkParameters params;
+    private transient NetworkParameters params;
     private final byte[] bytes;
 
     public SerialTransactionBuilder(NetworkParameters params, byte[] bytes) {

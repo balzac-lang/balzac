@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableList;
  * @see ScriptBuilder2
  */
 @SuppressWarnings("javadoc")
-abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder implements Serializable {
+public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

@@ -190,7 +190,7 @@ from {
     {
         res = DumpedPrivateKey.fromBase58(null, key.value);
     } or {
-        res = Address.fromBase58(null, key.value);
+        res = Address.fromString(null, key.value);
     }
 }
 
