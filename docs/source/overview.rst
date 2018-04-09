@@ -70,7 +70,7 @@ The serialized transaction can be send to the network using ``bitcoin-cli sendra
 
 Bitcoin offers the flexibility to express more complex scripts than simply verifying a signature, as you can see at :doc:`expressions`.
 This features can be exploited to design smart contracts, i.e. cryptographic protocols that can handle transfers of bitcoins.
-You can see a series of :doc:`smart-contracts`.
+You can see a series of example, e.g. :doc:`timed-commitment`.
 
 
 
