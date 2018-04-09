@@ -37,7 +37,7 @@ Contents:
     :maxdepth: 3
     :caption: Smart contracts
 
-    smart-contracts
+    timed-commitment
 
 
 ..        # with overline, for parts
