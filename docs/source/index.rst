@@ -37,6 +37,7 @@ Contents:
     :maxdepth: 3
     :caption: Smart contracts
 
+    oracle
     timed-commitment
 
 
