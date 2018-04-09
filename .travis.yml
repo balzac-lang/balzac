@@ -1,17 +1,19 @@
-language: java
+language: python
+python:
+  - "2.7"
+  - "3.6"
+
+sudo: required
 
 cache:
   directories:
   - $HOME/.m2
 
 before_script:
-  - ./install-deps.sh
+  - pip install sphinx pygments sphinxcontrib-inlinesyntaxhighlight
 
 script:
-  - mvn -f it.unica.tcs.bitcointm.parent/ install
-
-after_success:
-  - mvn -f it.unica.tcs.bitcointm.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
+  - make -C docs/ install-lexer build-doc-warning
 
 notifications:
   email:
