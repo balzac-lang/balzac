@@ -4,10 +4,10 @@ const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 const kO = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
-transaction TA {input = _ output = 1BTC: fun(x). versig(kA; x)}
+transaction T_A {input = _ output = 1BTC: fun(x). versig(kA; x)}
 
 transaction T {
-	input = TA: sig(kA)
+	input = T_A: sig(kA)
 	output = 1BTC: fun(sigB, sigO). versig(kB, kO; sigB, sigO)
 }
 

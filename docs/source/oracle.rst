@@ -17,7 +17,7 @@ Further, Alice instructs the oracle to provide his
 signature to Bob upon the occurrence of the expected event.
 
 The transactions of the protocol are shown below, 
-where create a fictional transaction ``A_funds`` redeemable by Alice.
+where create a fictional transaction ``T_A`` redeemable by Alice.
 	
 .. literalinclude:: examples/oracle.btm
    :language: btm
