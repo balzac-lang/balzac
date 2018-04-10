@@ -106,4 +106,3 @@ The constraint can be either specified as a ``date`` or as a ``block`` number.
 .. rubric:: References
 
 .. [BW] https://bitcoin.org/en/developer-guide#signature-hash-types
-.. [ABLZ] https://eprint.iacr.org/2017/1124.pdf
