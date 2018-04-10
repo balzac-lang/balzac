@@ -2,6 +2,8 @@
 Oracle
 ----------------
 
+This example is part of the smart contracts presented in [AB+18POST]_.
+
 In many concrete scenarios one would like to make the execution of a contract
 depend on some real-world events, e.g. results of football matches for a betting
 contract, or feeds of flight delays for an insurance contract. However, 
