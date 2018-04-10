@@ -4,18 +4,16 @@
 
 *Bitcoin Abstract Language, analyZer and Compiler*
 
-|langname| is an high-level language based on the formal model proposed in [ABLZ]_. 
-It allows you to write transaction, verify their correctness, 
-and compile them into actual Bitcoin transactions. 
-You can install the IDE as a Eclipse plugin, 
-or try the `web editor <https://blockchain.unica.it/balzac/>`_.
+|langname| is an high-level language for writing transactions, verifying their correctness, 
+and compiling them into actual Bitcoin transactions. It is based on the formal model proposed in [AB+18FC]_.
 
-The project is open source, and you are welcome to contribute to our 
+You can install the IDE as a Eclipse plugin, or try the `web editor <https://blockchain.unica.it/balzac/>`_.
+
+The project is open source, and you are welcome to contribute to our
 `repository <https://github.com/balzac-lang/balzac>`_.
 
 |langname| is developed by the `Blockchain@Unica group <http://blockchain.unica.it/>`_
 of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
-
 
 **Contents:**
 
@@ -65,4 +63,6 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
 
 .. rubric:: References
 
-.. [ABLZ] https://eprint.iacr.org/2017/1124.pdf
+.. [AB+18FC] N. Atzei, M. Bartoletti, S. Lande, R. Zunino. A formal model of Bitcoin transactions. In Financial Cryptography and Data Security, 2018. Preprint: https://eprint.iacr.org/2017/1124.pdf
+
+.. [AB+18POST] N. Atzei, M. Bartoletti, T. Cimoli, S. Lande, R. Zunino. SoK: unraveling Bitcoin smart contracts. In Principles of Security and Trust (POST), 2018. Preprint: https://eprint.iacr.org/2018/192.pdf

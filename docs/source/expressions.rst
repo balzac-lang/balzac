@@ -61,7 +61,7 @@ The signature modifier ``[mod]`` is an optional parameter and be one of the foll
 	============================================ ==================================================================
 
 Each modifier is composed by two parts, ``*I`` and ``*O``, indicating respectively the subset of inputs and of outputs being signed.
-The first letter of each part represents all, single, or none. A formal specification can be found in Section 3.3 of [ABLZ]_.
+The first letter of each part represents all, single, or none. A formal specification can be found in Section 3.3 of [AB+18FC]_.
 
 The expression ``versig`` appears within the script of a transaction output. It verifies that ``sig`` is a valid signature under the private key ``key``.
 The message being verified is the transaction that redeems the output that contains ``sig``.
