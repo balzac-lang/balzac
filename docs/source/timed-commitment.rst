@@ -11,7 +11,7 @@ to prevent other players from altering the outcome of the game.
 
 Intuitively, Alice starts by exposing the hash of the secret, i.e. ``h = H(s)``, and at
 the same time depositing some amount ``deposit`` in a transaction. The participant Bob
-has the guarantee that after the date ``dateD``, 
+has the guarantee that after the date ``dateLock``, 
 he will either know the secret s, or he will be able to redeem ``deposit BTC``.
 
 The transactions of the protocol are shown below, 
@@ -26,8 +26,8 @@ Alice starts by putting the transaction ``T_commit`` on the blockchain. Note
 that within this transaction Alice is committing the hash of the chosen secret:
 indeed, ``h`` is encoded within the script of the output of the transaction.
 This transaction can be redeemed either by Alice by revealing the secret,
-or by Bob, but only when the date ``dateD`` has passed.
-This constraint is encoded in the script with the expression ``after date dateD : ...``.
+or by Bob, but only when the date ``dateLock`` has passed.
+This constraint is encoded in the script with the expression ``after date dateLock : ...``.
 
 After ``T_commit`` appears on the blockchain,
 Alice chooses whether to reveal the secret, or do nothing. 
@@ -36,7 +36,7 @@ Since it redeems  ``T_commit`` , she needs to write in its witness both the secr
 and her signature, so making the former public.
 
 In this smart contract, Bob waits for the ``T_commit`` to appear in the blockchain.
-If, after date ``dateD``, Alice has not published ``T_reveal`` yet, Bob can
+If, after date ``dateLock``, Alice has not published ``T_reveal`` yet, Bob can
 proceed to put ``T_timeout`` on the blockchain, writing his own signatures in the
 witness. Otherwise, Bob retrieves ``T_reveal`` from the blockchain, from which he can
 obtain the secret.

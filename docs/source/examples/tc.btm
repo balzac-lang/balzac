@@ -5,7 +5,7 @@ const fee = 0.00113 BTC
 const secret = 42
 const hash = hash160(secret)
 const deposit = 10 BTC
-const dateD = 150
+const dateLock = 2018-04-10
 
 // Alice and Bob's private keys
 const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
@@ -18,7 +18,7 @@ transaction T_commit {
     input = A_funds: sig(kA)
     output = deposit - fee:
         fun(x,s:int) . hash160(s) == hash && versig(kA;x)
-            || after date dateD : versig(kB;x)
+            || after date dateLock : versig(kB;x)
 }
 
 transaction T_reveal {
@@ -29,7 +29,7 @@ transaction T_reveal {
 transaction T_timeout {
     input = T_commit: sig(kB) 0
     output = deposit - fee*2: fun(x) . versig(kB;x)
-    timelock = after date dateD
+    timelock = after date dateLock
 }
 
 compile T_commit T_reveal T_timeout
