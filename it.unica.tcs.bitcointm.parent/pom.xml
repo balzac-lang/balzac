@@ -27,6 +27,7 @@
 		<!-- <module>../it.unica.tcs.bitcointm.tests</module> -->
 		<!-- <module>../it.unica.tcs.bitcointm.ui.tests</module> -->
 		<module>../it.unica.tcs.bitcointm.lib</module>
+		<module>../it.unica.tcs.bitcointm.logging</module>
 	</modules>
 
 	<build>

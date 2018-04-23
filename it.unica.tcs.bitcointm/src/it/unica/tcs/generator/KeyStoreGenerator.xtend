@@ -14,6 +14,7 @@ import it.unica.tcs.utils.SecureStorageUtils
 import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStoreException
+import org.apache.log4j.Logger
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.equinox.security.storage.ISecurePreferences
@@ -25,6 +26,8 @@ import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 class KeyStoreGenerator extends AbstractGenerator {
+
+    private static final Logger logger = Logger.getLogger(KeyStoreGenerator);
 
     public static val KEYSTORE__FILENAME = "ks.p12"
 
@@ -46,7 +49,9 @@ class KeyStoreGenerator extends AbstractGenerator {
             }
 
         if (!(fsa instanceof InMemoryFileSystemAccess)) {
+            logger.info("creating temporary keystore")
             val ksPath = createTempKeyStore(model)
+            logger.info("copying temporary keystore to "+packagePath + File.separator + KEYSTORE__FILENAME)
             fsa.generateFile(packagePath + File.separator + KEYSTORE__FILENAME, new FileInputStream(ksPath))
         }
     }
@@ -65,7 +70,7 @@ class KeyStoreGenerator extends AbstractGenerator {
             for (k : keys) {
                 val key = DumpedPrivateKey.fromBase58(k.networkParams, k.value).key
             	val alias = ecks.addKey(key)
-            	println('''adding key with alias «alias»''')
+            	logger.info('''adding key with alias «alias»''')
             }
 
             val tmpFile = File.createTempFile("kstore", ".p12")
@@ -89,7 +94,7 @@ class KeyStoreGenerator extends AbstractGenerator {
     	var pass = System.properties.getProperty(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
 
     	if (pass !== null) {
-    		println("Reading password from system property "+SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
+    		logger.info("Reading password from system property "+SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
     	    return pass.toCharArray
     	}
 
@@ -98,11 +103,12 @@ class KeyStoreGenerator extends AbstractGenerator {
             val node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__KEYSTORE)
             pass = node.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, null)
             if (pass !== null) {
-                println("Reading password from secure storage")
+                logger.info("Reading password from secure storage")
                 return pass.toCharArray
             }
         }
 
+        logger.error('''Keystore password cannot be found. Specify it through system property -D«SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD» or plugin properties (it will be stored within Eclipse secure storage)''')
         throw new KeyStoreGenerationException('''Keystore password cannot be found. Specify it through system property -D«SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD» or plugin properties (it will be stored within Eclipse secure storage)''')
     }
 

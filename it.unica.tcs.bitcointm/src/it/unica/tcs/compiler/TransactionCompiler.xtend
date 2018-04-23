@@ -19,8 +19,11 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
+import org.apache.log4j.Logger
 
 class TransactionCompiler {
+
+    private static final Logger logger = Logger.getLogger(TransactionCompiler);
 
     @Inject private extension BitcoinTMInterpreter
     @Inject private extension ASTUtils astUtils
@@ -36,8 +39,7 @@ class TransactionCompiler {
 
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
 
-        println()
-        println('''::: Compiling '«tx.name»'. Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
+        logger.info('''compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
 
         val tb =
             if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)
@@ -46,7 +48,7 @@ class TransactionCompiler {
         // free variables
         for (param : tx.params) {
             if (!rho.containsKey(param)) {
-                println('''freevar «param.name» : «param.type»''')
+                logger.info('''freevar «param.name» : «param.type»''')
                 tb.addVariable(param.name, param.type.convertType)
             }
         }
@@ -109,7 +111,7 @@ class TransactionCompiler {
                      */
                     else if (parentTxRef instanceof Parameter) {
 
-                        println('''«tx.name»: input tx is a transaction parameter '«parentTxRef.name»' ''')
+                        logger.trace('''«tx.name»: input tx is a transaction parameter '«parentTxRef.name»' ''')
 
                         // rho contains the actual value
                         if (rho.containsKey(parentTxRef)) {
@@ -129,6 +131,7 @@ class TransactionCompiler {
                         }
                         else {
                             // compilation it's finalized within the hook
+                            logger.error("Rho must contain the actual value for "+parentTxRef.name)
                             throw new CompileException("Rho must contain the actual value for "+parentTxRef.name)
                         }
 
@@ -156,7 +159,7 @@ class TransactionCompiler {
                             if (!res.failed) {
                                 val actualPvalue = res.first
 
-                                println('''adding «formalP.name» -> «actualPvalue» to rho''')
+                                logger.trace('''adding «formalP.name» -> «actualPvalue» to rho''')
                                 newRho.put(formalP, actualPvalue)
                             }
                             else
@@ -167,7 +170,7 @@ class TransactionCompiler {
                          * Compile the parent tx reference with newRho
                          */
                         val parentTxCompiled = parentTxRef.compileTransaction(newRho)
-                        println('''parent compiled («parentTxRef.name») vars=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
+                        logger.trace('''parent compiled («parentTxRef.name») vars=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
 
 
                         for (var j=0; j<parentTxExp.actualParams.size; j++) {
@@ -184,25 +187,27 @@ class TransactionCompiler {
                             val fvsNames = fvs.map[p|p.name].toSet
 
                             if (!fvsNames.empty) {
-                                println('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTxRef.name»''')
+                                logger.trace('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTxRef.name»''')
 
                                 // this hook will be executed when all the tx variables will have been bound
                                 // 'values' contains the bound values, we are now able to evaluate 'actualPvalue'
                                 tb.addHookToVariableBinding(fvsNames, [ values |
-                                    println('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTxRef.name»''')
-                                    println('''«tx.name»: values «values»''')
+                                    logger.trace('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTxRef.name»''')
+                                    logger.trace('''«tx.name»: values «values»''')
 
                                     // create a rho for the evaluation
                                     val newHookRho = new Rho
                                     for(fp : tx.params) {
                                         rho.put( fp, values.get(fp.name) )
                                     }
-                                    println('''rho «newHookRho»''')
+                                    logger.trace('''rho «newHookRho»''')
                                     // re-interpret actualP
                                     val res = actualP.interpret(newHookRho)
 
-                                    if (res.failed)
+                                    if (res.failed) {
+                                        logger.error("expecting an evaluation to Literal")
                                         throw new CompileException("expecting an evaluation to Literal")
+                                    }
 
                                     val v = res.first
                                     parentTxCompiled.bindVariable(formalP.name, v)
@@ -222,11 +227,15 @@ class TransactionCompiler {
                             tb.addInput(parentTxCompiled, outIndex, inScript)
                         }
                     }
-                    else
-                        throw new CompileException("Unexpected class "+parentTxExp.class)
+                    else {
+                        logger.error("Unexpected class "+parentTxRef.class)
+                        throw new CompileException("Unexpected class "+parentTxRef.class)
+                    }
                 }
-                else
+                else {
+                    logger.error("Unexpected class "+parentTxExp.class)
                     throw new CompileException("Unexpected class "+parentTxExp.class)
+                }
             }
         }
 
@@ -251,7 +260,7 @@ class TransactionCompiler {
         // remove unused tx variables
 //      tb.removeUnusedVariables()
 
-        println('''::: Transaction '«tx.name»' compiled''')
+        logger.info('''«tx.name» compiled''')
         return tb
     }
 }

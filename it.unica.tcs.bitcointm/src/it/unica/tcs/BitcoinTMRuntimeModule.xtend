@@ -80,7 +80,7 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
                 Names.bindProperties(binder, properties);
             }
         } catch (IOException e) {
-            println(e.message)
+            e.printStackTrace
         }
     }
 }
