@@ -513,7 +513,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 tx,
                 null
             );
-            println(e.message)
+            e.printStackTrace
         }
     }
 
@@ -773,18 +773,12 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
             for (var i=0; i<tx.inputs.size; i++) {
 
-                println('''correctlySpendsOutput: «tx.name».in[«i»]''');
-                println(txBuilder.toString)
-
                 var Script inScript = null
                 var Script outScript = null
 
                 try {
                     // compile the transaction to BitcoinJ representation
                     var txJ = txBuilder.toTransaction(tx.ECKeyStore)
-
-                    println()
-                    println(txJ.toString)
 
                     inScript = txJ.getInput(i).scriptSig
                     outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey

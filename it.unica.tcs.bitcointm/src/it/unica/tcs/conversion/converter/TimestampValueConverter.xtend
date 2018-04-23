@@ -22,19 +22,16 @@ class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
 
         try {
             date = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-//          System.out.println(1);
         }
         catch (DateTimeParseException e) {}
 
         try {
             date = LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atOffset(ZoneOffset.UTC);
-//          System.out.println(2);
         }
         catch (DateTimeParseException e) {}
 
         try {
             date = LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay().atOffset(ZoneOffset.UTC);
-//          System.out.println(3);
         }
         catch (DateTimeParseException e) {}
 
