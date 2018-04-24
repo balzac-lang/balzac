@@ -41,19 +41,36 @@
                     syntaxDefinition: "xtext-resources/generated/mode-btm"
                 });
                 
-                editor.setValue("package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T");
+                var text = "package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T";
+                
+                if (typeof(Storage) !== "undefined") {
+                    // Code for localStorage/sessionStorage.
+                    if (localStorage.getItem("file-content") != null) {
+                        text = localStorage.getItem("file-content");
+                    }
+                } else {
+                    // Sorry! No Web Storage support..
+                }  
+                
+                editor.setValue(text);
 //                 editor.setTheme("ace/theme/monokai");
                 editor.setAutoScrollEditorIntoView(true);
+                
+                editor.on("change", function(e) {
+                    if (typeof(Storage) !== "undefined") {
+                        // Code for localStorage/sessionStorage.
+                        localStorage.setItem("file-content", editor.getValue());
+                    } else {
+                        // Sorry! No Web Storage support..
+                    }
+                })
                 
                 $("#compile").click(function() {
                     editor.xtextServices.generate()
                         .done(function(result){
                             $("#result").html(result)
                         });
-                    
                 });
-                
-                
             });
         });
 
@@ -78,7 +95,6 @@
         gtag('js', new Date());
         gtag('config', 'UA-101929937-2');
     </script>
-
 </head>
 <body>
 
