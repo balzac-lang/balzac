@@ -1,6 +1,6 @@
-======================
+=====================
 Modeling transactions
-======================
+=====================
 
 .. highlight:: btm
 
@@ -20,7 +20,7 @@ Since ``T`` is a coinbase, it generates new bitcoins. As a consequence, its inpu
 The transaction has an output of ``50 BTC``, and its script specifies that it can be redeemed by
 whoever can provide a value equal to 42 (so, anyone).
 
-Now we will take advantage of our advanced knowledge of transactions and redeem ``T``.
+[cambiare] Now we will take advantage of our advanced knowledge of transactions and redeem ``T``.
 To do so, we create ``T1`` as follows.
 
 .. code-block:: btm
@@ -54,11 +54,11 @@ This time we want to redeem our bitcoins and secure them in a transaction that c
 
 Now that we are redeeming ``T1``, a transaction with multiple input, we have to specify which output we want to redeem.
 In this case ``T2`` redeems the first and the second output of ``T1``, i.e. ``T1@1`` and ``T1@2`` respectively. 
-The output of ``T2`` requires the parameter ``x`` to be a signature that matches the key ``k``.
+[cambiare] The output of ``T2`` requires the parameter ``x`` to be a signature that matches the key ``k``.
 The key is declared at line 1, and it is prefixed by the keyword ``wif:`` to denote that it is expressed in the Wallet Import Format [#f1]_.
 In this way, the output can only be redeemed by the owner of the key.
 
-To send ``T2`` to the Bitcoin network, we can compile it using the statement ``compile T2``.
+[cambiare] To send ``T2`` to the Bitcoin network, we can compile it using the statement ``compile T2``.
 
 .. image:: images/overview.png
 
@@ -72,7 +72,7 @@ Bitcoin offers the flexibility to express more complex scripts than simply verif
 This features can be exploited to design smart contracts, i.e. cryptographic protocols that can handle transfers of bitcoins.
 You can see a series of example, e.g. :doc:`timed-commitment`.
 
-
+[aggiungere]
 
 .. rubric:: Footnotes
 
