@@ -30,7 +30,7 @@ The table below shows the list of types
    ==================== ================================================================== =========
 
 .. Hint:: 
-   **Tipe Coercion**
+   **Type Coercion**
 
    Type coercion is an automatic type conversion by the compiler.
    In other words, some types can be *safely converted* to other ones:
@@ -39,7 +39,7 @@ The table below shows the list of types
    - ``pubkey`` can be used where a type ``address`` is expected.
 
 .. Hint:: 
-   **Tipe Inference**
+   **Type Inference**
 
    The type can be declared explicitly (left box) 
    or it can be omitted (right box) if the type checker can statically infer the
