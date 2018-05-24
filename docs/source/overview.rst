@@ -53,7 +53,7 @@ This time we want to redeem our bitcoins and secure them in a transaction that c
 	}
 
 Now that we are redeeming ``T1``, a transaction with multiple input, we have to specify which output we want to redeem.
-In this case ``T2`` the fist and the second output of ``T1``, i.e. ``T1@1`` and ``T1@2`` respectively. 
+In this case ``T2`` the first and the second output of ``T1``, i.e. ``T1@1`` and ``T1@2`` respectively. 
 The output of ``T2`` requires the parameter ``x`` to be a signature that matches the key ``k``.
 The key is declared at line 1, and it is prefixed by the keyword ``wif:`` to denote that it is expressed in the Wallet Import Format [#f1]_.
 In this way, the output can only be redeemed by the owner of the key.
