@@ -37,20 +37,19 @@ Hash functions
 Cryptographic functions
 --------------------------
 
-   ===================================================================================   ======================================================================================
+   ==========================================================================================   ======================================================================================
    Function																					Description
-   ===================================================================================   ======================================================================================
-   ``sig(k: key)[mod: Modifier] -> signature``												Compute a transaction signature
-   ``versig(k: key; sig: signature) -> bool``												Single signature verification
-   ``versig(k1: key, ..., kn: key; sig1: signature, ..., sign: signature) -> bool``			Multi-signature verification
-
-   ===================================================================================   ======================================================================================
+   ==========================================================================================   ======================================================================================
+   ``sig(k: key)[mod: Modifier] -> signature``                                                  Compute a transaction signature
+   ``versig(k: address; sig: signature) -> bool``                                               Single signature verification
+   ``versig(k1: address, ..., address: key; sig1: signature, ..., sign: signature) -> bool``    Multi-signature verification
+   ==========================================================================================   ======================================================================================
 
 The expression ``sig`` appears within a witness. It computes the signature of the transaction that contains it, under a private ``k``.
 The signature modifier ``[mod]`` is an optional parameter and be one of the following:
 
 	============================================ ==================================================================
-	Modifier 									  Signature Hash Type [BW]_
+	Modifier 						key			  Signature Hash Type [BW]_
 	============================================ ==================================================================
 	``AIAO``										``SIGHASH_ALL``
 	``AISO``										``SIGHASH_SINGLE``
