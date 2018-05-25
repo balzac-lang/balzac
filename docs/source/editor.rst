@@ -1,35 +1,42 @@
 
-==============
-File Structure
-==============
+=============
+Editor syntax
+=============
 
-The structure of a ``btm`` file is the following:
-
-- *package* declaration (optional)
-- *network* declaration (optional)
-- *constants* and *transactions* declaration
-- *compile* statement (optional)
-
--------
+"""""""
 Package
--------
-
-The package declaration specify where the generated files must be saved. 
+"""""""
+The package declaration specify where the generated files must be saved.
+This functionality is more useful when using the local eclipse plugin, respect to the online version.
 By default, generated files are saved in ``src-gen`` with a directory structure reflecting the package name.
-For example, declaring :btm:`package com.example.test`, the generated files will be store
-in ``src-gen/com/example/test/``.
+For example, declaring package ``com.example.test``, the generated files will be store in ``src-gen/com/example/test/``.
 
 .. code-block:: btm
 
-	package com.example.test
+        package com.example.test
 
-The package declaration is **optional**, but recommended, and *must appear at the beginning of the file*.
-The name of the package follows the same rules and conventions of `Java packages <https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html>`_.
+The package declaration is optional, but recommended, and must appear at the beginning of the file. The name of the package follows the same rules and conventions of
+`Java packages <https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html>`_.
 
 
--------
+""""""""
+Comments
+""""""""
+Single-line and multi-lines comments are supported. Their syntax is the same of Java.
+
+.. code-block:: btm
+
+	// <-- single line comment
+
+	/*
+	 * <-- multi-line comment
+	 */
+
+
+
+"""""""
 Network
--------
+"""""""
 
 Several static checks depend on the network you are considering.
 The Wallet Import Format [#f1]_, used to represent private keys and addresses,
@@ -60,9 +67,9 @@ If specified, the network declaration *must appear right after the package decla
 		network mainnet
 
 
----------
+"""""""""
 Constants
----------
+"""""""""
 
 Constants are immutable global variables. The syntax is ``const __name__ [: __type__] = __expression__``.
 For example:
@@ -80,9 +87,9 @@ For example:
 
 The type can be omitted, because it is inferred by the expression. Refer to :doc:`types` and :doc:`expressions` for details.
 
-------------
+""""""""""""
 Transactions
-------------
+""""""""""""
 
 See :doc:`transactions`.
 
@@ -112,9 +119,9 @@ See :doc:`transactions`.
 		const n = 21 * m
 		const m = 2
 
--------
+"""""""
 Compile
--------
+"""""""
 
 The :btm:`compile` statement takes a list of expression and compile them.
 The compiled expressions are saved in text format in ``src-gen/_package-path_/transactions``.
