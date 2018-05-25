@@ -20,7 +20,7 @@ const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1
 // Bob's address
 const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
-// tx with Alice's funds, redeemable with kA
+// tx with your funds, redeemable with kA
 transaction A_funds { input = _ output = 10 BTC: fun(sigma) . versig(kApub; sigma)}
 
 transaction T_commit {

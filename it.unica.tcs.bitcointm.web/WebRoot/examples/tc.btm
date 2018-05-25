@@ -43,5 +43,4 @@ participant Bob {
     }
 }
 
-
 eval Alice.T_commit, Alice.T_reveal, Bob.T_timeout
