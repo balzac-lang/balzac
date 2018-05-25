@@ -20,16 +20,16 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
 
 .. toctree::
     :maxdepth: 3
-    :caption: Overview
+    :caption: Getting Started
 
-    overview
-
+    modeling-transactions
+    compiling-transactions
+    file-structure
 
 .. toctree::
     :maxdepth: 3
     :caption: Language Specification
 
-    file-structure
     transactions
     expressions
     types
