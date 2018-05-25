@@ -2,6 +2,36 @@
 Eclipse Configuration
 *********************
 
+
+The structure of a ``btm`` file is the following:
+
+- *package* declaration (optional)
+- *network* declaration (optional)
+- *constants* and *transactions* declaration
+- *compile* statement (optional)
+
+
+
+"""""""""""
+Comments
+"""""""""""
+"""""""""""
+Package
+"""""""""""
+
+The package declaration specify where the generated files must be saved. 
+By default, generated files are saved in ``src-gen`` with a directory structure reflecting the package name.
+For example, declaring :btm:`package com.example.test`, the generated files will be store
+in ``src-gen/com/example/test/``.
+
+.. code-block:: btm
+
+	package com.example.test
+
+The package declaration is **optional**, but recommended, and *must appear at the beginning of the file*.
+The name of the package follows the same rules and conventions of `Java packages <https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html>`_.
+
+
 =============
 Trusted Nodes
 =============
