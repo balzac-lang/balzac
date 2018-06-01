@@ -20,3 +20,122 @@
 .btn.focus, .btn:focus, .btn.active, .btn:active {
 	box-shadow: inherit !important;
 }
+
+#sidebar-close {
+	background-color: transparent;
+}
+
+#wrapper {
+    padding-left: 0;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#wrapper.toggled {
+    padding-left: 400px;
+}
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 400px;
+    width: 0;
+    height: 100%;
+    margin-left: -400px;
+    overflow-y: auto;
+    background: #fafafa;
+    
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    
+    border-right: 1px solid rgba(0,0,0,.125);
+    box-sizing: content-box;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    width: 400px;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+}
+
+#wrapper.toggled #page-content-wrapper {
+    position: absolute;
+    margin-right: -400px;
+}
+
+@media(min-width:768px) {
+    #wrapper {
+        padding-left: 400px;
+    }
+
+    #wrapper.toggled {
+        padding-left: 0;
+    }
+
+    #sidebar-wrapper {
+        width: 400px;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        width: 0;
+    }
+
+    #page-content-wrapper {
+        position: relative;
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        position: relative;
+        margin-right: 0;
+    }
+}
+
+@media(max-width:768px) {
+    #wrapper {
+        padding-left: 400px;
+    }
+
+    #wrapper.toggled {
+        padding-left: 0;
+    }
+
+    #sidebar-wrapper {
+        width: 400px;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        width: 0;
+    }
+
+    #page-content-wrapper {
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        margin-right: 0;
+    }
+}
+
+#newkey-button {
+	height: 3em;
+}
+
+#sidebar-content {
+	width: 400px;
+}
+
+/* FIX */
+.toggle-handle {
+	background-color: #fff;
+}
+
+/* FIX */
+.toggle-off {
+	left: auto !important;
+}

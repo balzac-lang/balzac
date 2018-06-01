@@ -8,15 +8,18 @@
     
     <link rel="stylesheet" type="text/css" href="xtext/2.12.0/xtext-ace.css"/>
     <link rel="stylesheet" type="text/css" href="style.css"/>
+
+        
+    <!-- Bootstrap CSS -->
+    <link rel='stylesheet' href='webjars/bootstrap/4.1.0/css/bootstrap.min.css'>
+
+    <!-- Font Awesome -->
+    <script defer src="webjars/font-awesome/5.0.13/svg-with-js/js/fontawesome-all.min.js"></script>
     
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <!-- Bootstrap Toggle CSS -->
+    <link href="webjars/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
-    <script defer src="https://use.fontawesome.com/releases/v5.0.2/js/all.js"></script>
-
-    <script src="webjars/requirejs/2.3.2/require.min.js"></script>
+    <script src="webjars/requirejs/2.3.5/require.min.js"></script>
     <script type="text/javascript">
         var baseUrl = window.location.pathname;
         var fileIndex = baseUrl.indexOf("index.html");
@@ -25,15 +28,15 @@
         require.config({
             baseUrl: baseUrl,
             paths: {
-                "jquery": "webjars/jquery/2.2.4/jquery.min",
-                "ace/ext/language_tools": "webjars/ace/1.2.3/src/ext-language_tools",
+                "jquery": "webjars/jquery/3.3.1-1/jquery.min",
+                "ace": "webjars/ace/1.2.8/src/ace",
+                "ace/ext/language_tools": "webjars/ace/1.2.8/src/ext-language_tools",
                 "xtext/xtext-ace": "xtext/2.12.0/xtext-ace",
-//                 "bootstrap": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/js/bootstrap",
-//                 "bootstrap-css": "/META-INF/resources/webjars/bootstrap/4.0.0-beta.2/css/bootstrap"
-            },
-//             shim: { "bootstrap": [ "jquery" ] }
+                "bootstrap": "webjars/bootstrap/4.1.0/js/bootstrap.bundle.min",
+                "bootstrap-toggle": "webjars/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min"
+            }
         });
-        require(["webjars/ace/1.2.3/src/ace"], function() {
+        require(["ace"], function() {
             require(["xtext/xtext-ace"], function(xtext) {
                 
                 var editor = xtext.createEditor({
@@ -73,19 +76,68 @@
                 });
             });
         });
+        
+        require(["jquery"], function() {
+            require(["bootstrap"], function() {
+                require(["bootstrap-toggle"], function() {
+            
+            $(document).ready(function () {
+            
+                $("#menu-toggle").click(function(e) {
+                    e.preventDefault();
+                    $("#wrapper").toggleClass("toggled");
+                });
+                
+                $("#sidebar-close").click(function(e) {
+                    e.preventDefault();
+                    $("#wrapper").toggleClass("toggled");
+                });
+                
+                $("#newkey-button").click(function(e) {
+                    
+                    e.preventDefault();
+                    $.ajax({
+                        url : "new-key",
+                        data : null,
+                        success : populateKeys,
+                        error : function(e) {
+                            console.log("error invoking /new-key")
+                        }
+                    });
+                });
+            }); 
+            });});});
+
+        function populateKeys(data) {
+            const isTestnet = $("#isTestnet").prop("checked")
+            
+            $("#privkey").prop("value", isTestnet? data.privkeyTestnet: data.privkeyMainnet)
+            $("#pubkey").prop("value", data.pubkey)
+            $("#addr").prop("value", isTestnet? data.addressTestnet: data.addressMainnet)
+            
+            $('#isTestnet').change(function() {
+               populateKeys(data)
+            })
+        }
+        
+        function copyToClipboard(id) {
+            var copyText = document.getElementById(id);
+            copyText.select();
+            document.execCommand("copy");
+        }
 
         function loadExample(url) {
             $.ajax({
-			    url : url,
-			    data : null,
-			    success : function(data) {
-		                var editor = ace.edit("xtext-editor");
-		                editor.setValue(data);
-		            },
-			    dataType : "text"
-			});
+                url : url,
+                data : null,
+                success : function(data) {
+                    var editor = ace.edit("xtext-editor");
+                    editor.setValue(data);
+                },
+                dataType : "text"
+            });
         }
-		</script>
+        </script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-101929937-2"></script>
@@ -95,46 +147,138 @@
         gtag('js', new Date());
         gtag('config', 'UA-101929937-2');
     </script>
+    
 </head>
 <body>
 
-    <div class="container mt-3 mb-3">
-        <div class="card">
-            <div class="card-header text-center">
-                <h3 class="card-title">Balzac</h3>
-                <h5 class="card-title">Bitcoin Abstract Language, analyZer and Compiler</h5>
-                <p class="small">* beta version *</p>
-		<p class="">DO NOT USE ON THE MAINNET</p>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-2">
-                    <div class="dropdown">
-                        <button class="btn btn-info dropdown-toggle" type="button"
-                            id="selectExample" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">Select an example</button>
-                        <div class="dropdown-menu" aria-labelledby="selectExample">
-                            <button class="dropdown-item" type="button" onclick="loadExample('examples/tc.btm')">Timed Commitment</button>
-                        </div>
+    <div id="wrapper" class="toggled">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper" class="pt-2">
+            <div id="sidebar-content" class="container">
+                
+                <div class="text-right mb-4">
+                    <button id="sidebar-close" type="button" class="btn btn-default">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Private key (wif)</span>
+                    </div>
+                    <input type="text" id="privkey" class="form-control"
+                        aria-label="Private key in WIF format"
+                        aria-describedby="privkey" autocomplete="off">
+                    <div class="input-group-append">
+                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
+                            <i class="fa fa-clone"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="border border-dark mb-3" >
-                    <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Public key (hex)</span>
+                    </div>
+                    <input type="text" id="pubkey" class="form-control"
+                        aria-label="Public key in hexadecimal format"
+                        aria-describedby="pubkey" autocomplete="off">
+                    <div class="input-group-append">
+                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
+                            <i class="fa fa-clone"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="text-center">
-                    <button id="compile" type="button" class="btn btn-primary">Compile</button>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    </div>
+                    <input type="text" id="addr" class="form-control"
+                        aria-label="Public address in WIF format"
+                        aria-describedby="addr" autocomplete="off">
+                    <div class="input-group-append">
+                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
+                            <i class="fa fa-clone"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="card-footer">
-                <pre id="result" class="mt-2 bg-white border border-dark resizable">
-                </pre>
-            </div>
+                
+                <div class="text-right">
+                    <input id="isTestnet" checked type="checkbox"
+                        data-style="mb-3"
+                        data-toggle="toggle" 
+                        data-on="Testnet" 
+                        data-off="Mainnet" 
+                        data-onstyle="info" 
+                        data-offstyle="info"
+                        data-size="small"
+                        >
+                </div>
+                
+                
+                <input id="newkey-button" class="btn btn-info btn-block mb-5" 
+                    type="button" value="Generate new key"
+                    aria-label="Generate new key">
+                
+<!--                 <div class="input-group input-group-sm mb-3"> -->
+<!--                     <div class="input-group-prepend"> -->
+<!--                         <div class="input-group-text"> -->
+<!--                             <input id="warn-empty-fields" type="checkbox" -->
+<!--                                 aria-label="Checkbox for following text input" checked> -->
+<!--                         </div> -->
+<!--                     </div> -->
+<!--                     <span class="form-control" -->
+<!--                         aria-label="Text input with checkbox">Warning on non-empty fields</span> -->
+<!--                 </div> -->
+            </div>        
         </div>
-        <div class="row text-center small mt-3">
-            <div class="col">
-            Copyright &copy; 2018  <a href="http://blockchain.unica.it" target="_blank">Blockchain@Unica</a>, <a href="http://unica.it" target="_blank">University of Cagliari</a>
-            </div>
-        </div>
-    </div>
+        <!-- /#sidebar-wrapper -->
 
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="pt-2">
+            <button id="menu-toggle" type="button" class="btn btn-default ml-2">
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="container mb-3">
+            
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3 class="card-title">Balzac</h3>
+                        <h5 class="card-title">Bitcoin Abstract Language, analyZer and Compiler</h5>
+                        <p class="small">* beta version *</p>
+                <p class="">DO NOT USE ON THE MAINNET</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-2">
+                            <div class="dropdown">
+                                <button class="btn btn-info dropdown-toggle" type="button"
+                                    id="selectExample" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">Select an example</button>
+                                <div class="dropdown-menu" aria-labelledby="selectExample">
+                                    <button class="dropdown-item" type="button" onclick="loadExample('examples/tc.btm')">Timed Commitment</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-dark mb-3" >
+                            <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
+                        </div>
+                        <div class="text-center">
+                            <button id="compile" type="button" class="btn btn-primary">Compile</button>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <pre id="result" class="mt-2 bg-white border border-dark resizable">
+                        </pre>
+                    </div>
+                </div>
+                <div class="row text-center small mt-3">
+                    <div class="col">
+                    Copyright &copy; 2018  <a href="http://blockchain.unica.it" target="_blank">Blockchain@Unica</a>, <a href="http://unica.it" target="_blank">University of Cagliari</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
 </body>
 </html>
