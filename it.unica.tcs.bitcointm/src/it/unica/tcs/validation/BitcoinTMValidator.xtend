@@ -895,6 +895,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkUniqueAbsoluteTimelock(AbsoluteTime tlock) {
 
+        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.bitcoinTM.Script) !== null;
+
+        if (isScriptTimelock)
+            return
+
         var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
         for (other: tx.timelocks){
 
@@ -910,6 +915,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
     @Check
     def void checkUniqueRelativeTimelock(RelativeTime tlock) {
+
+        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.bitcoinTM.Script) !== null;
+
+        if (isScriptTimelock)
+            return
 
         var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
         for (other: tx.timelocks){
