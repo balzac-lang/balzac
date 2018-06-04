@@ -23,6 +23,7 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
     :caption: Getting Started
 
     nutshell
+    keys
     
 .. toctree::
     :maxdepth: 3
@@ -45,6 +46,7 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
     :caption: Smart contracts
 
     oracle
+    escrow
     timed-commitment
 
 
