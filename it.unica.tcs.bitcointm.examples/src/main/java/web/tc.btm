@@ -8,8 +8,8 @@ const deposit = 10 BTC
 const blockN = 150
 
 // your private key
-const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 
 // tx with your funds, redeemable with kA
 transaction A_funds { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
@@ -32,4 +32,4 @@ transaction T_timeout {
     timelock = after block blockN
 }
 
-compile T_commit T_reveal T_timeout
+compile A_funds T_commit T_reveal T_timeout

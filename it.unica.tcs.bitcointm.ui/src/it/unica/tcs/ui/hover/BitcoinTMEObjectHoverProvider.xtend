@@ -5,6 +5,7 @@
 package it.unica.tcs.ui.hover
 
 import com.google.inject.Inject
+import it.unica.tcs.bitcoinTM.AddressLiteral
 import it.unica.tcs.bitcoinTM.Constant
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Parameter
@@ -15,9 +16,9 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
+import org.bitcoinj.core.LegacyAddress
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import org.bitcoinj.core.LegacyAddress
 
 class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
@@ -82,32 +83,40 @@ class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
     def dispatch String getDocumentationInternal(KeyLiteral key) '''
         «val wif = key.value»
+        «val pvtEC = BitcoinUtils.wifToECKey(wif, key.networkParams)»
         <pre>
-        «IF key.value.isPrivateKey»
-            «val pvtEC = BitcoinUtils.wifToECKey(wif, key.networkParams)»
             Private key
                 base58 (wif) = «wif»
                 hex          = «pvtEC.privateKeyAsHex»
 
             Public key
-                base58 (wif) = «LegacyAddress.fromKey(key.networkParams, pvtEC).toBase58»
                 hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
+        
+            Address
+                base58 (wif) = «LegacyAddress.fromKey(key.networkParams, pvtEC).toBase58»
                 hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
-        «ENDIF»
-        «IF key.value.isAddress»
-            «val pubEC = Address.fromString(key.networkParams, wif)»
+        </pre>
+        '''
+    def dispatch String getDocumentationInternal(PubKeyLiteral pubkey) '''
+        «val pubEC = ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value))»
+        <pre>
             Public key
+                hex          = «pubkey.value»
+            
+            Address
+                base58 (wif) = «LegacyAddress.fromKey(pubkey.networkParams, pubEC).toBase58»
+                hash160      = «BitcoinUtils.encode(pubEC.pubKeyHash)»
+        </pre>
+        '''
+        
+    def dispatch String getDocumentationInternal(AddressLiteral addrLit) '''
+        «val wif = addrLit.value»
+        <pre>
+            «val addr = Address.fromString(addrLit.networkParams, wif)»
+            Address
                 base58 (wif) = «wif»
-                hash160      = «BitcoinUtils.encode(pubEC.hash)»
-        «ENDIF»
+                hash160      = «BitcoinUtils.encode(addr.hash)»
         </pre>
         '''
 
-    def dispatch String getDocumentationInternal(PubKeyLiteral pubkey) '''
-        <pre>
-        Public key
-            hex     = «pubkey.value»
-            address = «LegacyAddress.fromKey(pubkey.networkParams, ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value))).toBase58»
-        </pre>
-        '''
 }

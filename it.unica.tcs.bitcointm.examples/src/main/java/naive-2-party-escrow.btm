@@ -5,8 +5,8 @@
  * Alice wants to buy a product from Bob, but neither of them trusts the other person, so they use a contract
  * to help ensure Alice gets his merchandise and Bob gets his payment.
  * A simple contract could say that Alice will spend 1BTC to an output which can only be spent if Alice and
- * Bob both sign the input spending it. That means Bob won’t get paid unless Alice gets his merchandise, but
- * Alice can’t get the merchandise and keep his payment.
+ * Bob both sign the input spending it. That means Bob won't get paid unless Alice gets his merchandise, but
+ * Alice can't get the merchandise and keep his payment.
  *
  * https://bitcoin.org/en/developer-guide#contracts
  */
@@ -18,9 +18,9 @@ package it.unica.btm.naive_2_party_escrow
 
 network testnet
 
-const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-const kC = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kC = key:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 transaction TA {
 	input = _

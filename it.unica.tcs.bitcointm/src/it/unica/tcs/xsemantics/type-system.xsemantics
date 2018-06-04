@@ -3,6 +3,7 @@
  */
 
 import it.unica.tcs.bitcoinTM.AbsoluteTime
+import it.unica.tcs.bitcoinTM.AddressLiteral
 import it.unica.tcs.bitcoinTM.AddressType
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.AndExpression
@@ -20,6 +21,8 @@ import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
+import it.unica.tcs.bitcoinTM.HashLiteral
+import it.unica.tcs.bitcoinTM.HashType
 import it.unica.tcs.bitcoinTM.HashableType
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Input
@@ -41,6 +44,7 @@ import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.Sha1
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
@@ -59,14 +63,9 @@ import it.unica.tcs.bitcoinTM.Typeable
 import it.unica.tcs.bitcoinTM.Versig
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBitcoinTMValidator
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.bitcoinTM.HashType
-import it.unica.tcs.bitcoinTM.HashLiteral
-import it.unica.tcs.bitcoinTM.Sha1
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -494,17 +493,11 @@ from {
 axiom DateLiteral
     G |- TypeSubstitutions substitutions |> DateLiteral d : BitcoinTMFactory::eINSTANCE.createIntType
 
-rule KeyLiteral
-    G |- TypeSubstitutions substitutions |> KeyLiteral key : Type res
-from {
-    {
-        DumpedPrivateKey.fromBase58(null, key.value);
-        res = BitcoinTMFactory::eINSTANCE.createKeyType
-    } or {
-        Address.fromString(null, key.value);
-        res = BitcoinTMFactory::eINSTANCE.createAddressType
-    }
-}
+axiom KeyLiteral
+    G |- TypeSubstitutions substitutions |> KeyLiteral key : BitcoinTMFactory::eINSTANCE.createKeyType
+
+axiom AddressLiteral
+    G |- TypeSubstitutions substitutions |> AddressLiteral addr : BitcoinTMFactory::eINSTANCE.createAddressType
 
 axiom PubkeyLiteral
     G |- TypeSubstitutions substitutions |> PubKeyLiteral pk : BitcoinTMFactory::eINSTANCE.createPubkeyType

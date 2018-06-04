@@ -72,6 +72,7 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.bitcoinTM.AddressLiteral
 
 /**
  * This class contains custom validation rules.
@@ -365,40 +366,41 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkKeyDeclaration(KeyLiteral k) {
 
-        if (k.value.isPrivateKey) {
-            try {
-                DumpedPrivateKey.fromBase58(k.networkParams, k.value)
-            }
-            catch (AddressFormatException.WrongNetwork e) {
-                error("Key is not valid for the given network.",
-                    k,
-                    BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-                )
-            }
-            catch (AddressFormatException e) {
-                error("Invalid key. "+e.message,
-                    k,
-                    BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-                )
-            }
+        try {
+            DumpedPrivateKey.fromBase58(k.networkParams, k.value)
         }
+        catch (AddressFormatException.WrongNetwork e) {
+            error("Key is not valid for the given network.",
+                k,
+                BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+            )
+        }
+        catch (AddressFormatException e) {
+            error("Invalid key. "+e.message,
+                k,
+                BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+            )
+        }
+	}
 
-        if (k.value.isAddress) {
-            try {
-                Address.fromString(k.networkParams, k.value)
-            }
-            catch (AddressFormatException.WrongNetwork e) {
-                error("Address is not valid for the given network.",
-                    k,
-                    BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-                )
-            }
-            catch (AddressFormatException e) {
-                error("Invalid address. "+e.message,
-                    k,
-                    BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
-                )
-            }
+
+    @Check
+    def void checkAddressDeclaration(AddressLiteral k) {
+
+        try {
+            Address.fromString(k.networkParams, k.value)
+        }
+        catch (AddressFormatException.WrongNetwork e) {
+            error("Address is not valid for the given network.",
+                k,
+                BitcoinTMPackage.Literals.ADDRESS_LITERAL__VALUE
+            )
+        }
+        catch (AddressFormatException e) {
+            error("Invalid address. "+e.message,
+                k,
+                BitcoinTMPackage.Literals.ADDRESS_LITERAL__VALUE
+            )
         }
     }
 

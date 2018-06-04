@@ -51,6 +51,7 @@ import org.bitcoinj.crypto.TransactionSignature
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.lib.Hash.HashAlgorithm
 import it.unica.tcs.bitcoinTM.Sha1
+import it.unica.tcs.bitcoinTM.AddressLiteral
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
@@ -184,15 +185,11 @@ from {
 //    )
 //}
 
-rule InterpretKeyLiteral
-    G |- KeyLiteral key |> Rho rho ~> Object res
-from {
-    {
-        res = DumpedPrivateKey.fromBase58(null, key.value);
-    } or {
-        res = Address.fromString(null, key.value);
-    }
-}
+axiom InterpretKeyLiteral
+    G |- KeyLiteral key |> Rho rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+
+axiom InterpretAddressLiteral
+    G |- AddressLiteral addr |> Rho rho ~> Address.fromString(null, addr.value)
 
 axiom InterpretPubkeyLiteral
     G |- PubKeyLiteral d |> Rho rho ~> ECKey.fromPublicOnly(BitcoinUtils.decode(d.value))
