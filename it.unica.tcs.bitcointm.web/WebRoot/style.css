@@ -139,3 +139,7 @@
 .toggle-off {
 	left: auto !important;
 }
+
+#menu-toggle {
+        background-color: transparent;
+}
