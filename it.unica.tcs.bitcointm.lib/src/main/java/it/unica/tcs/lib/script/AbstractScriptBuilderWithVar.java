@@ -49,8 +49,8 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     implements EnvI<Object,T> {
 
     private static final long serialVersionUID = 1L;
-    private static final String SIGNATURE_PREFIX = "\u03C3";    // σ
-    private static final String FREEVAR_PREFIX = "\u03F0";      // ϰ;
+    private static final String SIGNATURE_PREFIX = "[$sig$]";
+    private static final String FREEVAR_PREFIX = "[$var$]";
 
     private final Env<Object> env = new Env<>();
 
