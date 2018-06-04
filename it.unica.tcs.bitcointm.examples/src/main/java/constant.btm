@@ -18,9 +18,9 @@ const h160_bis:hash = hash:c51b66bced5e4491001bd702669770dccf440982
 const h256_bis:hash = hash:3e60b464ea3bb214e7fee339baff43195bf00dd1f8bc384896ea527139eced55
 const h3_bis:hash   = hash:e5e9fa1ba31ecd1ae84f75caaa474f3a663f05f4
 
-const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
+const kA:key = key:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 const k = kA
-const k_address = wif:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz
+const k_address = address:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz
 const k_pubkey = pubkey:032b6cb7aa033a063d2dc39573bde12a2d01e20a971d6d4f85eb27ad0793b3689c
 
 const T:transaction = txid:0d7748674c8395cf288500b1c64330605fec54ae0dfdb229265eb08196056c3a

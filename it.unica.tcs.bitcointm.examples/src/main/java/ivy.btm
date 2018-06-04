@@ -218,9 +218,9 @@ const k2 = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83
 const k3 = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
 // addresses
-const addr1 = wif:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
-const addr2 = wif:mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz
-const addr3 = wif:n3s2D2TSroNtMdAFV88YfhExUmNidqesD1
+const addr1 = address:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
+const addr2 = address:mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz
+const addr3 = address:n3s2D2TSroNtMdAFV88YfhExUmNidqesD1
 
 const value = 1 BTC
 

@@ -151,6 +151,7 @@ Literal:
 |	DateLiteral
 |	HashLiteral
 |	KeyLiteral
+|	AddressLiteral
 |   PubKeyLiteral
 |   TransactionLiteral
 |	SignatureLiteral;
@@ -164,7 +165,8 @@ StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 DateLiteral: value=TIMESTAMP;
 HashLiteral: value=HASH_TERM;
-KeyLiteral: value=WIF;
+KeyLiteral: value=KEY_WIF;
+AddressLiteral: value=ADDRESS_WIF;
 PubKeyLiteral: value=PUBKEY;
 TransactionHexLiteral: value=TXSERIAL;
 TransactionIDLiteral: value=TXID;
@@ -279,10 +281,9 @@ terminal HASH_TERM returns ecore::EByteArray:  'hash:'      ('0'..'9'|'a'..'f'|'
 terminal TXID returns ecore::EString:          'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL returns ecore::EString:      'tx:'        ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal SIGHEX returns ecore::EString:        'sig:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal KEY_WIF returns ecore::EString:       'key:'       ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 terminal PUBKEY returns ecore::EString:        'pubkey:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
-
-// both private keys and public addresses
-terminal WIF returns ecore::EString:           'wif:'       ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+terminal ADDRESS_WIF returns ecore::EString:   'address:'   ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
 
 /*
  * 2011-12-03T10:15:30+01:00

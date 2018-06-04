@@ -2,7 +2,7 @@ package it.unica.btm.prova
 
 network mainnet
 
-const kA:key = wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
+const kA:key = key:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW
 const kB = kA
 
 transaction ALFA {

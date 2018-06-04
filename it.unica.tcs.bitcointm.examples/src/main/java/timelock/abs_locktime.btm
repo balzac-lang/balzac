@@ -2,9 +2,9 @@ package it.unica.btm.abs_locktime
 
 network testnet
 
-const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
-const kL = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+const kL = key:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 const blockN = 500_000
 const deadline = 2018-06-11T15:00:00+02:00

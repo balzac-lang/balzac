@@ -548,6 +548,7 @@ class ScriptCompiler {
     }
 
     def private dispatch ScriptBuilder2 compileReferrable(Constant const, Context ctx) {
+                
         val value = const.exp.interpretSafe(ctx.rho)
 
         if (value instanceof Literal) {

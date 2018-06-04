@@ -84,26 +84,38 @@ class BitcoinTMConverterService extends DefaultTerminalConverters {
         }
     }
 
-    @ValueConverter(rule = "WIF")
-    def IValueConverter<String> getWIF() {
+    @ValueConverter(rule = "KEY_WIF")
+    def IValueConverter<String> getKeyWIF() {
         return new AbstractLexerBasedConverter<String>() {
 
             override toValue(String string, INode node) throws ValueConverterException {
-                var value = string.substring(string.indexOf(':')+1)
+                var value = string.split(":").get(1)
 
                 try {
                     DumpedPrivateKey.fromBase58(null, value);   // it ignores the network byte
                     return value;
                 }
                 catch (Exception e) {
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key. \n\nDetails: "+e.message, node, e);
+            	}
+            }
+        }
+    }
+    
+    
+    @ValueConverter(rule = "ADDRESS_WIF")
+    def IValueConverter<String> getAddressWIF() {
+        return new AbstractLexerBasedConverter<String>() {
 
-                    try {
-                        Address.fromString(null, value);    // it ignores the network byte
-                        return value;
-                    }
-                    catch(Exception e1)
-                        throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key, nor to an address. \n\nDetails: "+e.message, node, e);
+            override toValue(String string, INode node) throws ValueConverterException {
+                var value = string.split(":").get(1)
+
+                try {
+                    Address.fromString(null, value);    // it ignores the network byte
+                    return value;
                 }
+                catch(Exception e)
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid address. \n\nDetails: "+e.message, node, e);
             }
         }
     }

@@ -13,6 +13,8 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.DumpedPrivateKey;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
@@ -28,6 +30,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import it.unica.tcs.bitcoinTM.AbsoluteTime;
+import it.unica.tcs.bitcoinTM.AddressLiteral;
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
 import it.unica.tcs.bitcoinTM.BitcoinTMPackage;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
@@ -42,6 +45,7 @@ import it.unica.tcs.bitcoinTM.Modifier;
 import it.unica.tcs.bitcoinTM.Network;
 import it.unica.tcs.bitcoinTM.NumberLiteral;
 import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.bitcoinTM.PubKeyLiteral;
 import it.unica.tcs.bitcoinTM.Reference;
 import it.unica.tcs.bitcoinTM.Referrable;
 import it.unica.tcs.bitcoinTM.RelativeTime;
@@ -72,39 +76,9 @@ public class ASTUtils {
         EObject root = EcoreUtil2.getRootContainer(obj);
         List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
         for (KeyLiteral k : keys) {
-            if (isPrivateKey(k)) {
-                kstore.addKey(k.getValue());
-            }
+            kstore.addKey(k.getValue());
         }
         return kstore;
-    }
-
-    public boolean isAddress(KeyLiteral k) {
-        return isAddress(k.getValue());
-    }
-
-    public boolean isPrivateKey(KeyLiteral k) {
-        return isPrivateKey(k.getValue());
-    }
-
-    public boolean isAddress(String wif) {
-        try {
-            Address.fromString(null, wif);
-            return true;
-        }
-        catch(AddressFormatException e) {
-            return false;
-        }
-    }
-
-    public boolean isPrivateKey(String wif) {
-        try {
-            DumpedPrivateKey.fromBase58(null, wif);
-            return true;
-        }
-        catch(AddressFormatException e) {
-            return false;
-        }
     }
 
     public String getName(Referrable ref) {
@@ -193,6 +167,16 @@ public class ASTUtils {
             res.setValue(((DumpedPrivateKey) value).toBase58());
             return res;
         }
+        else if (value instanceof LegacyAddress) {
+            AddressLiteral res = BitcoinTMFactory.eINSTANCE.createAddressLiteral();
+            res.setValue(((LegacyAddress) value).toBase58());
+            return res;
+        }
+        else if (value instanceof ECKey) {
+            PubKeyLiteral res = BitcoinTMFactory.eINSTANCE.createPubKeyLiteral();
+            res.setValue(((ECKey) value).getPublicKeyAsHex());
+            return res;
+        }
         else if (value instanceof TransactionSignature) {
             SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
             res.setValue(BitcoinUtils.encode(((TransactionSignature) value).encodeToBitcoin()));
@@ -271,7 +255,8 @@ public class ASTUtils {
 
     public boolean isOpReturn(Script script, Rho rho) {
         boolean noParam = script.getParams().size() == 0;
-        boolean onlyString = interpretSafe(script.getExp(), rho) instanceof StringLiteral;
+        Result<Object> res = this.interpreter.interpret(script.getExp(), rho);
+        boolean onlyString = !res.failed() && res.getFirst() instanceof String;
         return noParam && onlyString;
     }
 

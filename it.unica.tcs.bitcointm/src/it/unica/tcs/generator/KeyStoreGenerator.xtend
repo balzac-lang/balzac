@@ -62,7 +62,7 @@ class KeyStoreGenerator extends AbstractGenerator {
      */
     def private String createTempKeyStore(Model model) {
 
-        val keys = EcoreUtil2.getAllContentsOfType(model, KeyLiteral).filter[k|k.isPrivateKey]
+        val keys = EcoreUtil2.getAllContentsOfType(model, KeyLiteral)
 
         try {
             val ecks = new ECKeyStore(getKsPassword())
