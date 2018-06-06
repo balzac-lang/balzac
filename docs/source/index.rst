@@ -22,10 +22,8 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
     :maxdepth: 3
     :caption: Getting Started
 
-    modeling-transactions
-    compiling-transactions
-    file-structure
-
+    nutshell
+    
 .. toctree::
     :maxdepth: 3
     :caption: Language Specification
@@ -33,6 +31,8 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
     transactions
     expressions
     types
+    editor
+
 
 .. toctree::
     :maxdepth: 3
