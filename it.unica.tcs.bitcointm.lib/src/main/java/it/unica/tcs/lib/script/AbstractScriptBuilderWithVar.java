@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
@@ -38,10 +37,10 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
+import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Env;
 import it.unica.tcs.lib.EnvI;
 import it.unica.tcs.lib.Hash;
-import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
@@ -128,8 +127,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         return substituteAllBinding();
     }
 
-    public T signaturePlaceholder(ECKey key, SigHash hashType, boolean anyoneCanPay) {
-        return signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, anyoneCanPay);
+    public T signaturePlaceholderKeyFree(String keyVarname, SigHash hashType, boolean anyoneCanPay) {
+        this.addVariable(keyVarname, String.class);
+        return this.signaturePlaceholder(FREEVAR_PREFIX+keyVarname, hashType, anyoneCanPay);
     }
 
     @SuppressWarnings("unchecked")
@@ -201,19 +201,23 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 String mapKey = getMapKey(chunk);
                 SignatureUtil sig = this.signatures.get(mapKey);
 
-                checkState(keystore != null, "keystore must be set to retrieve the private keys");
-                checkState(keystore.containsKey(sig.keyID), "key "+sig.keyID+" not found on the specified keystore");
+                // check if the private key is a variable
+                String keyID = sig.keyID;
+                if (keyID.startsWith(FREEVAR_PREFIX)) {
+                    // check that the variable is bound
+                    String varName = keyID.substring(FREEVAR_PREFIX.length());
+                    checkState(isBound(varName), "variable "+varName+" must be bound to retrieve the key");
+                    keyID = getValue(varName, String.class);
+                }
 
-                ECKey key = keystore.getKey(sig.keyID);
+                checkState(keystore != null, "keystore must be set to retrieve the private keys");
+                checkState(keystore.containsKey(keyID), "key "+keyID+" not found on the specified keystore");
+
+                ECKey key = keystore.getKey(keyID);
                 SigHash hashType = sig.hashType;
                 boolean anyoneCanPay = sig.anyoneCanPay;
 
-                // check the key is correct when P2PKH
-//              Script s = new Script(outScript);
-//              if (s.isSentToAddress()) {
-//                  checkState(Arrays.equals(s.getPubKeyHash(), key.getPubKeyHash()));
-//              }
-
+                // create the signature
                 TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
                 Sha256Hash hash = tx.hashForSignature(inputIndex, outScript, (byte) txSig.sighashFlags);
                 boolean isValid =  ECKey.verify(hash.getBytes(), txSig, key.getPubKey());
@@ -569,7 +573,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     @Override
     public T addVariable(String name, Class<?> type) {
         checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
-                || Hash.class.isAssignableFrom(type) || DumpedPrivateKey.class.equals(type) || TransactionSignature.class.equals(type), "invalid type "+type);
+                || Hash.class.isAssignableFrom(type), "invalid type "+type);
         addVariableChunk(name);
         env.addVariable(name, type);
         return (T) this;

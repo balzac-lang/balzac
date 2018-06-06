@@ -18,13 +18,13 @@ import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
-import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -79,6 +79,10 @@ public class ASTUtils {
             kstore.addKey(k.getValue());
         }
         return kstore;
+    }
+
+    public String nodeToString(EObject eobj) {
+    	return NodeModelUtils.getTokenText(NodeModelUtils.getNode(eobj));
     }
 
     public String getName(Referrable ref) {
@@ -177,9 +181,12 @@ public class ASTUtils {
             res.setValue(((ECKey) value).getPublicKeyAsHex());
             return res;
         }
-        else if (value instanceof TransactionSignature) {
+        else if (value instanceof SignatureAndPubkey) {
+            PubKeyLiteral pubkey = BitcoinTMFactory.eINSTANCE.createPubKeyLiteral();
             SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
-            res.setValue(BitcoinUtils.encode(((TransactionSignature) value).encodeToBitcoin()));
+            res.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getSignature()));
+            pubkey.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getPubkey()));
+            res.setKey(pubkey);
             return res;
         }
         else {

@@ -154,7 +154,8 @@ Literal:
 |	AddressLiteral
 |   PubKeyLiteral
 |   TransactionLiteral
-|	SignatureLiteral;
+|	SignatureLiteral
+|   SignaturePlaceholder;
 
 TransactionLiteral:
     TransactionHexLiteral
@@ -170,14 +171,15 @@ AddressLiteral: value=ADDRESS_WIF;
 PubKeyLiteral: value=PUBKEY;
 TransactionHexLiteral: value=TXSERIAL;
 TransactionIDLiteral: value=TXID;
-SignatureLiteral: value=SIGHEX (-> "[" key=Expression "]")?;
+SignatureLiteral: value=SIGHEX "[" key=Expression "]";
+SignaturePlaceholder: {SignaturePlaceholder} "_";
 
 IfThenElse:
 	'if' if=Expression
 	"then" then=AtomicExpression
 	'else' else=AtomicExpression;
 
-Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? ("of" tx=AtomicExpression (=>"@" inputIdx=LONG)?)?;
+Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=AtomicExpression (=>"@" inputIdx=LONG)?)?;
 
 enum Modifier:
 	AIAO

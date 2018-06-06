@@ -48,6 +48,7 @@ import it.unica.tcs.bitcoinTM.Sha1
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
+import it.unica.tcs.bitcoinTM.SignaturePlaceholder
 import it.unica.tcs.bitcoinTM.SignatureType
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
@@ -202,6 +203,8 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Add
 /*
  * Type system rules
  */
+axiom SignaturePlaceholder
+    G |- TypeSubstitutions substitutions |> SignaturePlaceholder p : BitcoinTMFactory::eINSTANCE.createSignatureType 
 
 rule Parameter
     G |- TypeSubstitutions substitutions |> Parameter p : Type type
@@ -241,10 +244,22 @@ from {
     if (varRef.ref instanceof Constant) {
         val const = varRef.ref as Constant
         G |- substitutions |> const : type
+        
+        if (!varRef.actualParams.^empty) {
+            fail
+                error "Constant reference cannot have actual parameters"
+                source varRef
+        }
     }
     else if (varRef.ref instanceof Parameter) {
         val param = varRef.ref as Parameter
         G |- substitutions |> param : type
+        
+        if (!varRef.actualParams.^empty) {
+            fail
+                error "Parameter reference cannot have actual parameters"
+                source varRef
+        }
     }
     else if (varRef.ref instanceof Transaction) {
         val tx = varRef.ref as Transaction
@@ -483,11 +498,9 @@ axiom TransactionIDLiteral
 rule SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BitcoinTMFactory::eINSTANCE.createSignatureType
 from {
-    if (s.key !== null) {
-        G |- substitutions |> s.key : var Type type
-        type = typesubstitution(substitutions, type)
-        unify(s.key, substitutions, type, BitcoinTMFactory::eINSTANCE.createPubkeyType)
-    }
+    G |- substitutions |> s.key : var Type type
+    type = typesubstitution(substitutions, type)
+    unify(s.key, substitutions, type, BitcoinTMFactory::eINSTANCE.createPubkeyType)
 }
 
 axiom DateLiteral

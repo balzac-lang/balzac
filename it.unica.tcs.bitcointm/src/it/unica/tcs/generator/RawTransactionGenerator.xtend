@@ -20,6 +20,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
+import org.bitcoinj.crypto.TransactionSignature
 
 class RawTransactionGenerator extends AbstractGenerator {
 
@@ -64,11 +65,16 @@ class RawTransactionGenerator extends AbstractGenerator {
                 if (!res.failed) {
 
                     val obj = res.first
-
+                    
+                    sb.append(astUtils.nodeToString(r)).append("\n")
+                    
                     if (obj instanceof ITransactionBuilder) {
                         val tx = obj.toTransaction(astUtils.getECKeyStore(model))
                         sb.append(tx).append("\n")
                         sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
+                    }
+                    else if (obj instanceof TransactionSignature) {
+                        sb.append(BitcoinUtils.encode(obj.encodeToBitcoin)).append("\n\n\n")
                     }
                     else {
                         sb.append(obj.toString).append("\n\n\n")

@@ -1,0 +1,83 @@
+package escrow
+
+const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
+const kApub = pubkey:03fed06d54f936a82333d7917da934111ae232a0c9a57b37d9b47dcd0bc879a7a4
+const addrA = address:mkCEpRJv2DnfZrwDZ7BRjitSXmTx3gz8gd
+
+const kB = key:cUJb1xw5VcVV3K3cRQPgRAGhjrAEgZ3cwjkc9NmJDNv5ADC6vvMG
+const kBpub = pubkey:03b4a492bb741eaa5882f4d3affc7ef6d095c90f747334f6d1da0c13adc6280070
+const addrB = address:mmGQmi9svUp8ky7u9YPgHZ3TwU1aeNq7Tq
+
+transaction T_deposit {input = _ output = 1BTC: fun(x). versig(kApub; x)}
+
+transaction T {
+        input = T_deposit: sig(kA) 
+        output = 1BTC: fun(sigA, sigB). versig(kApub, kBpub; sigA, sigB)
+}
+
+// template per l'escrow, sia per Alice che per Bob
+transaction T_escrow_template(sigA:signature, sigB:signature, pubK:pubkey) {
+    input = T : sigA sigB
+    output = 1BTC: fun(x) . versig(pubK; x)
+}
+
+// la signature che Alice invia a Bob
+const sigA = sig(kA) of T_escrow_template(_,_,kBpub)    // notare kBpub
+
+// la signature che Bob invia a Alice
+const sigB = sig(kB) of T_escrow_template(_,_,kApub)    // notare kApub
+
+// escrow di Alice per redimere T
+transaction T_escrow_Alice {
+    input = T : sig(kA) sigB
+    output = 1BTC: fun(x) . versig(kApub; x)
+}
+
+// escrow di Bob per redimere T
+transaction T_escrow_Bob {
+    input = T : sigA sig(kB)
+    output = 1BTC: fun(x) . versig(kBpub; x)
+}
+
+// ALTERNATIVA
+transaction T_escrow_template2(pubK:pubkey) {
+    input = T : _ _
+    output = 1BTC: fun(x) . versig(pubK; x)
+}
+const sigA2 = sig(kA) of T_escrow_template2(kBpub)    // notare kBpub
+const sigB2 = sig(kB) of T_escrow_template2(kApub)    // notare kApub
+
+
+// ALTERNATIVA NON SICURA (non controlla che gli input spendano gli output)
+const sigAA = sig(kA) of T_escrow_template(_,_,kApub)    // Alice prepara la sua signature
+const sigBB = sig(kB) of T_escrow_template(_,_,kBpub)    // Bob prepara la sua signature
+
+const T_unsafeA = T_escrow_template(_,_,kApub)
+const T_unsafeB = T_escrow_template(_,_,kBpub)
+const T_escrow_Alice_bis = T_escrow_template(sigAA, sigB, kApub)
+const T_escrow_Bob_bis = T_escrow_template(sigA, sigBB, kBpub)
+
+// controlli di test (ignorare)
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+transaction T_escrowTEST(pubK) {
+    input = T : sig(kA) sig(kB)
+    output = 1BTC: fun(x) . versig(pubK; x)
+}
+const sigA_ok = sigA == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801 [kA]
+const sigB_ok = sigB == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901 [kB]
+const sigA2_ok = sigA2 == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801 [kA]
+const sigB2_ok = sigB2 == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901 [kB]
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+compile
+    sigA_ok
+    sigB_ok
+    sigA2_ok
+    sigB2_ok
+    sigA
+    T_escrow_Alice       
+    T_escrow_Alice_bis  // uguale a quello sopra
+    T_escrow_Bob 
+    T_escrow_Bob_bis    // uguale a quello sopra
+
+

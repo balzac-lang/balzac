@@ -44,7 +44,6 @@ import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.utils.SignatureAndKey
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
@@ -73,6 +72,7 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
 import it.unica.tcs.bitcoinTM.AddressLiteral
+import it.unica.tcs.utils.SignatureAndPubkey
 
 /**
  * This class contains custom validation rules.
@@ -316,49 +316,53 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
 
     @Check
-    def void checkSig(Signature sig) {
-        var k = sig.privkey
-
-        if (k instanceof Reference) {
-            if (k.ref.isTxParameter)
-                error("Cannot use parametric key.",
-                    sig,
-                    BitcoinTMPackage.Literals.SIGNATURE__PRIVKEY
-                );
-        }
-    }
-
-    @Check
     def void checkSigTransaction(Signature sig) {
-        val isTxDefined = sig.tx !== null
+        val isTxDefined = sig.isHasTx
         val isWithinInput = EcoreUtil2.getContainerOfType(sig, Input) !== null
 
-        if (isTxDefined && sig.tx.isCoinbase) {
-            error("Transaction cannot be a coinbase.",
+        if (isTxDefined && isWithinInput) {
+            error("You cannot specify the transaction to sign.",
                 sig,
                 BitcoinTMPackage.Literals.SIGNATURE__TX
             );
+            return
+        }
+
+        if (isTxDefined && sig.tx.isCoinbase) {
+            error("Transaction cannot be a coinbase.",      // because you need a reference to the output script of the input i-th
+                sig,
+                BitcoinTMPackage.Literals.SIGNATURE__TX
+            );
+            return
         }
 
         if (isTxDefined && sig.tx.isSerial) {
-            error("Cannot sign a serialized transaction.",
+            error("Cannot sign a serialized transaction.",  // because you need a reference to the output script of the input i-th
                 sig,
                 BitcoinTMPackage.Literals.SIGNATURE__TX
             );
-        }
-
-        if (isTxDefined && isWithinInput) {
-            error("Transaction cannot be specified within input script.",
-                sig,
-                BitcoinTMPackage.Literals.SIGNATURE__TX
-            );
+            return
         }
 
         if (!isTxDefined && !isWithinInput) {
-            error("Transaction must be specified.",
+            error("You must specify the transaction to sign.",
                 sig.eContainer,
                 sig.eContainingFeature
             );
+            return
+        }
+
+        val res = sig.tx.interpretE
+        
+        if (!res.failed) {
+            val tx = res.first as ITransactionBuilder
+            val inputSize = tx.inputs.size
+            if (sig.inputIdx >= inputSize) {
+                error('''Invalid input «sig.inputIdx». «IF inputSize == 1»0 expected (it can be omitted).«ELSE»Valid interval [0,«inputSize-1»].«ENDIF»''',
+                    sig,
+                    BitcoinTMPackage.Literals.SIGNATURE__INPUT_IDX
+                );
+            }
         }
     }
 
@@ -631,16 +635,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (inputTx.outputs.get(outputIdx).script.isP2PKH) {
             for (e : input.exps) {
                 val res = e.interpretE
-                if (!res.failed && res.first instanceof SignatureAndKey) {
-                    val sig = res.first as SignatureAndKey
-                    if (sig.pubkey === null) {
-                        error(
-                            "The given signature does not specify a pubkey, needed to redeem a P2PKH (e.g. fun(s) . versig(k;s)).",
-                            e,
-                            null
-                        );
-                        return false
-                    }
+                if (!res.failed && !(res.first instanceof SignatureAndPubkey)) {
+                    error(
+                        "Invalid expression type. Signature is expected",
+                        e,
+                        null
+                    )
+                    return false
                 }
             }
         }

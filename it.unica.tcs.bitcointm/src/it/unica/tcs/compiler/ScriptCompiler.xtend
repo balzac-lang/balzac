@@ -37,6 +37,7 @@ import it.unica.tcs.bitcoinTM.Referrable
 import it.unica.tcs.bitcoinTM.RelativeTime
 import it.unica.tcs.bitcoinTM.Ripemd160
 import it.unica.tcs.bitcoinTM.Script
+import it.unica.tcs.bitcoinTM.Sha1
 import it.unica.tcs.bitcoinTM.Sha256
 import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
@@ -60,14 +61,15 @@ import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
 import javax.inject.Singleton
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
+import org.bitcoinj.core.ECKey
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.utils.SignatureAndKey
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Address
-import it.unica.tcs.bitcoinTM.Sha1
+import it.unica.tcs.utils.SignatureAndPubkey
+import it.unica.tcs.bitcoinTM.SignaturePlaceholder
+import it.unica.tcs.lib.ECKeyStore
 
 /*
  * EXPRESSIONS
@@ -130,14 +132,17 @@ class ScriptCompiler {
                 if (sigI.failed)
                     throw new CompileException('''Unable to evaluate to a valid signature''')
 
-                val sig = sigI.first as SignatureAndKey
+                if (!(sigI.first instanceof SignatureAndPubkey))
+                    throw new CompileException('''Unexpected result evaluating the signature. Result is «sigI.first»''')
+                
+                val sig = sigI.first as SignatureAndPubkey
 
-                if (sig.pubkey === null)
+                if (sig.getPubkey === null)
                     throw new CompileException('''The signature must be defined with a public key''')
 
                 val sb = new InputScriptImpl()
-                sb.data(sig.sig.encodeToBitcoin)
-                sb.data(sig.pubkey.pubKey)
+                sb.data(sig.signature)
+                sb.data(sig.getPubkey)
                 return new InputScriptImpl().append(sb) as InputScript
             }
 
@@ -299,6 +304,10 @@ class ScriptCompiler {
         throw new CompileException("Unable to compile expression "+exp)
     }
 
+    def private dispatch ScriptBuilder2 compileExpressionInternal(SignaturePlaceholder p, Context ctx) {
+        new ScriptBuilder2().data(#[])
+    }
+
     /*
      * Literals
      */
@@ -329,16 +338,30 @@ class ScriptCompiler {
 
     def private dispatch ScriptBuilder2 compileExpressionInternal(Signature stmt, Context ctx) {
 
+        val hashType = stmt.modifier.toHashType
+        val anyoneCanPay = stmt.modifier.toAnyoneCanPay
         val resKey = stmt.privkey.interpret(ctx.rho)
 
-        if (resKey.failed)
+        if (resKey.failed) {
+            // check if the privkey is a tx parameter
+            if (stmt.privkey instanceof Reference) {
+                val ref = stmt.privkey as Reference
+                if (ref.ref instanceof Parameter) {
+                    val param = ref.ref as Parameter
+                    if (param.isTxParameter) {
+                        // the signature placeholder will evaluate to the actual parameter when signing
+                        var sb = new ScriptBuilder2().signaturePlaceholderKeyFree(param.name, hashType, anyoneCanPay)
+                        return sb
+                    }
+                }
+            }
+
             throw new CompileException('''Unable to evaluate to a private key''')
+        }
 
         val key = resKey.first
         if (key instanceof DumpedPrivateKey) {
-            var hashType = stmt.modifier.toHashType
-            var anyoneCanPay = stmt.modifier.toAnyoneCanPay
-            var sb = new ScriptBuilder2().signaturePlaceholder(key.key, hashType, anyoneCanPay)
+            var sb = new ScriptBuilder2().signaturePlaceholder(ECKeyStore.getUniqueID(key.key), hashType, anyoneCanPay)
             sb
         }
         else {

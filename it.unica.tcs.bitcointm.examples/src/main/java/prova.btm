@@ -29,7 +29,7 @@ transaction T {
 	]
 }
 
-const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001
+const sig_of_T1_at_7 = sig:3045022100e422719f813989b307aed7250f1061f797a99c904f70714c3d550df688425b360220668a060434cb9fab62c0ea730dfc7c2cd6c63479e62eccd973d99a2e2e0908f001 [kB]
 const sig_of_T1_at_7_bis = sig(kB) of T1@7
 
 transaction T1 {
@@ -93,13 +93,14 @@ transaction bar {
 	output = 1 BTC: fun(sigma) . versig(kA ; sigma)
 }
 
-transaction Y {
-	input = bar: sig(kA)
-	output = [
-		550: fun(n) . n==42;				// P2SH
-		550: fun(y) . versig(kA; y);	// P2PKH
-		0 BTC: "DATA"						// OP_RETURN
-	]
+transaction foo(k: key) {
+	input = bar: sig(k)
+	output = 0: "Hello world!"
 }
 
-compile T1
+transaction foo2 {
+    input = bar: sig(kA)
+    output = 0: "Hello world!"
+}
+
+compile foo(kA) foo2

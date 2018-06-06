@@ -260,7 +260,7 @@ class TransactionCompiler {
         // remove unused tx variables
 //      tb.removeUnusedVariables()
 
-        logger.info('''«tx.name» compiled''')
+        logger.info('''«tx.name» compiled. vars=«tb.variables», fv=«tb.freeVariables», bv=«tb.boundVariables»''')
         return tb
     }
 }

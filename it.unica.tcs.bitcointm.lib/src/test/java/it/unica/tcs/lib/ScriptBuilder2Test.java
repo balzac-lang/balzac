@@ -104,11 +104,11 @@ public class ScriptBuilder2Test {
         ECKey k1 = new ECKey();
         ECKey k2 = new ECKey();
 
-        ecks.addKey(k1);
-        ecks.addKey(k2);
+        String idK1 = ecks.addKey(k1);
+        String idK2 = ecks.addKey(k2);
 
-        sb.signaturePlaceholder(k1, SigHash.ALL, false);
-        sb.signaturePlaceholder(k2, SigHash.ALL, false);
+        sb.signaturePlaceholder(idK1, SigHash.ALL, false);
+        sb.signaturePlaceholder(idK2, SigHash.ALL, false);
         System.out.println(sb);
 
         assertEquals(2, sb.size());
@@ -151,7 +151,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.ALL;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, false);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",**]";
         String actual = sb.serialize();
@@ -164,7 +164,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.ALL;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, true);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",1*]";
         String actual = sb.serialize();
@@ -177,7 +177,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, false);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",*1]";
         String actual = sb.serialize();
@@ -190,7 +190,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, true);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",11]";
         String actual = sb.serialize();
@@ -203,7 +203,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.NONE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, false);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",*0]";
         String actual = sb.serialize();
@@ -216,7 +216,7 @@ public class ScriptBuilder2Test {
         SigHash hashType = SigHash.NONE;
         ScriptBuilder2 sb = new ScriptBuilder2();
         sb.number(15);
-        sb.signaturePlaceholder(key, hashType, true);
+        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
         String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",10]";
         String actual = sb.serialize();

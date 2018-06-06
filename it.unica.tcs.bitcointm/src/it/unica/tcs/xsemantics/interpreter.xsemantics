@@ -3,6 +3,7 @@
  */
 
 import com.google.common.base.Throwables
+import it.unica.tcs.bitcoinTM.AddressLiteral
 import it.unica.tcs.bitcoinTM.AndExpression
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.Between
@@ -15,6 +16,7 @@ import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Equals
 import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
+import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
 import it.unica.tcs.bitcoinTM.Interpretable
 import it.unica.tcs.bitcoinTM.KeyLiteral
@@ -28,8 +30,11 @@ import it.unica.tcs.bitcoinTM.Plus
 import it.unica.tcs.bitcoinTM.PubKeyLiteral
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Ripemd160
+import it.unica.tcs.bitcoinTM.Sha1
 import it.unica.tcs.bitcoinTM.Sha256
+import it.unica.tcs.bitcoinTM.Signature
 import it.unica.tcs.bitcoinTM.SignatureLiteral
+import it.unica.tcs.bitcoinTM.SignaturePlaceholder
 import it.unica.tcs.bitcoinTM.Size
 import it.unica.tcs.bitcoinTM.StringLiteral
 import it.unica.tcs.bitcoinTM.Times
@@ -37,27 +42,27 @@ import it.unica.tcs.bitcoinTM.Transaction
 import it.unica.tcs.bitcoinTM.TransactionHexLiteral
 import it.unica.tcs.bitcoinTM.TransactionIDLiteral
 import it.unica.tcs.lib.Hash
+import it.unica.tcs.lib.Hash.HashAlgorithm
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.utils.SignatureAndKey
+import it.unica.tcs.utils.SignatureAndPubkey
 import java.math.BigInteger
+import java.security.KeyStoreException
+import org.apache.log4j.Logger
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
-import org.bitcoinj.crypto.TransactionSignature
-import it.unica.tcs.bitcoinTM.HashLiteral
-import it.unica.tcs.lib.Hash.HashAlgorithm
-import it.unica.tcs.bitcoinTM.Sha1
-import it.unica.tcs.bitcoinTM.AddressLiteral
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
 inject extension ASTUtils astUtils
 inject extension TransactionCompilerDelegate compiler
 inject BitcoinClientFactory clientFactory
+
+val logger = Logger.getLogger(BitcoinTMInterpreter)
 
 judgments {
     interpret |- Interpretable expression |> Rho rho ~> output Object
@@ -80,18 +85,24 @@ from {
 rule InterpretReference
     G |- Reference v |> Rho rho ~> Object res
 from {
+    if (logger.isTraceEnabled) {        
+        if (G.get("tab")===null) G.add("tab","")
+        logger.trace(G.get("tab")+"INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
+        G.add("tab", G.get("tab")+"|\t")
+    }
+    
     if (v.ref instanceof Transaction) {
         val tx = v.ref as Transaction
-
+        // create a fresh rho to evaluate T
+        val newRho = new Rho
         for (var i=0; i<v.actualParams.size; i++) {
             val actual = v.actualParams.get(i)
             val formal = tx.params.get(i)
 
             G |- actual |> rho ~> var Object value
-            rho.put(formal, value)
+            newRho.put(formal, value)
         }
-
-        G |- tx |> rho ~> res
+        G |- tx |> newRho ~> res
     }
     else if (v.ref instanceof Constant) {
         // Constant
@@ -104,7 +115,15 @@ from {
         {rho.containsKey(param)}
         res = rho.get(param)
     }
+    
+    if (logger.isTraceEnabled) {
+        G.add("tab", (G.get("tab") as String).substring(2))
+        logger.trace(G.get("tab")+"RESULT: "+res)        
+    }
 }
+
+axiom InterpretSignaturePlaceholder
+    G |- SignaturePlaceholder p |> Rho rho ~> SignatureAndPubkey.placeholder
 
 axiom InterpretNumberLiteral
     G |- NumberLiteral number |> Rho rho ~> number.value
@@ -119,17 +138,14 @@ axiom InterpretHashLiteral
     G |- HashLiteral hash |> Rho rho ~> new Hash(hash.value)
 
 rule InterpretSignatureLiteral
-    G |- SignatureLiteral s |> Rho rho ~> SignatureAndKey result
+    G |- SignatureLiteral s |> Rho rho ~> SignatureAndPubkey result
 from {
-    val sig = TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(s.value), true, true)
-    val key = if (s.key !== null) {
-        G |- s.key |> rho ~> var Object key
-        if (key instanceof DumpedPrivateKey)
-            key.key
-        else
-            key as ECKey
-    }
-    result = new SignatureAndKey(sig, key)
+    G |- s.key |> rho ~> var Object key
+    val eckey = if (key instanceof DumpedPrivateKey)
+        key.key
+    else
+        key as ECKey
+    result = new SignatureAndPubkey(BitcoinUtils.decode(s.value), eckey.pubKey)
 }
 
 axiom InterpretDateLiteral
@@ -154,36 +170,49 @@ from {
             source tx
     }
 }
-//rule InterpretSignature
-//    G |- Signature s |> Rho rho ~> TransactionSignature res
-//from {
-//    { s.tx !== null }
-//
-//    G |- s.privkey |> rho ~> var Object key
-//    G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
-//
-//    if (!(key instanceof DumpedPrivateKey)) {
-//        fail
-//            error "Key must be private"
-//            source s.privkey
-//    }
-//
-//    val tx = txBuilder.toTransaction
-//    val inputIndex = s.inputIdx
-//    val sigHashType = astUtils.toHashType(s.modifier)
-//    val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
-//
-//    val input = txBuilder.inputs.get(inputIndex as int)
-//    val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
-//
-//    res = tx.calculateSignature(
-//        0,
-//        (key as DumpedPrivateKey).key,
-//        outScript,
-//        sigHashType,
-//        anyonecanpay
-//    )
-//}
+
+rule InterpretSignature
+    G |- Signature s |> Rho rho ~> SignatureAndPubkey res
+from {
+    { s.hasTx }
+
+    G |- s.privkey |> rho ~> var Object key
+    G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
+
+    if (!(key instanceof DumpedPrivateKey)) {
+        fail
+            error "Key must be private"
+            source s.privkey
+    }
+
+    try {
+        val tx = txBuilder.toTransaction(s.ECKeyStore)
+        val inputIndex = s.inputIdx as int
+        val sigHashType = astUtils.toHashType(s.modifier)
+        val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
+    
+        val input = txBuilder.inputs.get(inputIndex)
+        val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
+    
+        val privkey = key as DumpedPrivateKey 
+        val pubkey = ECKey.fromPublicOnly(privkey.key.pubKey)
+    
+        val sig = tx.calculateSignature(
+            inputIndex,
+            (key as DumpedPrivateKey).key,
+            outScript,
+            sigHashType,
+            anyonecanpay
+        )
+        
+        res = new SignatureAndPubkey(sig.encodeToBitcoin, pubkey.pubKey)        
+    }
+    catch (KeyStoreException e) {
+        fail
+            error "Error occurred when generating the keystore"
+            source s
+    }
+}
 
 axiom InterpretKeyLiteral
     G |- KeyLiteral key |> Rho rho ~> DumpedPrivateKey.fromBase58(null, key.value)
