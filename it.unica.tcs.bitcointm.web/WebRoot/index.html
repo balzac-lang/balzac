@@ -58,6 +58,10 @@
                 editor.setValue(text);
 //                 editor.setTheme("ace/theme/monokai");
                 editor.setAutoScrollEditorIntoView(true);
+                editor.setOptions({
+                  //fontFamily: "tahoma",
+                  fontSize: "11pt"
+                });
                 
                 editor.on("change", function(e) {
                     if (typeof(Storage) !== "undefined") {
@@ -245,8 +249,7 @@
                     <div class="card-header text-center">
                         <h3 class="card-title">Balzac</h3>
                         <h5 class="card-title">Bitcoin Abstract Language, analyZer and Compiler</h5>
-                        <p class="small">* beta version *</p>
-                <p class="">DO NOT USE ON THE MAINNET</p>
+                        <p class="small">beta version - USE ON THE MAINNET AT YOUR OWN RISK</p>
                     </div>
                     <div class="card-body">
                         <div class="text-center mb-2">
