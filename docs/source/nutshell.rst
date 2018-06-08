@@ -45,7 +45,7 @@ You can use the `web editor <http://blockchain.unica.it/btm/>`_  to write
 actual Bitcoin  transactions.
 The output of the compiler is a serialized transaction for the Bitcoin
 test network (testnet).
-To generate transactions for the main network (mainnet), one can specifying it as follows:  
+To generate transactions for the main network (mainnet), one must specify the network as follows:  
 
 	.. code-block:: btm
 	
@@ -60,7 +60,7 @@ Now, if we hit the button [Compile], the web editor shows in the output box the 
 	:class: img-border
 	:align: center
 
-The serialized transaction can  be send to the Bitcoin network using the Bitcoin client command ``bitcoin-cli sendrawtransaction``.
+The serialized transaction can  be sent to the Bitcoin network using the Bitcoin client command ``bitcoin-cli sendrawtransaction``.
 Please note, that before sending it, the unspecified input must be substituted
 by an actual transaction identifier, as in the following example:
 
@@ -70,10 +70,25 @@ by an actual transaction identifier, as in the following example:
 		const T_ref = txid:<actualBitcoinIdentifier>
 
 		transaction T {
-		       input = T_ref
+		       input = T_ref: 42
 		       output = 50 BTC: fun(x) . x==42
 		}
 
+.. Tip ::
+
+	Transaction identifiers have the same format *both in the testnet and
+	in the mainnet*. Our tool fetch the transaction body
+	by looking into the specified :btm:`network`. 
+	A common mistake is to look	for a transaction id into the wrong network.
+
+	Alternatively, you can fetch the body of a transaction on you own and use it as in 
+	the following example:
+
+	.. code-block::btm
+
+		const T_ref = tx:0200000001644bbaf06a6318d139fff9a8a1f03c066cafdd0f2b1134ddaf5ffc783bdde01f010000006a473044022012507c618835bdf647ee514424ab0e4b37be1b1f0bffd5b0505150a3b66416b902203fb45f24b5444dfa279ca285f4bdd437b5708e6a2f2cecc27eaf5fdb201d69930121037bb57e56cc43a1260354785f4adf74218ae7f9a71ae24fc4403b54fd5e5420f8ffffffff02a0be2602000000001976a9141e0739c2edcbf5fec56ea29a6ec06192a6f0b23d88ac7423b503000000001976a914478e01a435b4713f6311a8c2e916cf0a58073a0188ac00000000
+
+	Please note the difference between prefixes ``tx:`` and ``txid:``.
 
 .. _label_transaction_redeeming:
 
