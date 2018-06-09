@@ -231,8 +231,12 @@ from {
         type = lambdaUtils.createFreshTypeVariable
     }
 
+    substitutions.addVisited(c)
+
     G |- substitutions |> c.exp : var Type expType
     type = unify(c.exp, substitutions, expType, type)
+
+    substitutions.removeVisited(c)
 
     failIfTypeVariable(type, c)
     c.type = type as PermittedType  // store the type in the AST
@@ -241,6 +245,11 @@ from {
 rule Reference
     G |- TypeSubstitutions substitutions |> Reference varRef : Type type
 from {
+    if (substitutions.isAlreadyVisited(varRef.ref)) {
+        fail
+            error "Found cyclic dependency"
+            source varRef
+    }
 
     if (varRef.ref instanceof Constant) {
         val const = varRef.ref as Constant
@@ -309,6 +318,7 @@ from {
 rule Transaction
     G |- TypeSubstitutions substitutions |> Transaction body : BitcoinTMFactory::eINSTANCE.createTransactionType
 from {
+    substitutions.addVisited(body)
 
     for (p : body.params) {
         G |- substitutions |> p : var Type t    // type the parameters, possibly TypeVariable
@@ -321,6 +331,8 @@ from {
     for (out : body.outputs) {
         G |- substitutions |> out : var Type t2 // all outputs are well typed
     }
+
+    substitutions.removeVisited(body)
 
     // after typing the parameters, all should have a basic type (generic types are not allowed)
     for (p : body.params) {

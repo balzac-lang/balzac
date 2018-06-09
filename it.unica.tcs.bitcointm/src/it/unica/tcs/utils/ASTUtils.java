@@ -5,6 +5,7 @@
 package it.unica.tcs.utils;
 
 import java.security.KeyStoreException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -106,14 +107,16 @@ public class ASTUtils {
     }
 
     public Set<Parameter> getTxVariables(Expression exp) {
+        List<Reference> list = new ArrayList<>(EcoreUtil2.getAllContentsOfType(exp, Reference.class));
+        if (exp instanceof Reference)
+            list.add((Reference) exp);
         Set<Parameter> refs =
-                EcoreUtil2.getAllContentsOfType(exp.eContainer(), Reference.class)
+                list
                 .stream()
                 .map( v -> v.getRef() )
                 .filter(this::isTxParameter)
                 .map( r -> (Parameter) r )
                 .collect(Collectors.toSet());
-
         return refs;
     }
 

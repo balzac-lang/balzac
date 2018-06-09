@@ -1,39 +1,23 @@
 package it.unica.btm.test_tx_params
 
-transaction T {
-	input = _
-	output = 2 BTC : fun(a:int) . a==5
-}
 
-transaction T1(x:hash) {
-	input = T: 5
-	output = 1 BTC : fun(a:string) . hash160(a)==x
-}
-
-transaction T2 {
-	input = T1(hash:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547): "5"
-	output = 0: ""
-}
-
-const var_T1:transaction = T1(hash:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
-
-transaction T3 {
-	input = T1(hash160("5")): "5"
-	output = 0.5 BTC : fun(a) . a==42
-}
-
-transaction T4(n:string) {
-	input = T1(hash160(n)): n
-	output = 0.5 BTC : fun(a:int) . a==42
-}
-
-transaction T5 {
-	input = [
-		T3: 42;
-		T4("6"): 42
-	]
-	output = 0: ""
-}
+//transaction T(a:int, b: int) {
+//	input = _
+//	output = 0.5 BTC : fun(x:int) . x==a+b
+//}
+//
+//transaction T2 (c:int, d: int, e: int) {
+//	input = T(c,d): e
+//	output = 0.5 BTC : fun(a:int) . a==42
+//}
+//
+//transaction T3 {
+//	input = [
+//		T(3,4): 7;
+//		T2(10,5,15): 42;
+//	]
+//	output = 0.5 BTC : fun(a:int) . a==42
+//}
 
 /*
  * transaction as parameter
@@ -48,61 +32,18 @@ transaction A {
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
-transaction A_bis(inTx:transaction) {
-	input = inTx: 44
+transaction A_bis(inTxP:transaction) {
+	input = inTxP: 44 
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
 /*
- * signature as parameter
+ * signature as parameter 
  */
 
-const k = key:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC
-const k_address = address:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
-const k_pubkey = pubkey:032b6cb7aa033a063d2dc39573bde12a2d01e20a971d6d4f85eb27ad0793b3689c
-
-const k1 = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-
-transaction coinbase_B {
-	input = _
-	output = 10 BTC : fun(s) . versig(key:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC; s)
-}
-
-transaction B {
-	input = coinbase_B: sig(key:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC)
-	output = 0.5 BTC : fun(a:int) . a==42
-}
-
-const s1 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k]
-const s2 = sig:304402206fcfeea120f45c72ae5092291b66d351550c0e44e5cb6608b8d3153fcb9d69c302205774f88ebf7dcf7136f9f216dccb93dd9fe5e6593789f002947d13f6814b28ba01 [k_pubkey]
-
-transaction B1 {
-	input = coinbase_B: s1
-
-	output = 0.5 BTC : fun(a:int) . a==42
-}
-
-transaction B2(s) {
-	input = coinbase_B: s
-	output = 0.5 BTC : fun(a:int) . a==42
-}
-
 compile
-	T
-
-	T1(hash:47095f5dc6fdd1bfb416cc0f301cf7c1de5a8547)
-	T1(hash160("5"))
-	var_T1
-
-	T3
-	T4("5")
-
+//	T(3,4)
+//	T2(10,5,15) 
+//	T3
 	A
 	A_bis(inTx)
-
-	coinbase_B
-	B
-	B1
-	B2(s1)
-
-

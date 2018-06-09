@@ -95,12 +95,12 @@ transaction bar {
 
 transaction foo(k: key) {
 	input = bar: sig(k)
-	output = 0: "Hello world!"
+    output = input.value - 5: fun(x) . x == 42
 }
 
 transaction foo2 {
     input = [
-    	bar: sig(kA);
+    	foo(kA): 42;
     	test("pippo"): "pippo"
 	]
     output = input.value(1) - 5: fun(x) . x == 42

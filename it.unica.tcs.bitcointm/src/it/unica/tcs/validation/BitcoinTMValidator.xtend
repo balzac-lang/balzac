@@ -9,6 +9,7 @@ package it.unica.tcs.validation
 
 import com.google.inject.Inject
 import it.unica.tcs.bitcoinTM.AbsoluteTime
+import it.unica.tcs.bitcoinTM.AddressLiteral
 import it.unica.tcs.bitcoinTM.AfterTimeLock
 import it.unica.tcs.bitcoinTM.ArithmeticSigned
 import it.unica.tcs.bitcoinTM.BitcoinTMFactory
@@ -17,6 +18,7 @@ import it.unica.tcs.bitcoinTM.BitcoinValue
 import it.unica.tcs.bitcoinTM.Div
 import it.unica.tcs.bitcoinTM.Import
 import it.unica.tcs.bitcoinTM.Input
+import it.unica.tcs.bitcoinTM.InputValue
 import it.unica.tcs.bitcoinTM.Interpretable
 import it.unica.tcs.bitcoinTM.IsMinedCheck
 import it.unica.tcs.bitcoinTM.KeyLiteral
@@ -44,12 +46,14 @@ import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
+import it.unica.tcs.utils.SignatureAndPubkey
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
 import java.util.HashSet
 import java.util.Map
 import java.util.Set
+import org.apache.log4j.Logger
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.AddressFormatException
 import org.bitcoinj.core.DumpedPrivateKey
@@ -71,9 +75,6 @@ import org.eclipse.xtext.validation.CheckType
 import org.eclipse.xtext.validation.ValidationMessageAcceptor
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.bitcoinTM.AddressLiteral
-import it.unica.tcs.utils.SignatureAndPubkey
-import it.unica.tcs.bitcoinTM.InputValue
 
 /**
  * This class contains custom validation rules.
@@ -82,7 +83,7 @@ import it.unica.tcs.bitcoinTM.InputValue
  */
 class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
-//  private static Logger logger = Logger.getLogger(BitcoinTMValidator);
+    private static Logger logger = Logger.getLogger(BitcoinTMValidator);
 
     @Inject private extension IQualifiedNameConverter
     @Inject private extension BitcoinTMInterpreter
@@ -758,14 +759,15 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         /*
          * Check if tx has parameters and they are used
          */
-        val someIsUsed = tx.params.exists[p|
-            EcoreUtil.UsageCrossReferencer.find(p, tx).size>=0;
+        val hasUsedParameters = tx.params.exists[p|
+            EcoreUtil.UsageCrossReferencer.find(p, tx).size > 0;
         ]
 
-        if (someIsUsed) {
+        if (hasUsedParameters) {
             return true
         }
 
+        logger.info("witness check: interpreting "+astUtils.nodeToString(tx).replaceAll("\n"," \\ "))
         var res = tx.interpretE
 
         if (!res.failed) {
@@ -776,6 +778,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             }
 
             for (var i=0; i<tx.inputs.size; i++) {
+                logger.info('''witness check: «tx.inputs.get(i).nodeToString.replaceAll("\n"," \\ ")»''')
 
                 var Script inScript = null
                 var Script outScript = null
@@ -1239,14 +1242,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     def void checkPositiveBitcoinValue(BitcoinValue bvalue) {
         val res = bvalue.exp.interpretE
         
-        if (res.failed) {
-            error(
-                "Cannot evaluate the output value.",
-                bvalue,
-                BitcoinTMPackage.Literals.BITCOIN_VALUE__EXP
-            );
-        }
-        else {
+        if (!res.failed) {
             val value = res.first as Long
             if (value < 0) {
                 error(

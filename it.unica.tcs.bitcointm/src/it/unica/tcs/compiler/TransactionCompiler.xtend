@@ -5,11 +5,8 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.Parameter
 import it.unica.tcs.bitcoinTM.Reference
 import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionLiteral
 import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
@@ -30,16 +27,16 @@ class TransactionCompiler {
     @Inject private extension ScriptCompiler
     @Inject private extension CompilerUtils
 
-    def ITransactionBuilder compileTransaction(TransactionLiteral tx) {
-        val res = tx.interpretE
-        if (res.failed)
-            throw new CompileException("Cannot compile "+tx)
-        return res.first as ITransactionBuilder
-    }
-
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
 
-        logger.info('''compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
+        if (rho.isAlreadyVisited(tx)) {
+            logger.error('''Transaction «tx.name» already visited. Cyclic dependency.''')
+            throw new CompileException('''Transaction «tx.name» already visited. Cyclic dependency.''')
+        }
+
+        rho.addVisited(tx)
+
+        logger.info('''START . compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
 
         val tb =
             if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)
@@ -65,176 +62,125 @@ class TransactionCompiler {
             }
             else {
                 /*
-                 * compile parent transaction
+                 * interpret parent transaction
                  */
-                val parentTxExp = input.txRef
-
-                // transaction literal
-                if (parentTxExp instanceof TransactionLiteral) {
-                    val parentTxCompiled = parentTxExp.compileTransaction   // recursive call
+                val res = input.txRef.interpret(rho)
+                if (!res.failed) {
+                    /*
+                     * It succeed in three case. The parent is a
+                     * - literal
+                     * - constant reference
+                     * - parameter reference (bound in rho)
+                     * - tx reference (actual parameters bound in rho)
+                     */
+                    val parentTx = res.first as ITransactionBuilder
                     val outIndex = new Long(input.outpoint).intValue
-                    val inScript = input.compileInput(parentTxCompiled, rho)
+                    val inScript = input.compileInput(parentTx, rho)
 
                     // relative timelock
-                    if (tx.timelocks.containsRelative(parentTxCompiled, rho)) {
-                        val locktime = tx.timelocks.getRelative(parentTxCompiled, rho)
-                        tb.addInput(parentTxCompiled, outIndex, inScript, locktime.getSequenceNumber(rho))
+                    if (tx.timelocks.containsRelative(parentTx, rho)) {
+                        val locktime = tx.timelocks.getRelative(parentTx, rho)
+                        tb.addInput(parentTx, outIndex, inScript, locktime.getSequenceNumber(rho))
                     }
                     else {
-                        tb.addInput(parentTxCompiled, outIndex, inScript)
-                    }
-                }
-                else if (parentTxExp instanceof Reference) {
-
-                    val parentTxRef = parentTxExp.ref
-
-                    /*
-                     * Constant reference
-                     */
-                    if (parentTxRef instanceof Constant) {
-                        val parentTxCompiled = (parentTxRef.exp as TransactionLiteral).compileTransaction   // recursive call
-                        val outIndex = new Long(input.outpoint).intValue
-                        val inScript = input.compileInput(parentTxCompiled, rho)
-
-
-                        // relative timelock
-                        if (tx.timelocks.containsRelative(parentTxCompiled, rho)) {
-                            val locktime = tx.timelocks.getRelative(parentTxCompiled, rho)
-                            tb.addInput(parentTxCompiled, outIndex, inScript, locktime.getSequenceNumber(rho))
-                        }
-                        else {
-                            tb.addInput(parentTxCompiled, outIndex, inScript)
-                        }
-                    }
-                    /*
-                     * Parameter reference (input transaction is a parameter of the transaction)
-                     */
-                    else if (parentTxRef instanceof Parameter) {
-
-                        logger.trace('''«tx.name»: input tx is a transaction parameter '«parentTxRef.name»' ''')
-
-                        // rho contains the actual value
-                        if (rho.containsKey(parentTxRef)) {
-                            val parentTx = rho.get(parentTxRef) as ITransactionBuilder
-                            val outIndex = new Long(input.outpoint).intValue
-                            val inScript = input.compileInput(parentTx, rho)
-
-
-                            // relative timelock
-                            if (tx.timelocks.containsRelative(parentTx, rho)) {
-                                val locktime = tx.timelocks.getRelative(parentTx, rho)
-                                tb.addInput(parentTx, outIndex, inScript, locktime.getSequenceNumber(rho))
-                            }
-                            else {
-                                tb.addInput(parentTx, outIndex, inScript)
-                            }
-                        }
-                        else {
-                            // compilation it's finalized within the hook
-                            logger.error("Rho must contain the actual value for "+parentTxRef.name)
-                            throw new CompileException("Rho must contain the actual value for "+parentTxRef.name)
-                        }
-
-                    }
-                    /*
-                     * Transaction reference
-                     */
-                    else if (parentTxRef instanceof Transaction) {
-
-                        // prepare a new rho for the evaluation of the parent transaction
-                        val newRho = new Rho
-
-                        /*
-                         * iterate over the actual parameters, in order to set the corresponding values
-                         */
-
-                        val parentTxFormalparams = parentTxRef.params
-
-                        for (var j=0; j<parentTxExp.actualParams.size; j++) {
-                            val formalP = parentTxFormalparams.get(j)
-                            val actualP = parentTxExp.actualParams.get(j)
-
-                            val res = actualP.interpret(rho)
-
-                            if (!res.failed) {
-                                val actualPvalue = res.first
-
-                                logger.trace('''adding «formalP.name» -> «actualPvalue» to rho''')
-                                newRho.put(formalP, actualPvalue)
-                            }
-                            else
-                                throw new CompileException("Cannot interpret actual parameter", res.ruleFailedException)
-                        }
-
-                        /*
-                         * Compile the parent tx reference with newRho
-                         */
-                        val parentTxCompiled = parentTxRef.compileTransaction(newRho)
-                        logger.trace('''parent compiled («parentTxRef.name») vars=«parentTxCompiled.variables», fv=«parentTxCompiled.freeVariables»''')
-
-
-                        for (var j=0; j<parentTxExp.actualParams.size; j++) {
-                            val formalP = parentTxFormalparams.get(j)
-                            val actualP = parentTxExp.actualParams.get(j)
-
-                            // the tx parameters
-                            val vs = actualP.getTxVariables
-
-                            // set hooks for all unbound variables
-                            val fvs = vs.filter[v|!rho.containsKey(v)]
-
-                            // hook for unbound variables
-                            val fvsNames = fvs.map[p|p.name].toSet
-
-                            if (!fvsNames.empty) {
-                                logger.trace('''«tx.name»: setting hook for variables «fvs»: variable '«formalP.name»' of parent tx «parentTxRef.name»''')
-
-                                // this hook will be executed when all the tx variables will have been bound
-                                // 'values' contains the bound values, we are now able to evaluate 'actualPvalue'
-                                tb.addHookToVariableBinding(fvsNames, [ values |
-                                    logger.trace('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTxRef.name»''')
-                                    logger.trace('''«tx.name»: values «values»''')
-
-                                    // create a rho for the evaluation
-                                    val newHookRho = new Rho
-                                    for(fp : tx.params) {
-                                        rho.put( fp, values.get(fp.name) )
-                                    }
-                                    logger.trace('''rho «newHookRho»''')
-                                    // re-interpret actualP
-                                    val res = actualP.interpret(newHookRho)
-
-                                    if (res.failed) {
-                                        logger.error("expecting an evaluation to Literal")
-                                        throw new CompileException("expecting an evaluation to Literal")
-                                    }
-
-                                    val v = res.first
-                                    parentTxCompiled.bindVariable(formalP.name, v)
-                                ])
-                            }
-                        }
-
-                        val outIndex = new Long(input.outpoint).intValue
-                        val inScript = input.compileInput(parentTxCompiled, rho)
-
-                        // relative timelock
-                        if (tx.timelocks.containsRelative(parentTxCompiled, rho)) {
-                            val locktime = tx.timelocks.getRelative(parentTxCompiled, rho)
-                            tb.addInput(parentTxCompiled, outIndex, inScript, locktime.getSequenceNumber(rho))
-                        }
-                        else {
-                            tb.addInput(parentTxCompiled, outIndex, inScript)
-                        }
-                    }
-                    else {
-                        logger.error("Unexpected class "+parentTxRef.class)
-                        throw new CompileException("Unexpected class "+parentTxRef.class)
+                        tb.addInput(parentTx, outIndex, inScript)
                     }
                 }
                 else {
-                    logger.error("Unexpected class "+parentTxExp.class)
-                    throw new CompileException("Unexpected class "+parentTxExp.class)
+                    /*
+                     * Transaction reference (with free parameters)
+                     */
+
+                    if (!((input.txRef instanceof Reference) &&                      // for sure it is a Reference
+                        ((input.txRef as Reference).ref instanceof Transaction))     // and it must be a Transaction
+                    ) {
+                        logger.error("Input transaction expected to be a Transaction Reference")
+                        throw new CompileException("Input transaction expected to be a Transaction Reference")
+                    }
+
+                    val parentTxRef = input.txRef as Reference
+                    val parentTx = parentTxRef.ref as Transaction
+
+                    /*
+                     * recursively compile using this method, that allows free variables for tx builder
+                     */
+
+                    // we use a fresh rho to avoid confusion, since some actual parameters might be bound and other not 
+                    val parentTxB = compileTransaction(parentTx, rho.fresh)
+                    logger.trace('''input tx compiled: name=«parentTx.name» vars=«parentTxB.variables», fv=«parentTxB.freeVariables»''')
+
+                    // now iterate over the actual parameters, in order to bound them into the builder
+                    for (var j=0; j<parentTxRef.actualParams.size; j++) {
+                        val formalP = parentTx.params.get(j)
+                        val actualP = parentTxRef.actualParams.get(j)
+
+                        val resP = actualP.interpret(rho)
+
+                        if (!resP.failed) {
+                            val actualPvalue = resP.first
+                            logger.trace('''binding «formalP.name» -> «actualPvalue»''')
+                            parentTxB.bindVariable(formalP.name, actualPvalue)
+                        }
+                    }
+
+                    // The unbound actual parameters must be references (or expression containing references)
+                    // to unbound tx parameters.
+                    // For each actual parameters, get the txs parameters it depends on, and set an hook.
+                    for (var j=0; j<parentTxRef.actualParams.size; j++) {
+                        val formalP = parentTx.params.get(j)
+                        val actualP = parentTxRef.actualParams.get(j)
+
+                        // get the tx parameters of actualP
+                        val vs = actualP.getTxVariables
+
+                        // set hooks for all unbound variables
+                        val fvs = vs.filter[v | tb.isFree(v.name)]
+
+                        // hook for unbound variables
+                        val fvsNames = fvs.map[p|p.name].toSet
+
+                        logger.trace('''expression #«j» depends on «fvsNames»''')
+
+                        if (!fvsNames.empty) {
+                            logger.trace('''setting hook for variables «fvsNames», to then evaluate a value for '«formalP.name»' of parent tx «parentTx.name»''')
+
+                            // this hook will be executed when all the tx variables will have been bound
+                            // 'values' contains the bound values, we are now able to evaluate 'actualPvalue'
+                            tb.addHookToVariableBinding(fvsNames, [ values |
+                                logger.trace('''«tx.name»: executing hook for variables '«fvsNames»'. Binding variable '«formalP.name»' parent tx «parentTx.name»''')
+                                logger.trace('''«tx.name»: values «values»''')
+
+                                // create a rho for the evaluation
+                                val newHookRho = rho.fresh
+                                for(fp : tx.params) {
+                                    rho.put( fp, values.get(fp.name) )
+                                }
+                                logger.trace('''rho «newHookRho»''')
+                                // re-interpret actualP
+                                val resP = actualP.interpret(newHookRho)
+
+                                if (resP.failed) {
+                                    logger.error("expecting an evaluation to Literal")
+                                    throw new CompileException("expecting an evaluation to Literal")
+                                }
+
+                                val v = resP.first
+                                parentTxB.bindVariable(formalP.name, v)
+                            ])
+                        }
+                    }
+
+                    val outIndex = new Long(input.outpoint).intValue
+                    val inScript = input.compileInput(parentTxB, rho)
+
+                    // relative timelock
+                    if (tx.timelocks.containsRelative(parentTxB, rho)) {
+                        val locktime = tx.timelocks.getRelative(parentTxB, rho)
+                        tb.addInput(parentTxB, outIndex, inScript, locktime.getSequenceNumber(rho))
+                    }
+                    else {
+                        tb.addInput(parentTxB, outIndex, inScript)
+                    }
                 }
             }
         }
@@ -256,11 +202,13 @@ class TransactionCompiler {
             tb.locktime = res.first as Long
         }
 
-
         // remove unused tx variables
 //      tb.removeUnusedVariables()
 
-        logger.info('''«tx.name» compiled. vars=«tb.variables», fv=«tb.freeVariables», bv=«tb.boundVariables»''')
+        logger.info('''END . «tx.name» compiled. vars=«tb.variables», fv=«tb.freeVariables», bv=«tb.boundVariables»''')
+
+        rho.removeVisited(tx)
+
         return tb
     }
 }

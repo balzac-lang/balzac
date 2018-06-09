@@ -5,6 +5,7 @@
 package it.unica.tcs.xsemantics;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -15,7 +16,7 @@ import it.unica.tcs.bitcoinTM.Type;
 public class TypeSubstitutions {
     protected Map<String, Type> substitutions = new HashMap<>();
 
-    protected Map<Referrable, Type> support = new HashMap<>();
+    protected Set<Referrable> visited = new HashSet<>();
 
     public void reset() {
         substitutions.clear();
@@ -31,5 +32,19 @@ public class TypeSubstitutions {
 
     public Set<Entry<String, Type>> getSubstitutions() {
         return substitutions.entrySet();
+    }
+
+    public TypeSubstitutions addVisited(Referrable tx) {
+        visited.add(tx);
+        return this;
+    }
+
+    public TypeSubstitutions removeVisited(Referrable tx) {
+        visited.remove(tx);
+        return this;
+    }
+
+    public boolean isAlreadyVisited(Referrable tx) {
+        return visited.contains(tx);
     }
 }

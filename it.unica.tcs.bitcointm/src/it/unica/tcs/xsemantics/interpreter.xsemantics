@@ -87,6 +87,12 @@ from {
 rule InterpretReference
     G |- Reference v |> Rho rho ~> Object res
 from {
+    if (rho.isAlreadyVisited(v.ref)) {
+        fail
+            error "Found cyclic dependency"
+            source v
+    }
+
     if (logger.isTraceEnabled) {        
         if (G.get("tab")===null) G.add("tab","")
         logger.trace(G.get("tab")+"INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
@@ -96,7 +102,7 @@ from {
     if (v.ref instanceof Transaction) {
         val tx = v.ref as Transaction
         // create a fresh rho to evaluate T
-        val newRho = new Rho
+        val newRho = rho.fresh
         for (var i=0; i<v.actualParams.size; i++) {
             val actual = v.actualParams.get(i)
             val formal = tx.params.get(i)
@@ -109,12 +115,12 @@ from {
     else if (v.ref instanceof Constant) {
         // Constant
         val const = v.ref as Constant
-        G |- const.exp |> rho ~> res
+        G |- const.exp |> rho.fresh ~> res
     }
     else if (v.ref instanceof Parameter) {
         // Parameter
         val param = v.ref as Parameter
-        {rho.containsKey(param)}
+        { rho.containsKey(param) }
         res = rho.get(param)
     }
     
@@ -228,7 +234,6 @@ axiom InterpretPubkeyLiteral
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
 from {
-
     val txBuilder = tx.compileTransaction(rho)
 
     if (!txBuilder.isReady) {
