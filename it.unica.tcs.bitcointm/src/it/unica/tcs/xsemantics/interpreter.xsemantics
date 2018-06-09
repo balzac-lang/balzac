@@ -18,6 +18,7 @@ import it.unica.tcs.bitcoinTM.Hash160
 import it.unica.tcs.bitcoinTM.Hash256
 import it.unica.tcs.bitcoinTM.HashLiteral
 import it.unica.tcs.bitcoinTM.IfThenElse
+import it.unica.tcs.bitcoinTM.InputValue
 import it.unica.tcs.bitcoinTM.Interpretable
 import it.unica.tcs.bitcoinTM.KeyLiteral
 import it.unica.tcs.bitcoinTM.Max
@@ -55,6 +56,7 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
+import org.eclipse.xtext.EcoreUtil2
 
 system it.unica.tcs.xsemantics.BitcoinTMInterpreter
 
@@ -234,7 +236,6 @@ from {
             error "Transaction must be ready"
             source tx
     }
-
     res = txBuilder
 }
 
@@ -512,4 +513,26 @@ from {
         // ⌈(log2 |n| / 7)⌉
         result = Long.valueOf(Utils.encodeMPI(BigInteger.valueOf(res), false).length)
     }
+}
+
+rule InterpretInputValue
+    G |- InputValue stmt |> Rho rho ~> Long result
+from {
+    val containingTx = EcoreUtil2.getContainerOfType(stmt, Transaction);
+    var value = 0L;
+
+    for (idx : stmt.inputIdxs) {
+        val outIdx = containingTx.inputs.get(idx.intValue).outpoint.intValue
+        G |- containingTx.inputs.get(idx.intValue).txRef |> rho ~> var ITransactionBuilder inTx    
+        value += inTx.outputs.get(outIdx).value
+    }
+
+    if (stmt.inputIdxs.^empty) {
+        for (input : containingTx.inputs) {
+            val outIdx = input.outpoint.intValue
+            G |- input.txRef |> rho ~> var ITransactionBuilder inTx    
+            value += inTx.outputs.get(outIdx).value
+        }
+    }
+    result = value;
 }

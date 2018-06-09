@@ -67,6 +67,7 @@ import it.unica.tcs.validation.AbstractBitcoinTMValidator
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.bitcoinTM.InputValue
 
 system it.unica.tcs.xsemantics.BitcoinTMTypeSystem
 
@@ -846,6 +847,9 @@ from {
     G |- substitutions |> after.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
+
+axiom InputValue
+    G |- TypeSubstitutions substitutions |> InputValue inval: BitcoinTMFactory::eINSTANCE.createIntType
 
 
 rule Compile

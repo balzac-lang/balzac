@@ -133,6 +133,7 @@ AtomicExpression returns Expression:
 |   Between
 |   Size
 |	AfterTimeLock
+|   InputValue
 ;
 
 Reference:
@@ -207,7 +208,7 @@ Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
 AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
-
+InputValue: {InputValue} "input.value" ("(" (inputIdxs+=LONG ("," inputIdxs+=LONG)*)? ")")?;
 
 Type:
 	PermittedType

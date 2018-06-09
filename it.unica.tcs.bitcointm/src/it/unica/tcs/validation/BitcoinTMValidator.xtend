@@ -73,6 +73,7 @@ import org.eclipse.xtext.validation.ValidationMessageAcceptor
 import static org.bitcoinj.script.Script.*
 import it.unica.tcs.bitcoinTM.AddressLiteral
 import it.unica.tcs.utils.SignatureAndPubkey
+import it.unica.tcs.bitcoinTM.InputValue
 
 /**
  * This class contains custom validation rules.
@@ -1151,6 +1152,107 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     tx,
                     BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
                     checkIdx
+                );
+            }
+        }
+    }
+
+    @Check
+    def void checkInputValExpression(InputValue inval) {
+        // expression is allowed only inside transactions
+        val containingTx = EcoreUtil2.getContainerOfType(inval, Transaction);
+        val isInsideTx = containingTx !== null
+        
+        if (!isInsideTx) {
+            error(
+                "This expression is allowed only within transactions.",
+                inval.eContainer,
+                inval.eContainingFeature
+            );
+            return
+        }
+
+        // each idx is in range
+        var hasError = false;
+        for (var i=0; i<inval.inputIdxs.size; i++) {
+            val idx = inval.inputIdxs.get(i)
+            if (idx > containingTx.inputs.size) {
+                error(
+                    "Input index out of range.",
+                    inval,
+                    BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    i
+                );
+                hasError = true;
+            }
+        }
+        if (hasError)
+            return;
+
+        // each idx is unique
+        for (var i=0; i<inval.inputIdxs.size-1; i++) {
+            for (var j=i+1; j<inval.inputIdxs.size; j++) {
+                val idx1 = inval.inputIdxs.get(i)
+                val idx2 = inval.inputIdxs.get(j)
+                if (idx1 == idx2) {
+                    error(
+                        "Duplicated input index.",
+                        inval,
+                        BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        i
+                    );
+                    error(
+                        "Duplicated input index.",
+                        inval,
+                        BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        j
+                    );
+                    hasError = true;
+                }                    
+            }
+        }
+        if (hasError)
+            return;
+        
+        // interpret input tx
+        for (var i=0; i<inval.inputIdxs.size; i++) {
+            val idx = inval.inputIdxs.get(i)
+            val inputTx = containingTx.inputs.get(idx.intValue).txRef
+
+            val res = inputTx.interpretE
+            
+            if (res.failed) {
+                error(
+                    "Cannot evaluate the input transaction to compute its value",
+                    inval,
+                    BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    i
+                );
+                hasError = true;
+            }
+        }
+        if (hasError)
+            return;
+    }
+
+    @Check
+    def void checkPositiveBitcoinValue(BitcoinValue bvalue) {
+        val res = bvalue.exp.interpretE
+        
+        if (res.failed) {
+            error(
+                "Cannot evaluate the output value.",
+                bvalue,
+                BitcoinTMPackage.Literals.BITCOIN_VALUE__EXP
+            );
+        }
+        else {
+            val value = res.first as Long
+            if (value < 0) {
+                error(
+                    "The value of the output script cannot be negative.",
+                    bvalue,
+                    BitcoinTMPackage.Literals.BITCOIN_VALUE__EXP
                 );
             }
         }
