@@ -92,7 +92,7 @@ The transaction ``T_commit`` looks like:
 
 	transaction T_commit {
 	    input = A_funds: sig(kA)
-	    output = deposit - fee:
+	    output = input.value - fee:
 	        fun(x,s:string) . sha256(s) == h && versig(kApub;x)
 	            || after date deadline : versig(kBpub;x)
 	}
@@ -216,7 +216,7 @@ The example below shows how to create Bob's ``T_timeout`` transaction.
 
 	transaction T_timeout {
 	    input = T_commit: sig(kB) "" [fun(x,s:string) . sha256(s) == h && versig(kApub;x) || after date deadline : versig(kBpub;x)]
-	    output = deposit - fee*2: fun(x) . versig(kB;x)
+	    output = input.value - fee: fun(x) . versig(kB;x)
 	    timelock = after date deadline
 	}
 
