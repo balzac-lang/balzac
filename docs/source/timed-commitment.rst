@@ -85,7 +85,7 @@ The transaction ``T_commit`` looks like:
 .. code-block:: btm
 
 	// Alice's private key
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
 	// Bob's public key
 	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
@@ -134,7 +134,7 @@ To sum up, the whole file is:
 	const deadline = 2018-06-11 // deadline to reveal the secret
 
 	// Alice's private key
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 	
 	// Alice's public key
 	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
@@ -212,7 +212,7 @@ The example below shows how to create Bob's ``T_timeout`` transaction.
 	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
 	// Bob's private key
-	const kB = wif:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+	const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 
 	transaction T_timeout {
 	    input = T_commit: sig(kB) "" [fun(x,s:string) . sha256(s) == h && versig(kApub;x) || after date deadline : versig(kBpub;x)]

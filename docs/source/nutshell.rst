@@ -142,7 +142,7 @@ redeemable only by user Alice:
 
 .. code-block:: btm
 
-	const addrA = wif:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe // Alice's address
+	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe // Alice's address
 
 	transaction T1 {
 		input = T: 42
@@ -152,7 +152,7 @@ redeemable only by user Alice:
 
 The constant ``addrA`` declares Alice's *address*:
 basically, it is the hash of Alice's public key.
-The address is prefixed by the keyword ``wif:``,
+The address is prefixed by the keyword ``address:``,
 which means that it is represented in the
 :doc:`Wallet Import Format types <types>` [#f1]_.
 Note that users may generate as many addresses as they want.
@@ -167,7 +167,7 @@ The transaction ``T1`` can be redeemed by a transaction ``T2`` made as follows:
 
 .. code-block:: btm
 
-	const skA = wif:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi // Alice's private key
+	const skA = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi // Alice's private key
 
 	transaction T2 {
 		input = T1: sig(skA)
@@ -197,8 +197,8 @@ For instance, we might modify transaction ``T2`` to send some of the total bitco
 
 .. code-block:: btm
 
-	const myAddress = wif:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
-    const mySecondAddress= wif:n3A4KGgZD9bW6k2pPccN4rUfX3CgYCPERb
+	const myAddress = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
+	const mySecondAddress = address:n3A4KGgZD9bW6k2pPccN4rUfX3CgYCPERb
 
 	transaction T1 {
 		input = T: 42
@@ -217,9 +217,9 @@ For instance:
 
 .. code-block:: btm
         
-    const myAddress = wif:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
-	const myPrivate = wif:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
-    const mySecondPrivate= wif:cNzPt3Wad4ymq15AZ2omAmmSv5DBe99pRgsUBCQoeFPeeP57VJkm
+	const myAddress = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
+	const myPrivate = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
+	const mySecondPrivate= key:cNzPt3Wad4ymq15AZ2omAmmSv5DBe99pRgsUBCQoeFPeeP57VJkm
 
 	transaction T2 {
 		input = [
