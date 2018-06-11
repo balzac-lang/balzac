@@ -1,14 +1,13 @@
 ==================================
-Addresses and keys 
-==================================
+Transaction signatures
+==================================  
 
-Users interact with the Bitcoin network through pseudonyms, obtained
-by their  public keys.
-Users can own as many public keys as they want, by 
+Users interact with  Bitcoin through pseudonyms, which are 
+public keys or *addresses* (namely, hashes of public keys).
+Users can obtain as many pseudonyms as they want, by 
 generating pairs of public/private keys.
-Transactions can specify who receives bitcoins in various ways: in the
-simplest cases, they use public keys or *addresses*
-(namely, hashes of public keys).
+Pseudonyms are used in transactions to specify
+who receives bitcoins.  
 |langname| allows users to generate keys and addresses  through
 the  sidebar of the `web editor <http://blockchain.unica.it/btm/>`_.
  
@@ -25,19 +24,20 @@ the type is ``pubkey`` for public keys, ``key`` for private keys, and
 	// Alice's address
 	const addrA = address:my6NmTELHBMVUsAWb34iRoGYDQpcYJvVZV
 
-Users certify their identity with the  function :ref:`sig <label_c_functions>`,
+Within transactions, users certify their identity with the  function :ref:`sig <label_c_functions>`,
 and verify other users' identity with the predicate
 :ref:`versig <label_c_functions>`.
 
 
-"""""""""""
-Verifying
-"""""""""""
+""""""""""""""""""""
+Verifying signatures
+""""""""""""""""""""
 
-The :ref:`predicate <label_c_functions>` ``versig(kpub; x)``
-evaluates to ``true`` if the signature passed as the actual parameter in
-``x`` has been made with the private key corresponding to  public key ``kpub``.
-For instance:
+The :ref:`predicate <label_c_functions>` ``versig(kpub; x)`` takes two parameters: a public key ``kpub`` and the signature ``x`` of the redeeming transaction.
+The predicate  is  true if the signature ``x``  has been made with the
+private key corresponding to ``kpub``.
+For instance, the following transaction transfers 1BTC to a transaction
+signed by Alice:
 
 .. code-block:: btm
 		
@@ -48,9 +48,7 @@ For instance:
     transaction A_funds {input = _ output = 1BTC: fun(x). versig(kApub; x)}
 
 
-If in the output script there is only one signature to 
-check, one can also use the address to specify the user, and 
-the behavour is the same.
+Alternatively,  one can  use an  address instead of a public key. For instance:
 
 .. code-block:: btm
 		    
@@ -61,11 +59,9 @@ the behavour is the same.
     transaction T {input = _ output = 1BTC: fun(x). versig(addrA; x)}
     
 
-However, in case the signatures to be checked are more than one, the
-address cannot be used, and one must ressort to public keys. 
-(this restriction is due to Bitcoin transaction
-format). 
-Here is an example of the joint  verification of two signatures:
+One can use   ``versig`` to check multiple signatures.
+For instance, in the following transaction the predicate ``versig(kApub, kBpub; x, y)`` is true if  ``x`` is  Alice's signature and  ``y`` is Bob's.
+
 
 .. code-block:: btm
 		
@@ -80,22 +76,21 @@ Here is an example of the joint  verification of two signatures:
 		output = 1BTC: fun(x, y). versig(kApub, kBpub; x, y)
 	}
 
-In this case,  ``versig(kApub, kBpub; x, y)`` evaluates to ``true`` 
-if signature ``x`` has been made by Alice and signature ``y`` has been
-made by Bob.
+In cases (like the one above) where ``versig`` checks multiple signatures,
+one cannot use addresses.
 
-Notice that the order in which parameters are passed to ``versig``
-matters.  More generally, ``versig`` takes a lists of keys ``lk`` and
-a list of expressions ``le``.  Then, it  tries to
-verify the last signature in ``le``  with the last key in ``lk``.
-If they match, the function  proceeds to verify the previous signature in the
-list, otherwise it tries to verify the signature with the previous
+In general, ``versig (lk;ls)`` verifies the list ``ls`` of signatures
+against the list ``lk`` of keys.  
+The order of elements in these lists matters.
+Indeed,  ``versig`` tries  to verify the last signature in ``ls``
+with the last key in ``lk``.
+If they match, it    verifies  the previous signature in the
+list against the previous key;
+otherwise it verifies the same signature with the previous
 key.
 
-
-Thanks to this behaviour, it is possible to use ``versig`` to model
-more subtle conditions, such for instance, a *2-of-3* multi signature
-schema. For instance:
+In this way, ``versig``  can model complex  conditions, like
+a *2-of-3* multi signature scheme: 
 
 .. code-block:: btm
 
@@ -106,39 +101,25 @@ schema. For instance:
 	//Carl's public key
 	const kCpub = pubkey:03bd94ee8e570da8815f5660bab86aca010d950ddfb87458bb0dcafbc8ea6f9657
 
-	//versig used to model  a *2-of-3* multi signature schema
 	transaction T {
 		input = _
 		output = 1BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
 	}
 
 
-In this case, output script ``versig(kApub, kBpub, kCpub; x, y)`` evaluates to true
-if the two parameters can match two of the three required keys.
-For instance, let ``sigC`` be Carl's signature  and ``sigB`` Bob's signature, then
-``versig(kApub, kBpub, kCpub; sigB, sigC)`` evaluates to ``true`` but
-``versig(kApub, kBpub, kCpub; sigC, sigB)`` does not. 
+The predicate  ``versig(kApub, kBpub, kCpub; x, y)`` is true
+if  ``x`` and ``y``  can match two of the three  keys.
+For instance, if  ``sigC`` and ``sigB`` are  Carl's and  Bob's signatures, then
+``versig(kApub, kBpub, kCpub; sigB, sigC)`` is true, while
+``versig(kApub, kBpub, kCpub; sigC, sigB)`` is false. 
 
 
 
-""""""""
-Signing
-""""""""
-
-The :ref:`function <label_c_functions>` ``sig`` generates signatures.
-There are two constructs for it:
-
--  ``sig(k)`` is  used inside a transaction and generates the signature of the transaction itself. In this case, the signature is *lazy* and is generated when compiling the transaction.
-- ``sig(k) of T`` generates the signature of transaction ``T`` using private key ``k``. It cannot be used inside the definition of a  transaction.
-
-
-The signing operation signs all the fields of the transaction *but*
-the witness fields.  This is necessary not to incurr in
-infinite signatures, and it allows multiple signatures to be added
-without invalidating previous ones.
-   
-Consider the following transaction ``A_funds``, redeemable with 
-a signature made by Alice.
+""""""""""""""""""""
+Signing transactions
+""""""""""""""""""""
+Assume we have a transaction ``A_funds``, redeemable with 
+a signature made by Alice:
 
 .. code-block:: btm
 		
@@ -149,47 +130,51 @@ a signature made by Alice.
     transaction A_funds {input = _ output = 1BTC: fun(x). versig(kApub; x)}
 
 
-Let us define transaction ``TA``   to redeem transaction ``A_funds``, like this:
+We can redeem ``A_funds`` with a  transaction ``TA`` made as follows:
    
 .. code-block:: btm
 
 	//Alice's private key	
 	const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
 
-	// defining  transaction TA
 	transaction TA {
-		input = A_funds : sig(kA)   //signature of the transaction
+		input = A_funds : sig(kA)               //Alice's signature of TA
 		output = 1BTC: fun(x). versig(kApub; x) //any condition 
 	}
 
-Alternatively, it is possible to use the other construct,  like this:
+The value ``sig(kA)`` within the ``input`` field is the signature of Alice
+on ``TA``.
+The signature applies to all the fields of the transaction *but* the witnesses.
+The actual signature is generated when compiling the transaction.
+
+Alternatively, we can use ``sig(kA) of TA`` to generate the signature
+outside the transaction:
 
 .. code-block:: btm
 
 	//Alice's private key	
 	const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
 
-	// transaction with witness not specified
 	transaction T {
-		input = A_funds : _ 
+		input = A_funds : _                     // unspecified witness
 		output = 1BTC: fun(x). versig(kApub; x) //any condition 
 	}
 
-	// signing transaction T
+	// Alice's signature of T
 	const sigA = sig(kA) of T 
 
-	// defining the actual transaction TA,
-	//with the same fields as in T so to use  signature sigA
 	transaction TA {
-		input = A_funds : sigA 
-		output = 1BTC: fun(x). versig(kApub; x) //any condition 
+		input = A_funds : sigA                          //Alice's signature of T
+		output = 1BTC: fun(x). versig(kApub; x)         //any condition 
 	}
 
+Note that the witness in ``TA`` is Alice's signature of ``T``:
+indeed, the two transactions
+have the same signature, since their input and output fields are the same.
 
-Transaction ``TA`` uses as witness the signature obtained by ``T``,
-which has same input and output fields.
-
-Something equivalent can be written with the use of parametric transaction ``T_template``:
+The construct ``sig(k) of T`` also applies to parametric transactions.
+This is especially useful when the parameter is the witness, like in the
+following example:
 
 .. code-block:: btm
 
@@ -202,79 +187,82 @@ Something equivalent can be written with the use of parametric transaction ``T_t
 		output = 1BTC: fun(x). versig(kApub; x) //any condition 
 	}
 
-	// signing transaction T_template, without providing an argument
+	// signs T_template, without providing an argument
 	const sigA = sig(kA) of T_template(_) 
 
-	//instanciating T_template with the needed argument
+	// instantiates T_template with the needed argument
 	const TA  =  T_template(sigA)
 
+The witness in ``T_template`` is a parameter ``s``,
+which must be instantiated with Alice's signature.
+Alice first signs ``T_template``,
+and then she instantiates the parameter of ``T_template`` with her signature.
+The obtained transaction ``TA`` can redeem ``A_funds``.
 
-Transaction ``T_template`` is parameteric and asks for a signature to
-be used as witness for ``A_funds``. That signature can only be the
-signature of ``T_template`` itself. Hence, after having generated
-``sigA``, it is inserted into ``T_template`` to obtain final
-transaction ``TA``.
+When a transaction needs the signatures of many participants,
+each of them signs a template of the transaction,
+and sends the signature to a participant who collects them.
 
-
-
-
-
-When the signatures to be included in a transaction are several, the
-protocol is the following: each participant signs a template for the
-transaction, and send that signature to someone which collects all the
-signatures together.
-
-For instance, let assume Alice, Carl and Bob want to redeem the bitcoin in ``T_origin``:
+For instance, assume that ``T_ABC`` requires the signatures of Alice, Bob and Carl:
 
 .. code-block:: btm
 		
     //needs three signatures to redeem  1 bitcoin
-    transaction T_origin{
+    transaction T_ABC{
         input = _
         output = 1BTC: fun(x, y, z). versig(kApub, kBpub, kCpub; x, y, z)
     }	
 
-Each of them calculates the signature for the redeeming transaction ``T_template``.
-Let consider for instance, Alcie's code:
+First, all participants agree on a parametric transaction to redeem ``T_ABC``:
+    
+.. code-block:: btm
+
+    transaction T_template (sA:signature, sB:signature, sC:signature){
+	input = T_ABC: sA sB sC
+	output = 1BTC: fun(x). versig(kApub; x)
+    }
+
+
+Then, each participant signs ``T_template``.
+For instance, Alice performs the following actions:
 
 .. code-block:: btm
 		
-      //Alice's point of view
-      // transaction template		
-      transaction T_template (sA:signature, sB:signature, sC:signature){
-         input = T_origin: sA sB sC
-         output = 1BTC: fun(x). versig(kApub; x) //anything
-      }
       //Alice's private key
       const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
       //Alice's signature
       const sigA = sig(kA) of T_template(_,_,_)
-      //printing the signature
+		
+      //prints the signature
       compile sigA
 
    
-When the compiler outputs ``sigA``, the result is a couple, signature and
-public key, with the following syntax:
+The compiler outputs a pair, containing the signature and the public key:
 
 .. code-block:: btm
 		
     sigA		
     sig:30450...3cdb01 [pubkey:03ff41f...9c3]
 
-Every participant sends that piece of information to (say) Alice, who
-collects everything to build up ``T_template``:
+Now, all participants send their pair to (say) Alice,
+who uses them to instantiate ``T_template`` with the actual signatures:
 
 .. code-block:: btm
 		
-	//raw signature of T_template made by Alice plus Alice's public key
+	//signature of T_template made by Alice plus Alice's public key
 	const sigA = sig:304502...b01[kApub]
-	//raw signature of T_template made by Bob plus Bob's public key
+	//signature of T_template made by Bob plus Bob's public key
 	const sigB = sig:956232...c12[kBpub]
-	//raw signature of T_template made by Carl plus Carl's public key
+	//signature of T_template made by Carl plus Carl's public key
 	const sigC = sig:f3h5d6...cdb[kCpub]
 
 	compile T_template(sigA, sigB, sigC)
+
+Finally, the instantiated ``T_template`` can be appended to the blockchain
+to redeem ``T_ABC``.
+      
+    
 
 
       
