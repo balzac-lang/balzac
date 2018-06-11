@@ -15,7 +15,8 @@ A basic transaction
 """""""""""""""""""""
 
 Bitcoin transactions transfer currency, the *bitcoins* (BTC).
-Each transaction has one or more inputs, from where it takes the bitcoins,  and one or more outputs, which specify the recipient(s).
+Each transaction has one or more inputs, from where it takes the bitcoins,
+and one or more outputs, which specify the recipient(s).
 |langname| also allows for  transactions  with  no inputs:
 even thought these transactions cannot be appended *as is* to the actual
 Bitcoin blockchain, they are useful to  refer to transactions which are
@@ -77,16 +78,14 @@ by an actual transaction identifier, as in the following example:
 .. Tip ::
 
 	Transaction identifiers have the same format *both in the testnet and
-	in the mainnet*. Our tool fetch the transaction body
+	in the mainnet*. Our tool fetches the transaction body
 	by looking into the specified :btm:`network`. 
-	A common mistake is to look	for a transaction id into the wrong network.
+	A common mistake is to look for a transaction id into the wrong
+	network.
 
-	Alternatively, you can fetch the body of a transaction on you own and use it as in 
-	the following example:
-
-	.. code-block::btm
-
-		const T_ref = tx:0200000001644bbaf06a6318d139fff9a8a1f03c066cafdd0f2b1134ddaf5ffc783bdde01f010000006a473044022012507c618835bdf647ee514424ab0e4b37be1b1f0bffd5b0505150a3b66416b902203fb45f24b5444dfa279ca285f4bdd437b5708e6a2f2cecc27eaf5fdb201d69930121037bb57e56cc43a1260354785f4adf74218ae7f9a71ae24fc4403b54fd5e5420f8ffffffff02a0be2602000000001976a9141e0739c2edcbf5fec56ea29a6ec06192a6f0b23d88ac7423b503000000001976a914478e01a435b4713f6311a8c2e916cf0a58073a0188ac00000000
+	Alternatively, you can fetch the body of a transaction on your
+	own and use it as in the following example:
+        ``const T_ref = tx:0200000001644bbaf0....c00000000``
 
 	Please note the difference between prefixes ``tx:`` and ``txid:``.
 
@@ -124,9 +123,9 @@ Currently, transactions with zero fee are not likely to be added to the blockcha
 Now, let us insert both ``T`` and ``T1`` in the editor.  While we
 write, the editor performs some static checks and signals the
 errors. For instance, if instead of the value ``42`` we provide another
-witness for ``T``, (say for instance value ``4``) the editor will
+witness for ``T``(say for instance value ``4``), the editor will
 display a warning. If the input field of ``T1`` has a wrong reference
-(say ``T3``), or if the total amount of outgoing bitcoin is greater
+(say ``T3``), or if the total amount of outgoing bitcoins is greater
 than the incoming one, the editor will signal the error.
 
 .. _label_t_signature_modeling:
@@ -135,48 +134,51 @@ than the incoming one, the editor will signal the error.
 Signature verification 
 """""""""""""""""""""""""""""""
 
-The output script of ``T`` is naïve, since anyone can produce the right witness.
+The output scripts of ``T`` and ``T1`` are  naive,
+since anyone can produce the right witnesses.
 Usually, one wants to transfer bitcoins to a specific user.
-For instance, the following piece of code makes the 50 BTC in ``T1``
+For instance, the following transaction ``T2``  makes the 50 BTC of  ``T1``
 redeemable only by user Alice: 
 
 .. code-block:: btm
 
-	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe // Alice's address
+	// Alice's address
+	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe 
 
-	transaction T1 {
-		input = T: 42
+	transaction T2 {
+		input = T1: 12
 		output = 50 BTC: fun(x) . versig(addrA; x)
 	}
 
 
 The constant ``addrA`` declares Alice's *address*:
 basically, it is the hash of Alice's public key.
-The address is prefixed by the keyword ``address:``,
-which means that it is represented in the
-:doc:`Wallet Import Format types <types>` [#f1]_.
+The address is prefixed by the keyword ``address:`` to indicate its type.
+The format is *wif* :doc:`Wallet Import Format types <types>` [#f1]_.
 Note that users may generate as many addresses as they want.
 
 The :ref:`predicate <label_c_functions>` ``versig(addrA; x)``
-in the output field of ``T1`` 
-evaluates to true if ``x`` is a valid signature
-of the transaction which redeems ``T1``,
+in the output field of ``T2`` is true  if ``x`` is a valid signature
+of the transaction which redeems ``T3``, 
 done with Alice's private key. 
 
-The transaction ``T1`` can be redeemed by a transaction ``T2`` made as follows:
+The transaction ``T2`` can be redeemed by a transaction ``T3`` made as follows:
 
 .. code-block:: btm
 
-	const skA = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi // Alice's private key
+	// Alice's address
+	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
+	//Alice's private key	
+	const kA = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
 
-	transaction T2 {
-		input = T1: sig(skA)
-		output = 50 BTC: ... // any condition chosen by Alice
+	transaction T3 {
+		input = T2: sig(kA)
+		output = 50 BTC: versig(addrA; x) // any condition chosen by Alice
 	}
 
 The witness ``sig(skA)`` is the :ref:`signature <label_c_functions>`
-of transaction ``T2`` (without considering the witness itself)
-using the private key ``skA``.
+of transaction ``T3`` (without considering the witness itself)
+using the private key ``kA``.
 
 To perform examples with Bitcoin,
 one can use the online form on the sidebar to generate new addresses and keys.
@@ -193,45 +195,125 @@ one can use the online form on the sidebar to generate new addresses and keys.
 Multiple inputs and outputs
 """""""""""""""""""""""""""""""
 Transactions can have more than one output, in order to split the money on different recipients. 
-For instance, we might modify transaction ``T2`` to send some of the total bitcoins to  another address,  still under our control,  like this:
+For instance, in transaction  ``T4`` the amount of bitcoin is split in two parts: 
 
 .. code-block:: btm
 
-	const myAddress = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
-	const mySecondAddress = address:n3A4KGgZD9bW6k2pPccN4rUfX3CgYCPERb
-
-	transaction T1 {
-		input = T: 42
+	//Alice's private key
+	const kA = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
+	// Alice's address
+	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe 
+	//Alice's other address
+	const addrA2 = address:n3A4KGgZD9bW6k2pPccN4rUfX3CgYCPERb
+		
+	transaction T4 {
+		input = T3:sig(kA) 
 		output = [
-                         40 BTC: fun(x) . versig(myAddress; x);
-                         10 BTC: fun(x) . versig(mySecondAddress; x)
+                         40 BTC: fun(x) . versig(addrA; x);
+                         10 BTC: fun(x) . versig(addrA2; x)
 			]
 	}	
 
 
-In this transaction, the output field has two items, which can be redeemed separately. 
+In this transaction, the output field has two items, that can be redeemed separately. 
 
-Transactions can have more that one input, in case they need to gather money from several sources.
-For each input, the transaction must provide a suitable witness. In case inputs refers to a transaction with multiple outputs, their outputs are numbered starting from 0. 
+Transactions can have more than one input, in case they need to gather money from several sources.
+For each input, the transaction must provide a suitable witness. In case inputs refer to a transaction with multiple outputs, their outputs are numbered starting from 0. 
 For instance:
 
 .. code-block:: btm
-        
-	const myAddress = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe
-	const myPrivate = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
-	const mySecondPrivate= key:cNzPt3Wad4ymq15AZ2omAmmSv5DBe99pRgsUBCQoeFPeeP57VJkm
 
-	transaction T2 {
+	// Alice's address
+	const addrA = address:mvMKu24MRsSDsu6LatViZtx64J6Cxsz3qe 
+        //Alice's private key
+	const kA = key:cMpBA2wEGKrN1vpxSBzWWzFBwnrypR4rBev4vTbEDPHMeSMyyyMi
+	//Alice's second private key
+	const kA2= key:cNzPt3Wad4ymq15AZ2omAmmSv5DBe99pRgsUBCQoeFPeeP57VJkm
+
+	transaction T5 {
 		input = [
-			T1@0: sig(myPrivate);
-			T1@1: sig(mySecondPrivate)
+			T4@0: sig(kA);
+			T4@1: sig(kA2)
 			]
-		output = 50 BTC: fun(x) . versig(myAddress; x)
-                      
+		output = 50 BTC: fun(x) . versig(addrA; x)                     
 	}	   
 
-where the witness is build up using system function ``sig(k)``, which calculate  the signature of  transaction ``T2`` using the private key ``k``.   (see :ref:`function list <label_c_functions>` ). 
+where the witness is build up using system function ``sig(k)``,
+which calculates  the signature of  transaction ``T5``
+using the private key ``k``.   (see :ref:`function list <label_c_functions>` ). 
 
+
+
+"""""""""""""""""""""""
+Parametric transactions
+"""""""""""""""""""""""
+Transaction definition can be parametric.
+For instance, in the following example ``T6`` takes one parameter
+of type ``pubkey`` and uses it in the output script.
+
+
+.. code-block:: btm
+		
+	// parametric transaction
+	transaction T6(k:pubkey) {
+		input = _
+		output = 1BTC: fun(x). versig(k;x)
+	}
+
+To be able to compile ``T6``, one must instanciate that one parameter, like:
+	
+.. code-block:: btm
+		
+	// Alice's public key
+	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3	
+	compile T6(kApub)
+
+Alternatively, one can use ``T6`` in the definition of its redeeming
+transaction ``T7``:
+	
+.. code-block:: btm
+
+	// Alice's public key
+	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+	//Alice's private key
+	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	// Bob's public key
+	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+	
+	transaction T7 {
+		input = T6(kApub):sig(kA)
+		output = 1BTC: fun(x). versig(kBpub;x)
+	}
+
+In case the parameter is a witness, it can be left unspecified as long
+as it is needed, using special char ``_``. For instance, transaction
+``T9`` is obtained by ``T8``, without providing a witness :
+
+.. code-block:: btm
+		
+	transaction T8(s:signature, n:int) {
+		input = T7:s 
+		output = 1BTC: fun(x, m). versig(kApub;x) && m == sha256( n )
+	}
+	//transaction with empty signature
+	const T9 = T8(_, 4)
+
+	
+To conclude, the generation of a signature inside a transaction is done at
+compilation time, so that all the parameters have been instantiated.
+Indeed: 
+	
+.. code-block:: btm
+		
+	transaction T9(n:int) {
+		input = T6(kApub):sig(kA)
+		output = 1BTC: fun(x, m). versig(kBpub;x) && m == sha256( n )
+        }
+        //sig(kA) is calculated now
+        compile T9(4)		
+
+
+	
 
 
 .. rubric:: References
