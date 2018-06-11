@@ -19,8 +19,8 @@ The table below shows the list of types
                                                                                            ``'bar'``
    ``boolean``          Either true or false value                                         ``true`` ``false``
    ``hash``             A string of bytes in hexadecimal representation                    ``hash:c51b66bced5e4491001bd702669770dccf440982``
-   ``key``              A Bitcoin private key in the Wallet Input Format [#f1]_            ``wif:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW``
-   ``address``          A Bitcoin address in the Wallet Input Format [#f1]_                ``wif:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz``
+   ``key``              A Bitcoin private key in the Wallet Input Format [#f1]_            ``key:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW``
+   ``address``          A Bitcoin address in the Wallet Input Format [#f1]_                ``address:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz``
 
    ``pubkey``           A raw public key as hexadecimal string                             ``pubkey:032b6cb7aa033a063dd01e20a971d6d4f85eb27ad0793b...``
    ``signature``        A raw signature as hexadecimal string                              ``sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1...``

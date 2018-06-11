@@ -122,11 +122,11 @@ or with the ones of  Bob and the arbiter.
         // Alice's public key
 	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 	// Alice's private key
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 	// Bob's public key
 	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 	//Carl's public key
-	const kCpub = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
+	const kCpub = pubkey:02ede655785dacac6d6985588f6558be2d318012ee36067d3227871d350678c132
 
 	// tx with Alice's funds, redeemable with Alice's private key
 	transaction A_funds {input = _ output = 1BTC: fun(x). versig(kApub; x)}
