@@ -295,7 +295,7 @@ inline_highlight_respect_highlight = True
 # This (boolean) setting triggers, if ``literals`` shall be highlighted. Default is True.
 inline_highlight_literals = False
 
-langname = 'BALZaC'
+langname = 'Balzac'
 
 highlight_language = "btm"
 
