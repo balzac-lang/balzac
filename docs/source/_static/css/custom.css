@@ -59,3 +59,9 @@ p.caption {
 .rst-content .highlight > pre {
     line-height: 1.5 !important;
 }
+
+.img-border {
+    border: 1px solid #a1a4a5;
+    box-shadow: 0px 0px 5px 5px #e1e4e5;
+}
+
