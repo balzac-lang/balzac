@@ -4,8 +4,6 @@ Escrow
 
 This example is part of the smart contracts presented in [AB+18POST]_.
 
-"INTRO TO DO"
-
 Assume Alice wants to buy an item from Bob. Since they do not trust
 each other, they would like to use a contract to ensure that Bob will
 get paid *if and only if* Alice gets her items.
@@ -111,31 +109,26 @@ money; or Bob might refuse to sign ``T_A`` while not sending the item,
 so causing Alice to lose the money. In both cases, the bitcoin stored
 within transaction ``T`` are lost.
 
-A possible solution to this problem is to entitle a third participant the role of
-arbiter, to decide in case of problems.  Indeed, transaction ``T`` is
-modified into a *2-of-3* multi signature schema, and  can be redeemed
-either with the signatures of Alice and Bob,  or with the ones of Alice and the arbiter, 
-or with the ones of  Bob and the arbiter.
+A possible solution to this problem is to entitle a third participant the
+role of arbiter, to decide in case of problems.  Indeed, transaction ``T`` is
+modified into a *2-of-3* multi signature schema:
 
 .. code-block:: btm
 
-        // Alice's public key
-	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
-	// Alice's private key
-	const kA = wif:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	// Bob's public key
-	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 	//Carl's public key
-	const kCpub = wif:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
-
-	// tx with Alice's funds, redeemable with Alice's private key
-	transaction A_funds {input = _ output = 1BTC: fun(x). versig(kApub; x)}
+	const kCpub = key:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 	transaction T {
 		input = A_funds: sig(kA)
 		output = 1BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
 	}
 
+Transaction ``T`` can be redeemed either with the signatures of Alice and
+Bob,  or with the ones of Alice and the arbiter, or with the ones of
+Bob and the arbiter.
+	
+
+.. code-block:: btm	
 	transaction T_B (sig1:signature, sig2:signature) {
 		input = T: sig1 sig2
 		output = 1BTC: fun(x). versig(kBpub; x)
@@ -147,4 +140,3 @@ or with the ones of  Bob and the arbiter.
 	}
 		
 
-	
