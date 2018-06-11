@@ -1,6 +1,7 @@
 
-|langname|
-===============
+******
+BALZaC
+******
 
 *Bitcoin Abstract Language, analyZer and Compiler*
 
