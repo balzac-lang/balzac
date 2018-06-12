@@ -6,7 +6,7 @@ This example is part of the smart contracts presented in [AB+18POST]_.
 
 Assume Alice wants to buy an item from Bob. Since they do not trust
 each other, they would like to use a contract to ensure that Bob will
-get paid *if and only if* Alice gets her items.
+get paid *if and only if* Alice gets her item.
 
 Assume that the needed amount to pay Bob is stored in an actual
 transaction redeemable by Alice. We model that transaction in the
@@ -18,12 +18,15 @@ editor using a *fake coinbase transaction* ``A_funds``.
     const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
     // tx with Alice's funds, redeemable with Alice's private key
-    transaction A_funds {input = _ output = 1BTC: fun(x). versig(kApub; x)}
+    transaction A_funds {
+        input = _ 
+        output = 1 BTC: fun(x). versig(kApub; x)
+    }
 
-
-Transaction ``A_funds`` has exactly one output script, which is a
-simple P2PKH (Pay to Public Key Hash) for the public key ``kApub`` of
-Alice.
+``kApub`` is the public key of Alice and ``versig(kApub; x)`` checks
+that ``x`` is a valid signature for ``kApub``.
+Assuming that only Alice owns the corresponding private part
+of ``kApub``, she is the only one able to spend ``A_funds``.
 
 
 ----------------
@@ -42,60 +45,72 @@ In a naive attempt to realise a secure contract,  Alice generates the following 
 	
 	transaction T {
 		input = A_funds: sig(kA)
-		output = 1BTC: fun(x, y). versig(kApub, kBpub; x, y)
+		output = 1 BTC: fun(x, y). versig(kApub, kBpub; x, y)
 	}
 
 
 Transaction ``T`` redeems transaction ``A_funds`` using the
 signature ``sig(kA)``, and locks the money so that it can be redeemed
-only with the joint signatures of both Alice and Bob.
+only with the joint signatures of both Alice and Bob. 
+In order to spend ``T``, either Alice will send her signature to Bob or viceversa.
 
-Then, the protocol follows as this. There are other two transactions
-which will redeem the sum in ``T`` depending on what happens:
-transaction ``T_B`` grants the sum to Bob in case the item has been
-received correctly, while transaction ``T_A`` allows Alice to be
-refund in case the item has not arrived or has not been shipped.
-Both transactions needs to be signed by both participants to redeem ``T``.
-
-So, in case Alice receives the item, she signs
-transaction ``T_B`` (that grants the sum to Bob) and sends that
-signature to Bob. After also Bob has signed ``T_B``, the transaction
-can be appended to the network.
+Consider the following parametric transaction:
 
 .. code-block:: btm
 
-   transaction T_B(sigA:signature, sigB:signature)  {
-	input = T: sigA sigB
-        output = 1BTC: fun(x). versig(kBpub; x)
+   transaction T1(sigA:signature, sigB:signature, pubK:pubkey)  {
+		input = T: sigA sigB
+		output = 1 BTC: fun(x). versig(pubK; x)
    }
 
-We model ``T_B`` as a parametric transaction, that takes in input two signatures.
-Once the signatures have been exchanged, ``T_B`` can be compiled, for instance:
+It takes the signatures ``sigA`` and ``sigB`` of both Alice and Bob, and 
+a public key ``pubK`` used in the output script.
+Rationally, Alice will use ``pubK == kApub`` while Bob ``pubK == kBpub``. 
+
+The protocol proceeds as follows: if Alice received her item, she sends
+her signature to Bob; if the item has not arrived or has not been
+shipped, Bob can send his signature to Alice and she gets back her money.
+
+Alice compute the signature as follows:
 
 .. code-block:: btm
 
-   //actual signature of T_B made by Alice plus Alice's public key		
-   const _sigA = sig:<hex string made by A>[kApub]
-   //actual signature of T_B made by Bob plus Bob's public key		
-   const _sigB = sig:<hex string made by Bob>[kBpub]
+	// signature of T1 that send the money to Bob		
+	const sigA = sig(kA) of T1(_,_,kBpub)
 
-   compile T_B(_sigA, _sigB)
+Similarly Bob does the same:
 
+.. code-block:: btm
+   
+	// signature of T1 that send the money to Alice		
+	const sigB = sig(kB) of T1(_,_,kApub)
 
-Otherwise, in case Alice does not receive any item, she and Bob will
-sign transacton ``T_A`` to allow Alice to be refund.
+Once only one of the participant receives the signature,
+he creates a transaction that spends ``T``.
+
+Suppose Alice received Bob's signature. She completes ``T1`` as follows:
 
 .. code-block:: btm
 
-   transaction T_B(sigA:signature, sigB:signature)  {
-	input = T: sigA sigB
-        output = 1BTC: fun(x). versig(kApub; x)
-   }
+	const sigB = sig:<hex string made by Bob>[kBpub]
+	const sigA = sig(kA) of T1(_,_,kApub)
 
-Similarly to the previous transaction, also transaction ``T_B`` is
-parametric and can be compiled only once it has received the signatures of 
-Alice and Bob.
+	compile T1(sigA, sigB, kApub)
 
+Otherwise, if Bob received Alice's signature:
+
+.. code-block:: btm
+
+	const sigA = sig:<hex string made by Alice>[kApub]
+	const sigB = sig(kB) of T1(_,_,kBpub)
+
+	compile T1(sigA, sigB, kBpub)
+
+This approach assume that the two participant are honest and they
+will send their signature to the other party.
+However this is unrealistic: consider the case in which Alice has created
+the transaction ``T`` but Bob decided both to not sell the item and to not
+refund her. Alice has freezed her bitcoins forever.
 
 
 --------------------
@@ -103,41 +118,40 @@ Arbitrated  contract
 --------------------
 
 The protocol seen so far has a dangerous vulnerability: it is secure
-only if both participants are extremely  honest.  Indeed, either Alice might refuse
-to sign ``T_B`` after receiving the item, hence causing Bob to lose
-money; or Bob might refuse to sign ``T_A`` while not sending the item,
-so causing Alice to lose the money. In both cases, the bitcoin stored
+only if both participants are honest.  Indeed, either Alice might refuse
+to send her signature after receiving the item, hence causing Bob to lose
+money; or Bob might refuse to send his one while not sending the item,
+so causing Alice to lose the money. In both cases, the bitcoins stored
 within transaction ``T`` are lost.
 
 A possible solution to this problem is to entitle a third participant the
-role of arbiter, to decide in case of problems.  Indeed, transaction ``T`` is
-modified into a *2-of-3* multi signature schema:
+role of arbiter, trusted by both Alice and Bob, to decide in case of problems.
+Indeed, transaction ``T`` is modified into a *2-of-3* multi signature schema:
 
 .. code-block:: btm
 
-	//Carl's public key
+	// Carl's public key
 	const kCpub = pubkey:02ede655785dacac6d6985588f6558be2d318012ee36067d3227871d350678c132
 
 	transaction T {
 		input = A_funds: sig(kA)
-		output = 1BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
+		output = 1 BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
 	}
 
 Transaction ``T`` can be redeemed either with the signatures of Alice and
-Bob,  or with the ones of Alice and the arbiter, or with the ones of
-Bob and the arbiter.
-	
+Bob, or with the ones of Alice and the arbiter, or with the ones of
+Bob and the arbiter.	
+In case of dispute, the arbiter (Carl) will send his signature either to Alice or Bob.
+
+For example, assume he decided to refund Alice. 
+In this case, she can instantiate Carl's signature and create the transaction ``T_A``
+to get her bitcoins back, as follows:
 
 .. code-block:: btm	
 
-	transaction T_B (sig1:signature, sig2:signature) {
-		input = T: sig1 sig2
-		output = 1BTC: fun(x). versig(kBpub; x)
-	}
+	const sigC = sig:<hex string made by Carl> [kCpub]	
 
-	transaction T_A (sig1:signature, sig2:signature) {
-		input = T: sig1 sig2
-		output = 1BTC: fun(x). versig(kApub; x)
+	transaction T_A {
+		input = T: sig(kA) sigC
+		output = 1 BTC: fun(x). versig(kApub; x)
 	}
-		
-
