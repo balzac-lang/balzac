@@ -1,6 +1,6 @@
-------
+======
 Oracle
-------
+======
 
 This example is part of the smart contracts presented in [AB+18POST]_.
 
@@ -103,5 +103,5 @@ to the output script of ``T`` (we call this new one ``Ttimed``), as shown below:
                         || after date dateD : versig(kApub;sigma)
     }
 
-From the end of the year, Alice can redeem ``Ttimed``, since the output script
+After the end of the year, Alice can redeem ``Ttimed``, since the output script
 enables the second part of the or expression.
