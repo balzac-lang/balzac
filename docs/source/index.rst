@@ -7,6 +7,8 @@ BALZaC
 
 |langname| is an high-level language for writing transactions, verifying their correctness, 
 and compiling them into actual Bitcoin transactions. It is based on the formal model proposed in [AB+18FC]_.
+You can also use Balzac to design Bitcoin smart contracts [AB+18POST]_. 
+Some examples are given at the end of this tutorial.
 
 You can install the IDE as a Eclipse plugin, or try the `web editor <https://blockchain.unica.it/balzac/>`_.
 
@@ -40,6 +42,7 @@ of the `University of Cagliari <https://www.unica.it/unica/en/homepage.page>`_.
     :maxdepth: 3
     :caption: Installation and Configuration
 
+    eclipse-install
     eclipse-conf
 
 .. toctree::
