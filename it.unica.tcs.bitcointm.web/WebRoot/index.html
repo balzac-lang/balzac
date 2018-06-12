@@ -44,7 +44,7 @@
                     syntaxDefinition: "xtext-resources/generated/mode-btm"
                 });
                 
-                var text = "package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\ncompile T";
+                var text = "package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\neval T";
                 
                 if (typeof(Storage) !== "undefined") {
                     // Code for localStorage/sessionStorage.
@@ -259,6 +259,8 @@
                                     aria-expanded="false">Select an example</button>
                                 <div class="dropdown-menu" aria-labelledby="selectExample">
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.btm')">Balzac in a nutshell</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-alice.btm')">Oracle (Alice's view)</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-bob.btm')">Oracle (Bob's view)</button>
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.btm')">Timed Commitment</button>
                                 </div>
                             </div>
@@ -267,7 +269,7 @@
                             <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
                         </div>
                         <div class="text-center">
-                            <button id="compile" type="button" class="btn btn-primary">Compile</button>
+                            <button id="compile" type="button" class="btn btn-primary">Evaluate</button>
                         </div>
                     </div>
                     <div class="card-footer">
