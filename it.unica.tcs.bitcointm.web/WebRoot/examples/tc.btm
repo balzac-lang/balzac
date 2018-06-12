@@ -32,4 +32,4 @@ transaction T_timeout {
     timelock = after block blockN
 }
 
-compile T_commit T_reveal T_timeout
+compile T_commit, T_reveal, T_timeout

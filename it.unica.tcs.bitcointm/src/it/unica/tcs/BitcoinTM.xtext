@@ -13,7 +13,7 @@ Model:
 //	imports+=Import*
 	net=Network?
 	declarations+=Element*
-	compile=Compile?
+	eval=Eval?
 ;
 
 PackageDeclaration:
@@ -208,7 +208,7 @@ Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
 AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
-InputValue: {InputValue} "input.value" ("(" (inputIdxs+=LONG ("," inputIdxs+=LONG)*)? ")")?;
+InputValue: {InputValue} "input.value" (=> "(" (inputIdxs+=LONG ("," inputIdxs+=LONG)*)? ")")?;
 
 Type:
 	PermittedType
@@ -251,7 +251,7 @@ Typeable:
 | Output
 | Timelock
 | Expression
-| Compile;
+| Eval;
 
 Interpretable:
 	Expression
@@ -313,6 +313,6 @@ terminal OFFSET_MINUTE: '0''0' | '3''0';
 @Override
 terminal INT returns ecore::EInt: LONG;
 
-Compile:
-	{Compile} "compile" txs+=Reference*
+Eval:
+	{Eval} "eval" exps+=Expression ("," exps+=Expression)*
 ;

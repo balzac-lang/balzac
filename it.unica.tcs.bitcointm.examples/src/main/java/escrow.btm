@@ -69,15 +69,15 @@ const sigA2_ok = sigA2 == sig:304402205d47908ac531020b651153d1928226799a7d62134e
 const sigB2_ok = sigB2 == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901 [kB]
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-compile
-    sigA_ok
-    sigB_ok
-    sigA2_ok
-    sigB2_ok
-    sigA
-    T_escrow_Alice       
-    T_escrow_Alice_bis  // uguale a quello sopra
-    T_escrow_Bob 
-    T_escrow_Bob_bis    // uguale a quello sopra
+eval
+    sigA_ok,
+    sigB_ok,
+    sigA2_ok,
+    sigB2_ok,
+    sigA,
+    T_escrow_Alice,       
+    T_escrow_Alice_bis,  // uguale a quello sopra
+    T_escrow_Bob, 
+    T_escrow_Bob_bis     // uguale a quello sopra
 
 

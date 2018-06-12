@@ -224,17 +224,17 @@ const addr3 = address:n3s2D2TSroNtMdAFV88YfhExUmNidqesD1
 
 const value = 1 BTC
 
-compile
-    LockWithPublicKey(k1, value)
-    LockWithPublicKey(addr1, value)
-    LockWithMultisig(k1, k2, k3, value)
-    LockWithPublicKeyHash(k1, value)
-    LockWithPublicKeyHash(addr1, value)
-    RevealPreimage(sha256("secret"), value)
-    RevealCollision(value)
-    RevealFixedPoint(value)
-    LockUntil(k1, 500, value)
-    LockDelay(k1, 500, value)
-    TransferWithTimeout(k1, k2, 500, value)
-    EscrowWithDelay(k1, k2, k3, value)
+eval
+    LockWithPublicKey(k1, value),
+    LockWithPublicKey(addr1, value),
+    LockWithMultisig(k1, k2, k3, value),
+    LockWithPublicKeyHash(k1, value),
+    LockWithPublicKeyHash(addr1, value),
+    RevealPreimage(sha256("secret"), value),
+    RevealCollision(value),
+    RevealFixedPoint(value),
+    LockUntil(k1, 500, value),
+    LockDelay(k1, 500, value),
+    TransferWithTimeout(k1, k2, 500, value),
+    EscrowWithDelay(k1, k2, k3, value),
     VaultSpend(k1, k2, value)

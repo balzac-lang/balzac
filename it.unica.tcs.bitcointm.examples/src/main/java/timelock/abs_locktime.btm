@@ -123,19 +123,19 @@ transaction T_5 {
 	timelock = after block blockN + 20 // timelock must satisfy all inputs
 }
 
-compile
-	T_cons
-	T_1
+eval
+	T_cons,
+	T_1,
 
-	T_2_block
-	T_2_date
-	T_2_mismatch
+	T_2_block,
+	T_2_date,
+	T_2_mismatch,
 
-	T_3_block
-	T_3_date
+	T_3_block,
+	T_3_date,
 
-	T_4_block
-	T_4_date
+	T_4_block,
+	T_4_date,
 
-	T_cons2
+	T_cons2,
 	T_5

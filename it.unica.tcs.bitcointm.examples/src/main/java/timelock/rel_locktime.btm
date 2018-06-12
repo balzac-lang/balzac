@@ -124,18 +124,18 @@ transaction T_5 {
 	timelock = after 10 block from T_cons2	// timelock must satisfy all inputs
 }
 
-compile
-	T_cons
-	T_1
+eval
+	T_cons,
+	T_1,
 
-	T_2_block
-	T_2_delay
-	T_2_mismatch
+	T_2_block,
+	T_2_delay,
+	T_2_mismatch,
 
-	T_3_block
-	T_3_delay
-	T_4_block
-	T_4_delay
+	T_3_block,
+	T_3_delay,
+	T_4_block,
+	T_4_delay,
 
-	T_cons2
+	T_cons2,
 	T_5

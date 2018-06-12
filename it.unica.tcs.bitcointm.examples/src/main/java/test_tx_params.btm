@@ -41,9 +41,9 @@ transaction A_bis(inTxP:transaction) {
  * signature as parameter 
  */
 
-compile
+eval
 //	T(3,4)
 //	T2(10,5,15) 
 //	T3
-	A
+	A,
 	A_bis(inTx)

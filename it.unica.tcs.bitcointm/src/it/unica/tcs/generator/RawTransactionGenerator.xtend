@@ -5,13 +5,13 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Compile
 import it.unica.tcs.bitcoinTM.Model
 import it.unica.tcs.bitcoinTM.PackageDeclaration
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter
 import java.io.File
+import org.bitcoinj.crypto.TransactionSignature
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -20,7 +20,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
-import org.bitcoinj.crypto.TransactionSignature
+import it.unica.tcs.bitcoinTM.Eval
 
 class RawTransactionGenerator extends AbstractGenerator {
 
@@ -50,39 +50,36 @@ class RawTransactionGenerator extends AbstractGenerator {
 
     def private compileTransactions(Model model) {
 
-        val compiles = EcoreUtil2.getAllContentsOfType(model, Compile)
+        val compiles = EcoreUtil2.getAllContentsOfType(model, Eval)
 
         if (compiles.isEmpty)
             return "";
 
         val sb = new StringBuilder
 
-        compiles.get(0).txs
-            .forEach[r |
+        compiles.get(0).exps
+            .forEach[e |
 
-                val res = r.interpretE
+                val res = e.interpretE
 
                 if (!res.failed) {
 
                     val obj = res.first
                     
-                    sb.append(astUtils.nodeToString(r)).append("\n")
+                    sb.append(astUtils.nodeToString(e)).append("\n")
                     
                     if (obj instanceof ITransactionBuilder) {
                         val tx = obj.toTransaction(astUtils.getECKeyStore(model))
                         sb.append(tx).append("\n")
                         sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
                     }
-                    else if (obj instanceof TransactionSignature) {
-                        sb.append(BitcoinUtils.encode(obj.encodeToBitcoin)).append("\n\n\n")
-                    }
                     else {
-                        sb.append(obj.toString).append("\n\n\n")
+                        sb.append("    ").append(obj.toString).append("\n\n\n")
                     }
                 }
                 else {
                     res.ruleFailedException.printStackTrace
-                    sb.append("Cannot compile expression "+NodeModelUtils.getTokenText(NodeModelUtils.getNode(r))).append("\n\n\n")
+                    sb.append("Cannot evaluate expression "+NodeModelUtils.getTokenText(NodeModelUtils.getNode(e))).append("\n\n\n")
                 }
             ]
 

@@ -28,23 +28,23 @@ const T_serial:transaction = tx:0100000001cab433976b8a3dfeeb82fe6a10a59381d2fa91
 
 const signature_a = sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1d5bf2cc96df3380f70722cc6b022054800339a6cb56593f4e0725d9231c8435b478965214918661e720773f8663c701 [kA]
 
-compile
-	a
-	b
-	s
-	h1
-	h2
-	h160
-	h256
-	h3
-	h1_bis
-	h2_bis
-	h160_bis
-	h256_bis
-	h3_bis
-	kA
-	k
-	k_address
-	k_pubkey
-	T
+eval
+	a,
+	b,
+	s,
+	h1,
+	h2,
+	h160,
+	h256,
+	h3,
+	h1_bis,
+	h2_bis,
+	h160_bis,
+	h256_bis,
+	h3_bis,
+	kA,
+	k,
+	k_address,
+	k_pubkey,
+	T,
 	T_serial
