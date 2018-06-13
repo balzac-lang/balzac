@@ -49,6 +49,7 @@ class BtmLexer(RegexLexer):
             (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             #(r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', Keyword.Declaration),
             #(r'(boolean|byte|char|double|float|int|long|short|void)\b', Keyword.Type),
+            (r'(hash:|signature:|address:|key:|pubkey:|tx:|txid:)\b', Name.Constant, 'literal'),
             (r'(bool|boolean|string|hash|int|signature|transaction|address|key|pubkey)\b', Keyword.Type),
             (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
@@ -79,6 +80,9 @@ class BtmLexer(RegexLexer):
         ],
         'import': [
             (r'[\w.]+\*?', Name.Namespace, '#pop')
+        ],
+        'literal': [
+            (r'[\w.]+\*?', String, '#pop')
         ],
     }
 
