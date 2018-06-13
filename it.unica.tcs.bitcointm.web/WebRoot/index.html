@@ -87,9 +87,14 @@
             
             $(document).ready(function () {
             
-                $("#menu-toggle").click(function(e) {
+            	$("#menu-toggle").click(function(e) {
                     e.preventDefault();
                     $("#wrapper").toggleClass("toggled");
+                });
+                
+            	$("#clearLocalStorage").click(function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem("file-content");
                 });
                 
                 $("#sidebar-close").click(function(e) {
@@ -158,82 +163,93 @@
     <div id="wrapper" class="toggled">
 
         <!-- Sidebar -->
-        <div id="sidebar-wrapper" class="pt-2">
+        <div id="sidebar-wrapper">
             <div id="sidebar-content" class="container">
-                
-                <div class="text-right mb-4">
-                    <button id="sidebar-close" type="button" class="btn btn-default">
-                        <i class="fa fa-times"></i>
-                    </button>
+               
+                <div class="row align-items-start h-75">
+	                <div class="col-12">
+		                <div class="text-right mb-4 pt-2">
+		                    <button id="sidebar-close" type="button" class="btn btn-default">
+		                        <i class="fa fa-times"></i>
+		                    </button>
+		                </div>
+		            
+		                <div class="input-group mb-3">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Private key (wif)</span>
+		                    </div>
+		                    <input type="text" id="privkey" class="form-control"
+		                        aria-label="Private key in WIF format"
+		                        aria-describedby="privkey" autocomplete="off">
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+		                <div class="input-group mb-3">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Public key (hex)</span>
+		                    </div>
+		                    <input type="text" id="pubkey" class="form-control"
+		                        aria-label="Public key in hexadecimal format"
+		                        aria-describedby="pubkey" autocomplete="off">
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+		                <div class="input-group mb-3">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		                    </div>
+		                    <input type="text" id="addr" class="form-control"
+		                        aria-label="Public address in WIF format"
+		                        aria-describedby="addr" autocomplete="off">
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+		                
+		                <div class="text-right">
+		                    <input id="isTestnet" checked type="checkbox"
+		                        data-style="mb-3"
+		                        data-toggle="toggle" 
+		                        data-on="Testnet" 
+		                        data-off="Mainnet" 
+		                        data-onstyle="info" 
+		                        data-offstyle="info"
+		                        data-size="small"
+		                        >
+		                </div>
+		                
+		                
+		                <input id="newkey-button" class="btn btn-info btn-block mb-5 btn-lg" 
+		                    type="button" value="Generate new key"
+		                    aria-label="Generate new key">
+		                
+		<!--                 <div class="input-group input-group-sm mb-3"> -->
+		<!--                     <div class="input-group-prepend"> -->
+		<!--                         <div class="input-group-text"> -->
+		<!--                             <input id="warn-empty-fields" type="checkbox" -->
+		<!--                                 aria-label="Checkbox for following text input" checked> -->
+		<!--                         </div> -->
+		<!--                     </div> -->
+		<!--                     <span class="form-control" -->
+		<!--                         aria-label="Text input with checkbox">Warning on non-empty fields</span> -->
+		<!--                 </div> -->
+                    </div>
                 </div>
-            
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Private key (wif)</span>
-                    </div>
-                    <input type="text" id="privkey" class="form-control"
-                        aria-label="Private key in WIF format"
-                        aria-describedby="privkey" autocomplete="off">
-                    <div class="input-group-append">
-                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
-                            <i class="fa fa-clone"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Public key (hex)</span>
-                    </div>
-                    <input type="text" id="pubkey" class="form-control"
-                        aria-label="Public key in hexadecimal format"
-                        aria-describedby="pubkey" autocomplete="off">
-                    <div class="input-group-append">
-                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
-                            <i class="fa fa-clone"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    </div>
-                    <input type="text" id="addr" class="form-control"
-                        aria-label="Public address in WIF format"
-                        aria-describedby="addr" autocomplete="off">
-                    <div class="input-group-append">
-                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
-                            <i class="fa fa-clone"></i>
-                        </button>
-                    </div>
+                
+                <div class="row align-items-end h-25">
+	                <div class="col-12 mb-2">
+	                    <input id="clearLocalStorage" class="btn btn-info btn-block mb-3" value="Delete local storage" aria-label="Delete local storage" type="button">
+	                </div>
                 </div>
                 
-                <div class="text-right">
-                    <input id="isTestnet" checked type="checkbox"
-                        data-style="mb-3"
-                        data-toggle="toggle" 
-                        data-on="Testnet" 
-                        data-off="Mainnet" 
-                        data-onstyle="info" 
-                        data-offstyle="info"
-                        data-size="small"
-                        >
-                </div>
-                
-                
-                <input id="newkey-button" class="btn btn-info btn-block mb-5" 
-                    type="button" value="Generate new key"
-                    aria-label="Generate new key">
-                
-<!--                 <div class="input-group input-group-sm mb-3"> -->
-<!--                     <div class="input-group-prepend"> -->
-<!--                         <div class="input-group-text"> -->
-<!--                             <input id="warn-empty-fields" type="checkbox" -->
-<!--                                 aria-label="Checkbox for following text input" checked> -->
-<!--                         </div> -->
-<!--                     </div> -->
-<!--                     <span class="form-control" -->
-<!--                         aria-label="Text input with checkbox">Warning on non-empty fields</span> -->
-<!--                 </div> -->
             </div>        
         </div>
         <!-- /#sidebar-wrapper -->
