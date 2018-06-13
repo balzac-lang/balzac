@@ -123,7 +123,7 @@ See :doc:`transactions`.
 Compile
 """""""
 
-The :btm:`compile` statement takes a list of expression and compile them.
+The :btm:`eval` statement takes a list of expression and evaluate them.
 The compiled expressions are saved in text format in ``src-gen/_package-path_/transactions``.
 
 .. code-block:: btm
@@ -132,11 +132,11 @@ The compiled expressions are saved in text format in ``src-gen/_package-path_/tr
 	transaction T1(a:int) { /* ... */ }
 	const n = 11
 
-	compile 
-		32          // compiles 32
-		T           // compiles T as a bitcoin transaction
-		T1(42)      // compiles T1(42) as a bitcoin transaction
-		(n + 5)     // compiles 16
+	eval 
+		32,          // evaluates 32
+		T,           // evaluates T as a bitcoin transaction
+		T1(42),      // evaluates T1(42) as a bitcoin transaction
+		(n + 5)      // evaluates 16
 
 
 ------------------------------------------------------------------

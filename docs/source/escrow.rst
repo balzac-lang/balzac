@@ -95,7 +95,7 @@ Suppose Alice received Bob's signature. She completes ``T1`` as follows:
 	const sigB = sig:<hex string made by Bob>[kBpub]
 	const sigA = sig(kA) of T1(_,_,kApub)
 
-	compile T1(sigA, sigB, kApub)
+	eval T1(sigA, sigB, kApub)
 
 Otherwise, if Bob received Alice's signature:
 
@@ -104,7 +104,7 @@ Otherwise, if Bob received Alice's signature:
 	const sigA = sig:<hex string made by Alice>[kApub]
 	const sigB = sig(kB) of T1(_,_,kBpub)
 
-	compile T1(sigA, sigB, kBpub)
+	eval T1(sigA, sigB, kBpub)
 
 This approach assume that the two participant are honest and they
 will send their signature to the other party.

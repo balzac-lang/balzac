@@ -39,7 +39,7 @@ class BtmLexer(RegexLexer):
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
             #(r'(assert|break|case|catch|continue|default|do|else|finally|for|if|goto|instanceof|new|return|switch|this|throw|try|while)\b', Keyword),
-            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|min|max|between|size|compile)\b', Keyword),
+            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|min|max|between|size|eval)\b', Keyword),
             # method names
             (r'((?:(?:[^\W\d]|\$)[\w.\[\]$<>]*\s+)+?)'  # return arguments
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name

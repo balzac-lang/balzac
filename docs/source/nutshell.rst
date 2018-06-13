@@ -51,12 +51,12 @@ The output of the compiler is a serialized transaction for the Bitcoin
 test network (testnet).
 To generate transactions for the main network (mainnet), one must specify the network as follows:  
 
-    .. code-block:: btm
+.. code-block:: btm
 
     network mainnet  // default is testnet
 
 
-For instance, let us paste transaction ``T`` into the editor and then let us add command ``compile T`` to it. 
+For instance, let us paste transaction ``T`` into the editor and then let us add command ``eval T`` to it. 
 Now, if we hit the button [Compile], the web editor shows in the output box the transaction ``T``  in  Bitcoin (testnet) serialization format.
 
 .. figure:: _static/img/compiling_t.png
@@ -73,8 +73,8 @@ by an actual transaction identifier, as in the following example:
         //actual Bitcoin transaction identifier 
         const T_ref = txid:<actualBitcoinIdentifier>
 
-        transaction T {
-               input = T_ref: 42
+        transaction T_alt {
+               input = T_ref: _
                output = 50 BTC: fun(x) . x==42
         }
 
@@ -89,9 +89,10 @@ by an actual transaction identifier, as in the following example:
     Alternatively, you can fetch the body of a transaction on your
     own and use it as in the following example:
 
-    .. code-block::btm
+    .. code-block:: btm
 
-        ``const T_ref = tx:0200000001644bbaf0....c00000000``
+        const T_ref = tx:0200000001644bbaf0....c00000000
+
 
     Please note the difference between prefixes ``tx:`` and ``txid:``.
 
@@ -263,13 +264,13 @@ of type ``pubkey`` and uses it in the output script.
         output = 1BTC: fun(x). versig(k;x)
     }
 
-To be able to compile ``T6``, one must instantiate that one parameter, like:
+To be able to evaluate ``T6``, one must instantiate that one parameter, like:
     
 .. code-block:: btm
         
     // Alice's public key
     const kApub = pubkey:037d33fad6067e7a76671be01f697c7667d81be0aef334385cdab2b6b8f9f484c1    
-    compile T6(kApub)
+    eval T6(kApub)
 
 One can also use T6 in the definition of its redeeming transaction, as follows:
     
@@ -307,12 +308,12 @@ Indeed:
     
 .. code-block:: btm
 
-    transaction T9(n:int) {
+    transaction T9_bis(n:int) {
         input = T6(kApub):sig(kA)
         output = 1BTC: fun(x, m). versig(kBpub;x) && m == sha256( n )
-        }
-        //sig(kA) is calculated now
-        compile T9(4)
+    }
+    //sig(kA) is calculated now
+    eval T9_bis(4)
 
 
 .. rubric:: References

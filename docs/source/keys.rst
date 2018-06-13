@@ -235,7 +235,7 @@ For instance, Alice performs the following actions:
       const sigA = sig(kA) of T_template(_,_,_)
 		
       //prints the signature
-      compile sigA
+      eval sigA
 
    
 The compiler outputs a pair, containing the signature and the public key:
@@ -257,7 +257,7 @@ who uses them to instantiate ``T_template`` with the actual signatures:
 	//signature of T_template made by Carl plus Carl's public key
 	const sigC = sig:f3h5d6...cdb[kCpub]
 
-	compile T_template(sigA, sigB, sigC)
+	eval T_template(sigA, sigB, sigC)
 
 Finally, the instantiated ``T_template`` can be appended to the blockchain
 to redeem ``T_ABC``.

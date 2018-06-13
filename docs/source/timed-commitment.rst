@@ -116,11 +116,11 @@ so making the former public.
 	    output = deposit - fee*2: fun(x) . versig(kA;x)
 	}
 
-We can compile Alice's transactions as follows.
+We can evaluate Alice's transactions as follows.
 
 .. code-block:: btm
 
-	compile T_commit T_reveal
+	eval T_commit, T_reveal
 
 To sum up, the whole file is:
 
@@ -157,7 +157,7 @@ To sum up, the whole file is:
 	    output = deposit - fee*2: fun(x) . versig(kA;x)
 	}
 
-	compile T_commit T_reveal
+	eval T_commit, T_reveal
 
 
 ----------
@@ -220,6 +220,6 @@ The example below shows how to create Bob's ``T_timeout`` transaction.
 	    timelock = after date deadline
 	}
 
-	compile T_timeout
+	eval T_timeout
 
 
