@@ -1,0 +1,39 @@
+/*
+ * Oracle example: Alice
+ */
+
+// Alice's private key
+const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+
+// Alice's public key
+const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+
+// Oscar's public key
+const kOpub = pubkey:029c5f6f5ef0095f547799cb7861488b9f4282140d59a6289fbc90c70209c1cced
+
+// Bob's public key
+const kBpub = pubkey:03859a0f601cf485a72ec097fddd798c694b0257f69f0229506f8ea923bc600c5e
+
+
+// tx with Alice's funds, redeemable with Alice's private key
+transaction A_funds {
+    input = _
+    output = 1 BTC: fun(x). versig(kApub; x)
+}
+
+transaction T {
+    input = A_funds: sig(kA)
+    output = 1 BTC: fun(sigB, sigO). versig(kBpub, kOpub; sigB, sigO)
+}
+
+// alternative with timed constraint
+const dateD = 2018-12-31
+
+transaction Ttimed {
+    input = A_funds: sig(kA)
+    output = 1 BTC: fun(sigma, sigO). versig(kBpub, kOpub; sigma, sigO)
+                    || after date dateD : versig(kApub;sigma)
+}
+
+eval T, Ttimed
+
