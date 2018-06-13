@@ -300,15 +300,15 @@ terminal DATE:    YEAR '-' MONTH '-' DAY;
 terminal TIME:    HOUR ':' MINUTE (':' SECOND)?;
 terminal OFFSET:  OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE;
 
-terminal YEAR: ('1'..'9')('0'..'9')('0'..'9')('0'..'9');
-terminal MONTH: ('0'..'9')('1'..'9');
-terminal DAY: ('0'..'9')('1'..'9');
-terminal HOUR: ('0'..'2')('0'..'9');
-terminal MINUTE: ('0'..'5')('0'..'9');
-terminal SECOND: ('0'..'5')('0'..'9');
+terminal YEAR:   ('0'..'9')('0'..'9')('0'..'9')('0'..'9');
+terminal MONTH:  ('0'..'9')('0'..'9');
+terminal DAY:    ('0'..'9')('0'..'9');
+terminal HOUR:   ('0'..'9')('0'..'9');
+terminal MINUTE: ('0'..'9')('0'..'9');
+terminal SECOND: ('0'..'9')('0'..'9');
 terminal OFFSET_SIGN: "+"|"-";
-terminal OFFSET_HOUR: '0'('0'..'9') | '1'('0'..'2');
-terminal OFFSET_MINUTE: '0''0' | '3''0';
+terminal OFFSET_HOUR:   ('0'..'9')('0'..'9');
+terminal OFFSET_MINUTE: ('0'..'9')('0'..'9');
 
 @Override
 terminal INT returns ecore::EInt: LONG;

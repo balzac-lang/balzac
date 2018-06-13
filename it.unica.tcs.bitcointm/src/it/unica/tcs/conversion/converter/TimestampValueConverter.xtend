@@ -37,8 +37,15 @@ class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
 
         if (date===null) {
             throw new ValueConverterException(
-                "Couldn't parse the input '" + s + "' to a valid data.
-                The format must be like '2011-12-03' '2011-12-03T10:15', '2011-12-03T10:15:00', or '2011-12-03T10:15:30+01:00'", node, null);
+                '''
+                Invalid date '«s»'. 
+                
+                Some examples of valid formats are:
+                    2011-12-03
+                    2011-12-03T10:15
+                    2011-12-03T10:15:00
+                    2011-12-03T10:15:30+01:00''',
+                 node, null);
         }
         else
             return Long.valueOf(date.toEpochSecond)
