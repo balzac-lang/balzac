@@ -6,7 +6,7 @@
 
 BALZaC (for Bitcoin Abstract Language, Analyzer and Compilter)
 is domain-specific language to write Bitcoin transactions,
-based on the paper [ABLZ18].
+based on the paper [AB+18POST]_.
 |langname| features a simple syntax to express Bitcoin transactions.
 We illustrate  it through a series of examples, that you can experiment with in the `online editor <http://blockchain.unica.it/balzac/>`_.
 
@@ -108,14 +108,14 @@ redeem it with the following transaction:
 
     transaction T1 {
         input = T: 42
-        output = 50 BTC: fun(x). x != 0  // any constraint choosen by the user
+        output = 50 BTC: fun(x). x != 0  // any constraint chosen by the user
     }
 
 Transaction ``T1`` redeems  ``T`` by indicating it  in the  ``input`` field,
 and by providing the number 42 as *witness*. 
 The value 42 is the actual parameter which  replaces the formal parameter ``x`` in the  output script :code:`fun(x) . x == 42`,  and makes the script evaluate to true.
 Any other witness would make the script evaluate to false,
-and would prevent the transaction ``T1`` to  be added to the blockchain. 
+and would prevent the transaction ``T1`` from being added to the blockchain. 
 A transaction cannot be spent twice:
 hence, once ``T1`` is on the blockchain,
 no other transaction having ``T`` as input can be appended.
