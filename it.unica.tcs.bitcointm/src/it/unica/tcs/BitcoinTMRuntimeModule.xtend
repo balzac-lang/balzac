@@ -13,11 +13,11 @@ import it.unica.tcs.conversion.BitcoinTMConverterService
 import it.unica.tcs.scoping.BitcoinTMGlobalScopeProvider
 import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
-import it.xsemantics.runtime.StringRepresentation
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.Properties
+import org.eclipse.xsemantics.runtime.StringRepresentation
 import org.eclipse.xtext.conversion.IValueConverterService
 import org.eclipse.xtext.scoping.IGlobalScopeProvider
 import org.eclipse.xtext.scoping.IScopeProvider

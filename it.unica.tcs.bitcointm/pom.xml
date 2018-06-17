@@ -10,12 +10,11 @@
 	<artifactId>it.unica.tcs.bitcointm</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
+    <properties>
+        <xsemantics.version>1.14.0-SNAPSHOT</xsemantics.version>
+    </properties>
+
 	<dependencies>
-		<dependency>
-			<groupId>net.sf.xsemantics</groupId>
-			<artifactId>it.xsemantics.dsl</artifactId>
-			<version>${xsemantics.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>it.unica.tcs.bitcointm</groupId>
 			<artifactId>it.unica.tcs.bitcointm.lib</artifactId>
@@ -25,6 +24,11 @@
 			<groupId>org.eclipse.platform</groupId>
 			<artifactId>org.eclipse.equinox.security</artifactId>
 			<version>1.2.300</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.xsemantics</groupId>
+			<artifactId>org.eclipse.xsemantics.dsl</artifactId>
+			<version>${xsemantics.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -55,11 +59,11 @@
 					<cleanupDaemonThreads>false</cleanupDaemonThreads><!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098#c3 -->
 				</configuration>
 				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.emf</groupId>
-						<artifactId>org.eclipse.emf.mwe2.launch</artifactId>
-						<version>2.9.0.201605261059</version>
-					</dependency>
+                    <dependency>
+                        <groupId>org.eclipse.emf</groupId>
+                        <artifactId>org.eclipse.emf.mwe2.launch</artifactId>
+                        <version>2.9.1.201705291010</version>
+                    </dependency>
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
 						<artifactId>org.eclipse.xtext.common.types</artifactId>
@@ -97,7 +101,7 @@
 				<configuration>
 					<languages>
 						<language>
-							<setup>it.xsemantics.dsl.XsemanticsStandaloneSetup</setup>
+							<setup>org.eclipse.xsemantics.dsl.XsemanticsStandaloneSetup</setup>
 							<outputConfigurations>
 								<outputConfiguration>
 									<outputDirectory>${basedir}/xsemantics-gen</outputDirectory>
@@ -110,8 +114,8 @@
 					<!-- add a dependency to the language core bundle, this will only be 
 						needed during generation and will not pollute your project's classpath. -->
 					<dependency>
-						<groupId>net.sf.xsemantics</groupId>
-						<artifactId>it.xsemantics.dsl</artifactId>
+						<groupId>org.eclipse.xsemantics</groupId>
+						<artifactId>org.eclipse.xsemantics.dsl</artifactId>
 						<version>${xsemantics.version}</version>
 					</dependency>
 				</dependencies>
@@ -212,5 +216,37 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+	<repositories>
+        <repository>
+            <!-- we also need this one because this is an eclipse project, so it needs 
+                to resolve xsemantics runtime dependencies from the p2 repository -->
+            <id>Xsemantics</id>
+            <layout>p2</layout>
+            <url>http://download.eclipse.org/xsemantics/milestones/1.14</url>
+        </repository>
+    </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype_releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+
+        <pluginRepository>
+            <id>sonatype_snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 </project>

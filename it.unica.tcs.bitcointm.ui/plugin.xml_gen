@@ -204,6 +204,15 @@
 			</activeWhen>
 		</handler>
 	</extension>
+	<extension point="org.eclipse.core.contenttype.contentTypes">
+		<content-type
+			base-type="org.eclipse.core.runtime.text"
+			file-extensions="btm"
+			id="it.unica.tcs.BitcoinTM.contenttype"
+			name="BitcoinTM File"
+			priority="normal">
+		</content-type>
+	</extension>
 	<!-- adding resource factories -->
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
@@ -239,6 +248,15 @@
 			point="org.eclipse.core.resources.markers">
 		<super type="org.eclipse.xtext.ui.check.expensive"/>
 		<persistent value="true"/>
+	</extension>
+	<extension point="org.eclipse.ui.preferencePages">
+		<page
+			category="it.unica.tcs.BitcoinTM"
+			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
+			id="it.unica.tcs.BitcoinTM.validator.preferencePage"
+			name="Errors/Warnings">
+			<keywordReference id="it.unica.tcs.ui.keyword_BitcoinTM"/>
+		</page>
 	</extension>
 	<extension point="org.eclipse.xtext.builder.participant">
 		<participant
@@ -388,12 +406,18 @@
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="btm">
 		</viewer>
+		<contentTypeBinding
+			contentTypeId="it.unica.tcs.BitcoinTM.contenttype"
+			contentViewerId="it.unica.tcs.BitcoinTM.compare.contentViewers" />
 	</extension>
 	<extension point="org.eclipse.compare.contentMergeViewers">
 		<viewer id="it.unica.tcs.BitcoinTM.compare.contentMergeViewers"
 			class="it.unica.tcs.ui.BitcoinTMExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="btm" label="BitcoinTM Compare">
 		</viewer>
+		<contentTypeBinding
+			contentTypeId="it.unica.tcs.BitcoinTM.contenttype"
+			contentMergeViewerId="it.unica.tcs.BitcoinTM.compare.contentMergeViewers" />
 	</extension>
 	<extension point="org.eclipse.ui.editors.documentProviders">
 		<provider id="it.unica.tcs.BitcoinTM.editors.documentProviders"

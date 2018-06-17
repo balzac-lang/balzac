@@ -24,6 +24,7 @@ import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xsemantics.runtime.Result;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 
@@ -64,7 +65,6 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BitcoinTMInterpreter;
 import it.unica.tcs.xsemantics.Rho;
-import it.xsemantics.runtime.Result;
 
 @Singleton
 public class ASTUtils {

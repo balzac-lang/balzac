@@ -6,6 +6,8 @@ package it.unica.tcs.xsemantics;
 
 import java.util.Map.Entry;
 
+import org.eclipse.xsemantics.runtime.StringRepresentation;
+
 import it.unica.tcs.bitcoinTM.AddressType;
 import it.unica.tcs.bitcoinTM.BooleanLiteral;
 import it.unica.tcs.bitcoinTM.BooleanType;
@@ -21,7 +23,6 @@ import it.unica.tcs.bitcoinTM.StringType;
 import it.unica.tcs.bitcoinTM.TransactionType;
 import it.unica.tcs.bitcoinTM.Type;
 import it.unica.tcs.bitcoinTM.TypeVariable;
-import it.xsemantics.runtime.StringRepresentation;
 
 public class BitcoinTMStringRepresentation extends StringRepresentation {
 
