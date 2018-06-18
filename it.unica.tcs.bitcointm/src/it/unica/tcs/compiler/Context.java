@@ -6,7 +6,7 @@ package it.unica.tcs.compiler;
 
 import java.util.HashMap;
 
-import it.unica.tcs.bitcoinTM.Parameter;
+import it.unica.tcs.balzac.Parameter;
 import it.unica.tcs.xsemantics.Rho;
 
 /**

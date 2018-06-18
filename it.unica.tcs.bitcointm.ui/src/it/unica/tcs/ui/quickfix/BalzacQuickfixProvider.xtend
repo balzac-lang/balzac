@@ -14,9 +14,9 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
  *
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#quick-fixes
  */
-class BitcoinTMQuickfixProvider extends DefaultQuickfixProvider {
+class BalzacQuickfixProvider extends DefaultQuickfixProvider {
 
-//  @Fix(BitcoinTMValidator.INVALID_NAME)
+//  @Fix(BalzacValidator.INVALID_NAME)
 //  def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
 //      acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
 //          context |

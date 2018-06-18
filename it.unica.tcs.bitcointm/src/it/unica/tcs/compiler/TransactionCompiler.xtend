@@ -5,8 +5,8 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Reference
-import it.unica.tcs.bitcoinTM.Transaction
+import it.unica.tcs.balzac.Reference
+import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
@@ -14,7 +14,7 @@ import it.unica.tcs.lib.script.InputScript
 import it.unica.tcs.lib.script.InputScriptImpl
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import org.apache.log4j.Logger
 
@@ -22,7 +22,7 @@ class TransactionCompiler {
 
     private static final Logger logger = Logger.getLogger(TransactionCompiler);
 
-    @Inject private extension BitcoinTMInterpreter
+    @Inject private extension BalzacInterpreter
     @Inject private extension ASTUtils astUtils
     @Inject private extension ScriptCompiler
     @Inject private extension CompilerUtils

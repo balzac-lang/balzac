@@ -5,45 +5,47 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.AbsoluteTime
-import it.unica.tcs.bitcoinTM.AfterTimeLock
-import it.unica.tcs.bitcoinTM.AndExpression
-import it.unica.tcs.bitcoinTM.ArithmeticSigned
-import it.unica.tcs.bitcoinTM.Between
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory
-import it.unica.tcs.bitcoinTM.BooleanLiteral
-import it.unica.tcs.bitcoinTM.BooleanNegation
-import it.unica.tcs.bitcoinTM.Comparison
-import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.DateLiteral
-import it.unica.tcs.bitcoinTM.Equals
-import it.unica.tcs.bitcoinTM.Expression
-import it.unica.tcs.bitcoinTM.Hash160
-import it.unica.tcs.bitcoinTM.Hash256
-import it.unica.tcs.bitcoinTM.HashLiteral
-import it.unica.tcs.bitcoinTM.IfThenElse
-import it.unica.tcs.bitcoinTM.Input
-import it.unica.tcs.bitcoinTM.Literal
-import it.unica.tcs.bitcoinTM.Max
-import it.unica.tcs.bitcoinTM.Min
-import it.unica.tcs.bitcoinTM.Minus
-import it.unica.tcs.bitcoinTM.NumberLiteral
-import it.unica.tcs.bitcoinTM.OrExpression
-import it.unica.tcs.bitcoinTM.Output
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.Plus
-import it.unica.tcs.bitcoinTM.Reference
-import it.unica.tcs.bitcoinTM.Referrable
-import it.unica.tcs.bitcoinTM.RelativeTime
-import it.unica.tcs.bitcoinTM.Ripemd160
-import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.Sha1
-import it.unica.tcs.bitcoinTM.Sha256
-import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.SignatureLiteral
-import it.unica.tcs.bitcoinTM.Size
-import it.unica.tcs.bitcoinTM.StringLiteral
-import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.balzac.AbsoluteTime
+import it.unica.tcs.balzac.AfterTimeLock
+import it.unica.tcs.balzac.AndExpression
+import it.unica.tcs.balzac.ArithmeticSigned
+import it.unica.tcs.balzac.Between
+import it.unica.tcs.balzac.BalzacFactory
+import it.unica.tcs.balzac.BooleanLiteral
+import it.unica.tcs.balzac.BooleanNegation
+import it.unica.tcs.balzac.Comparison
+import it.unica.tcs.balzac.Constant
+import it.unica.tcs.balzac.DateLiteral
+import it.unica.tcs.balzac.Equals
+import it.unica.tcs.balzac.Expression
+import it.unica.tcs.balzac.Hash160
+import it.unica.tcs.balzac.Hash256
+import it.unica.tcs.balzac.HashLiteral
+import it.unica.tcs.balzac.IfThenElse
+import it.unica.tcs.balzac.Input
+import it.unica.tcs.balzac.Literal
+import it.unica.tcs.balzac.Max
+import it.unica.tcs.balzac.Min
+import it.unica.tcs.balzac.Minus
+import it.unica.tcs.balzac.NumberLiteral
+import it.unica.tcs.balzac.OrExpression
+import it.unica.tcs.balzac.Output
+import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Plus
+import it.unica.tcs.balzac.Reference
+import it.unica.tcs.balzac.Referrable
+import it.unica.tcs.balzac.RelativeTime
+import it.unica.tcs.balzac.Ripemd160
+import it.unica.tcs.balzac.Script
+import it.unica.tcs.balzac.Sha1
+import it.unica.tcs.balzac.Sha256
+import it.unica.tcs.balzac.Signature
+import it.unica.tcs.balzac.SignatureLiteral
+import it.unica.tcs.balzac.SignaturePlaceholder
+import it.unica.tcs.balzac.Size
+import it.unica.tcs.balzac.StringLiteral
+import it.unica.tcs.balzac.Versig
+import it.unica.tcs.lib.ECKeyStore
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
@@ -58,7 +60,8 @@ import it.unica.tcs.lib.script.ScriptBuilder2
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.utils.SignatureAndPubkey
+import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import javax.inject.Singleton
 import org.bitcoinj.core.Address
@@ -67,9 +70,6 @@ import org.bitcoinj.core.ECKey
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.utils.SignatureAndPubkey
-import it.unica.tcs.bitcoinTM.SignaturePlaceholder
-import it.unica.tcs.lib.ECKeyStore
 
 /*
  * EXPRESSIONS
@@ -85,7 +85,7 @@ class ScriptCompiler {
 
     @Inject private extension CompilerUtils
     @Inject private extension ASTUtils
-    @Inject private extension BitcoinTMInterpreter
+    @Inject private extension BalzacInterpreter
 
 
     /**
@@ -419,7 +419,7 @@ class ScriptCompiler {
         sb.op(OP_IF)
         sb.append(stmt.right.compileExpression(ctx))
         sb.op(OP_ELSE)  // short circuit
-        val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
+        val f = BalzacFactory.eINSTANCE.createBooleanLiteral
         f.setTrue(false)
         sb.append(compileExpression(f,ctx))
         sb.op(OP_ENDIF)
@@ -428,7 +428,7 @@ class ScriptCompiler {
     def private dispatch ScriptBuilder2 compileExpressionInternal(OrExpression stmt, Context ctx) {
         var sb = stmt.left.compileExpression(ctx)
         sb.op(OP_IF) // short circuit
-        val f = BitcoinTMFactory.eINSTANCE.createBooleanLiteral
+        val f = BalzacFactory.eINSTANCE.createBooleanLiteral
         f.setTrue(true)
         sb.append(compileExpression(f,ctx))
         sb.op(OP_ELSE)

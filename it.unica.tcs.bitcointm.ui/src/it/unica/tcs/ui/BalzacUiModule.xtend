@@ -7,23 +7,23 @@
  */
 package it.unica.tcs.ui
 
-import it.unica.tcs.ui.hover.BitcoinTMEObjectHoverProvider
 import org.eclipse.equinox.security.storage.ISecurePreferences
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory
 import org.eclipse.ui.plugin.AbstractUIPlugin
 import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider
+import it.unica.tcs.ui.hover.BalzacEObjectHoverProvider
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
  */
-class BitcoinTMUiModule extends AbstractBitcoinTMUiModule {
+class BalzacUiModule extends AbstractBalzacUiModule {
 
     new(AbstractUIPlugin plugin) {
         super(plugin)
     }
 
     def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
-        return  BitcoinTMEObjectHoverProvider;
+        return  BalzacEObjectHoverProvider;
     }
 
     def ISecurePreferences bindISecurePreferences() {

@@ -5,8 +5,7 @@ package it.unica.tcs.xsemantics;
 
 import com.google.inject.Inject;
 
-import it.unica.tcs.bitcoinTM.Transaction;
-import it.unica.tcs.bitcoinTM.TransactionLiteral;
+import it.unica.tcs.balzac.Transaction;
 import it.unica.tcs.compiler.TransactionCompiler;
 import it.unica.tcs.lib.ITransactionBuilder;
 

@@ -18,7 +18,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
-class BitcoinTMGenerator extends AbstractGenerator {
+class BalzacGenerator extends AbstractGenerator {
 
     @Inject private RawTransactionGenerator rawTxGenerator
 //    @Inject private KeyStoreGenerator keyStoreGenerator

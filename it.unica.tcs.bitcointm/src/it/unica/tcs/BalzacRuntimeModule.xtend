@@ -9,10 +9,7 @@ package it.unica.tcs
 
 import com.google.inject.Binder
 import com.google.inject.name.Names
-import it.unica.tcs.conversion.BitcoinTMConverterService
-import it.unica.tcs.scoping.BitcoinTMGlobalScopeProvider
-import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
-import it.unica.tcs.xsemantics.validation.BitcoinTMTypeSystemValidator
+import it.unica.tcs.xsemantics.validation.BalzacTypeSystemValidator
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -25,11 +22,14 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import org.eclipse.xtext.scoping.impl.ImportUriResolver
 import org.eclipse.xtext.scoping.impl.SimpleLocalScopeProvider
 import org.eclipse.xtext.service.SingletonBinding
+import it.unica.tcs.xsemantics.BalzacStringRepresentation
+import it.unica.tcs.scoping.BalzacGlobalScopeProvider
+import it.unica.tcs.conversion.BalzacConverterService
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
-class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
+class BalzacRuntimeModule extends AbstractBalzacRuntimeModule {
 
     override void configure(Binder binder) {
         val trustedNodeConf = System.properties.getProperty("trustedNodesConfFile")
@@ -39,12 +39,12 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
     }
 
     def Class<? extends StringRepresentation> bindStringRepresentation() {
-        return BitcoinTMStringRepresentation;
+        return BalzacStringRepresentation;
     }
 
     @SingletonBinding(eager=true)
-    def Class<? extends BitcoinTMTypeSystemValidator> bindBitcoinTMTypeSystemValidator() {
-        return BitcoinTMTypeSystemValidator;
+    def Class<? extends BalzacTypeSystemValidator> bindBalzacTypeSystemValidator() {
+        return BalzacTypeSystemValidator;
     }
 
     // Configure the feature name containing the imported namespace.
@@ -54,12 +54,12 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
     }
 
     override Class<? extends IValueConverterService> bindIValueConverterService() {
-        return BitcoinTMConverterService
+        return BalzacConverterService
     }
 
     // fully qualified names depends on the package declaration
 //    override Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
-//      return BitcoinTMQualifiedNameProvider;
+//      return BalzacQualifiedNameProvider;
 //  }
 
     // disable ImportedNamespaceAwareLocalScopeProvider
@@ -68,7 +68,7 @@ class BitcoinTMRuntimeModule extends AbstractBitcoinTMRuntimeModule {
     }
 
     override Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
-        return BitcoinTMGlobalScopeProvider;
+        return BalzacGlobalScopeProvider;
     }
 
     def void tryBindPropertiesFromAbsoluteFile(Binder binder, String propertyFilePath) {

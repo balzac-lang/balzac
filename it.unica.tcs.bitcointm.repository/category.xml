@@ -6,6 +6,6 @@
 	<feature id="it.unica.tcs.bitcointm.feature.source" version="0.0.0">
 		<category name="main.source"/>
 	</feature>
-	<category-def name="main" label="BitcoinTM"/>
-	<category-def name="main.source" label="BitcoinTM (Sources)"/>
+	<category-def name="main" label="Balzac"/>
+	<category-def name="main.source" label="Balzac (Sources)"/>
 </site>

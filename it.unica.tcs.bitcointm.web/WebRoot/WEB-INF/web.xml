@@ -5,13 +5,13 @@
          http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
-	<display-name>Bitcoin Transaction Model -- Web Editor</display-name>
+	<display-name>Balzac Web Editor</display-name>
 	<description>
 	</description>
 
     <servlet> 
         <servlet-name>XtextServices</servlet-name>
-        <servlet-class>it.unica.tcs.web.BitcoinTMServlet</servlet-class>
+        <servlet-class>it.unica.tcs.web.BalzacServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>XtextServices</servlet-name>

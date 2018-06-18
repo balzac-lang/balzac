@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import it.unica.tcs.bitcoinTM.Referrable;
-import it.unica.tcs.bitcoinTM.Type;
+import it.unica.tcs.balzac.Referrable;
+import it.unica.tcs.balzac.Type;
 
 public class TypeSubstitutions {
     protected Map<String, Type> substitutions = new HashMap<>();

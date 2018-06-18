@@ -31,31 +31,31 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import it.unica.tcs.bitcoinTM.AbsoluteTime;
-import it.unica.tcs.bitcoinTM.AddressLiteral;
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
-import it.unica.tcs.bitcoinTM.BitcoinTMPackage;
-import it.unica.tcs.bitcoinTM.BooleanLiteral;
-import it.unica.tcs.bitcoinTM.Constant;
-import it.unica.tcs.bitcoinTM.Delay;
-import it.unica.tcs.bitcoinTM.Expression;
-import it.unica.tcs.bitcoinTM.HashLiteral;
-import it.unica.tcs.bitcoinTM.Interpretable;
-import it.unica.tcs.bitcoinTM.KeyLiteral;
-import it.unica.tcs.bitcoinTM.Literal;
-import it.unica.tcs.bitcoinTM.Modifier;
-import it.unica.tcs.bitcoinTM.Network;
-import it.unica.tcs.bitcoinTM.NumberLiteral;
-import it.unica.tcs.bitcoinTM.Parameter;
-import it.unica.tcs.bitcoinTM.PubKeyLiteral;
-import it.unica.tcs.bitcoinTM.Reference;
-import it.unica.tcs.bitcoinTM.Referrable;
-import it.unica.tcs.bitcoinTM.RelativeTime;
-import it.unica.tcs.bitcoinTM.Script;
-import it.unica.tcs.bitcoinTM.SignatureLiteral;
-import it.unica.tcs.bitcoinTM.StringLiteral;
-import it.unica.tcs.bitcoinTM.Timelock;
-import it.unica.tcs.bitcoinTM.Versig;
+import it.unica.tcs.balzac.AbsoluteTime;
+import it.unica.tcs.balzac.AddressLiteral;
+import it.unica.tcs.balzac.BalzacFactory;
+import it.unica.tcs.balzac.BalzacPackage;
+import it.unica.tcs.balzac.BooleanLiteral;
+import it.unica.tcs.balzac.Constant;
+import it.unica.tcs.balzac.Delay;
+import it.unica.tcs.balzac.Expression;
+import it.unica.tcs.balzac.HashLiteral;
+import it.unica.tcs.balzac.Interpretable;
+import it.unica.tcs.balzac.KeyLiteral;
+import it.unica.tcs.balzac.Literal;
+import it.unica.tcs.balzac.Modifier;
+import it.unica.tcs.balzac.Network;
+import it.unica.tcs.balzac.NumberLiteral;
+import it.unica.tcs.balzac.Parameter;
+import it.unica.tcs.balzac.PubKeyLiteral;
+import it.unica.tcs.balzac.Reference;
+import it.unica.tcs.balzac.Referrable;
+import it.unica.tcs.balzac.RelativeTime;
+import it.unica.tcs.balzac.Script;
+import it.unica.tcs.balzac.SignatureLiteral;
+import it.unica.tcs.balzac.StringLiteral;
+import it.unica.tcs.balzac.Timelock;
+import it.unica.tcs.balzac.Versig;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
@@ -63,14 +63,14 @@ import it.unica.tcs.lib.SerialTransactionBuilder;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
-import it.unica.tcs.xsemantics.BitcoinTMInterpreter;
+import it.unica.tcs.xsemantics.BalzacInterpreter;
 import it.unica.tcs.xsemantics.Rho;
 
 @Singleton
 public class ASTUtils {
 
     @Inject private BitcoinClientFactory bitcoinClientFactory;
-    @Inject private BitcoinTMInterpreter interpreter;
+    @Inject private BalzacInterpreter interpreter;
 
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
         ECKeyStore kstore = new ECKeyStore();
@@ -89,8 +89,8 @@ public class ASTUtils {
     public String getName(Referrable ref) {
         if (ref instanceof Parameter)
             return ((Parameter) ref).getName();
-        if (ref instanceof it.unica.tcs.bitcoinTM.Transaction)
-            return ((it.unica.tcs.bitcoinTM.Transaction) ref).getName();
+        if (ref instanceof it.unica.tcs.balzac.Transaction)
+            return ((it.unica.tcs.balzac.Transaction) ref).getName();
         if (ref instanceof Constant)
             return ((Constant) ref).getName();
         throw new IllegalStateException("Unexpected class "+ref.getClass());
@@ -98,11 +98,11 @@ public class ASTUtils {
 
     public EAttribute getLiteralName(Referrable ref) {
         if (ref instanceof Parameter)
-            return BitcoinTMPackage.Literals.PARAMETER__NAME;
-        if (ref instanceof it.unica.tcs.bitcoinTM.Transaction)
-            return BitcoinTMPackage.Literals.TRANSACTION__NAME;
+            return BalzacPackage.Literals.PARAMETER__NAME;
+        if (ref instanceof it.unica.tcs.balzac.Transaction)
+            return BalzacPackage.Literals.TRANSACTION__NAME;
         if (ref instanceof Constant)
-            return BitcoinTMPackage.Literals.CONSTANT__NAME;
+            return BalzacPackage.Literals.CONSTANT__NAME;
         throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 
@@ -122,7 +122,7 @@ public class ASTUtils {
 
 
     public boolean isTxParameter(Referrable p) {
-        return (p instanceof Parameter) && (p.eContainer() instanceof it.unica.tcs.bitcoinTM.Transaction);
+        return (p instanceof Parameter) && (p.eContainer() instanceof it.unica.tcs.balzac.Transaction);
     }
 
     public boolean hasTxVariables(Expression exp) {
@@ -150,43 +150,43 @@ public class ASTUtils {
 
     public Expression objectToExpression(Object value) {
         if (value instanceof Long) {
-            NumberLiteral res = BitcoinTMFactory.eINSTANCE.createNumberLiteral();
+            NumberLiteral res = BalzacFactory.eINSTANCE.createNumberLiteral();
             res.setValue((Long) value);
             return res;
         }
         else if (value instanceof String) {
-            StringLiteral res = BitcoinTMFactory.eINSTANCE.createStringLiteral();
+            StringLiteral res = BalzacFactory.eINSTANCE.createStringLiteral();
             res.setValue((String) value);
             return res;
         }
         else if (value instanceof Boolean) {
-            BooleanLiteral res = BitcoinTMFactory.eINSTANCE.createBooleanLiteral();
+            BooleanLiteral res = BalzacFactory.eINSTANCE.createBooleanLiteral();
             res.setTrue((Boolean) value);
             return res;
         }
         else if (value instanceof Hash) {
-            HashLiteral res = BitcoinTMFactory.eINSTANCE.createHashLiteral();
+            HashLiteral res = BalzacFactory.eINSTANCE.createHashLiteral();
             res.setValue(((Hash) value).getBytes());
             return res;
         }
         else if (value instanceof DumpedPrivateKey) {
-            KeyLiteral res = BitcoinTMFactory.eINSTANCE.createKeyLiteral();
+            KeyLiteral res = BalzacFactory.eINSTANCE.createKeyLiteral();
             res.setValue(((DumpedPrivateKey) value).toBase58());
             return res;
         }
         else if (value instanceof LegacyAddress) {
-            AddressLiteral res = BitcoinTMFactory.eINSTANCE.createAddressLiteral();
+            AddressLiteral res = BalzacFactory.eINSTANCE.createAddressLiteral();
             res.setValue(((LegacyAddress) value).toBase58());
             return res;
         }
         else if (value instanceof ECKey) {
-            PubKeyLiteral res = BitcoinTMFactory.eINSTANCE.createPubKeyLiteral();
+            PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
             res.setValue(((ECKey) value).getPublicKeyAsHex());
             return res;
         }
         else if (value instanceof SignatureAndPubkey) {
-            PubKeyLiteral pubkey = BitcoinTMFactory.eINSTANCE.createPubKeyLiteral();
-            SignatureLiteral res = BitcoinTMFactory.eINSTANCE.createSignatureLiteral();
+            PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
+            SignatureLiteral res = BalzacFactory.eINSTANCE.createSignatureLiteral();
             res.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getSignature()));
             pubkey.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getPubkey()));
             res.setKey(pubkey);
@@ -225,7 +225,7 @@ public class ASTUtils {
 //              .allMatch(ASTUtils::isRelativeDate);
 //    }
 
-    public boolean isCoinbase(it.unica.tcs.bitcoinTM.Transaction tx) {
+    public boolean isCoinbase(it.unica.tcs.balzac.Transaction tx) {
         return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
     }
 

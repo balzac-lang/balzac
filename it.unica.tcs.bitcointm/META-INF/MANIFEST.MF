@@ -21,9 +21,9 @@ Export-Package: com.sulacosoft.bitcoindconnector4j,
  com.sulacosoft.bitcoindconnector4j.core,
  com.sulacosoft.bitcoindconnector4j.response,
  it.unica.tcs,
- it.unica.tcs.bitcoinTM,
- it.unica.tcs.bitcoinTM.impl,
- it.unica.tcs.bitcoinTM.util,
+ it.unica.tcs.balzac,
+ it.unica.tcs.balzac.impl,
+ it.unica.tcs.balzac.util,
  it.unica.tcs.compiler,
  it.unica.tcs.conversion,
  it.unica.tcs.conversion.converter,
@@ -41,6 +41,9 @@ Export-Package: com.sulacosoft.bitcoindconnector4j,
  it.unica.tcs.validation,
  it.unica.tcs.xsemantics,
  it.unica.tcs.xsemantics.validation,
- org.bitcoinj.core
+ org.bitcoinj.core,
+ it.unica.tcs.balzac.impl,
+ it.unica.tcs.balzac,
+ it.unica.tcs.balzac.util
 Import-Package: org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,.,it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar

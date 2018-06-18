@@ -5,9 +5,9 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.KeyLiteral
-import it.unica.tcs.bitcoinTM.Model
-import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.balzac.KeyLiteral
+import it.unica.tcs.balzac.Model
+import it.unica.tcs.balzac.PackageDeclaration
 import it.unica.tcs.lib.ECKeyStore
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.SecureStorageUtils

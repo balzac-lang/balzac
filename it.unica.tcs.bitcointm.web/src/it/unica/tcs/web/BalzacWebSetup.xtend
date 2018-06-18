@@ -9,18 +9,18 @@ package it.unica.tcs.web
 
 import com.google.inject.Guice
 import com.google.inject.Injector
-import it.unica.tcs.BitcoinTMRuntimeModule
-import it.unica.tcs.BitcoinTMStandaloneSetup
-import it.unica.tcs.ide.BitcoinTMIdeModule
+import it.unica.tcs.BalzacRuntimeModule
+import it.unica.tcs.BalzacStandaloneSetup
+import it.unica.tcs.ide.BalzacIdeModule
 import org.eclipse.xtext.util.Modules2
 
 /**
  * Initialization support for running Xtext languages in web applications.
  */
-class BitcoinTMWebSetup extends BitcoinTMStandaloneSetup {
+class BalzacWebSetup extends BalzacStandaloneSetup {
 
     override Injector createInjector() {
-        return Guice.createInjector(Modules2.mixin(new BitcoinTMRuntimeModule, new BitcoinTMIdeModule, new BitcoinTMWebModule))
+        return Guice.createInjector(Modules2.mixin(new BalzacRuntimeModule, new BalzacIdeModule, new BalzacWebModule))
     }
 
 }

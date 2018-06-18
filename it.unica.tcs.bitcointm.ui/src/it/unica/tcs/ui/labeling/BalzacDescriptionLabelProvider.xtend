@@ -14,7 +14,7 @@ import org.eclipse.xtext.ui.label.DefaultDescriptionLabelProvider
  *
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#label-provider
  */
-class BitcoinTMDescriptionLabelProvider extends DefaultDescriptionLabelProvider {
+class BalzacDescriptionLabelProvider extends DefaultDescriptionLabelProvider {
 
     // Labels and icons can be computed like this:
 

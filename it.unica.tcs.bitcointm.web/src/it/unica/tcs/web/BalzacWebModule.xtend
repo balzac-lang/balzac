@@ -11,5 +11,5 @@ package it.unica.tcs.web
 /**
  * Use this class to register additional components to be used within the web application.
  */
-class BitcoinTMWebModule extends AbstractBitcoinTMWebModule {
+class BalzacWebModule extends AbstractBalzacWebModule {
 }

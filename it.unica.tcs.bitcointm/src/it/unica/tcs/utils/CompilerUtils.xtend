@@ -5,26 +5,26 @@
 package it.unica.tcs.utils
 
 import com.google.inject.Singleton
-import it.unica.tcs.bitcoinTM.BooleanType
-import it.unica.tcs.bitcoinTM.HashType
-import it.unica.tcs.bitcoinTM.IntType
-import it.unica.tcs.bitcoinTM.KeyType
-import it.unica.tcs.bitcoinTM.Network
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.SignatureType
-import it.unica.tcs.bitcoinTM.StringType
-import it.unica.tcs.bitcoinTM.TransactionType
-import it.unica.tcs.bitcoinTM.Type
+import it.unica.tcs.balzac.AddressType
+import it.unica.tcs.balzac.BooleanType
+import it.unica.tcs.balzac.HashType
+import it.unica.tcs.balzac.IntType
+import it.unica.tcs.balzac.KeyType
+import it.unica.tcs.balzac.Network
+import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.PubkeyType
+import it.unica.tcs.balzac.SignatureType
+import it.unica.tcs.balzac.StringType
+import it.unica.tcs.balzac.TransactionType
+import it.unica.tcs.balzac.Type
 import it.unica.tcs.compiler.CompileException
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import java.util.List
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.bitcoinTM.PubkeyType
-import it.unica.tcs.bitcoinTM.AddressType
-import org.bitcoinj.core.Address
 
 @Singleton
 class CompilerUtils {

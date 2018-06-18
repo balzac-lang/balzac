@@ -465,7 +465,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
         BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
                 mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
-        Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BITCOINTM);
+        Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BALZAC);
         BitcoinClientFactory factory = injector.getInstance(BitcoinClientFactory.class);
         factory.setMainnetClient(mainnetClient);
         factory.setTestnetClient(testnetClient);

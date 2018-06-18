@@ -8,23 +8,23 @@ import java.util.Map.Entry;
 
 import org.eclipse.xsemantics.runtime.StringRepresentation;
 
-import it.unica.tcs.bitcoinTM.AddressType;
-import it.unica.tcs.bitcoinTM.BooleanLiteral;
-import it.unica.tcs.bitcoinTM.BooleanType;
-import it.unica.tcs.bitcoinTM.HashType;
-import it.unica.tcs.bitcoinTM.IntType;
-import it.unica.tcs.bitcoinTM.KeyType;
-import it.unica.tcs.bitcoinTM.Parameter;
-import it.unica.tcs.bitcoinTM.PubkeyType;
-import it.unica.tcs.bitcoinTM.Reference;
-import it.unica.tcs.bitcoinTM.SignatureType;
-import it.unica.tcs.bitcoinTM.StringLiteral;
-import it.unica.tcs.bitcoinTM.StringType;
-import it.unica.tcs.bitcoinTM.TransactionType;
-import it.unica.tcs.bitcoinTM.Type;
-import it.unica.tcs.bitcoinTM.TypeVariable;
+import it.unica.tcs.balzac.AddressType;
+import it.unica.tcs.balzac.BooleanLiteral;
+import it.unica.tcs.balzac.BooleanType;
+import it.unica.tcs.balzac.HashType;
+import it.unica.tcs.balzac.IntType;
+import it.unica.tcs.balzac.KeyType;
+import it.unica.tcs.balzac.Parameter;
+import it.unica.tcs.balzac.PubkeyType;
+import it.unica.tcs.balzac.Reference;
+import it.unica.tcs.balzac.SignatureType;
+import it.unica.tcs.balzac.StringLiteral;
+import it.unica.tcs.balzac.StringType;
+import it.unica.tcs.balzac.TransactionType;
+import it.unica.tcs.balzac.Type;
+import it.unica.tcs.balzac.TypeVariable;
 
-public class BitcoinTMStringRepresentation extends StringRepresentation {
+public class BalzacStringRepresentation extends StringRepresentation {
 
 
     public String stringRep(BooleanLiteral intConstant) {

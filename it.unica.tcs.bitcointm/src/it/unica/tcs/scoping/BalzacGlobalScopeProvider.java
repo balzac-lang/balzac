@@ -8,7 +8,7 @@ import org.eclipse.xtext.scoping.IScope;
 
 import com.google.common.base.Predicate;
 
-public class BitcoinTMGlobalScopeProvider implements IGlobalScopeProvider {
+public class BalzacGlobalScopeProvider implements IGlobalScopeProvider {
 
     @Override
     public IScope getScope(Resource context, EReference reference, Predicate<IEObjectDescription> filter) {

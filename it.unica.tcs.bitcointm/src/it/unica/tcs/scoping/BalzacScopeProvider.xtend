@@ -4,10 +4,10 @@
 
 package it.unica.tcs.scoping
 
-import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.Reference
-import it.unica.tcs.bitcoinTM.Script
-import it.unica.tcs.bitcoinTM.Transaction
+import it.unica.tcs.balzac.Constant
+import it.unica.tcs.balzac.Reference
+import it.unica.tcs.balzac.Script
+import it.unica.tcs.balzac.Transaction
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -22,9 +22,9 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#scoping
  * on how and when to use it.
  */
-class BitcoinTMScopeProvider extends AbstractDeclarativeScopeProvider {
+class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
 
-    private static final Logger logger = Logger.getLogger(BitcoinTMScopeProvider);
+    private static final Logger logger = Logger.getLogger(BalzacScopeProvider);
 
     def IScope scope_Referrable(Reference v, EReference ref) {
         logger.trace("resolving reference: "+v)

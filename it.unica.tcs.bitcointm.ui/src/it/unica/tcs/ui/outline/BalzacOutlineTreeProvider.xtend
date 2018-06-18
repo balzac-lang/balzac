@@ -14,6 +14,6 @@ import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider
  *
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#outline
  */
-class BitcoinTMOutlineTreeProvider extends DefaultOutlineTreeProvider {
+class BalzacOutlineTreeProvider extends DefaultOutlineTreeProvider {
 
 }

@@ -8,8 +8,8 @@
 package it.unica.tcs.ui.contentassist
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.BitcoinTMPackage
-import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.balzac.BalzacPackage
+import it.unica.tcs.balzac.PackageDeclaration
 import java.util.HashSet
 import java.util.Set
 import org.eclipse.emf.ecore.EObject
@@ -28,7 +28,7 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
  * on how to customize the content assistant.
  */
-class BitcoinTMProposalProvider extends AbstractBitcoinTMProposalProvider {
+class BalzacProposalProvider extends AbstractBalzacProposalProvider {
 
     @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject private IContainer.Manager containerManager;
@@ -44,11 +44,11 @@ class BitcoinTMProposalProvider extends AbstractBitcoinTMProposalProvider {
         var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(model.eResource().getURI());
 
         for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
-            for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
+            for (IEObjectDescription od : c.getExportedObjectsByType(BalzacPackage.Literals.PACKAGE_DECLARATION)) {
                 if (!packageName.equals(od.qualifiedName))
                     names.add(od.qualifiedName.append("*"))
             }
-            for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.TRANSACTION)) {
+            for (IEObjectDescription od : c.getExportedObjectsByType(BalzacPackage.Literals.TRANSACTION)) {
                 if (!packageName.equals(od.qualifiedName.skipLast(1)))
                     names.add(od.qualifiedName)
             }

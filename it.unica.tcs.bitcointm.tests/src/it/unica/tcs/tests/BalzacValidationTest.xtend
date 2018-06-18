@@ -8,8 +8,8 @@
 package it.unica.tcs.tests
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory
-import it.unica.tcs.bitcoinTM.Model
+import it.unica.tcs.balzac.BalzacFactory
+import it.unica.tcs.balzac.Model
 import it.unica.tcs.validation.IssueCodes
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
@@ -20,8 +20,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(XtextRunner)
-@InjectWith(BitcoinTMInjectorProvider)
-class BitcoinTMValidationTest {
+@InjectWith(BalzacInjectorProvider)
+class BalzacValidationTest {
 
     @Inject ParseHelper<Model> parseHelper
     @Inject ValidationTestHelper validatorHelper
@@ -42,7 +42,7 @@ class BitcoinTMValidationTest {
 //
 //      validatorHelper.assertError(
 //          result.eResource,
-//          BitcoinTMFactory.eINSTANCE.createTransactionDeclaration.eClass,
+//          BalzacFactory.eINSTANCE.createTransactionDeclaration.eClass,
 //          IssueCodes.TRANSACTION_DECLARATION__DUPLICATED_NAME
 //      )
     }
@@ -63,7 +63,7 @@ class BitcoinTMValidationTest {
 //
 //      validatorHelper.assertError(
 //          result.eResource,
-//          BitcoinTMFactory.eINSTANCE.createParticipant.eClass,
+//          BalzacFactory.eINSTANCE.createParticipant.eClass,
 //          IssueCodes.PARTICIPANT_DECLARATION__DUPLICATED_NAME
 //      )
     }

@@ -5,13 +5,13 @@
 package it.unica.tcs.generator
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.Model
-import it.unica.tcs.bitcoinTM.PackageDeclaration
+import it.unica.tcs.balzac.Eval
+import it.unica.tcs.balzac.Model
+import it.unica.tcs.balzac.PackageDeclaration
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
-import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.xsemantics.BalzacInterpreter
 import java.io.File
-import org.bitcoinj.crypto.TransactionSignature
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -20,12 +20,11 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
-import it.unica.tcs.bitcoinTM.Eval
 
 class RawTransactionGenerator extends AbstractGenerator {
 
     @Inject private extension IQualifiedNameProvider
-    @Inject private extension BitcoinTMInterpreter
+    @Inject private extension BalzacInterpreter
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val models = resource.allContents.toIterable.filter(Model)

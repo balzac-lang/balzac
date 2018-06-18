@@ -19,7 +19,7 @@ import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
 
-class BitcoinTMConverterService extends DefaultTerminalConverters {
+class BalzacConverterService extends DefaultTerminalConverters {
 
     @Inject private NumberValueConverter numberValueConverter;
     @Inject private TimestampValueConverter timestampTerminalConverter;

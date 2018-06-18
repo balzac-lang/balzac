@@ -5,25 +5,25 @@
 package it.unica.tcs.ui.hover
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.AddressLiteral
-import it.unica.tcs.bitcoinTM.Constant
-import it.unica.tcs.bitcoinTM.KeyLiteral
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.PubKeyLiteral
-import it.unica.tcs.bitcoinTM.Transaction
+import it.unica.tcs.balzac.AddressLiteral
+import it.unica.tcs.balzac.Constant
+import it.unica.tcs.balzac.KeyLiteral
+import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.PubKeyLiteral
+import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
-import it.unica.tcs.xsemantics.BitcoinTMStringRepresentation
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.LegacyAddress
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
+import it.unica.tcs.xsemantics.BalzacStringRepresentation
 
-class BitcoinTMEObjectHoverProvider extends DefaultEObjectHoverProvider {
+class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
     @Inject extension ASTUtils
-    @Inject extension BitcoinTMStringRepresentation
+    @Inject extension BalzacStringRepresentation
 
     override String getLabel(EObject eobj) {
         return eobj.labelInternal

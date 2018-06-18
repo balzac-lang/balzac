@@ -10,10 +10,10 @@ package it.unica.tcs
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */
-class BitcoinTMStandaloneSetup extends BitcoinTMStandaloneSetupGenerated {
+class BalzacStandaloneSetup extends BalzacStandaloneSetupGenerated {
 
     def static void doSetup() {
-        new BitcoinTMStandaloneSetup().createInjectorAndDoEMFRegistration()
+        new BalzacStandaloneSetup().createInjectorAndDoEMFRegistration()
     }
 }
 

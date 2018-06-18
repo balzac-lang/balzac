@@ -15,13 +15,13 @@ import org.eclipse.xtext.web.servlet.XtextServlet
  * Deploy this class into a servlet container to enable DSL-specific services.
  */
 @WebServlet(name = 'XtextServices', urlPatterns = '/xtext-service/*')
-class BitcoinTMServlet extends XtextServlet {
+class BalzacServlet extends XtextServlet {
 
     DisposableRegistry disposableRegistry
 
     override init() {
         super.init()
-        val injector = new BitcoinTMWebSetup().createInjectorAndDoEMFRegistration()
+        val injector = new BalzacWebSetup().createInjectorAndDoEMFRegistration()
         disposableRegistry = injector.getInstance(DisposableRegistry)
     }
 

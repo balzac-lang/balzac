@@ -7,9 +7,9 @@ package it.unica.tcs.scoping;
 import org.eclipse.xtext.naming.DefaultDeclarativeQualifiedNameProvider;
 import org.eclipse.xtext.naming.QualifiedName;
 
-import it.unica.tcs.bitcoinTM.Model;
+import it.unica.tcs.balzac.Model;
 
-public class BitcoinTMQualifiedNameProvider extends DefaultDeclarativeQualifiedNameProvider {
+public class BalzacQualifiedNameProvider extends DefaultDeclarativeQualifiedNameProvider {
 
     protected QualifiedName qualifiedName(Model ele){
         if (ele.getPackage()!=null)

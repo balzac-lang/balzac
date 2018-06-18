@@ -3,8 +3,8 @@
 <plugin>
 	<extension point="org.eclipse.emf.ecore.generated_package">
 		<package 
-			uri = "http://www.unica.it/tcs/BitcoinTM"
-			class = "it.unica.tcs.bitcoinTM.BitcoinTMPackage"
-			genModel = "model/generated/BitcoinTM.genmodel" />
+			uri = "http://www.unica.it/tcs/Balzac"
+			class = "it.unica.tcs.balzac.BalzacPackage"
+			genModel = "model/generated/Balzac.genmodel" />
 	</extension>
 </plugin>

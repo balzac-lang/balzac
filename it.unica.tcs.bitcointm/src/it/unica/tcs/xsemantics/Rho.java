@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import it.unica.tcs.bitcoinTM.Referrable;
+import it.unica.tcs.balzac.Referrable;
 
 public class Rho extends HashMap<Referrable,Object> {
 

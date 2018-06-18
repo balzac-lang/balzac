@@ -8,35 +8,35 @@
 package it.unica.tcs.validation
 
 import com.google.inject.Inject
-import it.unica.tcs.bitcoinTM.AbsoluteTime
-import it.unica.tcs.bitcoinTM.AddressLiteral
-import it.unica.tcs.bitcoinTM.AfterTimeLock
-import it.unica.tcs.bitcoinTM.ArithmeticSigned
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory
-import it.unica.tcs.bitcoinTM.BitcoinTMPackage
-import it.unica.tcs.bitcoinTM.BitcoinValue
-import it.unica.tcs.bitcoinTM.Div
-import it.unica.tcs.bitcoinTM.Import
-import it.unica.tcs.bitcoinTM.Input
-import it.unica.tcs.bitcoinTM.InputValue
-import it.unica.tcs.bitcoinTM.Interpretable
-import it.unica.tcs.bitcoinTM.IsMinedCheck
-import it.unica.tcs.bitcoinTM.KeyLiteral
-import it.unica.tcs.bitcoinTM.Literal
-import it.unica.tcs.bitcoinTM.Model
-import it.unica.tcs.bitcoinTM.Modifier
-import it.unica.tcs.bitcoinTM.Output
-import it.unica.tcs.bitcoinTM.PackageDeclaration
-import it.unica.tcs.bitcoinTM.Parameter
-import it.unica.tcs.bitcoinTM.Reference
-import it.unica.tcs.bitcoinTM.Referrable
-import it.unica.tcs.bitcoinTM.RelativeTime
-import it.unica.tcs.bitcoinTM.Signature
-import it.unica.tcs.bitcoinTM.Times
-import it.unica.tcs.bitcoinTM.Transaction
-import it.unica.tcs.bitcoinTM.TransactionHexLiteral
-import it.unica.tcs.bitcoinTM.TransactionIDLiteral
-import it.unica.tcs.bitcoinTM.Versig
+import it.unica.tcs.balzac.AbsoluteTime
+import it.unica.tcs.balzac.AddressLiteral
+import it.unica.tcs.balzac.AfterTimeLock
+import it.unica.tcs.balzac.ArithmeticSigned
+import it.unica.tcs.balzac.BalzacFactory
+import it.unica.tcs.balzac.BalzacPackage
+import it.unica.tcs.balzac.BitcoinValue
+import it.unica.tcs.balzac.Div
+import it.unica.tcs.balzac.Import
+import it.unica.tcs.balzac.Input
+import it.unica.tcs.balzac.InputValue
+import it.unica.tcs.balzac.Interpretable
+import it.unica.tcs.balzac.IsMinedCheck
+import it.unica.tcs.balzac.KeyLiteral
+import it.unica.tcs.balzac.Literal
+import it.unica.tcs.balzac.Model
+import it.unica.tcs.balzac.Modifier
+import it.unica.tcs.balzac.Output
+import it.unica.tcs.balzac.PackageDeclaration
+import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Reference
+import it.unica.tcs.balzac.Referrable
+import it.unica.tcs.balzac.RelativeTime
+import it.unica.tcs.balzac.Signature
+import it.unica.tcs.balzac.Times
+import it.unica.tcs.balzac.Transaction
+import it.unica.tcs.balzac.TransactionHexLiteral
+import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.Versig
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
@@ -47,7 +47,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.utils.SignatureAndPubkey
-import it.unica.tcs.xsemantics.BitcoinTMInterpreter
+import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
 import java.util.HashSet
@@ -81,26 +81,26 @@ import static org.bitcoinj.script.Script.*
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
-class BitcoinTMValidator extends AbstractBitcoinTMValidator {
+class BalzacValidator extends AbstractBalzacValidator {
 
-    private static Logger logger = Logger.getLogger(BitcoinTMValidator);
+    private static Logger logger = Logger.getLogger(BalzacValidator);
 
     @Inject private extension IQualifiedNameConverter
-    @Inject private extension BitcoinTMInterpreter
+    @Inject private extension BalzacInterpreter
     @Inject private extension ASTUtils
     @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject private IContainer.Manager containerManager;
     @Inject private BitcoinClientFactory clientFactory;
 
     @Check
-    def void checkUnusedParameters__Script(it.unica.tcs.bitcoinTM.Script script){
+    def void checkUnusedParameters__Script(it.unica.tcs.balzac.Script script){
 
         for (param : script.params) {
             var references = EcoreUtil.UsageCrossReferencer.find(param, script.exp);
             if (references.size==0)
                 warning("Unused variable '"+param.name+"'.",
                     param,
-                    BitcoinTMPackage.Literals.PARAMETER__NAME
+                    BalzacPackage.Literals.PARAMETER__NAME
                 );
         }
     }
@@ -113,7 +113,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (references.size==0)
                 warning("Unused variable '"+param.name+"'.",
                     param,
-                    BitcoinTMPackage.Literals.PARAMETER__NAME
+                    BalzacPackage.Literals.PARAMETER__NAME
                 );
         }
     }
@@ -128,8 +128,8 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 var k2 = versig.pubkeys.get(j)
 
                 if (k1==k2) {
-                    warning("Duplicated public key.", versig, BitcoinTMPackage.Literals.VERSIG__PUBKEYS, i);
-                    warning("Duplicated public key.", versig,BitcoinTMPackage.Literals.VERSIG__PUBKEYS, j);
+                    warning("Duplicated public key.", versig, BalzacPackage.Literals.VERSIG__PUBKEYS, i);
+                    warning("Duplicated public key.", versig,BalzacPackage.Literals.VERSIG__PUBKEYS, j);
                 }
             }
         }
@@ -144,11 +144,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (signature!=other && signature.modifier.restrictedBy(other.modifier)) {
                 warning('''This signature modifier is nullified by another one.''',
                     signature,
-                    BitcoinTMPackage.Literals.SIGNATURE__MODIFIER
+                    BalzacPackage.Literals.SIGNATURE__MODIFIER
                 );
                 warning('''This signature modifier is nullifying another one.''',
                     other,
-                    BitcoinTMPackage.Literals.SIGNATURE__MODIFIER
+                    BalzacPackage.Literals.SIGNATURE__MODIFIER
                 );
             }
         }
@@ -159,7 +159,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
 
     @Check
-    def void checkConstantScripts(it.unica.tcs.bitcoinTM.Script script) {
+    def void checkConstantScripts(it.unica.tcs.balzac.Script script) {
 
         val res = script.exp.interpretE
 
@@ -214,7 +214,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
             var compilationResult =
                 switch (value) {
-                    Hash:    BitcoinTMFactory.eINSTANCE.createHashType.value+":"+BitcoinUtils.encode(value.bytes)
+                    Hash:    BalzacFactory.eINSTANCE.createHashType.value+":"+BitcoinUtils.encode(value.bytes)
                     String:     '"'+value+'"'
                     default:    value.toString
                 }
@@ -234,11 +234,11 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var IResourceDescriptions resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(pkg.eResource());
         var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(pkg.eResource().getURI());
         for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
-            for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
+            for (IEObjectDescription od : c.getExportedObjectsByType(BalzacPackage.Literals.PACKAGE_DECLARATION)) {
                 if (!names.add(od.getQualifiedName())) {
                     error(
                         "Duplicated package name",
-                        BitcoinTMPackage.Literals.PACKAGE_DECLARATION__NAME
+                        BalzacPackage.Literals.PACKAGE_DECLARATION__NAME
                     );
                 }
             }
@@ -254,7 +254,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (packageName.equals(importedPackage.skipLast(1))) {
             error(
                 '''The import «importedPackage» refers to this package declaration''',
-                BitcoinTMPackage.Literals.IMPORT__IMPORTED_NAMESPACE
+                BalzacPackage.Literals.IMPORT__IMPORTED_NAMESPACE
             );
             return
         }
@@ -264,10 +264,10 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         var IResourceDescription resourceDescription = resourceDescriptions.getResourceDescription(imp.eResource().getURI());
 
         for (IContainer c : containerManager.getVisibleContainers(resourceDescription, resourceDescriptions)) {
-            for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.PACKAGE_DECLARATION)) {
+            for (IEObjectDescription od : c.getExportedObjectsByType(BalzacPackage.Literals.PACKAGE_DECLARATION)) {
                 names.add(od.qualifiedName.append("*"))
             }
-            for (IEObjectDescription od : c.getExportedObjectsByType(BitcoinTMPackage.Literals.TRANSACTION)) {
+            for (IEObjectDescription od : c.getExportedObjectsByType(BalzacPackage.Literals.TRANSACTION)) {
                 names.add(od.qualifiedName)
             }
         }
@@ -275,7 +275,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (!names.contains(importedPackage)) {
             error(
                 '''The import «importedPackage» cannot be resolved''',
-                BitcoinTMPackage.Literals.IMPORT__IMPORTED_NAMESPACE
+                BalzacPackage.Literals.IMPORT__IMPORTED_NAMESPACE
             );
         }
     }
@@ -305,14 +305,14 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
 
         if (versig.pubkeys.size>15) {
             error("Cannot verify more than 15 public keys.",
-                BitcoinTMPackage.Literals.VERSIG__PUBKEYS
+                BalzacPackage.Literals.VERSIG__PUBKEYS
             );
         }
 
         if (versig.signatures.size > versig.pubkeys.size) {
             error("The number of signatures cannot exceed the number of public keys.",
                 versig,
-                BitcoinTMPackage.Literals.VERSIG__SIGNATURES
+                BalzacPackage.Literals.VERSIG__SIGNATURES
             );
         }
     }
@@ -325,7 +325,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (isTxDefined && isWithinInput) {
             error("You cannot specify the transaction to sign.",
                 sig,
-                BitcoinTMPackage.Literals.SIGNATURE__TX
+                BalzacPackage.Literals.SIGNATURE__TX
             );
             return
         }
@@ -333,7 +333,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (isTxDefined && sig.tx.isCoinbase) {
             error("Transaction cannot be a coinbase.",      // because you need a reference to the output script of the input i-th
                 sig,
-                BitcoinTMPackage.Literals.SIGNATURE__TX
+                BalzacPackage.Literals.SIGNATURE__TX
             );
             return
         }
@@ -341,7 +341,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (isTxDefined && sig.tx.isSerial) {
             error("Cannot sign a serialized transaction.",  // because you need a reference to the output script of the input i-th
                 sig,
-                BitcoinTMPackage.Literals.SIGNATURE__TX
+                BalzacPackage.Literals.SIGNATURE__TX
             );
             return
         }
@@ -362,7 +362,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (sig.inputIdx >= inputSize) {
                 error('''Invalid input «sig.inputIdx». «IF inputSize == 1»0 expected (it can be omitted).«ELSE»Valid interval [0,«inputSize-1»].«ENDIF»''',
                     sig,
-                    BitcoinTMPackage.Literals.SIGNATURE__INPUT_IDX
+                    BalzacPackage.Literals.SIGNATURE__INPUT_IDX
                 );
             }
         }
@@ -378,13 +378,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         catch (AddressFormatException.WrongNetwork e) {
             error("Key is not valid for the given network.",
                 k,
-                BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+                BalzacPackage.Literals.KEY_LITERAL__VALUE
             )
         }
         catch (AddressFormatException e) {
             error("Invalid key. "+e.message,
                 k,
-                BitcoinTMPackage.Literals.KEY_LITERAL__VALUE
+                BalzacPackage.Literals.KEY_LITERAL__VALUE
             )
         }
 	}
@@ -399,19 +399,19 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         catch (AddressFormatException.WrongNetwork e) {
             error("Address is not valid for the given network.",
                 k,
-                BitcoinTMPackage.Literals.ADDRESS_LITERAL__VALUE
+                BalzacPackage.Literals.ADDRESS_LITERAL__VALUE
             )
         }
         catch (AddressFormatException e) {
             error("Invalid address. "+e.message,
                 k,
-                BitcoinTMPackage.Literals.ADDRESS_LITERAL__VALUE
+                BalzacPackage.Literals.ADDRESS_LITERAL__VALUE
             )
         }
     }
 
     @Check
-    def void checkUniqueParameterNames__Script(it.unica.tcs.bitcoinTM.Script p) {
+    def void checkUniqueParameterNames__Script(it.unica.tcs.balzac.Script p) {
 
         for (var i=0; i<p.params.size-1; i++) {
             for (var j=i+1; j<p.params.size; j++) {
@@ -419,7 +419,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     error(
                         "Duplicated parameter name '"+p.params.get(j).name+"'.",
                         p.params.get(j),
-                        BitcoinTMPackage.Literals.PARAMETER__NAME, j
+                        BalzacPackage.Literals.PARAMETER__NAME, j
                     );
                 }
             }
@@ -435,7 +435,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     error(
                         "Duplicated parameter name '"+p.params.get(j).name+"'.",
                         p.params.get(j),
-                        BitcoinTMPackage.Literals.PARAMETER__NAME, j
+                        BalzacPackage.Literals.PARAMETER__NAME, j
                     );
                 }
             }
@@ -443,7 +443,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     }
 
     @Check
-    def void checkScriptWithoutMultply(it.unica.tcs.bitcoinTM.Script p) {
+    def void checkScriptWithoutMultply(it.unica.tcs.balzac.Script p) {
 
         val exp = p.exp
 
@@ -551,7 +551,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     res.ruleFailedException.printStackTrace
                     error("Error evaluating the transaction input, see error log for details.",
                         input,
-                        BitcoinTMPackage.Literals.INPUT__TX_REF
+                        BalzacPackage.Literals.INPUT__TX_REF
                     );
                     hasError = hasError || true
                 }
@@ -610,7 +610,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (outIndex>=numOfOutputs) {
             error("This input is pointing to an undefined output script.",
                 input,
-                BitcoinTMPackage.Literals.INPUT__TX_REF
+                BalzacPackage.Literals.INPUT__TX_REF
             );
             return false
         }
@@ -657,7 +657,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "You must specify the redeem script when referring to a P2SH output of a serialized transaction.",
                 input,
-                BitcoinTMPackage.Literals.INPUT__EXPS,
+                BalzacPackage.Literals.INPUT__EXPS,
                 input.exps.size-1
             );
             return false
@@ -670,7 +670,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     error(
                         "Cannot reference transaction parameters from the redeem script.",
                         v,
-                        BitcoinTMPackage.Literals.REFERENCE__REF
+                        BalzacPackage.Literals.REFERENCE__REF
                     );
                     ok = false;
                 }
@@ -684,7 +684,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "You must not specify the redeem script when referring to a user-defined transaction.",
                 input.redeemScript,
-                BitcoinTMPackage.Literals.INPUT__EXPS,
+                BalzacPackage.Literals.INPUT__EXPS,
                 input.exps.size-1
             );
             return false
@@ -708,13 +708,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "Double spending. You cannot redeem the output twice.",
                 inputA,
-                BitcoinTMPackage.Literals.INPUT__TX_REF
+                BalzacPackage.Literals.INPUT__TX_REF
             );
 
             error(
                 "Double spending. You cannot redeem the output twice.",
                 inputB,
-                BitcoinTMPackage.Literals.INPUT__TX_REF
+                BalzacPackage.Literals.INPUT__TX_REF
             );
             return false
         }
@@ -744,7 +744,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             if (amount<0) {
                 error("The transaction spends more than expected.",
                     _tx,
-                    BitcoinTMPackage.Literals.TRANSACTION__OUTPUTS
+                    BalzacPackage.Literals.TRANSACTION__OUTPUTS
                 );
                 return false;
             }
@@ -814,13 +814,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                         «ENDIF»
                         ''',
                         tx,
-                        BitcoinTMPackage.Literals.TRANSACTION__INPUTS,
+                        BalzacPackage.Literals.TRANSACTION__INPUTS,
                         i
                     );
                 } catch(Exception e) {
                     error('''Something went wrong: see error for details''',
                             tx,
-                            BitcoinTMPackage.Literals.TRANSACTION__INPUTS,
+                            BalzacPackage.Literals.TRANSACTION__INPUTS,
                             i)
                     e.printStackTrace
                 }
@@ -831,7 +831,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 '''Error evaluating the transaction «tx.name», see error log for details.''',
                 tx,
-                BitcoinTMPackage.Literals.TRANSACTION__INPUTS
+                BalzacPackage.Literals.TRANSACTION__INPUTS
             )
 
         }
@@ -848,7 +848,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (script.isOpReturn(new Rho) && value>0) {
             error("OP_RETURN output scripts must have 0 value.",
                 output,
-                BitcoinTMPackage.Literals.OUTPUT__VALUE
+                BalzacPackage.Literals.OUTPUT__VALUE
             );
         }
 
@@ -856,7 +856,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
         if (!script.isOpReturn(new Rho) && value<546) {
             error("Output (except OP_RETURN scripts) must spend at least 546 satoshis.",
                 output,
-                BitcoinTMPackage.Literals.OUTPUT__VALUE
+                BalzacPackage.Literals.OUTPUT__VALUE
             );
         }
     }
@@ -902,7 +902,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkUniqueAbsoluteTimelock(AbsoluteTime tlock) {
 
-        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.bitcoinTM.Script) !== null;
+        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.balzac.Script) !== null;
 
         if (isScriptTimelock)
             return
@@ -923,7 +923,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
     @Check
     def void checkUniqueRelativeTimelock(RelativeTime tlock) {
 
-        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.bitcoinTM.Script) !== null;
+        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.balzac.Script) !== null;
 
         if (isScriptTimelock)
             return
@@ -952,7 +952,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 'Missing reference to an input transaction',
                 tlock,
-                BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+                BalzacPackage.Literals.RELATIVE_TIME__TX
             );
         }
     }
@@ -974,7 +974,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 'Relative timelocks must refer to an input transaction',
                 tlock,
-                BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+                BalzacPackage.Literals.RELATIVE_TIME__TX
             );
         }
     }
@@ -993,7 +993,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "Negative timelock is not permitted.",
                 tlock,
-                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                BalzacPackage.Literals.TIMELOCK__VALUE
             );
         }
 
@@ -1001,7 +1001,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "Block number must be lower than 500_000_000.",
                 tlock,
-                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                BalzacPackage.Literals.TIMELOCK__VALUE
             );
         }
 
@@ -1009,7 +1009,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             error(
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
                 tlock,
-                BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                BalzacPackage.Literals.TIMELOCK__VALUE
             );
         }
     }
@@ -1030,7 +1030,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "Negative timelock is not permitted.",
                     tlock,
-                    BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                    BalzacPackage.Literals.TIMELOCK__VALUE
                 );
             }
 
@@ -1041,7 +1041,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is «0xFFFF»''',
                     tlock,
-                    BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                    BalzacPackage.Literals.TIMELOCK__VALUE
                 );
             }
         }
@@ -1052,7 +1052,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     '''Relative timelocks must fit within unsigned 16-bits. Delay is «value», max allowed is «0xFFFF»''',
                     tlock,
-                    BitcoinTMPackage.Literals.TIMELOCK__VALUE
+                    BalzacPackage.Literals.TIMELOCK__VALUE
                 );
             }
         }
@@ -1067,7 +1067,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "Cannot specify the tx within scripts",
                     tlock,
-                    BitcoinTMPackage.Literals.RELATIVE_TIME__TX
+                    BalzacPackage.Literals.RELATIVE_TIME__TX
                 );
             }
         }
@@ -1085,13 +1085,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     error(
                         "Duplicated annotation",
                         tx,
-                        BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                        BalzacPackage.Literals.TRANSACTION__CHECKS,
                         i
                     );
                     error(
                         "Duplicated annotation",
                         tx,
-                        BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                        BalzacPackage.Literals.TRANSACTION__CHECKS,
                         j
                     );
                     hasError = true;
@@ -1118,7 +1118,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
             warning(
                 '''Cannot check if «tx.name» is mined. Cannot interpret the transaction.''',
                 tx,
-                BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                BalzacPackage.Literals.TRANSACTION__CHECKS,
                 checkIdx
             );
         }
@@ -1134,7 +1134,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     warning(
                         "Transaction is not mined",
                         tx,
-                        BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                        BalzacPackage.Literals.TRANSACTION__CHECKS,
                         checkIdx
                     );
                 }
@@ -1143,7 +1143,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     warning(
                         "Transaction is already mined",
                         tx,
-                        BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                        BalzacPackage.Literals.TRANSACTION__CHECKS,
                         checkIdx
                     );
                 }
@@ -1153,7 +1153,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 warning(
                     "Cannot check if the transaction is mined due to network problems: "+e.message,
                     tx,
-                    BitcoinTMPackage.Literals.TRANSACTION__CHECKS,
+                    BalzacPackage.Literals.TRANSACTION__CHECKS,
                     checkIdx
                 );
             }
@@ -1183,7 +1183,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "Input index out of range.",
                     inval,
-                    BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
                     i
                 );
                 hasError = true;
@@ -1201,13 +1201,13 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                     error(
                         "Duplicated input index.",
                         inval,
-                        BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
                         i
                     );
                     error(
                         "Duplicated input index.",
                         inval,
-                        BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
                         j
                     );
                     hasError = true;
@@ -1228,7 +1228,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "Cannot evaluate the input transaction to compute its value",
                     inval,
-                    BitcoinTMPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
                     i
                 );
                 hasError = true;
@@ -1248,7 +1248,7 @@ class BitcoinTMValidator extends AbstractBitcoinTMValidator {
                 error(
                     "The value of the output script cannot be negative.",
                     bvalue,
-                    BitcoinTMPackage.Literals.BITCOIN_VALUE__EXP
+                    BalzacPackage.Literals.BITCOIN_VALUE__EXP
                 );
             }
         }

@@ -7,8 +7,8 @@
  */
 package it.unica.tcs.xsemantics;
 
-import it.unica.tcs.bitcoinTM.BitcoinTMFactory;
-import it.unica.tcs.bitcoinTM.TypeVariable;
+import it.unica.tcs.balzac.BalzacFactory;
+import it.unica.tcs.balzac.TypeVariable;
 
 /**
  * @author bettini
@@ -23,7 +23,7 @@ public class LambdaUtils {
     }
 
     public TypeVariable createTypeVariable(String name) {
-        TypeVariable typeVariable = BitcoinTMFactory.eINSTANCE
+        TypeVariable typeVariable = BalzacFactory.eINSTANCE
                 .createTypeVariable();
         typeVariable.setValue(name);
         return typeVariable;
