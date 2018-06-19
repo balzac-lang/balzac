@@ -359,11 +359,20 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (!res.failed) {
             val tx = res.first as ITransactionBuilder
             val inputSize = tx.inputs.size
+            val outputSize = tx.outputs.size
             if (sig.inputIdx >= inputSize) {
                 error('''Invalid input «sig.inputIdx». «IF inputSize == 1»0 expected (it can be omitted).«ELSE»Valid interval [0,«inputSize-1»].«ENDIF»''',
                     sig,
                     BalzacPackage.Literals.SIGNATURE__INPUT_IDX
                 );
+            }
+            if (sig.modifier == Modifier.AISO || sig.modifier == Modifier.SISO) {
+            	if (sig.inputIdx >= outputSize) {
+	                error('''Invalid input «sig.inputIdx». Since you are signing a single output, the index must be «IF outputSize == 1»0 (it can be omitted).«ELSE» within [0,«outputSize-1»].«ENDIF»''',
+	                    sig,
+	                    BalzacPackage.Literals.SIGNATURE__INPUT_IDX
+	                );
+	            }
             }
         }
     }

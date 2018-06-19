@@ -1,0 +1,80 @@
+// simple coinbase 1
+transaction T_input1 {
+    input = _
+    output = 1 BTC: fun(x) . x == 42
+}
+
+// simple coinbase 2
+transaction T_input2 {
+    input = _
+    output = 1 BTC: fun(x) . x != 0 
+}
+
+// focus on this transaction
+transaction T {
+    input = [
+        T_input1 : 42;
+        T_input2 : 1
+    ]
+    output = 2 BTC: fun(x) . x == 1001
+}
+
+transaction T_differentWitness {
+    input = [
+        T_input1 : 42;
+        T_input2 : 84           // instead of 1
+    ]
+    output = 2 BTC: fun(x) . x == 1001
+}
+
+transaction T_sameInput {
+    input = [
+        T_input1 : 42;
+        T_input2 : 1
+    ]
+    output = [
+        2 BTC: fun(x) . x == 1001;
+        0 BTC: "Hello world"    // extra output (not present in T)
+    ]
+}
+
+transaction T_sameOutput {
+    input = [                   // inputs are swapped
+        T_input2 : 1; 
+        T_input1 : 42
+    ]
+    output = 2 BTC: fun(x) . x == 1001
+}
+
+// a random private key
+const kA = key:cRfPMbgvC4NNd3FZZeoQB2GmZJ2tJAPeNwJh9Bs27S2Csak72j46
+
+eval
+    // Signatures have modifiers
+    // "sig(kA) of T" by default sign All Inputs ans All Outputs (AIAO) of T
+    sig(kA) of T == sig(kA)[AIAO] of T,     // true
+    
+    // Signatures ignore the witness
+    T == T_differentWitness,                                // false, transactions are different
+    sig(kA) of T == sig(kA) of T_differentWitness,          // true, witnesses are ignored
+    
+    // Signatures are specific to the input position in which they will be put
+    // "sig(kA) of T" by default is bound to position 0
+    sig(kA) of T == sig(kA) of T@0,                         // true
+    sig(kA) of T == sig(kA) of T@1,                         // false
+    
+    // Signature can also sign a single output or none 
+    T == T_sameInput,                                       // false, transactions are different
+    sig(kA) of T == sig(kA) of T_sameInput,                 // false, signatures AIAO are different
+    sig(kA)[AINO] of T == sig(kA)[AINO] of T_sameInput,     // true, because it ignores all the outputs
+    sig(kA)[AISO] of T == sig(kA)[AISO] of T_sameInput,     // true, because it only considers output 0, which is the same
+    
+    // Signatures can also sign a single input
+    // Signing a single input also implies that the signatures is not bound to a specific position
+    T == T_sameOutput,                                      // false, transactions are different
+    sig(kA) of T == sig(kA) of T_sameOutput,                // false, signatures AIAO are different
+    sig(kA)[SIAO] of T != sig(kA)[SIAO] of T_sameOutput,    // true, input 0 is different
+    sig(kA)[SIAO] of T == sig(kA)[SIAO] of T_sameOutput@1,  // true, input is the same
+    sig(kA)[SIAO] of T@1 == sig(kA)[SIAO] of T_sameOutput,  // true, input is the same
+    
+    true
