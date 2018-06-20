@@ -17,18 +17,29 @@ import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import org.apache.log4j.Logger
+import org.eclipse.xtext.util.OnChangeEvictingCache
 
 class TransactionCompiler {
 
-    private static final Logger logger = Logger.getLogger(TransactionCompiler);
+    static final Logger logger = Logger.getLogger(TransactionCompiler);
 
-    @Inject private extension BalzacInterpreter
-    @Inject private extension ASTUtils astUtils
-    @Inject private extension ScriptCompiler
-    @Inject private extension CompilerUtils
+    @Inject extension BalzacInterpreter
+    @Inject extension ASTUtils astUtils
+    @Inject extension ScriptCompiler
+    @Inject extension CompilerUtils
+    @Inject OnChangeEvictingCache cache;
 
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
+        logger.info('''Compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']»''')
+        var key = 1;
+        val prime = 31;
+        key = prime * key + tx.hashCode 
+        key = prime * key + rho.hashCode 
+        return cache.get(key, tx.eResource, [ internalCompileTransaction(tx,rho) ])
+    }
 
+    def private ITransactionBuilder internalCompileTransaction(Transaction tx, Rho rho) {
+    
         if (rho.isAlreadyVisited(tx)) {
             logger.error('''Transaction «tx.name» already visited. Cyclic dependency.''')
             throw new CompileException('''Transaction «tx.name» already visited. Cyclic dependency.''')
