@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.Base58;
@@ -24,11 +25,14 @@ import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xsemantics.runtime.Result;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+import org.eclipse.xtext.util.OnChangeEvictingCache;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import it.unica.tcs.balzac.AbsoluteTime;
@@ -68,18 +72,48 @@ import it.unica.tcs.xsemantics.Rho;
 
 @Singleton
 public class ASTUtils {
+	
+    private static Logger logger = Logger.getLogger(ASTUtils.class);
 
     @Inject private BitcoinClientFactory bitcoinClientFactory;
     @Inject private BalzacInterpreter interpreter;
-
+    @Inject private OnChangeEvictingCache cache;
+    
+    private static final String cacheECKeyStoreID = "eckeystore";
+    
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
-        ECKeyStore kstore = new ECKeyStore();
-        EObject root = EcoreUtil2.getRootContainer(obj);
-        List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
-        for (KeyLiteral k : keys) {
-            kstore.addKey(k.getValue());
-        }
-        return kstore;
+    	Resource resource = obj.eResource();
+    	logger.info("Get the ECKeyStore for resource "+resource);
+ 
+    	try {
+        	ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
+        
+        		@Override
+        		public ECKeyStore get() {
+        		    logger.info("Generating new ECKeyStore for resource "+resource);
+                    ECKeyStore kstore;
+        			try {
+        				kstore = new ECKeyStore();
+        				EObject root = EcoreUtil2.getRootContainer(obj);
+        				List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
+        				for (KeyLiteral k : keys) {
+        					kstore.addKey(k.getValue());
+        				}
+        				return kstore;
+        			} catch (KeyStoreException e) {
+        				logger.error("Error when creating the ECKeyStore for resource "+resource);
+        				return null;
+        			}
+        		}
+        	});
+        	return value;
+    	}
+    	catch (RuntimeException e) {
+    	    if (e.getCause() instanceof KeyStoreException) {
+    	        throw (KeyStoreException) e.getCause();
+    	    }
+    	    else throw e;
+    	}
     }
 
     public String nodeToString(EObject eobj) {
