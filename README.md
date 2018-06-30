@@ -69,9 +69,12 @@ mvn -f it.unica.tcs.bitcointm.web/ jetty:run
 
 ### IDE
 
-The project is currently developed using [Eclipse Xtext](https://www.eclipse.org/Xtext/download.html), version 2.12.
+The project is currently developed using *Eclipse IDE for Java and DSL Developers* (Oxygen).
+Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclipse-packages/).
 
-Install Xsemantics 2.12 ([update site](https://dl.bintray.com/lorenzobettini/xsemantics/updates/)).
+Install Xtext 2.14 ([update site](http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/)).
+
+Install Xsemantics 1.14 ([update site](http://download.eclipse.org/xsemantics/milestones/1.14/)).
 
 Optional: install Jacoco (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html)).
 
