@@ -48,12 +48,12 @@ import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.utils.SignatureAndPubkey
+import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PrivateKey
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 import java.math.BigInteger
 import java.security.KeyStoreException
 import org.apache.log4j.Logger
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.xtext.EcoreUtil2
@@ -62,6 +62,7 @@ system it.unica.tcs.xsemantics.BalzacInterpreter
 
 inject extension ASTUtils astUtils
 inject extension TransactionCompilerDelegate compiler
+inject extension ScriptCompilerDelegate scriptCompiler
 inject BitcoinClientFactory clientFactory
 
 val logger = Logger.getLogger(BalzacInterpreter)
@@ -131,7 +132,7 @@ from {
 }
 
 axiom InterpretSignaturePlaceholder
-    G |- SignaturePlaceholder p |> Rho rho ~> SignatureAndPubkey.placeholder
+    G |- SignaturePlaceholder p |> Rho rho ~> it.unica.tcs.xsemantics.interpreter.Signature.placeholder
 
 axiom InterpretNumberLiteral
     G |- NumberLiteral number |> Rho rho ~> number.value
@@ -145,16 +146,8 @@ axiom InterpretBooleanLiteral
 axiom InterpretHashLiteral
     G |- HashLiteral hash |> Rho rho ~> new Hash(hash.value)
 
-rule InterpretSignatureLiteral
-    G |- SignatureLiteral s |> Rho rho ~> SignatureAndPubkey result
-from {
-    G |- s.key |> rho ~> var Object key
-    val eckey = if (key instanceof DumpedPrivateKey)
-        key.key
-    else
-        key as ECKey
-    result = new SignatureAndPubkey(BitcoinUtils.decode(s.value), eckey.pubKey)
-}
+axiom InterpretSignatureLiteral
+    G |- SignatureLiteral s |> Rho rho ~> new it.unica.tcs.xsemantics.interpreter.Signature(BitcoinUtils.decode(s.value))
 
 axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
@@ -180,14 +173,14 @@ from {
 }
 
 rule InterpretSignature
-    G |- Signature s |> Rho rho ~> SignatureAndPubkey res
+    G |- Signature s |> Rho rho ~> it.unica.tcs.xsemantics.interpreter.Signature res
 from {
     { s.hasTx }
 
     G |- s.privkey |> rho ~> var Object key
     G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
 
-    if (!(key instanceof DumpedPrivateKey)) {
+    if (!(key instanceof PrivateKey)) {
         fail
             error "Key must be private"
             source s.privkey
@@ -202,18 +195,17 @@ from {
         val input = txBuilder.inputs.get(inputIndex)
         val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
     
-        val privkey = key as DumpedPrivateKey 
-        val pubkey = ECKey.fromPublicOnly(privkey.key.pubKey)
+        val privkey = key as PrivateKey 
     
         val sig = tx.calculateSignature(
             inputIndex,
-            (key as DumpedPrivateKey).key,
+            ECKey.fromPrivate(privkey.privateKeyByte),
             outScript,
             sigHashType,
             anyonecanpay
         )
         
-        res = new SignatureAndPubkey(sig.encodeToBitcoin, pubkey.pubKey)        
+        res = new it.unica.tcs.xsemantics.interpreter.Signature(sig.encodeToBitcoin)        
     }
     catch (KeyStoreException e) {
         fail
@@ -223,13 +215,13 @@ from {
 }
 
 axiom InterpretKeyLiteral
-    G |- KeyLiteral key |> Rho rho ~> DumpedPrivateKey.fromBase58(null, key.value)
+    G |- KeyLiteral key |> Rho rho ~> PrivateKey.fromBase58(key.value)
 
 axiom InterpretAddressLiteral
-    G |- AddressLiteral addr |> Rho rho ~> Address.fromString(null, addr.value)
+    G |- AddressLiteral addr |> Rho rho ~> Address.fromBase58(addr.value)
 
 axiom InterpretPubkeyLiteral
-    G |- PubKeyLiteral d |> Rho rho ~> ECKey.fromPublicOnly(BitcoinUtils.decode(d.value))
+    G |- PubKeyLiteral k |> Rho rho ~> PublicKey.fromString(k.value, k.networkParams)
 
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res

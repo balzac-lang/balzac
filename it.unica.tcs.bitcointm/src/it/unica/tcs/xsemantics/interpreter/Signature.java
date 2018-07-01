@@ -1,39 +1,36 @@
-package it.unica.tcs.utils;
+/*
+ * Copyright 2018 Nicola Atzei
+ */
+
+package it.unica.tcs.xsemantics.interpreter;
 
 import java.util.Arrays;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-public class SignatureAndPubkey {
+public class Signature {
 
-	public static final SignatureAndPubkey placeholder = new SignatureAndPubkey(new byte[0], new byte[0]);
+	public static final Signature placeholder = new Signature(new byte[0]);
     private final byte[] signature;
-    private final byte[] pubkey;
     
-    public SignatureAndPubkey(byte[] signature, byte[] pubkey) {
+    public Signature(byte[] signature) {
 		this.signature = signature;
-		this.pubkey = pubkey;
 	}
 
 	public byte[] getSignature() {
 		return signature;
 	}
 
-	public byte[] getPubkey() {
-		return pubkey;
-	}
-
 	@Override
     public String toString() {
         if (this == placeholder) return "_";
-        return "sig:"+BitcoinUtils.encode(signature)+" [pubkey:"+BitcoinUtils.encode(pubkey)+"]";
+        return "sig:"+BitcoinUtils.encode(signature);
     }
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(pubkey);
 		result = prime * result + Arrays.hashCode(signature);
 		return result;
 	}
@@ -46,9 +43,7 @@ public class SignatureAndPubkey {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		SignatureAndPubkey other = (SignatureAndPubkey) obj;
-		if (!Arrays.equals(pubkey, other.pubkey))
-			return false;
+		Signature other = (Signature) obj;
 		if (!Arrays.equals(signature, other.signature))
 			return false;
 		return true;

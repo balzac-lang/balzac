@@ -15,6 +15,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+import it.unica.tcs.balzac.Model
 
 /**
  * This class contains custom scoping description.
@@ -24,15 +25,17 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  */
 class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
 
-    private static final Logger logger = Logger.getLogger(BalzacScopeProvider);
+    static final Logger logger = Logger.getLogger(BalzacScopeProvider);
 
     def IScope scope_Referrable(Reference v, EReference ref) {
         logger.trace("resolving reference: "+v)
-        getScopeForParameters(v,
+        val scope = getScopeForParameters(v,
             getIScopeForAllContentsOfClass(v, Constant,
                 getIScopeForAllContentsOfClass(v, Transaction)
             )
         )
+        logger.trace("scope: "+scope.allElements)
+        scope
     }
 
     def static IScope getIScopeForAllContentsOfClass(EObject ctx, Class<? extends EObject> clazz){
@@ -63,6 +66,11 @@ class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
     def static dispatch IScope getScopeForParameters(Transaction obj, IScope outer) {
         logger.trace('''adding transaction params: [«obj.params.map[p|p.name+":"+p.type].join(",")»]''')
         return Scopes.scopeFor(obj.params, outer);
+        // stop recursion
+    }
+    
+    def static dispatch IScope getScopeForParameters(Model obj, IScope outer) {
+        return outer
         // stop recursion
     }
 

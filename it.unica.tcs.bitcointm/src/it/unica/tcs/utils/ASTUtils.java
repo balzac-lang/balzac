@@ -11,12 +11,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
@@ -59,7 +57,7 @@ import it.unica.tcs.balzac.Script;
 import it.unica.tcs.balzac.SignatureLiteral;
 import it.unica.tcs.balzac.StringLiteral;
 import it.unica.tcs.balzac.Timelock;
-import it.unica.tcs.balzac.Versig;
+import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
@@ -69,6 +67,9 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BalzacInterpreter;
 import it.unica.tcs.xsemantics.Rho;
+import it.unica.tcs.xsemantics.interpreter.Address;
+import it.unica.tcs.xsemantics.interpreter.PrivateKey;
+import it.unica.tcs.xsemantics.interpreter.Signature;
 
 @Singleton
 public class ASTUtils {
@@ -126,7 +127,7 @@ public class ASTUtils {
         if (ref instanceof it.unica.tcs.balzac.Transaction)
             return ((it.unica.tcs.balzac.Transaction) ref).getName();
         if (ref instanceof Constant)
-            return ((Constant) ref).getName();
+            return ((Constant) ref).getName();    
         throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 
@@ -140,23 +141,18 @@ public class ASTUtils {
         throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 
-    public Set<Parameter> getTxVariables(Expression exp) {
+    public Set<TransactionParameter> getTxVariables(Expression exp) {
         List<Reference> list = new ArrayList<>(EcoreUtil2.getAllContentsOfType(exp, Reference.class));
         if (exp instanceof Reference)
             list.add((Reference) exp);
-        Set<Parameter> refs =
+        Set<TransactionParameter> refs =
                 list
                 .stream()
                 .map( v -> v.getRef() )
-                .filter(this::isTxParameter)
-                .map( r -> (Parameter) r )
+                .filter( r -> r instanceof TransactionParameter )
+                .map( r -> (TransactionParameter) r )
                 .collect(Collectors.toSet());
         return refs;
-    }
-
-
-    public boolean isTxParameter(Referrable p) {
-        return (p instanceof Parameter) && (p.eContainer() instanceof it.unica.tcs.balzac.Transaction);
     }
 
     public boolean hasTxVariables(Expression exp) {
@@ -203,14 +199,14 @@ public class ASTUtils {
             res.setValue(((Hash) value).getBytes());
             return res;
         }
-        else if (value instanceof DumpedPrivateKey) {
+        else if (value instanceof PrivateKey) {
             KeyLiteral res = BalzacFactory.eINSTANCE.createKeyLiteral();
-            res.setValue(((DumpedPrivateKey) value).toBase58());
+            res.setValue(((PrivateKey) value).getPrivateKeyWif());
             return res;
         }
-        else if (value instanceof LegacyAddress) {
+        else if (value instanceof Address) {
             AddressLiteral res = BalzacFactory.eINSTANCE.createAddressLiteral();
-            res.setValue(((LegacyAddress) value).toBase58());
+            res.setValue(((Address) value).getAddressWif());
             return res;
         }
         else if (value instanceof ECKey) {
@@ -218,12 +214,9 @@ public class ASTUtils {
             res.setValue(((ECKey) value).getPublicKeyAsHex());
             return res;
         }
-        else if (value instanceof SignatureAndPubkey) {
-            PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
+        else if (value instanceof Signature) {
             SignatureLiteral res = BalzacFactory.eINSTANCE.createSignatureLiteral();
-            res.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getSignature()));
-            pubkey.setValue(BitcoinUtils.encode(((SignatureAndPubkey) value).getPubkey()));
-            res.setKey(pubkey);
+            res.setValue(BitcoinUtils.encode(((Signature) value).getSignature()));
             return res;
         }
         else {
@@ -291,10 +284,11 @@ public class ASTUtils {
     }
 
     public boolean isP2PKH(Script script) {
-        boolean isVersig = script.getExp() instanceof Versig;
-        boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
-
-        return isVersig && onlyOnePubkey;
+//        boolean isVersig = script.getExp() instanceof Versig;
+//        boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
+//
+//        return isVersig && onlyOnePubkey;
+        return false;   // TODO: temporarily disabled
     }
 
     public boolean isOpReturn(Script script, Rho rho) {
@@ -450,19 +444,6 @@ public class ASTUtils {
         }
     }
 
-    public byte[] wifToAddressHash(String wif, NetworkParameters params) {
-        return wifToAddress(wif, params).getHash();
-    }
-
-    public Address wifToAddress(String wif, NetworkParameters params) {
-        Address pubkeyAddr = Address.fromString(params, wif);
-        return pubkeyAddr;
-    }
-
-    public byte[] privateWifToPubkeyBytes(String wif, NetworkParameters params) {
-        return DumpedPrivateKey.fromBase58(params, wif).getKey().getPubKey();
-    }
-
     public ValidationResult isBase58WithChecksum(String key) {
         try {
             Base58.decodeChecked(key);
@@ -483,7 +464,7 @@ public class ASTUtils {
 
     public ValidationResult isValidPublicKey(String key, NetworkParameters params) {
         try {
-            Address.fromString(params, key);
+            org.bitcoinj.core.Address.fromString(params, key);
             return ValidationResult.VALIDATION_OK;
         } catch (AddressFormatException e2) {
             return new ValidationResult(false, e2.getMessage());

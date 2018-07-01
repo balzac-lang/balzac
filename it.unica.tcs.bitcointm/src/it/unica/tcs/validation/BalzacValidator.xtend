@@ -38,7 +38,6 @@ import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.utils.SignatureAndPubkey
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import java.util.HashMap
@@ -67,6 +66,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 
 /**
  * This class contains custom validation rules.
@@ -585,16 +585,51 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
 
         if (inputTx.outputs.get(outputIdx).script.isP2PKH) {
-            for (e : input.exps) {
-                val res = e.interpretE
-                if (!res.failed && !(res.first instanceof SignatureAndPubkey)) {
+            
+            if (input.exps.size == 1) {
+                if (!(input.exps.get(0) instanceof Signature)) {
                     error(
-                        "Invalid expression type. Signature is expected",
-                        e,
-                        null
+                        "Signature constructor expected, i.e. sig(k)",
+                        input,
+                        BalzacPackage.Literals.INPUT__EXPS,
+                        0
                     )
                     return false
                 }
+            }
+            else if (input.exps.size == 2) {
+                val sig = input.exps.get(0).interpretE
+                if (sig.failed || !(sig.first instanceof it.unica.tcs.xsemantics.interpreter.Signature)) {
+                    error(
+                        "Invalid expression type, signature is expected",
+                        input,
+                        BalzacPackage.Literals.INPUT__EXPS,
+                        0
+                    )
+                    return false
+                }
+                val pubkey = input.exps.get(1).interpretE
+                if (pubkey.failed || !(pubkey.first instanceof PublicKey)
+                ) {
+                    error(
+                        "Invalid expression type, pubkey is expected",
+                        input,
+                        BalzacPackage.Literals.INPUT__EXPS,
+                        1
+                    )
+                    return false
+                }
+            }
+            else {
+                error(
+                    "Invalid number of expressions",
+                    input,
+                    null
+                )
+                return false
+            }
+            
+            for (e : input.exps) {
             }
         }
 
@@ -793,7 +828,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkPositiveOutValue(Output output) {
 
         var value = output.value.exp.interpretE.first as Long
-        var script = output.script
+        var script = output.script as it.unica.tcs.balzac.Script
 
         if (script.isOpReturn(new Rho) && value>0) {
             error("OP_RETURN output scripts must have 0 value.",
@@ -827,7 +862,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 var outputB = tx.outputs.get(j)
 
                 // these checks need to be executed in this order
-                if (outputA.script.isOpReturn(new Rho) && outputB.script.isOpReturn(new Rho)
+                if ((outputA.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho) && (outputB.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho)
                 ) {
                     if (!error.get(i) && (error.set(i,true) && true))
                         warning(

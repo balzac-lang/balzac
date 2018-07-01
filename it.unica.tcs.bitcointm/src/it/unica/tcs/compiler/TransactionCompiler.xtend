@@ -86,7 +86,7 @@ class TransactionCompiler {
                      */
                     val parentTx = res.first as ITransactionBuilder
                     val outIndex = new Long(input.outpoint).intValue
-                    val inScript = input.compileInput(parentTx, rho)
+                    val inScript = input.compileInputScript(parentTx, rho)
 
                     // relative timelock
                     if (tx.timelocks.containsRelative(parentTx, rho)) {
@@ -182,7 +182,7 @@ class TransactionCompiler {
                     }
 
                     val outIndex = new Long(input.outpoint).intValue
-                    val inScript = input.compileInput(parentTxB, rho)
+                    val inScript = input.compileInputScript(parentTxB, rho)
 
                     // relative timelock
                     if (tx.timelocks.containsRelative(parentTxB, rho)) {

@@ -33,24 +33,27 @@ Element:
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
-Parameter:
-	name=ID
-	(":" type=PermittedType)?;
+Parameter: name=ID (":" type=BasicType)?;
+TransactionParameter returns Parameter: {TransactionParameter} name=ID (":" type=BasicType)?;
+ScriptParameter returns Parameter: {ScriptParameter} name=ID (":" type=BasicType)?;
 
 /*
  * transactions (special case of Declaration)
  */
 
 Constant:
-	"const" name=ID (":" type=PermittedType)? "=" exp=Expression;
+	"const" name=ID (":" type=BasicType)? "=" exp=Expression;
 
 Transaction:
 	checks+=OnDemandCheck*
-	"transaction" name=ID ("(" (params+=Parameter ("," params+=Parameter)*)? ")")? "{"
+	"transaction" name=ID ("(" (params+=TransactionParameter ("," params+=TransactionParameter)*)? ")")? "{"
 		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (multiIn?="["  inputs+=Input   (";" inputs+=Input)* ";"? "]") )
 		"output" "=" (outputs+=Output| (multiOut?="[" outputs+=Output (";" outputs+=Output)* ";"? "]") )
 		("timelock" "=" (timelocks+=Timelock| (multiLock?="[" timelocks+=Timelock (";" timelocks+=Timelock)* ";"? "]") ))?
 	"}";
+
+Script returns Expression: 
+    {Script} (lambda?="fun" "(" (params+=ScriptParameter ("," params+=ScriptParameter)*)? ")" ".")? exp=Expression;
 
 Input:
 	txRef=Expression ("@" outpoint=LONG)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
@@ -74,9 +77,6 @@ RelativeTime:
 	((value=Expression block?="block")
 	| (delay=Delay))
 	("from" tx=Expression)?;
-
-Script:
-	(lambda?="fun"  "(" (params+=Parameter ("," params+=Parameter)*)? ")" ".")? exp=Expression;
 
 
 /* on-demand checks */
@@ -172,7 +172,7 @@ AddressLiteral: value=ADDRESS_WIF;
 PubKeyLiteral: value=PUBKEY;
 TransactionHexLiteral: value=TXSERIAL;
 TransactionIDLiteral: value=TXID;
-SignatureLiteral: value=SIGHEX "[" key=Expression "]";
+SignatureLiteral: value=SIGHEX;
 SignaturePlaceholder: {SignaturePlaceholder} "_";
 
 IfThenElse:
@@ -210,12 +210,13 @@ Size: "size" "(" value=Expression ")";
 AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
 InputValue: {InputValue} "input.value" (=> "(" (inputIdxs+=LONG ("," inputIdxs+=LONG)*)? ")")?;
 
+
 Type:
-	PermittedType
+	BasicType
 |   {VoidType} value=VoidTypeEnum
 |	{TypeVariable} value=ID;
 
-PermittedType:
+BasicType:
 	{IntType} value=IntTypeEnum
 |	{StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
@@ -224,7 +225,8 @@ PermittedType:
 |   {PubkeyType} value=PubkeyTypeEnum
 |   {AddressType} value=AddressTypeEnum
 |   {TransactionType} value=TransactionTypeEnum
-|   {SignatureType} value=SignatureTypeEnum;
+|   {SignatureType} value=SignatureTypeEnum
+;
 
 HashableType:
     {IntType} value=IntTypeEnum
@@ -247,6 +249,7 @@ Typeable:
   Parameter
 | Constant
 | Transaction
+| Script
 | Input
 | Output
 | Timelock
@@ -255,6 +258,7 @@ Typeable:
 
 Interpretable:
 	Expression
+|   Script
 |	Transaction;
 
 Number returns ecore::ELong:

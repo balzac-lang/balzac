@@ -25,7 +25,7 @@ transaction T_escrow_template(sigA:signature, sigB:signature, pubK:pubkey) {
 
 // la signature che Alice invia a Bob
 const sigA = sig(kA) of T_escrow_template(_,_,kBpub)    // notare kBpub
-
+ 
 // la signature che Bob invia a Alice
 const sigB = sig(kB) of T_escrow_template(_,_,kApub)    // notare kApub
 
@@ -65,10 +65,10 @@ transaction T_escrowTEST(pubK) {
     input = T : sig(kA) sig(kB)
     output = 1BTC: fun(x) . versig(pubK; x)
 }
-const sigA_ok = sigA == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801 [kA]
-const sigB_ok = sigB == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901 [kB]
-const sigA2_ok = sigA2 == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801 [kA]
-const sigB2_ok = sigB2 == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901 [kB]
+const sigA_ok = sigA == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801
+const sigB_ok = sigB == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901
+const sigA2_ok = sigA2 == sig:304402205d47908ac531020b651153d1928226799a7d62134ed47320cc9942357ac7cf40022027595428a784c0cf02e2b3aff63a7302c74ec4fd08ffa3fa8d127c382c38370801
+const sigB2_ok = sigB2 == sig:3044022027c59bf8ba30e4602278896971c8909db3940043eed9abd522b6946104b6ae9202200ffa74c584ff25c8333a59fd9bf1527e4959e87d225ff39c2ec520f172a2c58901
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 eval

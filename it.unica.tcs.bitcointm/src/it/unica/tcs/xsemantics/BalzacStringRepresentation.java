@@ -85,6 +85,9 @@ public class BalzacStringRepresentation extends StringRepresentation {
         else if (type instanceof TypeVariable) {
             return ((TypeVariable) type).getValue();
         }
-        else return "unknown";
+        else if (type == null) {
+            return "NULL (please report to the authors)";
+        }
+        else return "["+type.getClass().getSimpleName()+"]";
     }
 }

@@ -33,15 +33,15 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         return eobj.firstLineInternal
     }
 
-  override boolean hasHover(EObject eobj) {
-      if (eobj instanceof KeyLiteral)
-          return true;
+    override boolean hasHover(EObject eobj) {
+        if (eobj instanceof KeyLiteral)
+            return true;
 
-      if (eobj instanceof PubKeyLiteral)
-          return true;
+        if (eobj instanceof PubKeyLiteral)
+            return true;
 
-      return super.hasHover(eobj)
-  }
+        return super.hasHover(eobj)
+    }
 
     override getDocumentation(EObject eobj) {
         var doc = super.getDocumentation(eobj)
@@ -63,7 +63,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     dispatch def String getLabelInternal(Constant p) {
         return p.name+" : "+p.type.stringRep
     }
-
+    
     // base case getFirstLineInternal
     def String getFirstLineInternal(EObject obj) {
         return super.getFirstLine(obj)
@@ -73,14 +73,13 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         '''transaction «tx.name»'''
     }
 
-
     // base case getDocumentationInternal
     def dispatch String getDocumentationInternal(EObject obj) ''''''
 
     def dispatch String getDocumentationInternal(Constant c) {
         c.exp.documentationInternal
     }
-
+    
     def dispatch String getDocumentationInternal(KeyLiteral key) '''
         «val wif = key.value»
         «val pvtEC = BitcoinUtils.wifToECKey(wif, key.networkParams)»

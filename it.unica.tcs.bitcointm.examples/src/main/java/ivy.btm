@@ -226,10 +226,8 @@ const value = 1 BTC
 
 eval
     LockWithPublicKey(k1, value),
-    LockWithPublicKey(addr1, value),
     LockWithMultisig(k1, k2, k3, value),
     LockWithPublicKeyHash(k1, value),
-    LockWithPublicKeyHash(addr1, value),
     RevealPreimage(sha256("secret"), value),
     RevealCollision(value),
     RevealFixedPoint(value),

@@ -9,6 +9,7 @@ import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
 import it.unica.tcs.balzac.BalzacFactory
+import it.unica.tcs.balzac.BasicType
 import it.unica.tcs.balzac.Between
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
@@ -33,11 +34,11 @@ import it.unica.tcs.balzac.KeyType
 import it.unica.tcs.balzac.Max
 import it.unica.tcs.balzac.Min
 import it.unica.tcs.balzac.Minus
+import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
-import it.unica.tcs.balzac.PermittedType
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.PubKeyLiteral
 import it.unica.tcs.balzac.PubkeyType
@@ -67,7 +68,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBalzacValidator
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
-import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xsemantics.runtime.RuleEnvironment
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -80,7 +81,7 @@ auxiliary {
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
     unify(EObject obj, TypeSubstitutions substitutions, Type left, Type right) : Type
     failIfTypeVariable(Type type, EObject obj)
-    failIfNotPermitted(Type type, EObject obj)
+    failIfNotBasic(Type type, EObject obj)
 }
 
 judgments {
@@ -101,8 +102,8 @@ auxiliary failIfTypeVariable(Type type, EObject obj) {
     }
 }
 
-auxiliary failIfNotPermitted(Type type, EObject obj) {
-    if (!(type instanceof PermittedType)) {
+auxiliary failIfNotBasic(Type type, EObject obj) {
+    if (!(type instanceof BasicType)) {
         fail
         error "Basic type expected: int, string, bool, hash160, hash256, ripemd160, sha256, transaction, signature, key, address, pubkey"
         source obj
@@ -167,12 +168,12 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Pub
     EcoreUtil::copy(t1)
 }
 
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable typeVar, PermittedType basicType) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
     substitutions.add(typeVar.value, basicType)
     EcoreUtil.copy(basicType)
 }
 
-auxiliary unify(EObject obj, TypeSubstitutions substitutions, PermittedType basicType, TypeVariable typeVar) {
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, BasicType basicType, TypeVariable typeVar) {
     unify(obj, substitutions, typeVar, basicType)
 }
 
@@ -220,6 +221,7 @@ from {
     G.add(p, type)
 }
 
+// a constant always has a basic type (int, string, ...)
 rule Constant
     G |- TypeSubstitutions substitutions |> Constant c : Type type
 from {
@@ -232,14 +234,13 @@ from {
     }
 
     substitutions.addVisited(c)
-
     G |- substitutions |> c.exp : var Type expType
     type = unify(c.exp, substitutions, expType, type)
-
     substitutions.removeVisited(c)
 
-    failIfTypeVariable(type, c)
-    c.type = type as PermittedType  // store the type in the AST
+    failIfNotBasic(type, c)
+    c.type = EcoreUtil::copy(type as BasicType)     // store the type in the AST
+    G.add(c, type)                                  // store the type in env to avoid recomputation
 }
 
 rule Reference
@@ -252,37 +253,38 @@ from {
     }
 
     if (varRef.ref instanceof Constant) {
-        val const = varRef.ref as Constant
-        G |- substitutions |> const : type
-        
         if (!varRef.actualParams.^empty) {
             fail
                 error "Constant reference cannot have actual parameters"
                 source varRef
         }
+        val const = varRef.ref as Constant
+        type = G.get(const) as BasicType    // avoid recomputation if possible
+        if (type === null) {
+            G |- substitutions |> const : type
+        }
     }
     else if (varRef.ref instanceof Parameter) {
-        val param = varRef.ref as Parameter
-        G |- substitutions |> param : type
-        
         if (!varRef.actualParams.^empty) {
             fail
                 error "Parameter reference cannot have actual parameters"
                 source varRef
         }
+        val param = varRef.ref as Parameter
+        G |- substitutions |> param : type
     }
     else if (varRef.ref instanceof Transaction) {
         val tx = varRef.ref as Transaction
-
-        G |- substitutions |> tx : type
-        type = typesubstitution(substitutions, type)
-        unify(tx, substitutions, type, BalzacFactory::eINSTANCE.createTransactionType)
 
         if (varRef.actualParams.size != tx.params.size) {
             fail
                 error "Invalid number of actual parameters."
                 source varRef
         }
+
+        G |- substitutions |> tx : type
+        type = typesubstitution(substitutions, type)
+        unify(tx, substitutions, type, BalzacFactory::eINSTANCE.createTransactionType)
 
         // check the actual parameters type match the formal ones
         for (var i=0; i<varRef.actualParams.size; i++) {
@@ -303,11 +305,13 @@ from {
 
             // the actual param type must be unifiable with the formal param type
             unify(actualParam, substitutions, actualParamType, formalParamType)
-
-            // store the type in the AST
-            formalParam.type = formalParamType as PermittedType
         }
 
+    }
+    else {
+        fail
+            error "Unexpected class "+varRef.ref
+            source varRef
     }
 }
 
@@ -316,33 +320,34 @@ from {
  * - all the outputs are well typed
  */
 rule Transaction
-    G |- TypeSubstitutions substitutions |> Transaction body : BalzacFactory::eINSTANCE.createTransactionType
+    G |- TypeSubstitutions substitutions |> Transaction tx : Type txType
 from {
-    substitutions.addVisited(body)
+    txType = BalzacFactory::eINSTANCE.createTransactionType
+    substitutions.addVisited(tx)
 
-    for (p : body.params) {
+    for (p : tx.params) {
         G |- substitutions |> p : var Type t    // type the parameters, possibly TypeVariable
     }
 
-    for (in : body.inputs) {
+    for (in : tx.inputs) {
         G |- substitutions |> in : var Type t1  // all inputs are well typed
     }
 
-    for (out : body.outputs) {
+    for (out : tx.outputs) {
         G |- substitutions |> out : var Type t2 // all outputs are well typed
     }
 
-    substitutions.removeVisited(body)
+    substitutions.removeVisited(tx)
 
     // after typing the parameters, all should have a basic type (generic types are not allowed)
-    for (p : body.params) {
+    for (p : tx.params) {
         var ptype = env(G, p, Type)
         ptype = typesubstitution(substitutions, ptype)
         failIfTypeVariable(ptype, p)
-        p.type = ptype as PermittedType
+        // store the type in the AST
+        p.type = EcoreUtil::copy(ptype as BasicType)
     }
 }
-
 
 /**
  * An input is well typed if:
@@ -375,7 +380,7 @@ from {
             var outputIndex = input.outpoint
             var outputScript = tx.outputs.get(new Long(outputIndex).intValue).script
 
-            if (input.exps.size != outputScript.params.size) {
+            if (input.exps.size != (outputScript as Script).params.size) {
                 fail
                     error "Invalid number of actual parameters."
                     source input
@@ -383,7 +388,7 @@ from {
 
             for (var i=0; i<input.exps.size; i++) {
                 var inputExp = input.exps.get(i)
-                var outputParam = outputScript.params.get(i)
+                var outputParam = (outputScript as Script).params.get(i)
 
                 // get formal parameter type
                 var formalParamType = env(G, outputParam, Type)
@@ -399,9 +404,6 @@ from {
 
                 // the actual param type must be unifiable with the formal param type
                 unify(inputExp, substitutions, actualParamType, formalParamType)
-
-                // store the type in the AST
-                outputParam.type = formalParamType as PermittedType
             }
         }
         else {
@@ -429,20 +431,19 @@ from {
     valType = typesubstitution(substitutions, valType)
     unify(satoshis, substitutions, valType, BalzacFactory::eINSTANCE.createIntType)
 
-    var script = _output.script
+    var script = _output.script as Script
     for (p : script.params) {
         G |- substitutions |> p : var Type type
     }
 
+    G |- substitutions |> script.exp : var Type expType
+    expType = typesubstitution(substitutions, expType)
 
-    G |- substitutions |> script.exp : var Type scriptType
-    scriptType = typesubstitution(substitutions, scriptType)
-    
     if (script.params.size == 0) {
         {
-            unify(script.exp, substitutions, scriptType, BalzacFactory::eINSTANCE.createBooleanType)
+            unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
         } or {
-            unify(script.exp, substitutions, scriptType, BalzacFactory::eINSTANCE.createStringType)
+            unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createStringType)
         } or {
             fail
             error "expected type boolean or string"
@@ -450,16 +451,16 @@ from {
         }     
     }
     else {
-        unify(script.exp, substitutions, scriptType, BalzacFactory::eINSTANCE.createBooleanType)
+        unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
     }
     
-
     // all the parameters should have a basic type (generic types are not allowed)
     for (p : script.params) {
         var ptype = env(G, p, Type)
         ptype = typesubstitution(substitutions, ptype)
-        failIfNotPermitted(ptype, p)
-        p.type = ptype as PermittedType
+        failIfNotBasic(ptype, p)
+        // store the type in the AST
+        p.type = EcoreUtil::copy(ptype as BasicType)
     }
 }
 
@@ -508,13 +509,8 @@ axiom TransactionHexLiteral
 axiom TransactionIDLiteral
     G |- TypeSubstitutions substitutions |> TransactionIDLiteral tx : BalzacFactory::eINSTANCE.createTransactionType
 
-rule SignatureLiteral
+axiom SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BalzacFactory::eINSTANCE.createSignatureType
-from {
-    G |- substitutions |> s.key : var Type type
-    type = typesubstitution(substitutions, type)
-    unify(s.key, substitutions, type, BalzacFactory::eINSTANCE.createPubkeyType)
-}
 
 axiom DateLiteral
     G |- TypeSubstitutions substitutions |> DateLiteral d : BalzacFactory::eINSTANCE.createIntType
@@ -527,7 +523,6 @@ axiom AddressLiteral
 
 axiom PubkeyLiteral
     G |- TypeSubstitutions substitutions |> PubKeyLiteral pk : BalzacFactory::eINSTANCE.createPubkeyType
-
 
 
 rule Times
@@ -705,14 +700,12 @@ from {
         unify(s, substitutions, ts, sigType)
     }
 
-    val script = EcoreUtil2.getContainerOfType(versig, Script)
-    var addrType =  if (script.isP2PKH) BalzacFactory::eINSTANCE.createAddressType
-					else BalzacFactory::eINSTANCE.createPubkeyType
+    var pubkeyType =  BalzacFactory::eINSTANCE.createPubkeyType
 
     for (k : versig.pubkeys) {
         G |- substitutions |> k : var Type t
         t = typesubstitution(substitutions, t)
-        unify(k, substitutions, t, addrType)
+        unify(k, substitutions, t, pubkeyType)
     }
 }
 
@@ -742,7 +735,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Cannot hash type "+stringRep(t)
+        error "Invalid type "+stringRep(t)
         source hash.value
     }
 }
@@ -755,7 +748,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Cannot hash type "+stringRep(t)
+        error "Invalid type "+stringRep(t)
         source hash.value
     }
 }
@@ -768,7 +761,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Cannot hash type "+stringRep(t)
+        error "Invalid type "+stringRep(t)
         source hash.value
     }
 }
@@ -781,7 +774,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Cannot hash type "+stringRep(t)
+        error "Invalid type "+stringRep(t)
         source hash.value
     }
 }
@@ -794,7 +787,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Cannot hash type "+stringRep(t)
+        error "Invalid type "+stringRep(t)
         source hash.value
     }
 }
@@ -870,7 +863,7 @@ from {
     for (e : compile.exps) {
         G |- substitutions |> e: var Type texpr
         texpr = typesubstitution(substitutions, texpr)
-        failIfNotPermitted(texpr, e)
+        failIfNotBasic(texpr, e)
     }
 }
 
@@ -880,23 +873,29 @@ from {
  *
  */
 
-checkrule CheckConstants for
-    Constant stmt
+checkrule CheckModel for
+    Model model
 from {
     lambdaUtils.resetCounter
-    empty |- new TypeSubstitutions |> stmt: var Type t
-}
+    val G = new RuleEnvironment
+    val substitutions = new TypeSubstitutions
+    val declarations = model.declarations
+    
+    // type check all constants firsts
+    for (c : declarations.filter(Constant)) {
+        G |- substitutions |> c: var Type t
+    }
 
-checkrule CheckTransactions for
-    Transaction stmt
-from {
-    lambdaUtils.resetCounter
-    empty |- new TypeSubstitutions |> stmt: var Type t
-}
+    // type check all transactions
+    for (tx : declarations.filter(Transaction)) {
+        G |- substitutions |> tx: var Type t
+    }
 
-checkrule CheckCompile for
-    Eval stmt
-from {
-    lambdaUtils.resetCounter
-    empty |- new TypeSubstitutions |> stmt: var Type t
+    // finally eval expressions
+    if (model.eval !== null)
+        for (e : model.eval.exps) {
+            G |- substitutions |> e: var Type texpr
+            texpr = typesubstitution(substitutions, texpr)
+            failIfNotBasic(texpr, e)    
+        }
 }

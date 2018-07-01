@@ -9,8 +9,8 @@ import it.unica.tcs.balzac.AbsoluteTime
 import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
-import it.unica.tcs.balzac.Between
 import it.unica.tcs.balzac.BalzacFactory
+import it.unica.tcs.balzac.Between
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
 import it.unica.tcs.balzac.Comparison
@@ -60,16 +60,17 @@ import it.unica.tcs.lib.script.ScriptBuilder2
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
-import it.unica.tcs.utils.SignatureAndPubkey
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PrivateKey
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 import javax.inject.Singleton
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.core.ECKey
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.balzac.TransactionParameter
+import it.unica.tcs.balzac.ScriptParameter
 
 /*
  * EXPRESSIONS
@@ -83,10 +84,9 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 @Singleton
 class ScriptCompiler {
 
-    @Inject private extension CompilerUtils
-    @Inject private extension ASTUtils
-    @Inject private extension BalzacInterpreter
-
+    @Inject extension CompilerUtils
+    @Inject extension ASTUtils
+    @Inject extension BalzacInterpreter
 
     /**
      * Compile the given input (AST) to an input script class (lib).
@@ -97,11 +97,10 @@ class ScriptCompiler {
      * @return the compiled input
      * @see InputScript
      */
-    def InputScript compileInput(Input input, ITransactionBuilder parentTx, Rho rho) {
-
+    def InputScript compileInputScript(Input input, ITransactionBuilder parentTx, Rho rho) {
         val outpoint = input.outpoint as int
         val outScript = parentTx.outputs.get(outpoint).script
-
+        
         if (outScript.isP2PKH) {
             /*
              * P2PKH
@@ -117,8 +116,8 @@ class ScriptCompiler {
                     throw new CompileException('''Unable to evaluate to a private key''')
 
                 val key = resKey.first
-                if (key instanceof DumpedPrivateKey) {
-                    sb.data(key.key.pubKey)
+                if (key instanceof PrivateKey) {
+                    sb.data(key.publicKeyByte)
                 }
                 else {
                     throw new CompileException('''Unable to evaluate to a private key: «key»''')
@@ -129,47 +128,50 @@ class ScriptCompiler {
             }
             else {
                 val sigI = input.exps.get(0).interpret(rho)
+                val pubkeyI = input.exps.get(1).interpret(rho)
+                
                 if (sigI.failed)
                     throw new CompileException('''Unable to evaluate to a valid signature''')
 
-                if (!(sigI.first instanceof SignatureAndPubkey))
+                if (pubkeyI.failed)
+                    throw new CompileException('''Unable to evaluate to a valid pubkey''')
+
+                if (!(sigI.first instanceof it.unica.tcs.xsemantics.interpreter.Signature))
                     throw new CompileException('''Unexpected result evaluating the signature. Result is «sigI.first»''')
                 
-                val sig = sigI.first as SignatureAndPubkey
-
-                if (sig.getPubkey === null)
-                    throw new CompileException('''The signature must be defined with a public key''')
-
+                if (!(pubkeyI.first instanceof PublicKey))
+                    throw new CompileException('''Unexpected result evaluating the public key. Result is «pubkeyI.first»''')
+                
+                val sig = sigI.first as it.unica.tcs.xsemantics.interpreter.Signature
+                val pubkey = pubkeyI.first as PublicKey
+                
                 val sb = new InputScriptImpl()
-                sb.data(sig.signature)
-                sb.data(sig.getPubkey)
+                sb.data(sig.getSignature)
+                sb.data(pubkey.publicKeyByte)
                 return new InputScriptImpl().append(sb) as InputScript
             }
 
         }
         else if (outScript.isP2SH) {
-
-            var inputTx = input.txRef
-
             /*
              * P2SH
              */
-            val redeemScript =
+            val redeemScript = 
                 if (parentTx instanceof SerialTransactionBuilder) {
-
+    
                     // get the redeem script from the AST (specified by the user)
-                    val s = input.redeemScript.compileRedeemScript(rho)
-
+                    val s = (input.redeemScript as Script).compileRedeemScript(rho)
+    
                     if (!s.ready)
                         throw new CompileException("This redeem script cannot have free variables")
-
+    
                     s
                 }
                 else if (parentTx instanceof TransactionBuilder) {
                     outScript as P2SHOutputScript
                 }
                 else
-                    throw new CompileException('''Unexpected class «inputTx»''')
+                    throw new CompileException('''Unexpected class «parentTx»''')
 
             val p2sh = new P2SHInputScript(redeemScript)
 
@@ -199,55 +201,35 @@ class ScriptCompiler {
      */
     def OutputScript compileOutputScript(Output output, Rho rho) {
 
-        var outScript = output.script
+        var outScript = output.script as Script
 
         if (outScript.isP2PKH) {
             var versig = outScript.exp as Versig
 
-            val resKey = versig.pubkeys.get(0).interpret(rho)
+            val resAddr = versig.pubkeys.get(0).interpret(rho)
 
-            if (resKey.failed)
-                throw new CompileException('''Unable to evaluate to an address key''')
+            if (resAddr.failed)
+                throw new CompileException('''Unable to evaluate to an address''')
 
-            val key = resKey.first
-            if (key instanceof DumpedPrivateKey) {
+            val addr = resAddr.first
+            if (addr instanceof Address) {
                                 /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
                 val sb = new P2PKHOutputScript()
                 sb.op(OP_DUP)
                   .op(OP_HASH160)
-                  .data(key.key.pubKeyHash)
-                  .op(OP_EQUALVERIFY)
-                  .op(OP_CHECKSIG)
-                return sb
-            }
-            else if (key instanceof Address) {
-                                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-                val sb = new P2PKHOutputScript()
-                sb.op(OP_DUP)
-                  .op(OP_HASH160)
-                  .data(key.hash)
-                  .op(OP_EQUALVERIFY)
-                  .op(OP_CHECKSIG)
-                return sb
-            }
-            else if (key instanceof ECKey) {
-                                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-                val sb = new P2PKHOutputScript()
-                sb.op(OP_DUP)
-                  .op(OP_HASH160)
-                  .data(key.pubKeyHash)
+                  .data(addr.addressByte)
                   .op(OP_EQUALVERIFY)
                   .op(OP_CHECKSIG)
                 return sb
             }
             else {
-                throw new CompileException('''Unable to evaluate to a private key: «key»''')
+                throw new CompileException('''Unable to evaluate to a an address. Result is: «addr»''')
             }
 
         } else if (outScript.isP2SH(rho)) {
 
             // get the redeem script to serialize
-            var redeemScript = output.script.compileRedeemScript(rho)
+            var redeemScript = (output.script as Script).compileRedeemScript(rho)
 
             /* OP_HASH160 <script hash-160> OP_EQUAL */
             redeemScript
@@ -343,25 +325,22 @@ class ScriptCompiler {
         val resKey = stmt.privkey.interpret(ctx.rho)
 
         if (resKey.failed) {
-            // check if the privkey is a tx parameter
+            // check if the privkey is a tx parameter 
             if (stmt.privkey instanceof Reference) {
                 val ref = stmt.privkey as Reference
-                if (ref.ref instanceof Parameter) {
-                    val param = ref.ref as Parameter
-                    if (param.isTxParameter) {
-                        // the signature placeholder will evaluate to the actual parameter when signing
-                        var sb = new ScriptBuilder2().signaturePlaceholderKeyFree(param.name, hashType, anyoneCanPay)
-                        return sb
-                    }
+                if (ref.ref instanceof TransactionParameter) {
+                    val param = ref.ref as TransactionParameter
+                    // the signature placeholder will evaluate to the actual parameter when signing
+                    var sb = new ScriptBuilder2().signaturePlaceholderKeyFree(param.name, hashType, anyoneCanPay)
+                    return sb
                 }
             }
-
             throw new CompileException('''Unable to evaluate to a private key''')
         }
 
         val key = resKey.first
-        if (key instanceof DumpedPrivateKey) {
-            var sb = new ScriptBuilder2().signaturePlaceholder(ECKeyStore.getUniqueID(key.key), hashType, anyoneCanPay)
+        if (key instanceof PrivateKey) {
+            var sb = new ScriptBuilder2().signaturePlaceholder(ECKeyStore.getUniqueID(key.privateKeyWif), hashType, anyoneCanPay)
             sb
         }
         else {
@@ -523,11 +502,8 @@ class ScriptCompiler {
                 throw new CompileException('''Unable to evaluate the key''')
 
             val key = resKey.first
-            if (key instanceof DumpedPrivateKey) {
-                sb.data(key.key.pubKey)
-            }
-            else if (key instanceof ECKey) {
-                sb.data(key.pubKey)
+            if (key instanceof PublicKey) {
+                sb.data(key.publicKeyByte)
             }
             else {
                 throw new CompileException('''Unable to evaluate key «key»''')
@@ -545,11 +521,8 @@ class ScriptCompiler {
                     throw new CompileException('''Unable to evaluate key «k»''')
 
                 val key = resKey.first
-                if (key instanceof DumpedPrivateKey) {
-                    sb.data(key.key.pubKey)
-                }
-                else if (key instanceof ECKey) {
-                    sb.data(key.pubKey)
+                if (key instanceof PublicKey) {
+                    sb.data(key.publicKeyByte)
                 }
                 else {
                     throw new CompileException('''Unable to evaluate key «key»''')
@@ -588,9 +561,7 @@ class ScriptCompiler {
             return exp.compileExpression(ctx)
         }
         else {
-
-            var refContainer = param.eContainer
-            if (refContainer instanceof Script) {
+            if (param instanceof ScriptParameter) {
 
                 /*
                  * N: altezza dell'altstack
@@ -633,12 +604,12 @@ class ScriptCompiler {
                 }
                 return sb
             }
-            else if (param.isTxParameter) {
+            else if (param instanceof TransactionParameter) {
                 // transaction parameter
                 return new ScriptBuilder2().addVariable(param.name, param.type.convertType)
             }
             else
-                throw new CompileException('''unexpected class «refContainer»''')
+                throw new CompileException('''unexpected class «param»''')
         }
     }
 }
