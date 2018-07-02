@@ -26,11 +26,6 @@
             <artifactId>org.eclipse.equinox.security</artifactId>
             <version>1.2.300</version>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.xsemantics</groupId>
-            <artifactId>org.eclipse.xsemantics.dsl</artifactId>
-            <version>${xsemantics.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -224,7 +219,7 @@
                 so it needs to resolve xsemantics runtime dependencies from the p2 repository -->
             <id>Xsemantics</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/xsemantics/milestones/1.14</url>
+            <url>http://download.eclipse.org/xsemantics/milestones/</url>
         </repository>
     </repositories>
 
