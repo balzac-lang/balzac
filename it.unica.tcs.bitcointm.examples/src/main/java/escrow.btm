@@ -1,5 +1,7 @@
 package escrow
 
+const a = 23
+
 const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
 const kApub = pubkey:03fed06d54f936a82333d7917da934111ae232a0c9a57b37d9b47dcd0bc879a7a4
 const addrA = address:mkCEpRJv2DnfZrwDZ7BRjitSXmTx3gz8gd
