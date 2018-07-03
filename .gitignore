@@ -22,3 +22,5 @@ xsemantics-gen
 !.project
 !.travis.yml
 !it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar
+
+plugin.xml_gen
