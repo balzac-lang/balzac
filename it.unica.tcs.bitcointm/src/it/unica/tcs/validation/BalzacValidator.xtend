@@ -13,7 +13,6 @@ import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.Div
 import it.unica.tcs.balzac.Import
 import it.unica.tcs.balzac.Input
-import it.unica.tcs.balzac.InputValue
 import it.unica.tcs.balzac.IsMinedCheck
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Model
@@ -29,6 +28,8 @@ import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.TransactionInputOperation
+import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.Versig
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
@@ -40,6 +41,7 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 import java.util.HashMap
 import java.util.HashSet
 import java.util.Map
@@ -66,7 +68,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.xsemantics.interpreter.PublicKey
 
 /**
  * This class contains custom validation rules.
@@ -1146,29 +1147,49 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkInputValExpression(InputValue inval) {
-        // expression is allowed only inside transactions
-        val containingTx = EcoreUtil2.getContainerOfType(inval, Transaction);
+    def void checkThis(Reference ref) {
+        if (!ref.isThis)
+            return
+
+        // 'this' reference is allowed only inside transactions
+        val containingTx = EcoreUtil2.getContainerOfType(ref, Transaction);
         val isInsideTx = containingTx !== null
         
         if (!isInsideTx) {
             error(
-                "This expression is allowed only within transactions.",
-                inval.eContainer,
-                inval.eContainingFeature
+                "Reference 'this' is allowed only within transactions.",
+                ref.eContainer,
+                ref.eContainingFeature
+            );
+            return
+        }
+    }
+
+    @Check
+    def void checkTransactionInputOperation(TransactionInputOperation op) {
+        // expression is allowed only inside transactions
+        val txRes = op.tx.interpretE
+
+        if (txRes.failed) {
+            error(
+                "Cannot evaluate expression "+op.tx.nodeToString,
+                op,
+                BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__TX
             );
             return
         }
 
+        val tx = txRes.first as ITransactionBuilder
+
         // each idx is in range
         var hasError = false;
-        for (var i=0; i<inval.inputIdxs.size; i++) {
-            val idx = inval.inputIdxs.get(i)
-            if (idx > containingTx.inputs.size) {
+        for (var i=0; i<op.indexes.size; i++) {
+            val idx = op.indexes.get(i)
+            if (idx >= tx.inputs.size) {
                 error(
-                    "Input index out of range.",
-                    inval,
-                    BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    "Index out of range.",
+                    op,
+                    BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
                     i
                 );
                 hasError = true;
@@ -1178,42 +1199,54 @@ class BalzacValidator extends AbstractBalzacValidator {
             return;
 
         // each idx is unique
-        for (var i=0; i<inval.inputIdxs.size-1; i++) {
-            for (var j=i+1; j<inval.inputIdxs.size; j++) {
-                val idx1 = inval.inputIdxs.get(i)
-                val idx2 = inval.inputIdxs.get(j)
+        for (var i=0; i<op.indexes.size-1; i++) {
+            for (var j=i+1; j<op.indexes.size; j++) {
+                val idx1 = op.indexes.get(i)
+                val idx2 = op.indexes.get(j)
                 if (idx1 == idx2) {
                     error(
-                        "Duplicated input index.",
-                        inval,
-                        BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        "Duplicated index.",
+                        op,
+                        BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
                         i
                     );
                     error(
-                        "Duplicated input index.",
-                        inval,
-                        BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                        "Duplicated index.",
+                        op,
+                        BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
                         j
                     );
                     hasError = true;
                 }                    
             }
         }
-        if (hasError)
-            return;
-        
-        // interpret input tx
-        for (var i=0; i<inval.inputIdxs.size; i++) {
-            val idx = inval.inputIdxs.get(i)
-            val inputTx = containingTx.inputs.get(idx.intValue).txRef
+    }
 
-            val res = inputTx.interpretE
-            
-            if (res.failed) {
+    @Check
+    def void checkTransactionOutputOperation(TransactionOutputOperation op) {
+        // expression is allowed only inside transactions
+        val txRes = op.tx.interpretE
+
+        if (txRes.failed) {
+            error(
+                "Cannot evaluate expression "+op.tx.nodeToString,
+                op,
+                BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__TX
+            );
+            return
+        }
+
+        val tx = txRes.first as ITransactionBuilder
+
+        // each idx is in range
+        var hasError = false;
+        for (var i=0; i<op.indexes.size; i++) {
+            val idx = op.indexes.get(i)
+            if (idx >= tx.outputs.size) {
                 error(
-                    "Cannot evaluate the input transaction to compute its value",
-                    inval,
-                    BalzacPackage.Literals.INPUT_VALUE__INPUT_IDXS,
+                    "Index out of range.",
+                    op,
+                    BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
                     i
                 );
                 hasError = true;
@@ -1221,6 +1254,29 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
         if (hasError)
             return;
+
+        // each idx is unique
+        for (var i=0; i<op.indexes.size-1; i++) {
+            for (var j=i+1; j<op.indexes.size; j++) {
+                val idx1 = op.indexes.get(i)
+                val idx2 = op.indexes.get(j)
+                if (idx1 == idx2) {
+                    error(
+                        "Duplicated index.",
+                        op,
+                        BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
+                        i
+                    );
+                    error(
+                        "Duplicated index.",
+                        op,
+                        BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
+                        j
+                    );
+                    hasError = true;
+                }
+            }
+        }
     }
 
     @Check

@@ -18,7 +18,6 @@ import it.unica.tcs.balzac.Hash160
 import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
 import it.unica.tcs.balzac.IfThenElse
-import it.unica.tcs.balzac.InputValue
 import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Max
@@ -42,6 +41,8 @@ import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.TransactionInputOperation
+import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.Hash.HashAlgorithm
 import it.unica.tcs.lib.ITransactionBuilder
@@ -99,9 +100,12 @@ from {
         logger.trace(G.get("tab")+"INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
         G.add("tab", G.get("tab")+"|\t")
     }
-    
-    if (v.ref instanceof Transaction) {
-        val tx = v.ref as Transaction
+
+    if (v.ref instanceof Transaction || v.isThis) {
+        val tx =
+            if (v.isThis) EcoreUtil2.getContainerOfType(v, Transaction)
+            else v.ref as Transaction
+
         // create a fresh rho to evaluate T
         val newRho = rho.fresh
         for (var i=0; i<v.actualParams.size; i++) {
@@ -512,24 +516,43 @@ from {
     }
 }
 
-rule InterpretInputValue
-    G |- InputValue stmt |> Rho rho ~> Long result
+rule InterpretTransactionInputOperation
+    G |- TransactionInputOperation op |> Rho rho ~> Long result
 from {
-    val containingTx = EcoreUtil2.getContainerOfType(stmt, Transaction);
-    var value = 0L;
+    G |- op.tx |> rho ~> var ITransactionBuilder txBuilder
 
-    for (idx : stmt.inputIdxs) {
-        val outIdx = containingTx.inputs.get(idx.intValue).outpoint.intValue
-        G |- containingTx.inputs.get(idx.intValue).txRef |> rho ~> var ITransactionBuilder inTx    
+    var value = 0L;
+    for (idx : op.indexes) {
+        val outIdx = txBuilder.inputs.get(idx.intValue).outIndex
+        val inTx = txBuilder.inputs.get(idx.intValue).parentTx
         value += inTx.outputs.get(outIdx).value
     }
 
-    if (stmt.inputIdxs.^empty) {
-        for (input : containingTx.inputs) {
-            val outIdx = input.outpoint.intValue
-            G |- input.txRef |> rho ~> var ITransactionBuilder inTx    
+    if (op.indexes.^empty) {
+        for (input : txBuilder.inputs) {
+            val outIdx = input.outIndex
+            val inTx = input.parentTx
             value += inTx.outputs.get(outIdx).value
         }
     }
     result = value;
 }
+
+rule InterpretTransactionOutputOperation
+    G |- TransactionOutputOperation op |> Rho rho ~> Long result
+from {
+    G |- op.tx |> rho ~> var ITransactionBuilder txBuilder
+
+    var value = 0L
+    for (idx : op.indexes) {
+        value += txBuilder.outputs.get(idx.intValue).value
+    }
+
+    if (op.indexes.^empty) {
+        for (^output : txBuilder.outputs) {
+            value += ^output.value
+        }
+    }
+    result = value;
+}
+

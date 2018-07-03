@@ -92,6 +92,9 @@ IsNotMinedCheck: {IsMinedCheck} "@isNotMined";
  * expressions
  */
 TransactionExpression:
+    AtomicTransactionExpression;
+
+AtomicTransactionExpression returns TransactionExpression:
     TransactionLiteral
 |   Reference;
 
@@ -126,8 +129,13 @@ Multiply returns Expression:
 Prefixed returns Expression:
     {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
     {ArithmeticSigned} =>"-" exp=AtomicExpression | /* right associativity */
-    AtomicExpression;
+    TransactionOperation;
 
+TransactionOperation returns Expression:
+    AtomicExpression ( "." (
+        {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=LONG ("," indexes+=LONG)* ")")?  "." "value" |
+        {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=LONG ("," indexes+=LONG)* ")")? "." "value"
+    ))?;
 
 AtomicExpression returns Expression:
 '(' Expression ')'
@@ -143,11 +151,10 @@ AtomicExpression returns Expression:
 |   Between
 |   Size
 |	AfterTimeLock
-|   InputValue
 ;
 
 Reference:
-	ref=[Referrable|QualifiedName]
+    (isThis?="this" | ref=[Referrable|QualifiedName])
 	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Referrable:
@@ -212,8 +219,6 @@ Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
 AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
-InputValue: {InputValue} "input.value" (=> "(" (inputIdxs+=LONG ("," inputIdxs+=LONG)*)? ")")?;
-
 
 Type:
 	BasicType

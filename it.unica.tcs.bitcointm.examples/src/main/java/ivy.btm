@@ -222,17 +222,17 @@ const addr1 = address:mqxSTgNhVw7yMooY1H9SQFdJ2rrqqRben9
 const addr2 = address:mmmUHDB4rQasyk5FszofhjfEW9vHuZM5Lz
 const addr3 = address:n3s2D2TSroNtMdAFV88YfhExUmNidqesD1
 
-const value = 1 BTC
+const v = 1 BTC
 
 eval
-    LockWithPublicKey(k1, value),
-    LockWithMultisig(k1, k2, k3, value),
-    LockWithPublicKeyHash(k1, value),
-    RevealPreimage(sha256("secret"), value),
-    RevealCollision(value),
-    RevealFixedPoint(value),
-    LockUntil(k1, 500, value),
-    LockDelay(k1, 500, value),
-    TransferWithTimeout(k1, k2, 500, value),
-    EscrowWithDelay(k1, k2, k3, value),
-    VaultSpend(k1, k2, value)
+    LockWithPublicKey(k1, v),
+    LockWithMultisig(k1, k2, k3, v),
+    LockWithPublicKeyHash(k1, v),
+    RevealPreimage(sha256("secret"), v),
+    RevealCollision(v),
+    RevealFixedPoint(v),
+    LockUntil(k1, 500, v),
+    LockDelay(k1, 500, v),
+    TransferWithTimeout(k1, k2, 500, v),
+    EscrowWithDelay(k1, k2, k3, v),
+    VaultSpend(k1, k2, v)

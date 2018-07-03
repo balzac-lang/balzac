@@ -27,7 +27,6 @@ import it.unica.tcs.balzac.HashType
 import it.unica.tcs.balzac.HashableType
 import it.unica.tcs.balzac.IfThenElse
 import it.unica.tcs.balzac.Input
-import it.unica.tcs.balzac.InputValue
 import it.unica.tcs.balzac.IntType
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.KeyType
@@ -59,6 +58,8 @@ import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.TransactionInputOperation
+import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.TransactionType
 import it.unica.tcs.balzac.Type
 import it.unica.tcs.balzac.TypeVariable
@@ -69,6 +70,7 @@ import it.unica.tcs.validation.AbstractBalzacValidator
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
+import org.eclipse.xtext.EcoreUtil2
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -273,8 +275,17 @@ from {
         val param = varRef.ref as Parameter
         G |- substitutions |> param : type
     }
-    else if (varRef.ref instanceof Transaction) {
-        val tx = varRef.ref as Transaction
+    else if (varRef.ref instanceof Transaction || varRef.isThis) {
+        val tx =
+            if (varRef.isThis) EcoreUtil2.getContainerOfType(varRef, Transaction)
+            else varRef.ref as Transaction
+
+        // check if tx is already visited
+        if (substitutions.isAlreadyVisited(tx)) {
+            fail
+                error "Found cyclic dependency"
+                source varRef
+        }
 
         if (varRef.actualParams.size != tx.params.size) {
             fail
@@ -306,7 +317,6 @@ from {
             // the actual param type must be unifiable with the formal param type
             unify(actualParam, substitutions, actualParamType, formalParamType)
         }
-
     }
     else {
         fail
@@ -359,7 +369,6 @@ from {
 rule Input
     G |- TypeSubstitutions substitutions |> Input input : BalzacFactory::eINSTANCE.createVoidType
 from {
-
     if (!input.isPlaceholder) {
 
         val txType = BalzacFactory::eINSTANCE.createTransactionType
@@ -427,7 +436,7 @@ rule Output
     G |- TypeSubstitutions substitutions |> Output _output : BalzacFactory::eINSTANCE.createVoidType
 from {
     var satoshis = _output.value.exp
-    G |- new TypeSubstitutions() |> satoshis : var Type valType
+    G |- substitutions |> satoshis : var Type valType
     valType = typesubstitution(substitutions, valType)
     unify(satoshis, substitutions, valType, BalzacFactory::eINSTANCE.createIntType)
 
@@ -853,9 +862,6 @@ from {
     texpr = typesubstitution(substitutions, texpr)
 }
 
-axiom InputValue
-    G |- TypeSubstitutions substitutions |> InputValue inval: BalzacFactory::eINSTANCE.createIntType
-
 
 rule Compile
     G |- TypeSubstitutions substitutions |> Eval compile: BalzacFactory::eINSTANCE.createVoidType
@@ -865,6 +871,25 @@ from {
         texpr = typesubstitution(substitutions, texpr)
         failIfNotBasic(texpr, e)
     }
+}
+
+
+rule TransactionInOputOperation
+    G |- TypeSubstitutions substitutions |> TransactionInputOperation op: BalzacFactory::eINSTANCE.createIntType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+
+    G |- substitutions |> op.tx: var Type type
+    unify(op.tx, substitutions, type, txType)
+}
+
+rule TransactionOutputOperation
+    G |- TypeSubstitutions substitutions |> TransactionOutputOperation op: BalzacFactory::eINSTANCE.createIntType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+
+    G |- substitutions |> op.tx: var Type type
+    unify(op.tx, substitutions, type, txType)
 }
 
 /*

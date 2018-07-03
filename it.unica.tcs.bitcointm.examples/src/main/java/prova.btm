@@ -95,7 +95,7 @@ transaction bar {
 
 transaction foo(k: key) {
 	input = bar: sig(k)
-    output = input.value - 5: fun(x) . x == 42
+    output = bar.output.value - 5: fun(x) . x == 42
 }
 
 transaction foo2 {
@@ -103,7 +103,7 @@ transaction foo2 {
     	foo(kA): 42;
     	test("pippo"): "pippo"
 	]
-    output = input.value(1) - 5: fun(x) . x == 42
+    output = foo(kA).output.value - 5: fun(x) . x == 42
 }
 
-eval foo(kA), foo2, (5+2)
+eval foo2.output.value, foo2.input.value, foo(kA).output.value
