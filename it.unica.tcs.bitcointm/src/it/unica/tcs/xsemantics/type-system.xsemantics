@@ -232,9 +232,9 @@ from {
     or {
         type = lambdaUtils.createFreshTypeVariable
     }
-
+    
     substitutions.addVisited(c)
-    G |- substitutions |> c.exp : var Type expType
+    G |- substitutions |> (c.exp as Typeable) : var Type expType
     type = unify(c.exp, substitutions, expType, type)
     substitutions.removeVisited(c)
 

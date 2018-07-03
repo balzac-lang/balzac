@@ -42,7 +42,7 @@ ScriptParameter returns Parameter: {ScriptParameter} name=ID (":" type=BasicType
  */
 
 Constant:
-	"const" name=ID (":" type=BasicType)? "=" exp=Expression;
+	"const" name=ID (":" type=BasicType)? "=" exp=(Expression|TransactionLiteral);
 
 Transaction:
 	checks+=OnDemandCheck*
@@ -56,7 +56,7 @@ Script returns Expression:
     {Script} (lambda?="fun" "(" (params+=ScriptParameter ("," params+=ScriptParameter)*)? ")" ".")? exp=Expression;
 
 Input:
-	txRef=Expression ("@" outpoint=LONG)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
+	txRef=TransactionExpression ("@" outpoint=LONG)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
@@ -76,7 +76,7 @@ AbsoluteTime:
 RelativeTime:
 	((value=Expression block?="block")
 	| (delay=Delay))
-	("from" tx=Expression)?;
+	("from" tx=TransactionExpression)?;
 
 
 /* on-demand checks */
@@ -89,8 +89,18 @@ IsNotMinedCheck: {IsMinedCheck} "@isNotMined";
 
 
 /*
- * script expressions
+ * expressions
  */
+TransactionExpression:
+    TransactionLiteral
+|   Reference;
+
+TransactionLiteral:
+    TransactionHexLiteral
+|   TransactionIDLiteral;
+
+TransactionHexLiteral: value=TXSERIAL;
+TransactionIDLiteral: value=TXID;
 
 Expression:
     OrExpression;
@@ -142,7 +152,7 @@ Reference:
 
 Referrable:
 	Parameter
-|	Transaction
+|   Transaction
 |	Constant;
 
 Literal:
@@ -154,13 +164,9 @@ Literal:
 |	KeyLiteral
 |	AddressLiteral
 |   PubKeyLiteral
-|   TransactionLiteral
 |	SignatureLiteral
 |   SignaturePlaceholder;
 
-TransactionLiteral:
-    TransactionHexLiteral
-|   TransactionIDLiteral;
 
 NumberLiteral: value=Number;
 StringLiteral: value=STRING;
@@ -170,8 +176,6 @@ HashLiteral: value=HASH_TERM;
 KeyLiteral: value=KEY_WIF;
 AddressLiteral: value=ADDRESS_WIF;
 PubKeyLiteral: value=PUBKEY;
-TransactionHexLiteral: value=TXSERIAL;
-TransactionIDLiteral: value=TXID;
 SignatureLiteral: value=SIGHEX;
 SignaturePlaceholder: {SignaturePlaceholder} "_";
 
@@ -180,7 +184,7 @@ IfThenElse:
 	"then" then=AtomicExpression
 	'else' else=AtomicExpression;
 
-Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=AtomicExpression (=>"@" inputIdx=LONG)?)?;
+Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=TransactionExpression (=>"@" inputIdx=LONG)?)?;
 
 enum Modifier:
 	AIAO
@@ -249,6 +253,7 @@ Typeable:
   Parameter
 | Constant
 | Transaction
+| TransactionExpression
 | Script
 | Input
 | Output
@@ -259,7 +264,8 @@ Typeable:
 Interpretable:
 	Expression
 |   Script
-|	Transaction;
+|	Transaction
+|   TransactionExpression;
 
 Number returns ecore::ELong:
 	LONG ('.' LONG)? "BTC"?

@@ -57,6 +57,7 @@ import it.unica.tcs.balzac.Script;
 import it.unica.tcs.balzac.SignatureLiteral;
 import it.unica.tcs.balzac.StringLiteral;
 import it.unica.tcs.balzac.Timelock;
+import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
@@ -141,7 +142,7 @@ public class ASTUtils {
         throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 
-    public Set<TransactionParameter> getTxVariables(Expression exp) {
+    public Set<TransactionParameter> getTxVariables(EObject exp) {
         List<Reference> list = new ArrayList<>(EcoreUtil2.getAllContentsOfType(exp, Reference.class));
         if (exp instanceof Reference)
             list.add((Reference) exp);
@@ -155,7 +156,7 @@ public class ASTUtils {
         return refs;
     }
 
-    public boolean hasTxVariables(Expression exp) {
+    public boolean hasTxVariables(EObject exp) {
         return !getTxVariables(exp).isEmpty();
     }
 
@@ -256,7 +257,7 @@ public class ASTUtils {
         return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
     }
 
-    public boolean isCoinbase(Expression tx) {
+    public boolean isCoinbase(TransactionExpression tx) {
         Result<Object> res = this.interpreter.interpretE(tx);
 
         if (res.failed())
@@ -273,7 +274,7 @@ public class ASTUtils {
         }
     }
 
-    public boolean isSerial(Expression tx) {
+    public boolean isSerial(TransactionExpression tx) {
         Result<Object> res = this.interpreter.interpretE(tx);
 
         if (res.failed())

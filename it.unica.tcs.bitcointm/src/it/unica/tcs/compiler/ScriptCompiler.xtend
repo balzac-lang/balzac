@@ -71,6 +71,7 @@ import org.eclipse.xtext.EcoreUtil2
 import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.balzac.TransactionParameter
 import it.unica.tcs.balzac.ScriptParameter
+import it.unica.tcs.balzac.Interpretable
 
 /*
  * EXPRESSIONS
@@ -545,7 +546,7 @@ class ScriptCompiler {
 
     def private dispatch ScriptBuilder2 compileReferrable(Constant const, Context ctx) {
                 
-        val value = const.exp.interpretSafe(ctx.rho)
+        val value = (const.exp as Interpretable).interpretSafe(ctx.rho)
 
         if (value instanceof Literal) {
             return value.compileExpression(ctx)

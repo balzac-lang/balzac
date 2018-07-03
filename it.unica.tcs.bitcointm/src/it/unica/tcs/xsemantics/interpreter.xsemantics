@@ -116,7 +116,7 @@ from {
     else if (v.ref instanceof Constant) {
         // Constant
         val const = v.ref as Constant
-        G |- const.exp |> rho.fresh ~> res
+        G |- (const.exp as Interpretable) |> rho.fresh ~> res
     }
     else if (v.ref instanceof Parameter) {
         // Parameter

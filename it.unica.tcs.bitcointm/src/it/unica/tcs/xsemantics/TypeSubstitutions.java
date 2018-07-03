@@ -10,13 +10,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import it.unica.tcs.balzac.Referrable;
+import org.eclipse.emf.ecore.EObject;
+
 import it.unica.tcs.balzac.Type;
 
 public class TypeSubstitutions {
     protected Map<String, Type> substitutions = new HashMap<>();
 
-    protected Set<Referrable> visited = new HashSet<>();
+    protected Set<EObject> visited = new HashSet<>();
 
     public void reset() {
         substitutions.clear();
@@ -34,17 +35,17 @@ public class TypeSubstitutions {
         return substitutions.entrySet();
     }
 
-    public TypeSubstitutions addVisited(Referrable tx) {
+    public TypeSubstitutions addVisited(EObject tx) {
         visited.add(tx);
         return this;
     }
 
-    public TypeSubstitutions removeVisited(Referrable tx) {
+    public TypeSubstitutions removeVisited(EObject tx) {
         visited.remove(tx);
         return this;
     }
 
-    public boolean isAlreadyVisited(Referrable tx) {
+    public boolean isAlreadyVisited(EObject tx) {
         return visited.contains(tx);
     }
 }
