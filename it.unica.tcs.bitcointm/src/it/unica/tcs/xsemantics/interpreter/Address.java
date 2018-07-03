@@ -53,4 +53,9 @@ public class Address {
         LegacyAddress addr = LegacyAddress.fromBase58(null, wif);
         return new Address(addr.getHash(), addr.getParameters());
     }
+
+    @Override
+    public String toString() {
+        return getAddressWif();
+    }
 }

@@ -54,4 +54,8 @@ public class PrivateKey extends PublicKey {
         return new PrivateKey(key.getKey().getPrivKeyBytes(), key.getParameters());
     }
 
+    @Override
+    public String toString() {
+        return getPrivateKeyWif();
+    }
 }

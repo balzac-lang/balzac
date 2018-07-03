@@ -53,4 +53,9 @@ public class PublicKey extends Address {
     public static PublicKey fromString(String str, NetworkParameters params) {
         return new PublicKey(BitcoinUtils.decode(str), params);
     }
+
+    @Override
+    public String toString() {
+        return getPublivKeyString();
+    }
 }
