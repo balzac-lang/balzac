@@ -68,6 +68,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.balzac.This
 
 /**
  * This class contains custom validation rules.
@@ -1147,10 +1148,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkThis(Reference ref) {
-        if (!ref.isThis)
-            return
-
+    def void checkThis(This ref) {
         // 'this' reference is allowed only inside transactions
         val containingTx = EcoreUtil2.getContainerOfType(ref, Transaction);
         val isInsideTx = containingTx !== null

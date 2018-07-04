@@ -58,6 +58,9 @@ import org.apache.log4j.Logger
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.This
+import it.unica.tcs.balzac.BalzacFactory
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -86,6 +89,18 @@ from {
 /*
  * Interpret
  */
+rule InterpretThis
+    G |- This thiz |> Rho rho ~> Object res
+from {
+    val tx = EcoreUtil2.getContainerOfType(thiz, Transaction)
+    val ref = BalzacFactory.eINSTANCE.createReference
+    ref.ref = tx
+    for (e : thiz.actualParams) {
+        ref.actualParams.add(EcoreUtil::copy(e))
+    }
+    G |- ref |> rho ~> res
+}
+
 rule InterpretReference
     G |- Reference v |> Rho rho ~> Object res
 from {
@@ -101,10 +116,8 @@ from {
         G.add("tab", G.get("tab")+"|\t")
     }
 
-    if (v.ref instanceof Transaction || v.isThis) {
-        val tx =
-            if (v.isThis) EcoreUtil2.getContainerOfType(v, Transaction)
-            else v.ref as Transaction
+    if (v.ref instanceof Transaction) {
+        val tx = v.ref as Transaction
 
         // create a fresh rho to evaluate T
         val newRho = rho.fresh

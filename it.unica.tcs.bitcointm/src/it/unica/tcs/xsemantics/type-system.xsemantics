@@ -71,6 +71,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.This
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -245,6 +246,19 @@ from {
     G.add(c, type)                                  // store the type in env to avoid recomputation
 }
 
+rule This
+    G |- TypeSubstitutions substitutions |> This thiz : BalzacFactory::eINSTANCE.createTransactionType
+from {
+    val tx = EcoreUtil2.getContainerOfType(thiz, Transaction)
+
+    // check if tx is already visited
+    if (substitutions.isAlreadyVisited(tx)) {
+        fail
+            error "Found cyclic dependency"
+            source thiz
+    }
+}
+
 rule Reference
     G |- TypeSubstitutions substitutions |> Reference varRef : Type type
 from {
@@ -275,18 +289,8 @@ from {
         val param = varRef.ref as Parameter
         G |- substitutions |> param : type
     }
-    else if (varRef.ref instanceof Transaction || varRef.isThis) {
-        val tx =
-            if (varRef.isThis) EcoreUtil2.getContainerOfType(varRef, Transaction)
-            else varRef.ref as Transaction
-
-        // check if tx is already visited
-        if (substitutions.isAlreadyVisited(tx)) {
-            fail
-                error "Found cyclic dependency"
-                source varRef
-        }
-
+    else if (varRef.ref instanceof Transaction) {
+        val tx = varRef.ref as Transaction
         if (varRef.actualParams.size != tx.params.size) {
             fail
                 error "Invalid number of actual parameters."

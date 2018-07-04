@@ -20,12 +20,17 @@ import it.unica.tcs.balzac.Reference;
 import it.unica.tcs.balzac.SignatureType;
 import it.unica.tcs.balzac.StringLiteral;
 import it.unica.tcs.balzac.StringType;
+import it.unica.tcs.balzac.This;
 import it.unica.tcs.balzac.TransactionType;
 import it.unica.tcs.balzac.Type;
 import it.unica.tcs.balzac.TypeVariable;
 
 public class BalzacStringRepresentation extends StringRepresentation {
 
+
+    public String stringRep(This intConstant) {
+        return "this";
+    }
 
     public String stringRep(BooleanLiteral intConstant) {
         return intConstant.isTrue()? "true" : "false";

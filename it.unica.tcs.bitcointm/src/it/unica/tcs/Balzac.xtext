@@ -154,7 +154,7 @@ AtomicExpression returns Expression:
 ;
 
 Reference:
-    (isThis?="this" | ref=[Referrable|QualifiedName])
+    ({This} "this" | ref=[Referrable|QualifiedName])
 	( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Referrable:
