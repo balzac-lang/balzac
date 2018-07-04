@@ -18,7 +18,7 @@ const T = tx:02000000017875f000ee77e9adac3224ad43c977b22b02f65339b7c69e1d7780f92
 const Ttimed = tx:02000000017875f000ee77e9adac3224ad43c977b22b02f65339b7c69e1d7780f92e2e7fcb000000006b483045022100fc8688f961d0ecd7f89d227af8521d5192c701e0d0959c96a51afc62f448f60b0220235a40090f9db6b77c4f35fc62dc9938ef99513c2280a57049093c6f745824c6012103ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3ffffffff0100e1f5050000000017a91474b9c8f929132cca47e3fe1380f6d3931bc2e1068700000000
 
 // the signature that Oscar sent to Bob
-const sigO = sig:3045022100bcc2fc0d18a851d558bbf8a3b6c0ce683b8d12408133677f2e2da9463c38eb940220144e289aafffa869d5437a1a570b258f32720b980bd885c483b5bf8befc3f42d01 [pubkey:029c5f6f5ef0095f547799cb7861488b9f4282140d59a6289fbc90c70209c1cced]
+const sigO = sig:3045022100dbcd039b7e093c09f5127006c8d3651df5eb6f1750e2a3d2d702756aaa0517e7022073e395d2e12bdfc658030cd717eb704bcdb2b07838293cc873087dcb91d0c8e701
 
 transaction T1 {
     input = T: sig(kB) sigO [fun(sigB, sigO). versig(kBpub, kOpub; sigB, sigO)]     // the script inside [...] is the redeem script
@@ -30,7 +30,7 @@ const dateD = 2018-12-31
 const deadline = 2019-01-01
 
 // the signature that Oscar sent to Bob
-const sigOtimed = sig:30440220084533221da5a8d30bccd02ba2ae216b8b88d65c97328544b61456cfa5940068022069eacca5d74e73058886b514d5bbcd340e07c830a289d80da339298b4b3b54b701 [pubkey:029c5f6f5ef0095f547799cb7861488b9f4282140d59a6289fbc90c70209c1cced]
+const sigOtimed = sig:304402202b266ce5b6a79ee0e5e492073d7182e7872ad034aa38223aac9db4abeda9c7b80220335e15e2bea4d6a23d3079a005667587074187d1fac551bf128ffbfa1587ec1601
 
 transaction T1timed {
     input = Ttimed: sig(kB) sigOtimed [fun(sigma, sigO). versig(kBpub, kOpub; sigma, sigO) || after date dateD : versig(kApub;sigma)]     // the script inside [...] is the redeem script

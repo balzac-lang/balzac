@@ -46,8 +46,7 @@ const sigA_to_Bob = sig(kA) of T1(_,_,kBpub)
 // 3.2) Alice receives Bob's signature and spends T
 //
 
-const sigB = sig:30450221008dc5731220ff24f4c31af290db94cffee3ef401b19b2e0ab83ea61cc8e19da0f02205be817550ef1bf2109159ea7667e3bc7f52a2e29e0c92f2c2749552f64e1d59701 
-[pubkey:02e08d4262749eae6864cdaae820c500503f713440319eee6f507c1d50d99ec77e]
+const sigB = sig:30450221008dc5731220ff24f4c31af290db94cffee3ef401b19b2e0ab83ea61cc8e19da0f02205be817550ef1bf2109159ea7667e3bc7f52a2e29e0c92f2c2749552f64e1d59701
 const sigA = sig(kA) of T1(_,_,kApub)
 
 eval T1(sigA, sigB, kApub)
