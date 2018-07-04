@@ -965,10 +965,7 @@ from {
     }
 
     // finally eval expressions
-    if (model.eval !== null)
-        for (e : model.eval.exps) {
-            G |- substitutions |> e: var Type texpr
-            texpr = typesubstitution(substitutions, texpr)
-            failIfNotBasic(texpr, e)    
-        }
+    if (model.eval !== null) {
+        G |- substitutions |> model.eval: var Type texpr
+    }
 }
