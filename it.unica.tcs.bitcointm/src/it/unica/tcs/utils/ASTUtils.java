@@ -436,7 +436,7 @@ public class ASTUtils {
             if (res.failed())
                 throw new IllegalStateException("Cannot interpret relative time");
 
-            Long value = (Long) res.getFirst();
+            Long value = (Long)res.getFirst();
 
             return castUnsignedShort(value);
         }

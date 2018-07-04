@@ -5,6 +5,8 @@
 package it.unica.tcs.conversion.converter
 
 import com.google.inject.Inject
+import it.unica.tcs.conversion.converter.longs.LONGHEXValueConverter
+import it.unica.tcs.conversion.converter.longs.LongUnderscoreValueConverter
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.eclipse.xtext.conversion.ValueConverterException
@@ -29,7 +31,6 @@ class NumberValueConverter extends AbstractValueConverter<Long> {
         val Matcher matcher = pattern.matcher(string);
 
         if (matcher.matches()) {
-
             val isBTC = matcher.group("btcpart")!==null
             val intpart = matcher.group("intpart")
             var decpart = matcher.group("decpart")
@@ -38,27 +39,34 @@ class NumberValueConverter extends AbstractValueConverter<Long> {
             if (hexpart!==null)
                 return hexConverter.toValue(hexpart, node)
 
-            if (decpart===null) {
-                if (isBTC) {
-                    return intConverter.toValue(intpart, node) * ONE_BTC_SATOSHI;
+            try {
+                if (decpart===null) {
+                    if (isBTC) {
+                        return Math.multiplyExact(intConverter.toValue(intpart, node), ONE_BTC_SATOSHI);
+                    }
+                    else
+                        return intConverter.toValue(intpart, node)
                 }
-                else
-                    return intConverter.toValue(intpart, node)
+                else {
+                    if (!isBTC)
+                        throw new ValueConverterException("Decimal values are not permitted, except when followed by the keyword 'BTC'.", node, null);
+
+                    // remove trailing zeros
+                    decpart = decpart.replaceAll("0*$", "");
+
+                    if (decpart.length > 8)
+                        throw new ValueConverterException("Couldn't convert input '" + string + "' to an int value. The decimal part is less than 10^-8", node, null);
+
+                    // 0 right padding
+                    decpart = String.format("%-8s", decpart).replace(' ', '0');
+
+                    val unitPart = Math.multiplyExact(intConverter.toValue(intpart, node), ONE_BTC_SATOSHI)
+                    val decimalPart = intConverter.toValue(decpart, node)
+                    return Math.addExact(unitPart, decimalPart)
+                }
             }
-            else {
-                if (!isBTC)
-                    throw new ValueConverterException("Decimal values are not permitted, except when followed by the keyword 'BTC'.", node, null);
-
-                // remove trailing zeros
-                decpart = decpart.replaceAll("0*$", "");
-
-                if (decpart.length > 8)
-                    throw new ValueConverterException("Couldn't convert input '" + string + "' to an int value. The decimal part is less than 10^-8", node, null);
-
-                // 0 right padding
-                decpart = String.format("%-8s", decpart).replace(' ', '0');
-
-                return intConverter.toValue(intpart, node) * ONE_BTC_SATOSHI + intConverter.toValue(decpart, node)
+            catch (ArithmeticException e) {
+                throw new ValueConverterException("Result exceeds 32-bit integer", node, null);
             }
         }
         else {

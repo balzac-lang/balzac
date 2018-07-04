@@ -2,13 +2,14 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.conversion.converter
+package it.unica.tcs.conversion.converter.ints
 
 import org.eclipse.xtext.conversion.ValueConverterException
+import org.eclipse.xtext.conversion.impl.INTValueConverter
 import org.eclipse.xtext.nodemodel.INode
 import org.eclipse.xtext.util.Strings
 
-class IntHexUnderscoreValueConverter extends INTHEXValueConverter {
+class IntUnderscoreValueConverter extends INTValueConverter {
 
     override Integer toValue(String string, INode node) {
         if (Strings.isEmpty(string))

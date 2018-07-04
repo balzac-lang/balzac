@@ -6,7 +6,9 @@ import com.google.common.base.Throwables
 import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
+import it.unica.tcs.balzac.BalzacFactory
 import it.unica.tcs.balzac.Between
+import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
 import it.unica.tcs.balzac.Comparison
@@ -18,6 +20,7 @@ import it.unica.tcs.balzac.Hash160
 import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
 import it.unica.tcs.balzac.IfThenElse
+import it.unica.tcs.balzac.Input
 import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Max
@@ -25,6 +28,7 @@ import it.unica.tcs.balzac.Min
 import it.unica.tcs.balzac.Minus
 import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
+import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.PubKeyLiteral
@@ -37,6 +41,7 @@ import it.unica.tcs.balzac.SignatureLiteral
 import it.unica.tcs.balzac.SignaturePlaceholder
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
+import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
@@ -57,12 +62,8 @@ import java.security.KeyStoreException
 import org.apache.log4j.Logger
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
-import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.This
-import it.unica.tcs.balzac.BalzacFactory
 import org.eclipse.emf.ecore.util.EcoreUtil
-import it.unica.tcs.balzac.Input
-import it.unica.tcs.balzac.Output
+import org.eclipse.xtext.EcoreUtil2
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -207,7 +208,7 @@ from {
 
     try {
         val tx = txBuilder.toTransaction(s.ECKeyStore)
-        val inputIndex = s.inputIdx as int
+        val inputIndex = s.inputIdx
         val sigHashType = astUtils.toHashType(s.modifier)
         val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
     
@@ -255,12 +256,23 @@ from {
     res = txBuilder
 }
 
+rule InterpretBitcoinValue
+    G |- BitcoinValue btc |> Rho rho ~> Long result
+from {
+    G |- btc.unit |> rho ~> var Long unit
+
+    unit = if (btc.isBtc)
+        Math.multiplyExact(unit,100_000_000)
+        else unit
+    result = Math.addExact(unit, btc.decimal)
+}
+
 rule InterpretMinus
     G |- Minus minus |> Rho rho ~> Long result
 from {
     G |- minus.left |> rho ~> var Long leftResult
     G |- minus.right |> rho ~> var Long rightResult
-    result = leftResult - rightResult
+    result = Math.subtractExact(leftResult, rightResult)
 }
 
 rule InterpretTimes
@@ -268,7 +280,7 @@ rule InterpretTimes
 from {
     G |- minus.left |> rho ~> var Long leftResult
     G |- minus.right |> rho ~> var Long rightResult
-    result = leftResult * rightResult
+    result = Math.multiplyExact(leftResult, rightResult)
 }
 
 rule InterpretDiv
@@ -291,9 +303,9 @@ from {
         result = leftString + rightString
     } else {
         // both are int if the expression is well-typed
-        var leftInt = leftResult as Long
-        var rightInt = rightResult as Long
-        result = leftInt + rightInt
+        var left = leftResult as Long
+        var right = rightResult as Long
+        result = Math.addExact(left, right)
     }
 }
 
@@ -551,10 +563,10 @@ from {
         var value = 0L;
         val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
         for (idx : indexes) {
-            val outIdx = tx.inputs.get(idx.intValue).outpoint.intValue
-            val inTx = tx.inputs.get(idx.intValue).txRef
+            val outIdx = tx.inputs.get(idx).outpoint
+            val inTx = tx.inputs.get(idx).txRef
             G |- inTx |> rho ~> var ITransactionBuilder inTxB
-            value += inTxB.outputs.get(outIdx).value
+            value += inTxB.outputs.get(outIdx).value.intValue
         }
         result = value;
         rho.removeVisited(op)
@@ -562,11 +574,11 @@ from {
     or {
         G |- op.tx |> rho ~> var ITransactionBuilder res
         val txB = res
-        var value = 0L;
+        var value = 0L
         val indexes = if (op.indexes.^empty) 0 ..< txB.inputs.size else op.indexes.filter[i|i>=txB.inputs.size].toSet
         for (idx : indexes) {
-            val outIdx = txB.inputs.get(idx.intValue).outIndex
-            val inTx = txB.inputs.get(idx.intValue).parentTx
+            val outIdx = txB.inputs.get(idx).outIndex
+            val inTx = txB.inputs.get(idx).parentTx
             value += inTx.outputs.get(outIdx).value
         }
         result = value;
@@ -590,10 +602,10 @@ from {
         // check that evaluation of output values does not cause a loop
         rho.addVisited(op)
         val tx = EcoreUtil2.getContainerOfType(op, Transaction)
-        var value = 0L;
+        var value = 0L
         val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
         for (idx : indexes) {
-            val vExp = tx.outputs.get(idx.intValue).value.exp
+            val vExp = tx.outputs.get(idx).value
             G |- vExp |> rho ~> var Long v
             value += v
         }
@@ -606,7 +618,7 @@ from {
         var value = 0L
         val indexes = if (op.indexes.^empty) 0 ..< txB.outputs.size else op.indexes.filter[i|i>=txB.outputs.size].toSet
         for (idx : indexes) {
-            value += txB.outputs.get(idx.intValue).value
+            value += txB.outputs.get(idx).value.intValue
         }
         result = value;
     }

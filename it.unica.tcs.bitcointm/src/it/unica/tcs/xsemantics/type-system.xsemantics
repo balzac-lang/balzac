@@ -11,6 +11,7 @@ import it.unica.tcs.balzac.ArithmeticSigned
 import it.unica.tcs.balzac.BalzacFactory
 import it.unica.tcs.balzac.BasicType
 import it.unica.tcs.balzac.Between
+import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
 import it.unica.tcs.balzac.BooleanType
@@ -439,7 +440,7 @@ from {
 rule Output
     G |- TypeSubstitutions substitutions |> Output _output : BalzacFactory::eINSTANCE.createVoidType
 from {
-    var satoshis = _output.value.exp
+    var satoshis = _output.value
     G |- substitutions |> satoshis : var Type valType
     valType = typesubstitution(substitutions, valType)
     unify(satoshis, substitutions, valType, BalzacFactory::eINSTANCE.createIntType)
@@ -537,6 +538,18 @@ axiom AddressLiteral
 axiom PubkeyLiteral
     G |- TypeSubstitutions substitutions |> PubKeyLiteral pk : BalzacFactory::eINSTANCE.createPubkeyType
 
+
+rule BitcoinValue
+    G |- TypeSubstitutions substitutions |> BitcoinValue btc : IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> btc.unit: var Type type
+
+    type = typesubstitution(substitutions, type)
+
+    // the terms type must be unifiable with int type
+    unify(btc.unit, substitutions, type, t)
+}
 
 rule Times
     G |- TypeSubstitutions substitutions |> Times op : IntType t
@@ -928,7 +941,7 @@ from {
         val tx = EcoreUtil2.getContainerOfType(op, Transaction)
         val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
         for(index : indexes) {
-            val vExp = tx.outputs.get(index.intValue).value.exp
+            val vExp = tx.outputs.get(index.intValue).value
             G |- substitutions |> vExp: var Type type
         }
         substitutions.removeVisited(op)

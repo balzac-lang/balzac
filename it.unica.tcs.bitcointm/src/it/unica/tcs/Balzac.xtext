@@ -56,16 +56,13 @@ Script returns Expression:
     {Script} (lambda?="fun" "(" (params+=ScriptParameter ("," params+=ScriptParameter)*)? ")" ".")? exp=Expression;
 
 Input:
-	txRef=TransactionExpression ("@" outpoint=LONG)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
+	txRef=TransactionExpression ("@" outpoint=INT)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
 
 InputPlaceholder returns Input:
 	placeholder?="_";
 
 Output:
-	value=BitcoinValue ":" script=Script;
-
-BitcoinValue:
-	exp=Expression;
+	value=Expression ":" script=Script;
 
 Timelock:
 	"after" (AbsoluteTime | RelativeTime);
@@ -124,7 +121,10 @@ Addition returns Expression:
     Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*;
 
 Multiply returns Expression:
-    Prefixed (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*;
+    BitcoinValue (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*;
+
+BitcoinValue returns Expression:
+    Prefixed ({BitcoinValue.unit=current} (decimal=BTC_DECIMAL)? btc?="BTC")?;
 
 Prefixed returns Expression:
     {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
@@ -133,8 +133,8 @@ Prefixed returns Expression:
 
 TransactionOperation returns Expression:
     AtomicExpression ( "." (
-        {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=LONG ("," indexes+=LONG)* ")")?  "." "value" |
-        {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=LONG ("," indexes+=LONG)* ")")? "." "value"
+        {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value" |
+        {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
     ))?;
 
 AtomicExpression returns Expression:
@@ -191,7 +191,7 @@ IfThenElse:
 	"then" then=AtomicExpression
 	'else' else=AtomicExpression;
 
-Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=TransactionExpression (=>"@" inputIdx=LONG)?)?;
+Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=TransactionExpression (=>"@" inputIdx=INT)?)?;
 
 enum Modifier:
 	AIAO
@@ -272,9 +272,7 @@ Interpretable:
 |	Transaction
 |   TransactionExpression;
 
-Number returns ecore::ELong:
-	LONG ('.' LONG)? "BTC"?
-|	LONG_HEX;
+Number returns ecore::ELong: INT | INT_HEX;
 
 /*
  * 2h
@@ -284,16 +282,19 @@ Number returns ecore::ELong:
 Delay:
 	{Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
 
-terminal MINUTE_DELAY returns ecore::ELong: LONG ("m"|"min"|"minute"|"minutes");
-terminal HOUR_DELAY   returns ecore::ELong: LONG ("h"|"hour"|"hours");
-terminal DAY_DELAY    returns ecore::ELong: LONG ("d"|"day"|"days");
+terminal MINUTE_DELAY returns ecore::EInt: INT ("m"|"min"|"minute"|"minutes");
+terminal HOUR_DELAY   returns ecore::EInt: INT ("h"|"hour"|"hours");
+terminal DAY_DELAY    returns ecore::EInt: INT ("d"|"day"|"days");
 
-terminal LONG_HEX returns ecore::ELong:
+terminal INT_HEX returns ecore::EInt:
 	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F')
 	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
 
-terminal LONG returns ecore::ELong:
+@Override
+terminal INT returns ecore::EInt:
 	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
+
+BTC_DECIMAL returns ecore::EInt:       '.' INT;
 
 terminal HASH_TERM returns ecore::EByteArray:  'hash:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXID returns ecore::EString:          'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
@@ -324,9 +325,6 @@ terminal SECOND: ('0'..'9')('0'..'9');
 terminal OFFSET_SIGN: "+"|"-";
 terminal OFFSET_HOUR:   ('0'..'9')('0'..'9');
 terminal OFFSET_MINUTE: ('0'..'9')('0'..'9');
-
-@Override
-terminal INT returns ecore::EInt: LONG;
 
 Eval:
 	{Eval} "eval" exps+=Expression ("," exps+=Expression)*

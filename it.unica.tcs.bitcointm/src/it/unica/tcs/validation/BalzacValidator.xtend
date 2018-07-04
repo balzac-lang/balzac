@@ -9,17 +9,19 @@ import it.unica.tcs.balzac.AbsoluteTime
 import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.BalzacPackage
-import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.Div
+import it.unica.tcs.balzac.Expression
 import it.unica.tcs.balzac.Import
 import it.unica.tcs.balzac.Input
 import it.unica.tcs.balzac.IsMinedCheck
 import it.unica.tcs.balzac.KeyLiteral
+import it.unica.tcs.balzac.Minus
 import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.Modifier
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.PackageDeclaration
 import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
 import it.unica.tcs.balzac.RelativeTime
@@ -56,7 +58,9 @@ import org.bitcoinj.core.VerificationException
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
@@ -70,9 +74,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
-import org.eclipse.emf.ecore.EStructuralFeature
-import org.eclipse.emf.common.util.EList
-import it.unica.tcs.balzac.Expression
 
 /**
  * This class contains custom validation rules.
@@ -833,7 +834,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Check
     def void checkPositiveOutValue(Output output) {
 
-        var value = output.value.exp.interpretE.first as Long
+        var value = output.value.interpretE.first as Long
         var script = output.script as it.unica.tcs.balzac.Script
 
         if (script.isOpReturn(new Rho) && value>0) {
@@ -1215,7 +1216,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         return 0
     }
 
-    def private checkTransactionOperationIndexes(EList<Long> indexes, int limit, EObject source, EStructuralFeature feature) {
+    def private checkTransactionOperationIndexes(EList<Integer> indexes, int limit, EObject source, EStructuralFeature feature) {
         // each idx is in range
         var hasError = false;
         for (var i=0; i<indexes.size; i++) {
@@ -1242,18 +1243,82 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkPositiveBitcoinValue(BitcoinValue bvalue) {
-        val res = bvalue.exp.interpretE
-        
-        if (!res.failed) {
+    def void checkDivisionByZero(Div divide) {
+        val res = divide.right.interpretE
+
+        if (!res.failed && res.first instanceof Long) {
             val value = res.first as Long
-            if (value < 0) {
+            if (value == 0) {
                 error(
-                    "The value of the output script cannot be negative.",
-                    bvalue,
-                    BalzacPackage.Literals.BITCOIN_VALUE__EXP
+                    "Division by 0",
+                    divide,
+                    BalzacPackage.Literals.DIV__RIGHT
                 );
             }
         }
     }
+
+    @Check
+    def void checkIntegerOverflows(Plus plus) {
+        val left = plus.left.interpretE
+        val right = plus.right.interpretE
+
+        if (!left.failed && !right.failed &&
+            left.first instanceof Long && right.first instanceof Long
+        ) {
+            try {
+                Math.addExact(left.first as Long, right.first as Long)
+            }
+            catch (ArithmeticException e) {
+                error(
+                    "Result overflows 64-bit integer",
+                    plus,
+                    null
+                );
+            }
+        }
+    }
+
+    @Check
+    def void checkIntegerOverflows(Minus minus) {
+        val left = minus.left.interpretE
+        val right = minus.right.interpretE
+
+        if (!left.failed && !right.failed &&
+            left.first instanceof Long && right.first instanceof Long
+        ) {
+            try {
+                Math.subtractExact(left.first as Long, right.first as Long)
+            }
+            catch (ArithmeticException e) {
+                error(
+                    "Result overflows 64-bit integer",
+                    minus,
+                    null
+                );
+            }
+        }
+    }
+
+    @Check
+    def void checkIntegerOverflows(Times times) {
+        val left = times.left.interpretE
+        val right = times.right.interpretE
+
+        if (!left.failed && !right.failed &&
+            left.first instanceof Long && right.first instanceof Long
+        ) {
+            try {
+                Math.multiplyExact(left.first as Long, right.first as Long)
+            }
+            catch (ArithmeticException e) {
+                error(
+                    "Result overflows 64-bit integer",
+                    times,
+                    null
+                );
+            }
+        }
+    }
+
 }

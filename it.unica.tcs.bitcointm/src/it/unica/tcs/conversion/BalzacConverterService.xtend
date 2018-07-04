@@ -5,9 +5,9 @@
 package it.unica.tcs.conversion
 
 import com.google.inject.Inject
-import it.unica.tcs.conversion.converter.LongUnderscoreValueConverter
 import it.unica.tcs.conversion.converter.NumberValueConverter
 import it.unica.tcs.conversion.converter.TimestampValueConverter
+import it.unica.tcs.conversion.converter.ints.IntUnderscoreValueConverter
 import it.unica.tcs.lib.utils.BitcoinUtils
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.DumpedPrivateKey
@@ -18,12 +18,13 @@ import org.eclipse.xtext.conversion.ValueConverter
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
 import org.eclipse.xtext.nodemodel.INode
+import org.eclipse.xtext.conversion.impl.AbstractValueConverter
 
 class BalzacConverterService extends DefaultTerminalConverters {
 
-    @Inject private NumberValueConverter numberValueConverter;
-    @Inject private TimestampValueConverter timestampTerminalConverter;
-    @Inject private LongUnderscoreValueConverter longTerminalConverter;
+    @Inject NumberValueConverter numberValueConverter;
+    @Inject TimestampValueConverter timestampTerminalConverter;
+    @Inject IntUnderscoreValueConverter intTerminalConverter;
 
     @ValueConverter(rule = "Number")
     def IValueConverter<Long> getNumberConverter() {
@@ -44,9 +45,9 @@ class BalzacConverterService extends DefaultTerminalConverters {
         return timestampTerminalConverter
     }
 
-    @ValueConverter(rule = "LONG")
-    def IValueConverter<Long> getLongConverter() {
-        return longTerminalConverter
+    @ValueConverter(rule = "INT")
+    def IValueConverter<Integer> getIntConverter() {
+        return intTerminalConverter
     }
 
     @ValueConverter(rule = "TXID")
@@ -77,7 +78,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                     TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(value), true, true)
                 }
                 catch (Exception e) {
-                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid signature.\n\nDetails: "+e.message, node, e);
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid signature. Details: "+e.message, node, null);
                 }
                 value
             }
@@ -96,7 +97,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                     return value;
                 }
                 catch (Exception e) {
-                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key. \n\nDetails: "+e.message, node, e);
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key. Details: "+e.message, node, null);
             	}
             }
         }
@@ -115,34 +116,34 @@ class BalzacConverterService extends DefaultTerminalConverters {
                     return value;
                 }
                 catch(Exception e)
-                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid address. \n\nDetails: "+e.message, node, e);
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid address. Details: "+e.message, node, null);
             }
         }
     }
 
     @ValueConverter(rule = "MINUTE_DELAY")
-    def IValueConverter<Long> getMinuteDelay() {
-        return new AbstractLexerBasedConverter<Long>() {
+    def IValueConverter<Integer> getMinuteDelay() {
+        return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Long.parseLong(string.substring(0, string.indexOf("m")))
+                Integer.parseInt(string.substring(0, string.indexOf("m")))
             }
         }
     }
 
     @ValueConverter(rule = "HOUR_DELAY")
-    def IValueConverter<Long> getHourDelay() {
-        return new AbstractLexerBasedConverter<Long>() {
+    def IValueConverter<Integer> getHourDelay() {
+        return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Long.parseLong(string.substring(0, string.indexOf("h")))
+                Integer.parseInt(string.substring(0, string.indexOf("h")))
             }
         }
     }
 
     @ValueConverter(rule = "DAY_DELAY")
-    def IValueConverter<Long> getDayDelay() {
-        return new AbstractLexerBasedConverter<Long>() {
+    def IValueConverter<Integer> getDayDelay() {
+        return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Long.parseLong(string.substring(0, string.indexOf("d")))
+                Integer.parseInt(string.substring(0, string.indexOf("d")))
             }
         }
     }
@@ -152,6 +153,28 @@ class BalzacConverterService extends DefaultTerminalConverters {
         return new AbstractLexerBasedConverter<String>() {
             override toValue(String string, INode node) throws ValueConverterException {
                 string.split(":").get(1)
+            }
+        }
+    }
+
+    @ValueConverter(rule = "BTC_DECIMAL")
+    def IValueConverter<Integer> getBTC_DECIMAL() {
+        return new AbstractValueConverter<Integer> {
+            override toValue(String string, INode node) throws ValueConverterException {
+                var value = string.split("\\.").get(1).trim
+
+                // remove trailing zeros
+                value = value.replaceAll("0*$", "");
+
+                if (value.length > 8)
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to an int value. The decimal must be less than 10^-8", node, null);
+
+                // 0 right padding
+                value = String.format("%-8s", value).replace(' ', '0');
+                return intTerminalConverter.toValue(value, node)
+            }
+            override toString(Integer value) throws ValueConverterException {
+                value.toString
             }
         }
     }
