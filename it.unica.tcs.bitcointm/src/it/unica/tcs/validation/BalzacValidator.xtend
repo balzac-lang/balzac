@@ -24,6 +24,7 @@ import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
 import it.unica.tcs.balzac.RelativeTime
 import it.unica.tcs.balzac.Signature
+import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
@@ -55,6 +56,7 @@ import org.bitcoinj.core.VerificationException
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.IQualifiedNameConverter
@@ -68,7 +70,9 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.balzac.This
+import org.eclipse.emf.ecore.EStructuralFeature
+import org.eclipse.emf.common.util.EList
+import it.unica.tcs.balzac.Expression
 
 /**
  * This class contains custom validation rules.
@@ -1165,88 +1169,59 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkTransactionInputOperation(TransactionInputOperation op) {
-        // expression is allowed only inside transactions
-        val txRes = op.tx.interpretE
-
-        if (txRes.failed) {
-            error(
-                "Cannot evaluate expression "+op.tx.nodeToString,
-                op,
-                BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__TX
-            );
-            return
-        }
-
-        val tx = txRes.first as ITransactionBuilder
-
-        // each idx is in range
-        var hasError = false;
-        for (var i=0; i<op.indexes.size; i++) {
-            val idx = op.indexes.get(i)
-            if (idx >= tx.inputs.size) {
-                error(
-                    "Index out of range.",
-                    op,
-                    BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
-                    i
-                );
-                hasError = true;
-            }
-        }
-        if (hasError)
-            return;
-
         // each idx is unique
-        for (var i=0; i<op.indexes.size-1; i++) {
-            for (var j=i+1; j<op.indexes.size; j++) {
-                val idx1 = op.indexes.get(i)
-                val idx2 = op.indexes.get(j)
-                if (idx1 == idx2) {
-                    error(
-                        "Duplicated index.",
-                        op,
-                        BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
-                        i
-                    );
-                    error(
-                        "Duplicated index.",
-                        op,
-                        BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES,
-                        j
-                    );
-                    hasError = true;
-                }                    
-            }
-        }
+        val limit = computeInputSize(op.tx);
+        checkTransactionOperationIndexes(op.indexes, limit, op, BalzacPackage.Literals.TRANSACTION_INPUT_OPERATION__INDEXES)
     }
 
     @Check
     def void checkTransactionOutputOperation(TransactionOutputOperation op) {
         // expression is allowed only inside transactions
-        val txRes = op.tx.interpretE
+        val limit = computeOutputSize(op.tx);
+        checkTransactionOperationIndexes(op.indexes, limit, op, BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES)
+    }
 
-        if (txRes.failed) {
-            error(
-                "Cannot evaluate expression "+op.tx.nodeToString,
-                op,
-                BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__TX
-            );
-            return
+    def dispatch private int computeInputSize(This thiz) {
+        computeInputSize(EcoreUtil2.getContainerOfType(thiz, Transaction))
+    }
+
+    def dispatch private int computeInputSize(Transaction tx) {
+        return tx.inputs.size
+    }
+
+    def dispatch private int computeInputSize(Expression exp) {
+        val txRes = exp.interpretE
+        if (!txRes.failed && txRes.first instanceof ITransactionBuilder) {
+            val tx = txRes.first as ITransactionBuilder
+            return tx.inputs.size
         }
+        return 0
+    }
 
-        val tx = txRes.first as ITransactionBuilder
+    def dispatch private int computeOutputSize(This thiz) {
+        computeOutputSize(EcoreUtil2.getContainerOfType(thiz, Transaction))
+    }
 
+    def dispatch private int computeOutputSize(Transaction tx) {
+        return tx.outputs.size
+    }
+
+    def dispatch private int computeOutputSize(Expression exp) {
+        val txRes = exp.interpretE
+        if (!txRes.failed && txRes.first instanceof ITransactionBuilder) {
+            val tx = txRes.first as ITransactionBuilder
+            return tx.outputs.size
+        }
+        return 0
+    }
+
+    def private checkTransactionOperationIndexes(EList<Long> indexes, int limit, EObject source, EStructuralFeature feature) {
         // each idx is in range
         var hasError = false;
-        for (var i=0; i<op.indexes.size; i++) {
-            val idx = op.indexes.get(i)
-            if (idx >= tx.outputs.size) {
-                error(
-                    "Index out of range.",
-                    op,
-                    BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
-                    i
-                );
+        for (var i=0; i<indexes.size; i++) {
+            val idx = indexes.get(i)
+            if (idx >= limit) {
+                error("Index out of range.", source, feature, i);
                 hasError = true;
             }
         }
@@ -1254,24 +1229,13 @@ class BalzacValidator extends AbstractBalzacValidator {
             return;
 
         // each idx is unique
-        for (var i=0; i<op.indexes.size-1; i++) {
-            for (var j=i+1; j<op.indexes.size; j++) {
-                val idx1 = op.indexes.get(i)
-                val idx2 = op.indexes.get(j)
+        for (var i=0; i<indexes.size-1; i++) {
+            for (var j=i+1; j<indexes.size; j++) {
+                val idx1 = indexes.get(i)
+                val idx2 = indexes.get(j)
                 if (idx1 == idx2) {
-                    error(
-                        "Duplicated index.",
-                        op,
-                        BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
-                        i
-                    );
-                    error(
-                        "Duplicated index.",
-                        op,
-                        BalzacPackage.Literals.TRANSACTION_OUTPUT_OPERATION__INDEXES,
-                        j
-                    );
-                    hasError = true;
+                    error("Duplicated index.", source, feature, i);
+                    error("Duplicated index.", source, feature, j);
                 }
             }
         }

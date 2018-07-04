@@ -54,6 +54,7 @@ import it.unica.tcs.balzac.SignatureType
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
 import it.unica.tcs.balzac.StringType
+import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
@@ -71,7 +72,6 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.This
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -878,22 +878,66 @@ from {
 }
 
 
-rule TransactionInOputOperation
+rule TransactionInputOperation
     G |- TypeSubstitutions substitutions |> TransactionInputOperation op: BalzacFactory::eINSTANCE.createIntType
 from {
-    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    {
+        // we can deal with it in the interpreter
+        op.tx instanceof This
+        EcoreUtil2.getContainerOfType(op, Input) === null   // condition 2
 
-    G |- substitutions |> op.tx: var Type type
-    unify(op.tx, substitutions, type, txType)
+        if (substitutions.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
+        }
+
+        // check that evaluation of input tx does not cause a loop
+        substitutions.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
+        for(index : indexes) {
+            val inTx = tx.inputs.get(index.intValue).txRef
+            G |- substitutions |> inTx: var Type type
+        }
+        substitutions.removeVisited(op)
+    }
+    or {
+        val txType = BalzacFactory::eINSTANCE.createTransactionType
+        G |- substitutions |> op.tx: var Type type
+        unify(op.tx, substitutions, type, txType)
+    }
 }
 
 rule TransactionOutputOperation
     G |- TypeSubstitutions substitutions |> TransactionOutputOperation op: BalzacFactory::eINSTANCE.createIntType
 from {
-    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    {
+        // we can deal with it in the interpreter
+        op.tx instanceof This
+        EcoreUtil2.getContainerOfType(op, Output) === null   // condition 2
 
-    G |- substitutions |> op.tx: var Type type
-    unify(op.tx, substitutions, type, txType)
+        if (substitutions.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
+        }
+
+        // check that evaluation of output values does not cause a loop
+        substitutions.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
+        for(index : indexes) {
+            val vExp = tx.outputs.get(index.intValue).value.exp
+            G |- substitutions |> vExp: var Type type
+        }
+        substitutions.removeVisited(op)
+    }
+    or {
+        val txType = BalzacFactory::eINSTANCE.createTransactionType
+        G |- substitutions |> op.tx: var Type type
+        unify(op.tx, substitutions, type, txType)
+    }
 }
 
 /*

@@ -95,15 +95,29 @@ transaction bar {
 
 transaction foo(k: key) {
 	input = bar: sig(k)
-    output = bar.output.value - 5: fun(x) . x == 42
+    output = 1 BTC: fun(x) . x == 42
+}
+
+transaction bar2(n: int) {
+    input = bar: sig(kA)
+    output = 1 BTC - 5: fun(x) . x == n
 }
 
 transaction foo2 {
     input = [
-    	foo(kA): 42;
-    	test("pippo"): "pippo"
+        foo(kA): 42;                               // 1 BTC
+        bar2(this.output(0).value):
+            (this.output(0).value);    // 1 BTC - 5
 	]
-    output = foo(kA).input.value - 5: fun(x) . x == 42
+    output = [
+        1000: fun(x) . x == 42;
+        this.input.value - 1000: fun(x) . x == 42
+    ]
 }
 
-eval foo2.output.value, foo2.input.value, foo(kA).output.value
+eval
+    foo2.output.value,
+    foo2.input.value,
+    test("pippo").output.value + foo(kA).output.value - 5,
+    foo2.output(1).value,
+    foo2

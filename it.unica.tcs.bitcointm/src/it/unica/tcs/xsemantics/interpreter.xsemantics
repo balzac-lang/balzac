@@ -61,6 +61,8 @@ import org.eclipse.xtext.EcoreUtil2
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.BalzacFactory
 import org.eclipse.emf.ecore.util.EcoreUtil
+import it.unica.tcs.balzac.Input
+import it.unica.tcs.balzac.Output
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -532,40 +534,81 @@ from {
 rule InterpretTransactionInputOperation
     G |- TransactionInputOperation op |> Rho rho ~> Long result
 from {
-    G |- op.tx |> rho ~> var ITransactionBuilder txBuilder
+    {
+        op.tx instanceof This   // condition 1
+        EcoreUtil2.getContainerOfType(op, Input) === null   // condition 2
 
-    var value = 0L;
-    for (idx : op.indexes) {
-        val outIdx = txBuilder.inputs.get(idx.intValue).outIndex
-        val inTx = txBuilder.inputs.get(idx.intValue).parentTx
-        value += inTx.outputs.get(outIdx).value
+        // compute result from the AST
+        if (rho.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
+        }
+
+        // check that evaluation of output values does not cause a loop
+        rho.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        var value = 0L;
+        val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
+        for (idx : indexes) {
+            val outIdx = tx.inputs.get(idx.intValue).outpoint.intValue
+            val inTx = tx.inputs.get(idx.intValue).txRef
+            G |- inTx |> rho ~> var ITransactionBuilder inTxB
+            value += inTxB.outputs.get(outIdx).value
+        }
+        result = value;
+        rho.removeVisited(op)
     }
-
-    if (op.indexes.^empty) {
-        for (input : txBuilder.inputs) {
-            val outIdx = input.outIndex
-            val inTx = input.parentTx
+    or {
+        G |- op.tx |> rho ~> var ITransactionBuilder res
+        val txB = res
+        var value = 0L;
+        val indexes = if (op.indexes.^empty) 0 ..< txB.inputs.size else op.indexes.filter[i|i>=txB.inputs.size].toSet
+        for (idx : indexes) {
+            val outIdx = txB.inputs.get(idx.intValue).outIndex
+            val inTx = txB.inputs.get(idx.intValue).parentTx
             value += inTx.outputs.get(outIdx).value
         }
+        result = value;
     }
-    result = value;
 }
 
 rule InterpretTransactionOutputOperation
     G |- TransactionOutputOperation op |> Rho rho ~> Long result
 from {
-    G |- op.tx |> rho ~> var ITransactionBuilder txBuilder
+    {
+        op.tx instanceof This   // condition 1
+        EcoreUtil2.getContainerOfType(op, Output) === null   // condition 2
 
-    var value = 0L
-    for (idx : op.indexes) {
-        value += txBuilder.outputs.get(idx.intValue).value
-    }
-
-    if (op.indexes.^empty) {
-        for (^output : txBuilder.outputs) {
-            value += ^output.value
+        // compute result from the AST
+        if (rho.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
         }
+
+        // check that evaluation of output values does not cause a loop
+        rho.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        var value = 0L;
+        val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
+        for (idx : indexes) {
+            val vExp = tx.outputs.get(idx.intValue).value.exp
+            G |- vExp |> rho ~> var Long v
+            value += v
+        }
+        result = value;
+        rho.removeVisited(op)
     }
-    result = value;
+    or {
+        G |- op.tx |> rho ~> var ITransactionBuilder res
+        val txB = res
+        var value = 0L
+        val indexes = if (op.indexes.^empty) 0 ..< txB.outputs.size else op.indexes.filter[i|i>=txB.outputs.size].toSet
+        for (idx : indexes) {
+            value += txB.outputs.get(idx.intValue).value
+        }
+        result = value;
+    }
 }
 
