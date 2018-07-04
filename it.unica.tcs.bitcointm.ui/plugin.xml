@@ -450,12 +450,10 @@
 		</codeMiningProvider>
 	</extension>
 	<!-- customization -->
-	<extension point="org.eclipse.ui.commands">
-        <command
-            description="Initialize trusted nodes from properties"
-            id="it.unica.tcs.Balzac.initializeTrustedNodes"
-            name="Trusted Nodes Inizializer">
-        </command>
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer
+              class="it.unica.tcs.ui.preferences.PreferenceInitializer">
+        </initializer>
     </extension>
     <extension point="org.eclipse.ui.preferencePages">
         <page category="it.unica.tcs.Balzac"
