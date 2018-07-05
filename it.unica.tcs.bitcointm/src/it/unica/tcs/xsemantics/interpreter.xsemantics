@@ -20,7 +20,6 @@ import it.unica.tcs.balzac.Hash160
 import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
 import it.unica.tcs.balzac.IfThenElse
-import it.unica.tcs.balzac.Input
 import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Max
@@ -28,7 +27,6 @@ import it.unica.tcs.balzac.Min
 import it.unica.tcs.balzac.Minus
 import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
-import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.PubKeyLiteral
@@ -548,7 +546,6 @@ rule InterpretTransactionInputOperation
 from {
     {
         op.tx instanceof This   // condition 1
-        EcoreUtil2.getContainerOfType(op, Input) === null   // condition 2
 
         // compute result from the AST
         if (rho.isAlreadyVisited(op)) {
@@ -561,12 +558,18 @@ from {
         rho.addVisited(op)
         val tx = EcoreUtil2.getContainerOfType(op, Transaction)
         var value = 0L;
-        val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
+        val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i<tx.inputs.size].toSet
         for (idx : indexes) {
-            val outIdx = tx.inputs.get(idx).outpoint
-            val inTx = tx.inputs.get(idx).txRef
-            G |- inTx |> rho ~> var ITransactionBuilder inTxB
-            value += inTxB.outputs.get(outIdx).value.intValue
+            val input = tx.inputs.get(idx)
+            if (input.isPlaceholder) {
+                value += 0
+            }
+            else {
+                val outIdx = input.outpoint
+                val inTx = input.txRef
+                G |- inTx |> rho ~> var ITransactionBuilder inTxB
+                value += inTxB.outputs.get(outIdx).value
+            }
         }
         result = value;
         rho.removeVisited(op)
@@ -575,11 +578,17 @@ from {
         G |- op.tx |> rho ~> var ITransactionBuilder res
         val txB = res
         var value = 0L
-        val indexes = if (op.indexes.^empty) 0 ..< txB.inputs.size else op.indexes.filter[i|i>=txB.inputs.size].toSet
+        val indexes = if (op.indexes.^empty) 0 ..< txB.inputs.size else op.indexes.filter[i|i<txB.inputs.size].toSet
         for (idx : indexes) {
-            val outIdx = txB.inputs.get(idx).outIndex
-            val inTx = txB.inputs.get(idx).parentTx
-            value += inTx.outputs.get(outIdx).value
+            val input = txB.inputs.get(idx)
+            if (input.parentTx === null) {
+                value += 0
+            }
+            else {
+                val outIdx = input.outIndex
+                val inTx = input.parentTx
+                value += inTx.outputs.get(outIdx).value
+            }
         }
         result = value;
     }
@@ -590,7 +599,6 @@ rule InterpretTransactionOutputOperation
 from {
     {
         op.tx instanceof This   // condition 1
-        EcoreUtil2.getContainerOfType(op, Output) === null   // condition 2
 
         // compute result from the AST
         if (rho.isAlreadyVisited(op)) {
@@ -603,7 +611,7 @@ from {
         rho.addVisited(op)
         val tx = EcoreUtil2.getContainerOfType(op, Transaction)
         var value = 0L
-        val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
+        val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i<tx.outputs.size].toSet
         for (idx : indexes) {
             val vExp = tx.outputs.get(idx).value
             G |- vExp |> rho ~> var Long v
@@ -616,9 +624,9 @@ from {
         G |- op.tx |> rho ~> var ITransactionBuilder res
         val txB = res
         var value = 0L
-        val indexes = if (op.indexes.^empty) 0 ..< txB.outputs.size else op.indexes.filter[i|i>=txB.outputs.size].toSet
+        val indexes = if (op.indexes.^empty) 0 ..< txB.outputs.size else op.indexes.filter[i|i<txB.outputs.size].toSet
         for (idx : indexes) {
-            value += txB.outputs.get(idx).value.intValue
+            value += txB.outputs.get(idx).value
         }
         result = value;
     }

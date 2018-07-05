@@ -897,7 +897,6 @@ from {
     {
         // we can deal with it in the interpreter
         op.tx instanceof This
-        EcoreUtil2.getContainerOfType(op, Input) === null   // condition 2
 
         if (substitutions.isAlreadyVisited(op)) {
             fail
@@ -928,7 +927,6 @@ from {
     {
         // we can deal with it in the interpreter
         op.tx instanceof This
-        EcoreUtil2.getContainerOfType(op, Output) === null   // condition 2
 
         if (substitutions.isAlreadyVisited(op)) {
             fail
