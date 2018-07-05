@@ -99,7 +99,7 @@ class ScriptCompiler {
      * @see InputScript
      */
     def InputScript compileInputScript(Input input, ITransactionBuilder parentTx, Rho rho) {
-        val outpoint = input.outpoint as int
+        val outpoint = input.outpoint
         val outScript = parentTx.outputs.get(outpoint).script
         
         if (outScript.isP2PKH) {

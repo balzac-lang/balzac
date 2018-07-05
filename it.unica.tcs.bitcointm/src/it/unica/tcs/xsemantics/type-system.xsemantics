@@ -392,7 +392,7 @@ from {
 
             // check the actual parameters type match the formal ones (Script)
             var outputIndex = input.outpoint
-            var outputScript = tx.outputs.get(new Long(outputIndex).intValue).script
+            var outputScript = tx.outputs.get(outputIndex).script
 
             if (input.exps.size != (outputScript as Script).params.size) {
                 fail

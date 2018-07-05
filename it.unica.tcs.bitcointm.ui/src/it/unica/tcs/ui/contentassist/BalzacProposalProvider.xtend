@@ -30,9 +30,9 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
  */
 class BalzacProposalProvider extends AbstractBalzacProposalProvider {
 
-    @Inject private ResourceDescriptionsProvider resourceDescriptionsProvider;
-    @Inject private IContainer.Manager containerManager;
-    @Inject private extension IQualifiedNameConverter qualifiedNameConverter
+    @Inject ResourceDescriptionsProvider resourceDescriptionsProvider;
+    @Inject IContainer.Manager containerManager;
+    @Inject extension IQualifiedNameConverter qualifiedNameConverter
 
     override void completeImport_ImportedNamespace(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
         super.completeImport_ImportedNamespace(model, assignment, context, acceptor)

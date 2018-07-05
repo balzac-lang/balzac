@@ -577,7 +577,7 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     def boolean checkInputExpressions(Input input, ITransactionBuilder inputTx) {
 
-        var outputIdx = input.outpoint as int
+        var outputIdx = input.outpoint
 
         if (inputTx instanceof SerialTransactionBuilder) {
             if (inputTx.outputs.get(outputIdx).script.isP2SH) {

@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Automatic-Module-Name: it.unica.tcs.bitcointm.ide
 Bundle-ManifestVersion: 2
 Bundle-Name: it.unica.tcs.bitcointm.ide
 Bundle-Vendor: University of Cagliari

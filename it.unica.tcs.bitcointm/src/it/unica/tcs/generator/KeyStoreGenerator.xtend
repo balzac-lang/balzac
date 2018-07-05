@@ -27,13 +27,13 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 class KeyStoreGenerator extends AbstractGenerator {
 
-    private static final Logger logger = Logger.getLogger(KeyStoreGenerator);
+    static final Logger logger = Logger.getLogger(KeyStoreGenerator);
 
     public static val KEYSTORE__FILENAME = "ks.p12"
 
-    @Inject private extension IQualifiedNameProvider
-    @Inject private extension ASTUtils
-    @Inject(optional=true) private ISecurePreferences secureStorage
+    @Inject extension IQualifiedNameProvider
+    @Inject extension ASTUtils
+    @Inject(optional=true) ISecurePreferences secureStorage
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val models = resource.allContents.toIterable.filter(Model)

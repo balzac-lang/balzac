@@ -85,7 +85,7 @@ class TransactionCompiler {
                      * - tx reference (actual parameters bound in rho)
                      */
                     val parentTx = res.first as ITransactionBuilder
-                    val outIndex = new Long(input.outpoint).intValue
+                    val outIndex = input.outpoint
                     val inScript = input.compileInputScript(parentTx, rho)
 
                     // relative timelock
@@ -181,7 +181,7 @@ class TransactionCompiler {
                         }
                     }
 
-                    val outIndex = new Long(input.outpoint).intValue
+                    val outIndex = input.outpoint
                     val inScript = input.compileInputScript(parentTxB, rho)
 
                     // relative timelock

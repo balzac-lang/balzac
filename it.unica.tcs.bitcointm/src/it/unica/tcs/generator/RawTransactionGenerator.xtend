@@ -23,8 +23,8 @@ import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 
 class RawTransactionGenerator extends AbstractGenerator {
 
-    @Inject private extension IQualifiedNameProvider
-    @Inject private extension BalzacInterpreter
+    @Inject extension IQualifiedNameProvider
+    @Inject extension BalzacInterpreter
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         val models = resource.allContents.toIterable.filter(Model)

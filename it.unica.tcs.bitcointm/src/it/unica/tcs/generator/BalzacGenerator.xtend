@@ -20,8 +20,8 @@ import org.eclipse.xtext.generator.IGeneratorContext
  */
 class BalzacGenerator extends AbstractGenerator {
 
-    @Inject private RawTransactionGenerator rawTxGenerator
-//    @Inject private KeyStoreGenerator keyStoreGenerator
+    @Inject RawTransactionGenerator rawTxGenerator
+//    @Inject KeyStoreGenerator keyStoreGenerator
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 //        keyStoreGenerator.doGenerate(resource,fsa,context)
