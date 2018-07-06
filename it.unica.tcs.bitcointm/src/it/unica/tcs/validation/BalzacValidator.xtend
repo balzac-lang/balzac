@@ -1244,15 +1244,30 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkDivisionByZero(Div divide) {
-        val res = divide.right.interpretE
+        val left = divide.left.interpretE
+        val right = divide.right.interpretE
 
-        if (!res.failed && res.first instanceof Long) {
-            val value = res.first as Long
+        if (!right.failed && right.first instanceof Long) {
+            val value = right.first as Long
             if (value == 0) {
                 error(
                     "Division by 0",
                     divide,
                     BalzacPackage.Literals.DIV__RIGHT
+                );
+            }
+        }
+
+        if (!left.failed && !right.failed &&
+            left.first instanceof Long && right.first instanceof Long
+        ) {
+            val a = left.first as Long
+            val b = right.first as Long
+            if (a % b != 0) {
+                warning(
+                    "Division with remainder",
+                    divide,
+                    null
                 );
             }
         }
