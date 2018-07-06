@@ -74,6 +74,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
+import org.bitcoinj.script.ScriptPattern
 
 /**
  * This class contains custom validation rules.
@@ -879,7 +880,7 @@ class BalzacValidator extends AbstractBalzacValidator {
 
                         INPUT:   «inScript»
                         OUTPUT:  «outScript»
-                        «IF outScript.isPayToScriptHash»
+                        «IF ScriptPattern.isPayToScriptHash(outScript)»
                         REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
                         REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
                         «ENDIF»
