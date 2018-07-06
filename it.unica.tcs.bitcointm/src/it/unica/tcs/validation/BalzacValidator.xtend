@@ -20,7 +20,7 @@ import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.Modifier
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.PackageDeclaration
-import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Participant
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
@@ -223,20 +223,65 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkDeclarationNameIsUnique(Referrable r) {
+    def void checkModelDeclarationNameIsUnique(Model model) {
 
-        if (r instanceof Parameter)
-            return
+        val allReferrables = model.declarations.filter(Referrable)
+
+        for (var i=0; i<allReferrables.size-1; i++) {
+            for (var j=i+1; j<allReferrables.size; j++) {
+                val a = allReferrables.get(i)
+                val b = allReferrables.get(j)
+
+                if (a.name == b.name) {
+                    error("Duplicated name "+a.name,
+                        a,
+                        a.literalName
+                    )
+                    error("Duplicated name "+b.name,
+                        b,
+                        b.literalName
+                    )
+                }
+            }
+        }
+    }
+
+    @Check
+    def void checkParticipantDeclarationNameIsUnique(Participant participant) {
+
+        val allReferrables = participant.declarations.filter(Referrable)
+
+        for (var i=0; i<allReferrables.size-1; i++) {
+            for (var j=i+1; j<allReferrables.size; j++) {
+                val a = allReferrables.get(i)
+                val b = allReferrables.get(j)
+
+                if (a.name == b.name) {
+                    error("Duplicated name "+a.name,
+                        a,
+                        a.literalName
+                    )
+                    error("Duplicated name "+b.name,
+                        b,
+                        b.literalName
+                    )
+                }
+            }
+        }
+    }
+
+    @Check
+    def void checkParticipantNameIsUnique(Participant r) {
 
         var root = EcoreUtil2.getRootContainer(r);
-        val allReferrables = EcoreUtil2.getAllContentsOfType(root, Referrable).filter[x|!(x instanceof Parameter)]
+        val allReferrables = EcoreUtil2.getAllContentsOfType(root, Participant)
 
         for (other: allReferrables){
 
-            if (r!=other && r.name.equals(other.name)) {
-                error("Duplicated name "+other.name,
+            if (r!=other && r.pname.equals(other.pname)) {
+                error("Duplicated name "+other.pname,
                     r,
-                    r.literalName
+                    BalzacPackage.Literals.PARTICIPANT__PNAME
                 );
             }
         }

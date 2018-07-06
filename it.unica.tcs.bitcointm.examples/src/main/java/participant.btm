@@ -1,0 +1,29 @@
+package participants
+
+const a = 5
+const b = 7
+
+transaction T {
+    input = _
+    output = 10 BTC : fun(x) . x == 1
+}
+
+participant Alice {
+    const b = a + 3  // shadow global b
+    const c = b + 1
+    const T = Bob.T
+}
+
+participant Bob {
+    transaction T {         // shadow global T
+        input = _
+        output = 10 BTC : fun(x) . x == 0
+    }
+
+    transaction T1 {
+        input = T: 0        // same of Bob.T
+        output = 10 BTC : fun(x) . x == Alice.c
+    }
+}
+
+eval a, b, Alice.b, Alice.c, Alice.T, Bob.T, Bob.T1

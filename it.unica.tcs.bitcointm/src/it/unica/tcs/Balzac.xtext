@@ -29,7 +29,17 @@ QualifiedNameWithWildcard:
 
 Element:
 	Constant
-|	Transaction;
+|	Transaction
+|   Participant;
+
+
+Participant: {Participant} 'participant' pname=ID '{'
+        declarations+=ParticipantElement*
+    '}';
+
+ParticipantElement returns Element:
+    Constant
+|   Transaction;
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
 
