@@ -223,6 +223,40 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
+    def void checkShadowedReferences(Referrable r) {
+        if (findReferrable(r,r)) {
+            warning(
+                "This declaration shadows an existing declaration",
+                r,
+                r.literalName
+            )
+        }
+    }
+
+    def private dispatch boolean findReferrable(Model model, Referrable r) {
+        for (d : model.declarations.filter(Referrable)) {
+            if (d !== r && d.name == r.name) return true
+        }
+        return false
+    }
+
+    def private dispatch boolean findReferrable(EObject ctx, Referrable r) {
+        return findReferrable(ctx.eContainer, r)
+    }
+
+    def private dispatch boolean findReferrable(Participant p, Referrable r) {
+        for (d : p.declarations.filter(Referrable)) {
+            if (d !== r && d.name == r.name) return true
+        }
+        return findReferrable(p.eContainer, r)
+    }
+
+    def private dispatch boolean findReferrable(Referrable p, Referrable r) {
+        if (p !== r && p.name == r.name) return true
+        return findReferrable(p.eContainer, r)
+    }
+
+    @Check
     def void checkModelDeclarationNameIsUnique(Model model) {
 
         val allReferrables = model.declarations.filter(Referrable)
