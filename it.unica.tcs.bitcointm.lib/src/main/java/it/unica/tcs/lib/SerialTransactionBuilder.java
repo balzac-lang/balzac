@@ -15,11 +15,10 @@ import java.util.List;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptPattern;
 
-import it.unica.tcs.lib.script.InputScriptImpl;
-import it.unica.tcs.lib.script.OpReturnOutputScript;
-import it.unica.tcs.lib.script.OutputScriptImpl;
-import it.unica.tcs.lib.script.P2PKHOutputScript;
+import it.unica.tcs.lib.script.InputScript;
+import it.unica.tcs.lib.script.OutputScript;
 
 public class SerialTransactionBuilder implements ITransactionBuilder {
 
@@ -68,7 +67,7 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 
             @Override
             public Input get(int index) {
-                return Input.of(new InputScriptImpl(getTx().getInput(index).getScriptSig()));
+                return Input.of(InputScript.create().append(getTx().getInput(index).getScriptSig()));
             }
 
             @Override
@@ -85,14 +84,14 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
             @Override
             public Output get(int index) {
                 Script s = getTx().getOutput(index).getScriptPubKey();
-                if (s.isPayToScriptHash()) {
-                    return Output.of(new OutputScriptImpl(s), getTx().getOutput(index).getValue().value);
+                if (ScriptPattern.isPayToScriptHash(s)) {
+                    return Output.of(OutputScript.createP2SH().append(s), getTx().getOutput(index).getValue().value);
                 }
-                if (s.isSentToAddress()) {
-                    return Output.of(new P2PKHOutputScript(s), getTx().getOutput(index).getValue().value);
+                if (ScriptPattern.isPayToPubKeyHash(s)) {
+                    return Output.of(OutputScript.createP2PKH(s), getTx().getOutput(index).getValue().value);
                 }
-                if (s.isOpReturn()) {
-                    return Output.of(new OpReturnOutputScript(s), getTx().getOutput(index).getValue().value);
+                if (ScriptPattern.isOpReturn(s)) {
+                    return Output.of(OutputScript.createOP_RETURN(s), getTx().getOutput(index).getValue().value);
                 }
                 throw new UnsupportedOperationException();
             }

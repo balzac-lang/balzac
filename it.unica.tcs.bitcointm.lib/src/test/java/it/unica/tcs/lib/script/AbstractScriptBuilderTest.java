@@ -3,15 +3,19 @@
  */
 package it.unica.tcs.lib.script;
 
-import static org.junit.Assert.*;
+import static org.bitcoinj.script.ScriptOpCodes.OP_16;
+import static org.bitcoinj.script.ScriptOpCodes.OP_4;
+import static org.bitcoinj.script.ScriptOpCodes.OP_FROMALTSTACK;
+import static org.bitcoinj.script.ScriptOpCodes.OP_TOALTSTACK;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
-import static org.bitcoinj.script.ScriptOpCodes.*;
 import org.junit.Test;
 
-import it.unica.tcs.lib.script.AbstractScriptBuilder;
-import it.unica.tcs.lib.script.ScriptBuilder2;
+import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class AbstractScriptBuilderTest {
 
@@ -138,7 +142,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize_sb() {
-        Script s = new ScriptBuilder2()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
                 .optimize()
@@ -150,7 +154,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize2_sb() {
-        Script s = new ScriptBuilder2()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .number(4)
                 .op(OP_FROMALTSTACK)
@@ -163,7 +167,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize3_sb() {
-        Script s = new ScriptBuilder2()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
                 .number(4)
@@ -178,7 +182,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize4_sb() {
-        Script s = new ScriptBuilder2()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -193,7 +197,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize5_sb() {
-        Script s = new ScriptBuilder2()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
                 .number(4)

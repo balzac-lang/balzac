@@ -46,7 +46,7 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
-
+    
     private static final long serialVersionUID = 1L;
     private static final String SIGNATURE_PREFIX = "[$sig$]";
     private static final String FREEVAR_PREFIX = "[$var$]";
@@ -54,6 +54,13 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     private final Env<Object> env = new Env<>();
 
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
+
+    public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
+        private static final long serialVersionUID = 1L;
+        public ScriptBuilderWithVar() {}
+        public ScriptBuilderWithVar(Script s) {super(s);}
+        public ScriptBuilderWithVar(String serial) {super(serial);}
+    }
 
     private static class SignatureUtil implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -196,7 +203,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
         for (ScriptChunk chunk : getChunks()) {
 
-            ScriptBuilder2 sb = new ScriptBuilder2();
+            ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
             if (isSignature(chunk)) {
                 String mapKey = getMapKey(chunk);
                 SignatureUtil sig = this.signatures.get(mapKey);
@@ -244,7 +251,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @return this builder
      */
     public T append(Script append) {
-        ScriptBuilder2 sb = new ScriptBuilder2(append);
+        ScriptBuilderWithVar sb = new ScriptBuilderWithVar(append);
         return this.append(sb);
     }
 

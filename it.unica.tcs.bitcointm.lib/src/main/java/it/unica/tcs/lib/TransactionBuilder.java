@@ -30,14 +30,13 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.script.Script;
+import org.bitcoinj.script.ScriptPattern;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.script.InputScript;
 import it.unica.tcs.lib.script.OutputScript;
-import it.unica.tcs.lib.script.P2SHInputScript;
-import it.unica.tcs.lib.script.P2SHOutputScript;
 import it.unica.tcs.lib.utils.TablePrinter;
 
 public class TransactionBuilder implements ITransactionBuilder {
@@ -380,9 +379,9 @@ public class TransactionBuilder implements ITransactionBuilder {
 
             Script outScript;
 
-            if (sb instanceof P2SHOutputScript) {
+            if (sb.isP2SH()) {
                 // P2SH
-                outScript = ((P2SHOutputScript) sb).getOutputScript();
+                outScript = sb.getOutputScript();
             }
             else {
                 outScript = sb.build();
@@ -400,39 +399,38 @@ public class TransactionBuilder implements ITransactionBuilder {
         // set all the signatures within the input scripts (which are never part of the signature)
         for (int i=0; i<tx.getInputs().size(); i++) {
             TransactionInput txInput = tx.getInputs().get(i);
-            InputScript sb = inputs.get(i).getScript();
+            InputScript inputScript = inputs.get(i).getScript();
 
             // bind free variables
             for(String freeVarName : getVariables()) {
-                if (sb.hasVariable(freeVarName) && sb.isFree(freeVarName)) {
-                    sb.bindVariable(freeVarName, this.getValue(freeVarName));
+                if (inputScript.hasVariable(freeVarName) && inputScript.isFree(freeVarName)) {
+                    inputScript.bindVariable(freeVarName, this.getValue(freeVarName));
                 }
             }
 
-            checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
+            checkState(inputScript.isReady(), "script cannot have free variables: "+inputScript.toString());
 
             byte[] outScript;
             if (txInput.isCoinBase()) {
                 outScript = new byte[]{};
             }
             else {
-                if (txInput.getOutpoint().getConnectedOutput().getScriptPubKey().isPayToScriptHash()) {
-                    checkState(sb instanceof P2SHInputScript, "why not?");
-                    P2SHInputScript p2shInput = (P2SHInputScript) sb;
-                    outScript = p2shInput.getRedeemScript().build().getProgram();
+                if (ScriptPattern.isPayToScriptHash(txInput.getOutpoint().getConnectedOutput().getScriptPubKey())) {
+                    checkState(inputScript.isP2SH(), "why not?");
+                    outScript = inputScript.getRedeemScript().build().getProgram();
                 }
                 else
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
             }
             try {
-                sb.setAllSignatures(keystore, tx, i, outScript);
+                inputScript.setAllSignatures(keystore, tx, i, outScript);
             } catch (KeyStoreException e) {
                 throw new RuntimeException(e);
             }
-            checkState(sb.signatureSize()==0,  "all the signatures should have been set");
+            checkState(inputScript.signatureSize()==0,  "all the signatures should have been set");
 
             // update scriptSig
-            txInput.setScriptSig(sb.build());
+            txInput.setScriptSig(inputScript.build());
         }
 
         return tx;

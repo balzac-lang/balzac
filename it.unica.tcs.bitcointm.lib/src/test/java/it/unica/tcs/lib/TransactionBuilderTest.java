@@ -14,9 +14,7 @@ import org.junit.Test;
 import com.google.common.collect.Sets;
 
 import it.unica.tcs.lib.script.InputScript;
-import it.unica.tcs.lib.script.InputScriptImpl;
 import it.unica.tcs.lib.script.OutputScript;
-import it.unica.tcs.lib.script.P2SHOutputScript;
 import it.unica.tcs.lib.utils.ObjectUtils;
 
 public class TransactionBuilderTest {
@@ -25,7 +23,7 @@ public class TransactionBuilderTest {
     @Test
     public void test_coinbase_serialization() {
         CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(MainNetParams.get());
-        net.addInput(Input.of(new InputScriptImpl()));
+        net.addInput(Input.of(InputScript.create()));
         String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
         ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
 
@@ -36,7 +34,7 @@ public class TransactionBuilderTest {
     @Test
     public void test_tx_serialization() {
         TransactionBuilder net = new TransactionBuilder(MainNetParams.get());
-        net.addInput(Input.of(new InputScriptImpl()));
+        net.addInput(Input.of(InputScript.create()));
         String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
         ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
 
@@ -51,9 +49,9 @@ public class TransactionBuilderTest {
         tb.addVariable("veryLongName", String.class);
         tb.addVariable("anotherVeryLongName", String.class).bindVariable("anotherVeryLongName", "hihihhihihihihihiihihihi");
 
-        tb.addInput(Input.of((InputScript) new InputScriptImpl().number(5)));
-        tb.addInput(Input.of((InputScript) new InputScriptImpl().number(42)));
-        tb.addOutput((OutputScript) new P2SHOutputScript().number(3).addVariable("veryLongName", String.class).addVariable("foo", String.class).bindVariable("foo", "pippo"), 34);
+        tb.addInput(Input.of(InputScript.create().number(5)));
+        tb.addInput(Input.of(InputScript.create().number(42)));
+        tb.addOutput(OutputScript.createP2SH().number(3).addVariable("veryLongName", String.class).addVariable("foo", String.class).bindVariable("foo", "pippo"), 34);
 
         System.out.println(tb);
     }
@@ -64,7 +62,7 @@ public class TransactionBuilderTest {
         TransactionBuilder tb = new TransactionBuilder(MainNetParams.get());
         tb.addVariable("foo", Integer.class);
 
-        Input in = Input.of((InputScript) new InputScriptImpl().number(5).addVariable("foo", String.class), 34);
+        Input in = Input.of(InputScript.create().number(5).addVariable("foo", String.class), 34);
 
         try {
             tb.addInput(in);

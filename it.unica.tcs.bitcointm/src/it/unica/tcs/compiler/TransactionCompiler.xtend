@@ -11,7 +11,6 @@ import it.unica.tcs.lib.CoinbaseTransactionBuilder
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.script.InputScript
-import it.unica.tcs.lib.script.InputScriptImpl
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
@@ -68,7 +67,7 @@ class TransactionCompiler {
                  * This transaction is like a coinbase transaction.
                  * You can put the input you want.
                  */
-                val inScript = new InputScriptImpl().number(42) as InputScript
+                val inScript = InputScript.create().number(42)
                 tb.addInput(inScript)
             }
             else {
