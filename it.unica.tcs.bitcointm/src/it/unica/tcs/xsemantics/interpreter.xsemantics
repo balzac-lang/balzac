@@ -41,6 +41,8 @@ import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
+import it.unica.tcs.balzac.ToAddress
+import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
@@ -62,8 +64,6 @@ import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.ToAddress
-import it.unica.tcs.balzac.ToPubkey
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -215,7 +215,7 @@ from {
         val input = txBuilder.inputs.get(inputIndex)
         val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
     
-        val privkey = key as PrivateKey 
+        val privkey = key as PrivateKey
     
         val sig = tx.calculateSignature(
             inputIndex,
@@ -645,6 +645,6 @@ rule InterpretToPubkey
     G |- ToPubkey stmt |> Rho rho ~> PublicKey result
 from {
     G |- stmt.exp |> rho ~> var PublicKey res
-    result = PublicKey.fromString(res.publivKeyString, stmt.networkParams)    
+    result = PublicKey.fromString(res.publicKeyString, stmt.networkParams)
 }
 

@@ -62,9 +62,6 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.xsemantics.interpreter.Address
-import it.unica.tcs.xsemantics.interpreter.PrivateKey
-import it.unica.tcs.xsemantics.interpreter.PublicKey
 import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 
@@ -72,6 +69,9 @@ import static org.bitcoinj.script.ScriptOpCodes.*
 import it.unica.tcs.balzac.TransactionParameter
 import it.unica.tcs.balzac.ScriptParameter
 import it.unica.tcs.balzac.Interpretable
+import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PrivateKey
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 
 /*
  * EXPRESSIONS
