@@ -837,7 +837,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         var value = output.value.interpretE.first as Long
         var script = output.script as it.unica.tcs.balzac.Script
 
-        if (script.isOpReturn(new Rho) && value>0) {
+        if (script.isOpReturn(new Rho(output.networkParams)) && value>0) {
             error("OP_RETURN output scripts must have 0 value.",
                 output,
                 BalzacPackage.Literals.OUTPUT__VALUE
@@ -845,7 +845,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
 
         // https://github.com/bitcoin/bitcoin/commit/6a4c196dd64da2fd33dc7ae77a8cdd3e4cf0eff1
-        if (!script.isOpReturn(new Rho) && value<546) {
+        if (!script.isOpReturn(new Rho(output.networkParams)) && value<546) {
             error("Output (except OP_RETURN scripts) must spend at least 546 satoshis.",
                 output,
                 BalzacPackage.Literals.OUTPUT__VALUE
@@ -869,7 +869,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 var outputB = tx.outputs.get(j)
 
                 // these checks need to be executed in this order
-                if ((outputA.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho) && (outputB.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho)
+                if ((outputA.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho(tx.networkParams)) && (outputB.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho(tx.networkParams))
                 ) {
                     if (!error.get(i) && (error.set(i,true) && true))
                         warning(

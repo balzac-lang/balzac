@@ -9,6 +9,8 @@ import java.util.Arrays;
 import org.bitcoinj.core.LegacyAddress;
 import org.bitcoinj.core.NetworkParameters;
 
+import it.unica.tcs.lib.utils.BitcoinUtils;
+
 class AddressImpl implements Address {
     
     private final byte[] address;
@@ -27,6 +29,11 @@ class AddressImpl implements Address {
     @Override
     public String getAddressWif() {
         return LegacyAddress.fromPubKeyHash(params, address).toBase58();
+    }
+
+    @Override
+    public String getAddressString() {
+        return BitcoinUtils.encode(address);
     }
 
     @Override

@@ -86,7 +86,7 @@ judgments {
 rule InterpretE
     G |- Interpretable v ~> Object res
 from {
-    G |- v |> new Rho() ~> res
+    G |- v |> new Rho(v.networkParams) ~> res
 }
 
 /*
@@ -173,17 +173,17 @@ axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
 
 axiom InterpretTransactionHexLiteral
-    G |- TransactionHexLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+    G |- TransactionHexLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(rho.networkParams, BitcoinUtils.decode(tx.value))
 
 rule InterpretTransactionIDLiteral
     G |- TransactionIDLiteral tx |> Rho rho ~> ITransactionBuilder res
 from {
     val id = tx.value
-    val client = clientFactory.getBitcoinClient(tx.networkParams)
+    val client = clientFactory.getBitcoinClient(rho.networkParams)
 
     try {
         val hex = client.getRawTransaction(id);
-        res = ITransactionBuilder.fromSerializedTransaction(tx.networkParams, BitcoinUtils.decode(hex))
+        res = ITransactionBuilder.fromSerializedTransaction(rho.networkParams, BitcoinUtils.decode(hex))
     }
     catch (Exception e) {
         fail
@@ -241,7 +241,7 @@ axiom InterpretAddressLiteral
     G |- AddressLiteral addr |> Rho rho ~> Address.fromBase58(addr.value)
 
 axiom InterpretPubkeyLiteral
-    G |- PubKeyLiteral k |> Rho rho ~> PublicKey.fromString(k.value, k.networkParams)
+    G |- PubKeyLiteral k |> Rho rho ~> PublicKey.fromString(k.value, rho.networkParams)
 
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
@@ -645,6 +645,6 @@ rule InterpretToPubkey
     G |- ToPubkey stmt |> Rho rho ~> PublicKey result
 from {
     G |- stmt.exp |> rho ~> var PublicKey res
-    result = PublicKey.fromString(res.publicKeyString, stmt.networkParams)
+    result = PublicKey.fromString(res.publicKeyString, rho.networkParams)
 }
 

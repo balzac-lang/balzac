@@ -7,18 +7,20 @@ package it.unica.tcs.ui.hover
 import com.google.inject.Inject
 import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.Constant
+import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.PubKeyLiteral
 import it.unica.tcs.balzac.Transaction
-import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.LegacyAddress
+import it.unica.tcs.xsemantics.BalzacStringRepresentation
+import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PrivateKey
+import it.unica.tcs.xsemantics.interpreter.PublicKey
+import org.bitcoinj.core.NetworkParameters
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.xsemantics.BalzacStringRepresentation
 
 class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
@@ -77,44 +79,45 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     def dispatch String getDocumentationInternal(EObject obj) ''''''
 
     def dispatch String getDocumentationInternal(Constant c) {
-        c.exp.documentationInternal
+        (c.exp as Interpretable).interpretSafe(new Rho(c.networkParams)).documentationInternal
     }
     
     def dispatch String getDocumentationInternal(KeyLiteral key) '''
-        «val wif = key.value»
-        «val pvtEC = BitcoinUtils.wifToECKey(wif, key.networkParams)»
+        «val privKey = PrivateKey.fromBase58(key.value)»
         <pre>
             Private key
-                base58 (wif) = «wif»
-                hex          = «pvtEC.privateKeyAsHex»
+                base58 (wif) = «privKey.privateKeyWif»
+                hex          = «privKey.privateKeyString»
 
             Public key
-                hex          = «BitcoinUtils.encode(pvtEC.pubKey)»
+                hex          = «privKey.privateKeyString»
         
             Address
-                base58 (wif) = «LegacyAddress.fromKey(key.networkParams, pvtEC).toBase58»
-                hash160      = «BitcoinUtils.encode(pvtEC.pubKeyHash)»
+                base58 (wif) = «privKey.addressWif»
+                hash160      = «privKey.addressString»
         </pre>
         '''
-    def dispatch String getDocumentationInternal(PubKeyLiteral pubkey) '''
-        «val pubEC = ECKey.fromPublicOnly(BitcoinUtils.decode(pubkey.value))»
+
+    def dispatch String getDocumentationInternal(PubKeyLiteral pkey) '''
+        «val mainPubkey = PublicKey.fromString(pkey.value, NetworkParameters.fromID(NetworkParameters.ID_MAINNET))»
+        «val testPubkey = PublicKey.fromString(pkey.value, NetworkParameters.fromID(NetworkParameters.ID_TESTNET))»
         <pre>
             Public key
-                hex          = «pubkey.value»
+                hex          = «mainPubkey.publicKeyString»
             
             Address
-                base58 (wif) = «LegacyAddress.fromKey(pubkey.networkParams, pubEC).toBase58»
-                hash160      = «BitcoinUtils.encode(pubEC.pubKeyHash)»
+                base58 (wif) [MAINNET] = «mainPubkey.addressWif»
+                base58 (wif) [TESTNET] = «testPubkey.addressWif»
+                hash160                = «mainPubkey.addressString»
         </pre>
         '''
         
     def dispatch String getDocumentationInternal(AddressLiteral addrLit) '''
-        «val wif = addrLit.value»
+        «val addr = Address.fromBase58(addrLit.value)»
         <pre>
-            «val addr = Address.fromString(addrLit.networkParams, wif)»
             Address
-                base58 (wif) = «wif»
-                hash160      = «BitcoinUtils.encode(addr.hash)»
+                base58 (wif) = «addr.addressWif»
+                hash160      = «addr.addressString»
         </pre>
         '''
 

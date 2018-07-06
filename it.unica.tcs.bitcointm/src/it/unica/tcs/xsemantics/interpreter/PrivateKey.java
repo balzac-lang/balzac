@@ -8,6 +8,8 @@ public interface PrivateKey extends PublicKey, Address {
 
     public String getPrivateKeyWif();
 
+    public String getPrivateKeyString();
+
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif); 
         return new PrivateKeyImpl(key.getKey().getPrivKeyBytes(), key.getParameters());

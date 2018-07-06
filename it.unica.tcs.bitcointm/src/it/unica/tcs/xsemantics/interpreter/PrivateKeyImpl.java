@@ -36,6 +36,11 @@ class PrivateKeyImpl implements PrivateKey {
     }
 
     @Override
+    public String getPrivateKeyString() {
+        return BitcoinUtils.encode(privkey);
+    }
+
+    @Override
     public byte[] getPublicKeyByte() {
         return pubkey.getPublicKeyByte();
     }
@@ -54,7 +59,12 @@ class PrivateKeyImpl implements PrivateKey {
     public String getAddressWif() {
         return address.getAddressWif();
     }
-    
+
+    @Override
+    public String getAddressString() {
+        return address.getAddressString();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

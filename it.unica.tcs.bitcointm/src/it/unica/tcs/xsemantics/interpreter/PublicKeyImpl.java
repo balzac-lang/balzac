@@ -46,6 +46,11 @@ class PublicKeyImpl implements PublicKey {
     }
 
     @Override
+    public String getAddressString() {
+        return address.getAddressString();
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();

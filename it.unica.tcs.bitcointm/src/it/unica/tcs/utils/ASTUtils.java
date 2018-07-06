@@ -70,6 +70,7 @@ import it.unica.tcs.xsemantics.BalzacInterpreter;
 import it.unica.tcs.xsemantics.Rho;
 import it.unica.tcs.xsemantics.interpreter.Address;
 import it.unica.tcs.xsemantics.interpreter.PrivateKey;
+import it.unica.tcs.xsemantics.interpreter.PublicKey;
 import it.unica.tcs.xsemantics.interpreter.Signature;
 
 @Singleton
@@ -203,6 +204,11 @@ public class ASTUtils {
         else if (value instanceof PrivateKey) {
             KeyLiteral res = BalzacFactory.eINSTANCE.createKeyLiteral();
             res.setValue(((PrivateKey) value).getPrivateKeyWif());
+            return res;
+        }
+        else if (value instanceof PublicKey) {
+            PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
+            res.setValue(((PublicKey) value).getPublicKeyString());
             return res;
         }
         else if (value instanceof Address) {
