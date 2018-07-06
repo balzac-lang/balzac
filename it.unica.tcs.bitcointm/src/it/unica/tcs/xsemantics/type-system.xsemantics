@@ -57,6 +57,7 @@ import it.unica.tcs.balzac.StringLiteral
 import it.unica.tcs.balzac.StringType
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
+import it.unica.tcs.balzac.ToAddress
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
@@ -73,6 +74,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.ToPubkey
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -948,6 +950,35 @@ from {
         val txType = BalzacFactory::eINSTANCE.createTransactionType
         G |- substitutions |> op.tx: var Type type
         unify(op.tx, substitutions, type, txType)
+    }
+}
+
+rule ToAddress
+    G |- TypeSubstitutions substitutions |> ToAddress elm: BalzacFactory::eINSTANCE.createAddressType
+from {
+    G |- substitutions |> elm.exp: var Type texp
+    texp = typesubstitution(substitutions, texp)
+    {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createKeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createPubkeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createAddressType)
+    }
+}
+
+rule ToPubkey
+    G |- TypeSubstitutions substitutions |> ToPubkey elm: BalzacFactory::eINSTANCE.createPubkeyType
+from {
+    G |- substitutions |> elm.exp: var Type texp
+    texp = typesubstitution(substitutions, texp)
+    {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createKeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createPubkeyType)
     }
 }
 

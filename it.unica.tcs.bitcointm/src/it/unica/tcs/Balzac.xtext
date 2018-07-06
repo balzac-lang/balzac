@@ -129,13 +129,16 @@ BitcoinValue returns Expression:
 Prefixed returns Expression:
     {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
     {ArithmeticSigned} =>"-" exp=AtomicExpression | /* right associativity */
-    TransactionOperation;
+    SelectorOperation;
 
-TransactionOperation returns Expression:
-    AtomicExpression ( "." (
-        {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value" |
-        {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
-    ))?;
+SelectorOperation returns Expression:
+    AtomicExpression ( 
+        "." (
+            {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
+            | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
+            | {ToAddress.exp=current} "toAddress"
+            | {ToPubkey.exp=current} "toPubkey"
+        ))?;
 
 AtomicExpression returns Expression:
 '(' Expression ')'

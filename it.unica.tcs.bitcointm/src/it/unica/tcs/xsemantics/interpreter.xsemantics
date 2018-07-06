@@ -62,6 +62,8 @@ import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.ToAddress
+import it.unica.tcs.balzac.ToPubkey
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -630,5 +632,19 @@ from {
         }
         result = value;
     }
+}
+
+rule InterpretToAddress
+    G |- ToAddress stmt |> Rho rho ~> Address result
+from {
+    G |- stmt.exp |> rho ~> var Address res
+    result = Address.fromBase58(res.addressWif)
+}
+
+rule InterpretToPubkey
+    G |- ToPubkey stmt |> Rho rho ~> PublicKey result
+from {
+    G |- stmt.exp |> rho ~> var PublicKey res
+    result = PublicKey.fromString(res.publivKeyString, stmt.networkParams)    
 }
 
