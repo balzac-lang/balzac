@@ -29,7 +29,7 @@ class TransactionCompiler {
     @Inject OnChangeEvictingCache cache;
 
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
-        logger.info('''Compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']»''')
+        logger.debug('''Compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']»''')
         var key = 1;
         val prime = 31;
         key = prime * key + tx.hashCode 
@@ -46,7 +46,7 @@ class TransactionCompiler {
 
         rho.addVisited(tx)
 
-        logger.info('''START . compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
+        logger.debug('''START . compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']» ''')
 
         val tb =
             if (tx.isCoinbase) new CoinbaseTransactionBuilder(tx.networkParams)
@@ -55,7 +55,7 @@ class TransactionCompiler {
         // free variables
         for (param : tx.params) {
             if (!rho.containsKey(param)) {
-                logger.info('''freevar «param.name» : «param.type»''')
+                logger.debug('''freevar «param.name» : «param.type»''')
                 tb.addVariable(param.name, param.type.convertType)
             }
         }
@@ -215,7 +215,7 @@ class TransactionCompiler {
         // remove unused tx variables
 //      tb.removeUnusedVariables()
 
-        logger.info('''END . «tx.name» compiled. vars=«tb.variables», fv=«tb.freeVariables», bv=«tb.boundVariables»''')
+        logger.debug('''END . «tx.name» compiled. vars=«tb.variables», fv=«tb.freeVariables», bv=«tb.boundVariables»''')
 
         rho.removeVisited(tx)
 

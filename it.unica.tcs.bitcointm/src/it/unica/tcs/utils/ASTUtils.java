@@ -86,14 +86,14 @@ public class ASTUtils {
     
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
     	Resource resource = obj.eResource();
-    	logger.info("Get the ECKeyStore for resource "+resource);
+    	logger.debug("Get the ECKeyStore for resource "+resource);
  
     	try {
         	ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
         
         		@Override
         		public ECKeyStore get() {
-        		    logger.info("Generating new ECKeyStore for resource "+resource);
+        		    logger.debug("Generating new ECKeyStore for resource "+resource);
                     ECKeyStore kstore;
         			try {
         				kstore = new ECKeyStore();

@@ -839,7 +839,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return true
         }
 
-        logger.info("witness check: interpreting "+astUtils.nodeToString(tx).replaceAll("\n"," \\ "))
+        logger.debug("witness check: interpreting "+astUtils.nodeToString(tx).replaceAll("\n"," \\ "))
         var res = tx.interpretE
 
         if (!res.failed) {
@@ -850,7 +850,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             }
 
             for (var i=0; i<tx.inputs.size; i++) {
-                logger.info('''witness check: «tx.inputs.get(i).nodeToString.replaceAll("\n"," \\ ")»''')
+                logger.debug('''witness check: «tx.inputs.get(i).nodeToString.replaceAll("\n"," \\ ")»''')
 
                 var Script inScript = null
                 var Script outScript = null
