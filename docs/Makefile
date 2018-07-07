@@ -263,3 +263,7 @@ remove-lexer:
 			cd $$PWD; \
 		fi \
 	done
+
+.PHONY: loop
+loop:
+	./ifchanged.py source 'make build-doc'
