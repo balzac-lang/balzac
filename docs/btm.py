@@ -34,12 +34,17 @@ class BtmLexer(RegexLexer):
     tokens = {
         'root': [
             (r'[^\S\n]+', Text),
+            (r'\s*\.\.\.\s*', Text),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
+            # prefixes: go before keywords
+            (r'hash:|sig:|address:|key:|pubkey:|tx:|txid:', Name.Constant, 'literal'),
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
-            #(r'(assert|break|case|catch|continue|default|do|else|finally|for|if|goto|instanceof|new|return|switch|this|throw|try|while)\b', Keyword),
-            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|min|max|between|size|eval)\b', Keyword),
+            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|sha1|min|max|between|size|eval|checkBlock|checkDate|checkBlockDelay|checkTimeDelay|toAddress|toPubkey|AIAO|AISO|AINO|SIAO|SISO|SINO)\b', Keyword),
+            (r'(sig)'                           # sig
+             r'\((([^\W\d]|\$)[\w\'$]*)\)',      # key
+             bygroups(using(this), Text)),
             # method names
             (r'((?:(?:[^\W\d]|\$)[\w.\[\]$<>]*\s+)+?)'  # return arguments
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
@@ -48,41 +53,29 @@ class BtmLexer(RegexLexer):
             (r'\s*@\s*', Generic.Emph),
             (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             #(r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', Keyword.Declaration),
-            #(r'(boolean|byte|char|double|float|int|long|short|void)\b', Keyword.Type),
-            (r'(hash:|signature:|address:|key:|pubkey:|tx:|txid:)\b', Name.Constant, 'literal'),
             (r'(bool|boolean|string|hash|int|signature|transaction|address|key|pubkey)\b', Keyword.Type),
             (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text),
-             'import'),
+            (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?((\+|-)[0-9]{2}:[0-9]{2})?)?', Number.Integer),
             (r'"(\\\\|\\"|[^"])*"', String),
-            (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
+            (r'\'(\\\\|\\\'|[^\'])*\'', String),
+            (r'0[xX][0-9a-fA-F][0-9a-fA-F_]*', Number.Hex),
+            (r'0|[1-9][0-9_]*(days|day|d|hours|hour|h|minutes|minute|min|m)?', Number.Integer),
             (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
             (r'^\s*([^\W\d]|\$)[\w$]*:', Name.Label),
             (r'([^\W\d]|\$)[\w$]*', Name),
-            (r'([0-9][0-9_]*\.([0-9][0-9_]*)?|'
-             r'\.[0-9][0-9_]*)'
-             r'([eE][+\-]?[0-9][0-9_]*)?[fFdD]?|'
-             r'[0-9][eE][+\-]?[0-9][0-9_]*[fFdD]?|'
-             r'[0-9]([eE][+\-]?[0-9][0-9_]*)?[fFdD]|'
-             r'0[xX]([0-9a-fA-F][0-9a-fA-F_]*\.?|'
-             r'([0-9a-fA-F][0-9a-fA-F_]*)?\.[0-9a-fA-F][0-9a-fA-F_]*)'
-             r'[pP][+\-]?[0-9][0-9_]*[fFdD]?', Number.Float),
-            (r'0[xX][0-9a-fA-F][0-9a-fA-F_]*[lL]?', Number.Hex),
-            #(r'0[bB][01][01_]*[lL]?', Number.Bin),
-            #(r'0[0-7_]+[lL]?', Number.Oct),
-            (r'0|[1-9][0-9_]*[lL]?', Number.Integer),
             (r'[~^*!%&\[\](){}<>|+=:;,./?-]', Operator),
             (r'\n', Text)
         ],
         'declaration': [
-            (r'([^\W\d]|\$)[\w$]*', Name.Variable.Global, '#pop')
+            (r'([^\W\d]|\$)[\w\'$]*', Name.Variable.Global, '#pop')
         ],
         'import': [
             (r'[\w.]+\*?', Name.Namespace, '#pop')
         ],
         'literal': [
-            (r'[\w.]+\*?', String, '#pop')
+            (r'[A-Za-z0-9.< >]+', String, '#pop')
         ],
     }
 
