@@ -911,8 +911,11 @@ from {
         val tx = EcoreUtil2.getContainerOfType(op, Transaction)
         val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
         for(index : indexes) {
-            val inTx = tx.inputs.get(index.intValue).txRef
-            G |- substitutions |> inTx: var Type type
+            val input = tx.inputs.get(index)
+            if (!input.isPlaceholder) {
+                val inTx = input.txRef
+                G |- substitutions |> inTx: var Type type                
+            }
         }
         substitutions.removeVisited(op)
     }

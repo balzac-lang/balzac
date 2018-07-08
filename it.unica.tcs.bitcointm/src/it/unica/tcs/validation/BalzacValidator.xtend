@@ -1263,7 +1263,8 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     def dispatch private int computeInputSize(This thiz) {
-        computeInputSize(EcoreUtil2.getContainerOfType(thiz, Transaction))
+        val tx = EcoreUtil2.getContainerOfType(thiz, Transaction)
+        computeInputSize(tx)
     }
 
     def dispatch private int computeInputSize(Transaction tx) {
