@@ -59,7 +59,8 @@ Transaction:
 	"transaction" name=ID ("(" (params+=TransactionParameter ("," params+=TransactionParameter)*)? ")")? "{"
 		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (multiIn?="["  inputs+=Input   (";" inputs+=Input)* ";"? "]") )
 		"output" "=" (outputs+=Output| (multiOut?="[" outputs+=Output (";" outputs+=Output)* ";"? "]") )
-		("timelock" "=" (timelocks+=Timelock| (multiLock?="[" timelocks+=Timelock (";" timelocks+=Timelock)* ";"? "]") ))?
+		("absLock" "=" absLock=AbsoluteTime)?
+		("relLock" "=" (relLocks+=RelativeTime| (multiLock?="[" relLocks+=RelativeTime (";" relLocks+=RelativeTime)* ";"? "]") ))?
 	"}";
 
 Script returns Expression: 
@@ -74,16 +75,11 @@ InputPlaceholder returns Input:
 Output:
 	value=Expression ":" script=Script;
 
-Timelock:
-	"after" (AbsoluteTime | RelativeTime);
-
 AbsoluteTime:
-	(block?="block" | "date") value=Expression;
+	(block?="block" | "date") exp=Expression;
 
 RelativeTime:
-	((value=Expression block?="block")
-	| (delay=Delay))
-	("from" tx=TransactionExpression)?;
+	exp=Expression block?="block"? "from" tx=TransactionExpression;
 
 
 /* on-demand checks */
@@ -143,7 +139,7 @@ Prefixed returns Expression:
 
 SelectorOperation returns Expression:
     AtomicExpression ( 
-        "." (
+        => "." (
             {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
             | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
             | {ToAddress.exp=current} "toAddress"
@@ -163,7 +159,10 @@ AtomicExpression returns Expression:
 |   Max
 |   Between
 |   Size
-|	AfterTimeLock
+|	CheckBlock
+|   CheckDate
+|   CheckBlockDelay
+|   CheckTimeDelay
 ;
 
 Reference:
@@ -180,6 +179,9 @@ Literal:
 |	StringLiteral
 |	BooleanLiteral
 |	DateLiteral
+|   MinuteLiteral
+|   HourLiteral
+|   DayLiteral
 |	HashLiteral
 |	KeyLiteral
 |	AddressLiteral
@@ -192,6 +194,9 @@ NumberLiteral: value=Number;
 StringLiteral: value=STRING;
 BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
 DateLiteral: value=TIMESTAMP;
+MinuteLiteral: value=MINUTE_DELAY;
+HourLiteral: value=HOUR_DELAY;
+DayLiteral: value=DAY_DELAY;
 HashLiteral: value=HASH_TERM;
 KeyLiteral: value=KEY_WIF;
 AddressLiteral: value=ADDRESS_WIF;
@@ -231,7 +236,10 @@ Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
 Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
 Size: "size" "(" value=Expression ")";
-AfterTimeLock: "after" timelock=(AbsoluteTime | RelativeTime) ":" continuation=AtomicExpression;
+CheckBlock: "checkBlock" exp=Expression ":" continuation=AtomicExpression;
+CheckDate: "checkDate" exp=Expression ":" continuation=AtomicExpression;
+CheckBlockDelay: "checkBlockDelay" exp=Expression ":" continuation=AtomicExpression;
+CheckTimeDelay: "checkTimeDelay" exp=Expression ":" continuation=AtomicExpression;
 
 Type:
 	BasicType
@@ -272,10 +280,11 @@ Typeable:
 | Constant
 | Transaction
 | TransactionExpression
+| AbsoluteTime
+| RelativeTime
 | Script
 | Input
 | Output
-| Timelock
 | Expression
 | Eval;
 
@@ -292,8 +301,7 @@ Number returns ecore::ELong: INT | INT_HEX;
  * 2h 10m
  * 35d 5h 10m
  */
-Delay:
-	{Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
+Delay: {Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
 
 terminal MINUTE_DELAY returns ecore::EInt: INT ("m"|"min"|"minute"|"minutes");
 terminal HOUR_DELAY   returns ecore::EInt: INT ("h"|"hour"|"hours");

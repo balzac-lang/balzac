@@ -134,7 +134,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
     def IValueConverter<Integer> getMinuteDelay() {
         return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Integer.parseInt(string.substring(0, string.indexOf("m")))
+                Integer.parseInt(string.substring(0, string.indexOf("m"))) * 60
             }
         }
     }
@@ -143,7 +143,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
     def IValueConverter<Integer> getHourDelay() {
         return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Integer.parseInt(string.substring(0, string.indexOf("h")))
+                Integer.parseInt(string.substring(0, string.indexOf("h"))) * 60 * 60
             }
         }
     }
@@ -152,7 +152,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
     def IValueConverter<Integer> getDayDelay() {
         return new AbstractLexerBasedConverter<Integer>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                Integer.parseInt(string.substring(0, string.indexOf("d")))
+                Integer.parseInt(string.substring(0, string.indexOf("d"))) * 60 * 60 * 24
             }
         }
     }

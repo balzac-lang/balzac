@@ -33,7 +33,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
-import it.unica.tcs.balzac.AbsoluteTime;
 import it.unica.tcs.balzac.AddressLiteral;
 import it.unica.tcs.balzac.BalzacFactory;
 import it.unica.tcs.balzac.BalzacPackage;
@@ -56,7 +55,6 @@ import it.unica.tcs.balzac.RelativeTime;
 import it.unica.tcs.balzac.Script;
 import it.unica.tcs.balzac.SignatureLiteral;
 import it.unica.tcs.balzac.StringLiteral;
-import it.unica.tcs.balzac.Timelock;
 import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.lib.ECKeyStore;
@@ -311,31 +309,18 @@ public class ASTUtils {
 
 
 
-    public boolean containsAbsolute(List<Timelock> timelocks) {
-        return timelocks.stream().filter(x -> x instanceof AbsoluteTime).count()>0;
-    }
-
-    public boolean containsRelative(List<Timelock> timelocks, ITransactionBuilder tx, Rho rho) {
+    public boolean containsRelativeForTx(List<RelativeTime> timelocks, ITransactionBuilder tx, Rho rho) {
         return timelocks.stream()
                 .filter( x ->
-                    x instanceof RelativeTime
-                    && tx.equals(interpreter.interpret(((RelativeTime) x).getTx(), rho).getFirst())
+                    tx.equals(interpreter.interpret(x.getTx(), rho).getFirst())
                 )
                 .count()>0;
     }
 
-    public AbsoluteTime getAbsolute(List<Timelock> timelocks) {
-        return timelocks.stream()
-                .filter(x -> x instanceof AbsoluteTime)
-                .map( x -> (AbsoluteTime) x)
-                .collect(Collectors.toList()).get(0);
-    }
-
-    public RelativeTime getRelative(List<Timelock> timelocks, ITransactionBuilder tx, Rho rho) {
+    public RelativeTime getRelativeForTx(List<RelativeTime> timelocks, ITransactionBuilder tx, Rho rho) {
         return timelocks.stream()
                 .filter( x ->
-                    x instanceof RelativeTime
-                    && tx.equals(interpreter.interpret(((RelativeTime) x).getTx(), rho).getFirst())
+                    tx.equals(interpreter.interpret(x.getTx(), rho).getFirst())
                 ).map( x -> (RelativeTime) x)
                 .collect(Collectors.toList()).get(0);
     }
@@ -372,15 +357,10 @@ public class ASTUtils {
 //      return isAbsolute(time) && ((AbsoluteTime)time).isDate();
 //    }
 //
-//    public boolean isRelativeBlock(Time time) {
-//      // true if the 22th bit is UNSET
-//      int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
-//      return isRelative(time) && (((RelativeTime) time).getValue() & mask) == 0;
-//    }
 //
-//    public boolean isRelativeDate(Time time) {
-//      return isRelative(time) && !isRelativeBlock(time);
-//  }
+    public long getDelayValue(long seconds) {
+        return convertSeconds(seconds);
+    }
 
     public long getDelayValue(Delay delay) {
         long result = 0;
@@ -390,8 +370,12 @@ public class ASTUtils {
         return result;
     }
 
+    private long convertSeconds(long secs) {
+        return secs / 512;
+    }
+
     private long convertMinutes(long min) {
-        return (min*60) / 512;
+        return convertSeconds(min*60);
     }
 
     private long convertHours(long hours) {
@@ -406,6 +390,12 @@ public class ASTUtils {
         // true if the 22th bit is UNSET
         long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
         return i | mask;
+    }
+
+    public boolean isRelativeTimelockFlag(long n) {
+        // true if the 22th bit is SET
+        int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
+        return (n & mask) != 0;
     }
 
     /**
@@ -434,21 +424,8 @@ public class ASTUtils {
         }
     }
 
-    public long getSequenceNumber(RelativeTime reltime, Rho rho) {
-        if (reltime.isBlock()) {
-
-            Result<Object> res = interpreter.interpret(reltime.getValue(), rho);
-
-            if (res.failed())
-                throw new IllegalStateException("Cannot interpret relative time");
-
-            Long value = (Long)res.getFirst();
-
-            return castUnsignedShort(value);
-        }
-        else {
-            return setRelativeTimelockFlag(getDelayValue(reltime.getDelay()));
-        }
+    public long getSequenceNumber(long value, boolean isBlock, Rho rho) {
+        return isBlock? castUnsignedShort(value): setRelativeTimelockFlag(getDelayValue(value));
     }
 
     public ValidationResult isBase58WithChecksum(String key) {

@@ -5,7 +5,6 @@
 import it.unica.tcs.balzac.AbsoluteTime
 import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.AddressType
-import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
 import it.unica.tcs.balzac.BalzacFactory
@@ -15,9 +14,12 @@ import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
 import it.unica.tcs.balzac.BooleanType
+import it.unica.tcs.balzac.CheckBlock
+import it.unica.tcs.balzac.CheckDate
 import it.unica.tcs.balzac.Comparison
 import it.unica.tcs.balzac.Constant
 import it.unica.tcs.balzac.DateLiteral
+import it.unica.tcs.balzac.DayLiteral
 import it.unica.tcs.balzac.Div
 import it.unica.tcs.balzac.Equals
 import it.unica.tcs.balzac.Eval
@@ -26,6 +28,7 @@ import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
 import it.unica.tcs.balzac.HashType
 import it.unica.tcs.balzac.HashableType
+import it.unica.tcs.balzac.HourLiteral
 import it.unica.tcs.balzac.IfThenElse
 import it.unica.tcs.balzac.Input
 import it.unica.tcs.balzac.IntType
@@ -34,6 +37,7 @@ import it.unica.tcs.balzac.KeyType
 import it.unica.tcs.balzac.Max
 import it.unica.tcs.balzac.Min
 import it.unica.tcs.balzac.Minus
+import it.unica.tcs.balzac.MinuteLiteral
 import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
@@ -58,6 +62,7 @@ import it.unica.tcs.balzac.StringType
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.ToAddress
+import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
@@ -74,7 +79,8 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.ToPubkey
+import it.unica.tcs.balzac.CheckBlockDelay
+import it.unica.tcs.balzac.CheckTimeDelay
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -483,24 +489,22 @@ from {
 rule AbsoluteTime
     G |- TypeSubstitutions substitutions |> AbsoluteTime tlock : BalzacFactory::eINSTANCE.createVoidType
 from {
-    G |- substitutions |> tlock.value : var Type type
+    G |- substitutions |> tlock.exp : var Type type
     type = typesubstitution(substitutions, type)
-    unify(tlock.value, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
+    unify(tlock.exp, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
 }
 
 rule RelativeTime
     G |- TypeSubstitutions substitutions |> RelativeTime tlock : BalzacFactory::eINSTANCE.createVoidType
 from {
-    if (tlock.isBlock) {
-        G |- substitutions |> tlock.value : var Type type
-        type = typesubstitution(substitutions, type)
-        unify(tlock.value, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
-    }
+    G |- substitutions |> tlock.exp : var Type type
+    type = typesubstitution(substitutions, type)
+    unify(tlock.exp, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
 
     if (tlock.tx !== null) {
         G |- substitutions |> tlock.tx : var Type txtype
         txtype = typesubstitution(substitutions, txtype)
-        unify(tlock.value, substitutions, txtype, BalzacFactory::eINSTANCE.createTransactionType)
+        unify(tlock.tx, substitutions, txtype, BalzacFactory::eINSTANCE.createTransactionType)
     }
 }
 
@@ -530,6 +534,15 @@ axiom SignatureLiteral
 
 axiom DateLiteral
     G |- TypeSubstitutions substitutions |> DateLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom MinuteLiteral
+    G |- TypeSubstitutions substitutions |> MinuteLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom HourLiteral
+    G |- TypeSubstitutions substitutions |> HourLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom DayLiteral
+    G |- TypeSubstitutions substitutions |> DayLiteral d : BalzacFactory::eINSTANCE.createIntType
 
 axiom KeyLiteral
     G |- TypeSubstitutions substitutions |> KeyLiteral key : BalzacFactory::eINSTANCE.createKeyType
@@ -872,15 +885,49 @@ from {
     t = typesubstitution(substitutions, t)
 }
 
-rule AfterTimeLock
-    G |- TypeSubstitutions substitutions |> AfterTimeLock after: Type texpr
+rule CheckBlock
+    G |- TypeSubstitutions substitutions |> CheckBlock check: Type texpr
 from {
-    G |- substitutions |> after.timelock: var Type t
-
-    G |- substitutions |> after.continuation: texpr
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    
+    G |- substitutions |> check.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
 
+rule CheckDate
+    G |- TypeSubstitutions substitutions |> CheckDate check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule CheckBlockDelay
+    G |- TypeSubstitutions substitutions |> CheckBlockDelay check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule CheckTimeDelay
+    G |- TypeSubstitutions substitutions |> CheckTimeDelay check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
 
 rule Compile
     G |- TypeSubstitutions substitutions |> Eval compile: BalzacFactory::eINSTANCE.createVoidType

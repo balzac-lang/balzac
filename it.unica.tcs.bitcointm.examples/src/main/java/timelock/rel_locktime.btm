@@ -24,12 +24,12 @@ transaction T_cons {
 		1 BTC:
 		fun(sig1, sig2) .
 			versig(kA,kB; sig1,sig2)
-			|| after 5 block : versig(kA,kB,kL; sig1,sig2);
+			|| checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
 
 		1 BTC:
 		fun(sig1, sig2) .
 			versig(kA,kB; sig1,sig2)
-			|| after 45min: versig(kA,kB,kL; sig1,sig2)
+			|| checkTimeDelay 45min: versig(kA,kB,kL; sig1,sig2)
 	]
 }
 
@@ -51,19 +51,19 @@ transaction T_1 {
 transaction T_2_block {
 	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
-	timelock = after 4 block from T_cons
+	relLock = 4 block from T_cons
 }
 
 transaction T_2_delay {
 	input = T_cons@1: sig(kA) sig(kL)
 	output = 0: "test"
-	timelock = after 10m from T_cons
+	relLock = 10m from T_cons
 }
 
 transaction T_2_mismatch {
 	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
-	timelock = after 3h from T_cons
+	relLock = 3h from T_cons
 }
 
 /*
@@ -72,25 +72,25 @@ transaction T_2_mismatch {
 transaction T_3_block {
 	input = T_cons: sig(kA) sig(kL)
 	output = 0: "test"
-	timelock = after 6 block from T_cons
+	relLock = 6 block from T_cons
 }
 
 transaction T_3_delay {
 	input = T_cons@1: sig(kA) sig(kL)
 	output = 0: "test"
-	timelock = after 1h from T_cons
+	relLock = 1h from T_cons
 }
 
 transaction T_4_block {
 	input = T_cons: sig(kB) sig(kL)
 	output = 0: "test"
-	timelock = after 6 block from T_cons
+	relLock = 6 block from T_cons
 }
 
 transaction T_4_delay {
 	input = T_cons@1: sig(kB) sig(kL)
 	output = 0: "test"
-	timelock = after 1h from T_cons
+	relLock = 1h from T_cons
 }
 
 
@@ -103,12 +103,12 @@ transaction T_cons2 {
 		1 BTC:
 		fun(sig1, sig2) .
 			versig(kA,kB; sig1,sig2)
-			|| after 5 block : versig(kA,kB,kL; sig1,sig2);
+			|| checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
 
 		1 BTC:
 		fun(sig1, sig2) .
 			versig(kA,kB; sig1,sig2)
-			|| after 10 block : versig(kA,kB,kL; sig1,sig2);
+			|| checkBlockDelay 10 : versig(kA,kB,kL; sig1,sig2);
 
 		1 BTC: fun(s) . versig(kA; s)
 	]
@@ -121,7 +121,7 @@ transaction T_5 {
 		T_cons2@2: sig(kA)
 	]
 	output = 0: "test"
-	timelock = after 10 block from T_cons2	// timelock must satisfy all inputs
+	relLock = 10 block from T_cons2	// timelock must satisfy all inputs
 }
 
 eval

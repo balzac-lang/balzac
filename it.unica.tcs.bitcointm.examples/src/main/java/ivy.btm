@@ -106,8 +106,8 @@ transaction RevealFixedPoint(val) {
 transaction LockUntil(publicKey, time, val) {
 	input = _
 	output = [
-		val : fun(x) . after date time : versig(publicKey; x);	// compiles P2SH
-		val : fun(x) . after block time : versig(publicKey; x)	// compiles P2SH
+		val : fun(x) . checkDate time : versig(publicKey; x);	// compiles P2SH
+		val : fun(x) . checkBlock time : versig(publicKey; x)	// compiles P2SH
 	]
 }
 
@@ -121,11 +121,11 @@ transaction LockUntil(publicKey, time, val) {
  * }
  * PUSH(publicKey) CHECKSIGVERIFY PUSH(delay) CHECKSEQUENCEVERIFY DROP 1
  */
-transaction LockDelay(publicKey, time, val) {
+transaction LockDelay(publicKey, delay, val) {
 	input = _
 	output = [
-		val : fun(x) . after time block : versig(publicKey; x);	// compiles P2SH
-		val : fun(x) . after 2h : versig(publicKey; x)	// compiles P2SH
+		val : fun(x) . checkBlockDelay delay : versig(publicKey; x);	// compiles P2SH
+		val : fun(x) . checkTimeDelay delay : versig(publicKey; x)	// compiles P2SH
 	]
 }
 
@@ -153,7 +153,7 @@ transaction TransferWithTimeout(sender, recipient, timeout, val) {
 	input = _
 	output = val : fun(senderSig,recipientSig) . 						// compiles P2SH
 		versig(sender, recipient; senderSig, recipientSig)
-		|| after timeout block : versig(sender; senderSig)
+		|| checkBlockDelay timeout : versig(sender; senderSig)
 }
 
 /*
@@ -183,7 +183,7 @@ transaction TransferWithTimeout(sender, recipient, timeout, val) {
 	input = _
 	output = val : fun(x,y) . 						// compiles P2SH
 		versig(sender, recipient, escrow; x, y)
-		|| after 2d : versig(sender; x)
+		|| checkTimeDelay 2d : versig(sender; x)
 }
 
 /*
@@ -209,7 +209,7 @@ transaction TransferWithTimeout(sender, recipient, timeout, val) {
 	input = _
 	output = val : fun(x) . 						// compiles P2SH
 		versig(coldKey; x)
-		|| after 2d : versig(hotKey; x)
+		|| checkTimeDelay 2d : versig(hotKey; x)
 }
 
 // public keys

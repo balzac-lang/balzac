@@ -5,14 +5,16 @@
 package it.unica.tcs.compiler
 
 import com.google.inject.Inject
-import it.unica.tcs.balzac.AbsoluteTime
-import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
 import it.unica.tcs.balzac.BalzacFactory
 import it.unica.tcs.balzac.Between
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
+import it.unica.tcs.balzac.CheckBlock
+import it.unica.tcs.balzac.CheckBlockDelay
+import it.unica.tcs.balzac.CheckDate
+import it.unica.tcs.balzac.CheckTimeDelay
 import it.unica.tcs.balzac.Comparison
 import it.unica.tcs.balzac.Constant
 import it.unica.tcs.balzac.DateLiteral
@@ -23,6 +25,7 @@ import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
 import it.unica.tcs.balzac.IfThenElse
 import it.unica.tcs.balzac.Input
+import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.Literal
 import it.unica.tcs.balzac.Max
 import it.unica.tcs.balzac.Min
@@ -34,9 +37,9 @@ import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
-import it.unica.tcs.balzac.RelativeTime
 import it.unica.tcs.balzac.Ripemd160
 import it.unica.tcs.balzac.Script
+import it.unica.tcs.balzac.ScriptParameter
 import it.unica.tcs.balzac.Sha1
 import it.unica.tcs.balzac.Sha256
 import it.unica.tcs.balzac.Signature
@@ -44,11 +47,13 @@ import it.unica.tcs.balzac.SignatureLiteral
 import it.unica.tcs.balzac.SignaturePlaceholder
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
+import it.unica.tcs.balzac.TransactionParameter
 import it.unica.tcs.balzac.Versig
 import it.unica.tcs.lib.ECKeyStore
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.SerialTransactionBuilder
 import it.unica.tcs.lib.TransactionBuilder
+import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar
 import it.unica.tcs.lib.script.InputScript
 import it.unica.tcs.lib.script.OutputScript
 import it.unica.tcs.lib.utils.BitcoinUtils
@@ -56,17 +61,13 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PrivateKey
+import it.unica.tcs.xsemantics.interpreter.PublicKey
 import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.balzac.TransactionParameter
-import it.unica.tcs.balzac.ScriptParameter
-import it.unica.tcs.balzac.Interpretable
-import it.unica.tcs.xsemantics.interpreter.Address
-import it.unica.tcs.xsemantics.interpreter.PrivateKey
-import it.unica.tcs.xsemantics.interpreter.PublicKey
-import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar
 
 /*
  * EXPRESSIONS
@@ -364,23 +365,42 @@ class ScriptCompiler {
         sb.op(OP_SHA1)
     }
 
-    def private dispatch ScriptBuilderWithVar compileExpressionInternal(AfterTimeLock stmt, Context ctx) {
-        if (stmt.timelock instanceof AbsoluteTime) {
-            var sb = stmt.timelock.value.compileExpression(ctx)
-            sb.op(OP_CHECKLOCKTIMEVERIFY)
-            sb.op(OP_DROP)
-            sb.append(stmt.continuation.compileExpression(ctx))
-        }
-        else if (stmt.timelock instanceof RelativeTime) {
-            val reltime = stmt.timelock as RelativeTime
-            val sb = new ScriptBuilderWithVar
-            sb.number(reltime.getSequenceNumber(ctx.rho))
-            sb.op(OP_CHECKSEQUENCEVERIFY)
-            sb.op(OP_DROP)
-            sb.append(stmt.continuation.compileExpression(ctx))
-        }
-        else
-            throw new CompileException('''Unexpected class «stmt.timelock.class»''')
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckBlock stmt, Context ctx) {
+        var sb = stmt.exp.compileExpression(ctx)
+        sb.op(OP_CHECKLOCKTIMEVERIFY)
+        sb.op(OP_DROP)
+        sb.append(stmt.continuation.compileExpression(ctx))        
+    }
+
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckDate stmt, Context ctx) {
+        var sb = stmt.exp.compileExpression(ctx)
+        sb.op(OP_CHECKLOCKTIMEVERIFY)
+        sb.op(OP_DROP)
+        sb.append(stmt.continuation.compileExpression(ctx))                
+    }
+
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckBlockDelay stmt, Context ctx) {
+        val res = stmt.exp.interpret(ctx.rho)
+        if (res.failed || !(res.first instanceof Long))
+            throw new CompileException('''Unable to interpret relative time from «stmt.nodeToString»''')
+        val reltime = res.first as Long
+        var sb = new ScriptBuilderWithVar
+        sb.number(reltime.getSequenceNumber(true, ctx.rho))
+        sb.op(OP_CHECKSEQUENCEVERIFY)
+        sb.op(OP_DROP)
+        sb.append(stmt.continuation.compileExpression(ctx))
+    }
+
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckTimeDelay stmt, Context ctx) {
+        val res = stmt.exp.interpret(ctx.rho)
+        if (res.failed || !(res.first instanceof Long))
+            throw new CompileException('''Unable to interpret relative time from «stmt.nodeToString»''')
+        val reltime = res.first as Long
+        var sb = new ScriptBuilderWithVar
+        sb.number(reltime.getSequenceNumber(false, ctx.rho))
+        sb.op(OP_CHECKSEQUENCEVERIFY)
+        sb.op(OP_DROP)
+        sb.append(stmt.continuation.compileExpression(ctx))
     }
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(AndExpression stmt, Context ctx) {

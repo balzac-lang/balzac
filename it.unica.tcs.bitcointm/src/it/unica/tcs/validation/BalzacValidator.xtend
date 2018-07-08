@@ -7,8 +7,11 @@ package it.unica.tcs.validation
 import com.google.inject.Inject
 import it.unica.tcs.balzac.AbsoluteTime
 import it.unica.tcs.balzac.AddressLiteral
-import it.unica.tcs.balzac.AfterTimeLock
 import it.unica.tcs.balzac.BalzacPackage
+import it.unica.tcs.balzac.CheckBlock
+import it.unica.tcs.balzac.CheckBlockDelay
+import it.unica.tcs.balzac.CheckDate
+import it.unica.tcs.balzac.CheckTimeDelay
 import it.unica.tcs.balzac.Div
 import it.unica.tcs.balzac.Expression
 import it.unica.tcs.balzac.Import
@@ -58,6 +61,7 @@ import org.bitcoinj.core.VerificationException
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
+import org.bitcoinj.script.ScriptPattern
 import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
@@ -74,7 +78,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
-import org.bitcoinj.script.ScriptPattern
 
 /**
  * This class contains custom validation rules.
@@ -972,27 +975,6 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkUniqueAbsoluteTimelock(AbsoluteTime tlock) {
-
-        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.balzac.Script) !== null;
-
-        if (isScriptTimelock)
-            return
-
-        var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
-        for (other: tx.timelocks){
-
-            if (tlock!=other && tlock.class==other.class) {
-                error(
-                	"Duplicated absolute timelock",
-                    tlock,
-                    null
-                );
-            }
-        }
-    }
-
-    @Check
     def void checkUniqueRelativeTimelock(RelativeTime tlock) {
 
         val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.balzac.Script) !== null;
@@ -1001,7 +983,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
 
         var tx = EcoreUtil2.getContainerOfType(tlock, Transaction);
-        for (other: tx.timelocks){
+        for (other: tx.relLocks){
 
             if (tlock!=other && tlock.class==other.class) {
                 val tx1 = tlock.tx.interpretE.first
@@ -1014,18 +996,6 @@ class BalzacValidator extends AbstractBalzacValidator {
                         null
                     );
             }
-        }
-    }
-
-    @Check
-    def void checkRelativeTimelockFromTx(RelativeTime tlock) {
-
-        if (EcoreUtil2.getContainerOfType(tlock, AfterTimeLock) === null && tlock.tx === null) {
-            error(
-                'Missing reference to an input transaction',
-                tlock,
-                BalzacPackage.Literals.RELATIVE_TIME__TX
-            );
         }
     }
 
@@ -1052,9 +1022,37 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkAbsoluteTime(AbsoluteTime tlock) {
+    def void checkCheckBlock(CheckBlock check) {
+        checkTimeExpression(check.exp, true, true, check, BalzacPackage.Literals.CHECK_BLOCK__EXP)
+    }
 
-        val res = tlock.value.interpretE
+    @Check
+    def void checkCheckDate(CheckDate check) {
+        checkTimeExpression(check.exp, true, false, check, BalzacPackage.Literals.CHECK_DATE__EXP)
+    }
+
+    @Check
+    def void checkCheckBlockDelay(CheckBlockDelay check) {
+        checkTimeExpression(check.exp, false, true, check, BalzacPackage.Literals.CHECK_BLOCK_DELAY__EXP)
+    }
+
+    @Check
+    def void checkCheckTimeDelay(CheckTimeDelay check) {
+        checkTimeExpression(check.exp, false, false, check, BalzacPackage.Literals.CHECK_TIME_DELAY__EXP)
+    }
+
+    @Check
+    def void checkAbsoluteTime(AbsoluteTime tlock) {
+        checkTimeExpression(tlock.exp, true, tlock.isBlock, tlock, BalzacPackage.Literals.ABSOLUTE_TIME__EXP)
+    }
+
+    @Check
+    def void checkRelativeTime(RelativeTime tlock) {
+        checkTimeExpression(tlock.exp, false, tlock.isBlock, tlock, BalzacPackage.Literals.RELATIVE_TIME__EXP)
+    }
+    
+    def private checkTimeExpression(Expression exp, boolean isAbsolute, boolean isBlock, EObject obj, EStructuralFeature feature) {
+        val res = exp.interpretE
 
         if (res.failed)
             return;
@@ -1064,84 +1062,38 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (value<0) {
             error(
                 "Negative timelock is not permitted.",
-                tlock,
-                BalzacPackage.Literals.TIMELOCK__VALUE
+                obj,
+                feature
             );
+            return
         }
 
-        if (tlock.isBlock && value>=org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+        if (isAbsolute && isBlock && value>=org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
             error(
                 "Block number must be lower than 500_000_000.",
-                tlock,
-                BalzacPackage.Literals.TIMELOCK__VALUE
+                obj,
+                feature
             );
+            return
         }
 
-        if (!tlock.isBlock && value<org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+        if (isAbsolute && !isBlock && value<org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
             error(
-                "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+tlock.value,
-                tlock,
-                BalzacPackage.Literals.TIMELOCK__VALUE
+                "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+value,
+                obj,
+                feature
             );
         }
-    }
 
-    @Check
-    def void checkRelativeTime(RelativeTime tlock) {
-
-        if (tlock.isBlock) {
-
-            val res = tlock.value.interpretE
-
-            if (res.failed)
-                return;
-
-            val value = res.first as Long
-
-            if (value<0) {
-                error(
-                    "Negative timelock is not permitted.",
-                    tlock,
-                    BalzacPackage.Literals.TIMELOCK__VALUE
-                );
-            }
-
-            /*
-             * tlock.value must fit in 16-bit
-             */
-            if (!value.fitIn16bits) {
-                error(
-                    '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is «0xFFFF»''',
-                    tlock,
-                    BalzacPackage.Literals.TIMELOCK__VALUE
-                );
-            }
-        }
-        else {
-            val value = tlock.delay.delayValue
-
-            if (!value.fitIn16bits) {
-                error(
-                    '''Relative timelocks must fit within unsigned 16-bits. Delay is «value», max allowed is «0xFFFF»''',
-                    tlock,
-                    BalzacPackage.Literals.TIMELOCK__VALUE
-                );
-            }
-        }
-    }
-
-    @Check
-    def void checkAfterTimelock(AfterTimeLock after) {
-        val tlock = after.timelock
-
-        if (tlock instanceof RelativeTime) {
-            if (tlock.tx !== null) {
-                error(
-                    "Cannot specify the tx within scripts",
-                    tlock,
-                    BalzacPackage.Literals.RELATIVE_TIME__TX
-                );
-            }
+        /*
+         * tlock.value must fit in 16-bit
+         */
+        if (!isAbsolute && !value.delayValue.fitIn16bits) {
+            error(
+                '''Relative timelocks must fit within unsigned 16-bits. «IF isBlock»Block«ELSE»Delay«ENDIF» value is «value», max allowed is «0xFFFF»''',
+                obj,
+                feature
+            );
         }
     }
 

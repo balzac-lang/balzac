@@ -64,6 +64,9 @@ import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.MinuteLiteral
+import it.unica.tcs.balzac.HourLiteral
+import it.unica.tcs.balzac.DayLiteral
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -171,6 +174,15 @@ axiom InterpretSignatureLiteral
 
 axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
+
+axiom InterpretMinuteLiteral
+    G |- MinuteLiteral d |> Rho rho ~> d.value.longValue
+
+axiom InterpretHourLiteral
+    G |- HourLiteral d |> Rho rho ~> d.value.longValue
+
+axiom InterpretDayLiteral
+    G |- DayLiteral d |> Rho rho ~> d.value.longValue
 
 axiom InterpretTransactionHexLiteral
     G |- TransactionHexLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(rho.networkParams, BitcoinUtils.decode(tx.value))
@@ -647,4 +659,3 @@ from {
     G |- stmt.exp |> rho ~> var PublicKey res
     result = PublicKey.fromString(res.publicKeyString, rho.networkParams)
 }
-
