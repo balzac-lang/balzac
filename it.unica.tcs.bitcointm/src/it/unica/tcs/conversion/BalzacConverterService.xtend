@@ -35,7 +35,16 @@ class BalzacConverterService extends DefaultTerminalConverters {
     def IValueConverter<byte[]> getHash160Converter() {
         return new AbstractLexerBasedConverter<byte[]>() {
             override toValue(String string, INode node) throws ValueConverterException {
-                return BitcoinUtils.decode(string.split(":").get(1).toLowerCase)
+                val value = string.split(":").get(1).toLowerCase
+                if (value.length % 2 == 1) {
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash: digits must be even.", node, null);                                        
+                }
+                try {
+                    return BitcoinUtils.decode(value)
+                }
+                catch (Exception e) {
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash. Details: "+e.message, node, null);                    
+                }
             }
         }
     }
