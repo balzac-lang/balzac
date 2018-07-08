@@ -763,7 +763,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Invalid type "+stringRep(t)
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
         source hash.value
     }
 }
@@ -776,7 +776,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Invalid type "+stringRep(t)
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
         source hash.value
     }
 }
@@ -789,7 +789,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Invalid type "+stringRep(t)
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
         source hash.value
     }
 }
@@ -802,7 +802,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Invalid type "+stringRep(t)
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
         source hash.value
     }
 }
@@ -815,7 +815,7 @@ from {
 
     if (!(t instanceof HashableType)) {
         fail
-        error "Invalid type "+stringRep(t)
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
         source hash.value
     }
 }
