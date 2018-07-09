@@ -328,17 +328,19 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Check
     def void checkVerSig(Versig versig) {
 
+        checkExpressionIsWithinScript(versig)
+
         if (versig.pubkeys.size>15) {
             error("Cannot verify more than 15 public keys.",
                 BalzacPackage.Literals.VERSIG__PUBKEYS
-            );
+            )
         }
 
         if (versig.signatures.size > versig.pubkeys.size) {
             error("The number of signatures cannot exceed the number of public keys.",
                 versig,
                 BalzacPackage.Literals.VERSIG__SIGNATURES
-            );
+            )
         }
     }
 
@@ -351,7 +353,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             error("You cannot specify the transaction to sign.",
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
-            );
+            )
             return
         }
 
@@ -359,7 +361,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             error("Transaction cannot be a coinbase.",      // because you need a reference to the output script of the input i-th
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
-            );
+            )
             return
         }
 
@@ -367,7 +369,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             error("Cannot sign a serialized transaction.",  // because you need a reference to the output script of the input i-th
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
-            );
+            )
             return
         }
 
@@ -375,7 +377,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             error("You must specify the transaction to sign.",
                 sig.eContainer,
                 sig.eContainingFeature
-            );
+            )
             return
         }
 
@@ -389,14 +391,14 @@ class BalzacValidator extends AbstractBalzacValidator {
                 error('''Invalid input «sig.inputIdx». «IF inputSize == 1»0 expected (it can be omitted).«ELSE»Valid interval [0,«inputSize-1»].«ENDIF»''',
                     sig,
                     BalzacPackage.Literals.SIGNATURE__INPUT_IDX
-                );
+                )
             }
             if (sig.modifier == Modifier.AISO || sig.modifier == Modifier.SISO) {
             	if (sig.inputIdx >= outputSize) {
 	                error('''Invalid input «sig.inputIdx». Since you are signing a single output, the index must be «IF outputSize == 1»0 (it can be omitted).«ELSE» within [0,«outputSize-1»].«ENDIF»''',
 	                    sig,
 	                    BalzacPackage.Literals.SIGNATURE__INPUT_IDX
-	                );
+	                )
 	            }
             }
         }
@@ -404,7 +406,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             error('''Error occurred evaluting transaction «sig.tx.nodeToString». Please report the error to the authors.''',
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
-            );
+            )
         }
     }
 
@@ -1023,21 +1025,25 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkCheckBlock(CheckBlock check) {
+        checkExpressionIsWithinScript(check)
         checkTimeExpression(check.exp, true, true, check, BalzacPackage.Literals.CHECK_BLOCK__EXP)
     }
 
     @Check
     def void checkCheckDate(CheckDate check) {
+        checkExpressionIsWithinScript(check)
         checkTimeExpression(check.exp, true, false, check, BalzacPackage.Literals.CHECK_DATE__EXP)
     }
 
     @Check
     def void checkCheckBlockDelay(CheckBlockDelay check) {
+        checkExpressionIsWithinScript(check)
         checkTimeExpression(check.exp, false, true, check, BalzacPackage.Literals.CHECK_BLOCK_DELAY__EXP)
     }
 
     @Check
     def void checkCheckTimeDelay(CheckTimeDelay check) {
+        checkExpressionIsWithinScript(check)        
         checkTimeExpression(check.exp, false, false, check, BalzacPackage.Literals.CHECK_TIME_DELAY__EXP)
     }
 
@@ -1050,7 +1056,21 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkRelativeTime(RelativeTime tlock) {
         checkTimeExpression(tlock.exp, false, tlock.isBlock, tlock, BalzacPackage.Literals.RELATIVE_TIME__EXP)
     }
-    
+
+    def private boolean checkExpressionIsWithinScript(EObject obj) {
+        val script = EcoreUtil2.getContainerOfType(obj, it.unica.tcs.balzac.Script)
+
+        if (script === null) {
+            error(
+                "This expression is permitted only in output scripts",
+                obj.eContainer,
+                obj.eContainmentFeature
+            )
+            return false
+        }
+        return true
+    }
+
     def private checkTimeExpression(Expression exp, boolean isAbsolute, boolean isBlock, EObject obj, EStructuralFeature feature) {
         val res = exp.interpretE
 
@@ -1064,7 +1084,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 "Negative timelock is not permitted.",
                 obj,
                 feature
-            );
+            )
             return
         }
 
@@ -1073,7 +1093,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 "Block number must be lower than 500_000_000.",
                 obj,
                 feature
-            );
+            )
             return
         }
 
@@ -1082,7 +1102,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+value,
                 obj,
                 feature
-            );
+            )
         }
 
         /*
@@ -1093,7 +1113,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 '''Relative timelocks must fit within unsigned 16-bits. «IF isBlock»Block«ELSE»Delay«ENDIF» value is «value», max allowed is «0xFFFF»''',
                 obj,
                 feature
-            );
+            )
         }
     }
 
