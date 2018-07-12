@@ -28,7 +28,7 @@ gradle -p $HOME/BitcoindConnector4J install
 echo "Cloning https://github.com/natzei/bitcoinj.git"
 git -C $HOME clone https://github.com/natzei/bitcoinj.git
 git -C $HOME/bitcoinj checkout lib
-mvn -f $HOME/bitcoinj install -DskipTests
+gradle -p $HOME/bitcoinj install -x test
 ```
 [Compare versions](https://github.com/bitcoinj/bitcoinj/compare/master...natzei:lib)
 
