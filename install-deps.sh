@@ -10,5 +10,5 @@ rm -rf $HOME/BitcoindConnector4J
 echo "Cloning https://github.com/natzei/bitcoinj.git"
 git -C $HOME clone https://github.com/natzei/bitcoinj.git
 git -C $HOME/bitcoinj checkout lib
-mvn -f $HOME/bitcoinj install -DskipTests
+gradle -p $HOME/bitcoinj install -x test
 rm -rf $HOME/bitcoinj
