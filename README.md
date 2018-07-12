@@ -6,53 +6,33 @@
 A domain-specific language to write Bitcoin transactions, based on the paper
 [A formal model of Bitcoin transactions](https://eprint.iacr.org/2017/1124.pdf) presented at [Financial Cryptography and Data Security 2018](http://fc18.ifca.ai/).
 
+**Online editor**: [http://blockchain.unica.it/balzac/](http://blockchain.unica.it/balzac/)
 
-## Online editor
+**Documentation**: [http://blockchain.unica.it/balzac/docs](http://blockchain.unica.it/balzac/docs)
 
-Try the online editor [http://blockchain.unica.it/balzac/](http://blockchain.unica.it/balzac/).
+## Setup
 
-## Development Setup
+Execute the script `install-deps.sh` or alternatively follow these steps:
 
-- clone the repository
-- install some maven dependency
-- symbolic links
-- compile
-
-### Clone the repository
+**Install a customized version of BitcoindConnector4J**
 ```
-git clone https://github.com/balzac-lang/balzac.git
+echo "Cloning https://github.com/natzei/BitcoindConnector4J.git"
+git -C $HOME clone https://github.com/natzei/BitcoindConnector4J.git
+git -C $HOME/BitcoindConnector4J checkout release-0.16
+gradle -p $HOME/BitcoindConnector4J install
 ```
-
-### Install dependencies
-
-#### bitcoinj
-
-Install a customized version of bitcoinj (segwit branch) into your local maven repository:
-```
-git clone https://github.com/natzei/bitcoinj.git
-cd bitcoinj
-git checkout lib
-mvn install -DskipTests
-cd ..
-```
-
-[Compare versions](https://github.com/bitcoinj/bitcoinj/compare/segwit...natzei:lib)
-
-#### BitcoindConnector4J
-
-```
-git clone https://github.com/natzei/BitcoindConnector4J.git
-cd BitcoindConnector4J
-git checkout release-0.16
-gradle install
-cd ..
-```
-
 [Compare versions](https://github.com/SulacoSoft/BitcoindConnector4J/compare/master...natzei:master)
 
+**Install a customized version of BitcoinJ**
+```
+echo "Cloning https://github.com/natzei/bitcoinj.git"
+git -C $HOME clone https://github.com/natzei/bitcoinj.git
+git -C $HOME/bitcoinj checkout lib
+mvn -f $HOME/bitcoinj install -DskipTests
+```
+[Compare versions](https://github.com/bitcoinj/bitcoinj/compare/master...natzei:lib)
 
-
-### Compile
+### Install
 ```
 mvn -f it.unica.tcs.bitcointm.parent/ clean install
 ```
@@ -69,7 +49,7 @@ mvn -f it.unica.tcs.bitcointm.web/ jetty:run
 
 ### IDE
 
-The project is currently developed using *Eclipse IDE for Java and DSL Developers* (Oxygen).
+The project is currently developed using *Eclipse IDE for Java and DSL Developers* (Photon).
 Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclipse-packages/).
 
 Install Xtext 2.14 ([update site](http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/)).
