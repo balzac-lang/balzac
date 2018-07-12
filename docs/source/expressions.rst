@@ -32,6 +32,7 @@ and hexadecimal numbers are prefixed with ``0x`` or ``0X``.
         0Xfff,
         0xff_ff_ff
 
+.. _label_date_delays:
 
 Dates and Delays
 """"""""""""""""
@@ -719,6 +720,8 @@ the redeeming transaction must declare the ``timelock`` field that satisfies the
 
 Time constraints can express an *absolute time* or a *relative* one.
 
+.. _label_abslock_exp:
+
 Absolute timelocks
 ^^^^^^^^^^^^^^^^^^
 Absolute timelock constraints allow an output script to specify the **absolute time** 
@@ -789,14 +792,16 @@ Moreover, the Bitcoin specification imposes that ``date >= 500_000_000`` (or ``1
     }
 
 
+.. _label_rellock_exp:
+
 Relative timelocks
 ^^^^^^^^^^^^^^^^^^
 Relative timelock constraints allow an output script to specify the **delay** 
 that the redeeming transaction must satisfy.
 That delay can be either a **block number** or a **time delay** (in seconds).
 
-CheckBlock
-""""""""""
+checkBlockDelay
+"""""""""""""""
 The expression :btm:`checkBlockDelay blockN : exp`, where ``blockN`` has type :btm:`int` and
 ``exp`` has type *T*, evaluates ``exp`` if the redeeming transaction has
 a block relative timelock greater than ``blockN``, fails otherwise. Its type is *T*.
@@ -826,8 +831,8 @@ Moreover, the Bitcoin specification imposes that ``blockN < 65535``.
         relLock = blockDelay - 5 block from T
     }
 
-CheckDate
-"""""""""
+checkBlockDelay
+"""""""""""""""
 The expression :btm:`checkTimeDelay seconds : exp`, where ``seconds`` has type :btm:`int` and
 ``exp`` has type *T*, evaluates ``exp`` if the redeeming transaction has
 a time relative timelock greater than ``seconds``, fails otherwise. Its type is *T*.

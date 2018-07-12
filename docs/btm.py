@@ -41,7 +41,7 @@ class BtmLexer(RegexLexer):
             (r'hash:|sig:|address:|key:|pubkey:|tx:|txid:', Name.Constant, 'literal'),
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
-            (r'(network|mainnet|testnet|regtest|input|output|timelock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|sha1|min|max|between|size|eval|checkBlock|checkDate|checkBlockDelay|checkTimeDelay|toAddress|toPubkey|AIAO|AISO|AINO|SIAO|SISO|SINO)\b', Keyword),
+            (r'(network|mainnet|testnet|regtest|input|output|absLock|relLock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|sha1|min|max|between|size|eval|checkBlock|checkDate|checkBlockDelay|checkTimeDelay|toAddress|toPubkey|AIAO|AISO|AINO|SIAO|SISO|SINO)\b', Keyword),
             (r'(sig)'                           # sig
              r'\((([^\W\d]|\$)[\w\'$]*)\)',      # key
              bygroups(using(this), Text)),
