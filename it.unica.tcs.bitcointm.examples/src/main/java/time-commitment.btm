@@ -16,7 +16,7 @@ participant Alice {
     // Alice's private key
     private const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
-    private secret = "42"         // Alice's secret
+    private const secret = "42"         // Alice's secret
     const h = sha256(secret)    // hash of the secret
     
     transaction T_commit {

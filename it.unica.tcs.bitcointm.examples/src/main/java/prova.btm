@@ -122,11 +122,17 @@ transaction coinbase {
     output = this.input.value + 10 BTC : fun(x) . x != 0
 }
 
+transaction ABC(x:int) {
+	input = coinbase: x
+	output = this.input.value - x : fun(x) . x == 42
+}
+
 eval
     foo2.output.value,
     foo2.input.value,
-    test("pippo").output.value + foo(kA).output.value - 5,
+    test("secret").output.value + foo(kA).output.value - 5,
     foo2.output(1).value,
     foo2,
     kAaddr,
-    kApub
+    kApub,
+    ABC(100)

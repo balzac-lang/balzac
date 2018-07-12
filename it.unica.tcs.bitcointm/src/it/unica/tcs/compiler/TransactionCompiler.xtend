@@ -92,8 +92,8 @@ class TransactionCompiler {
                         val locktime = tx.relLocks.getRelativeForTx(parentTx, rho)
                         val resL = locktime.exp.interpret(rho)
                         if (resL.failed || !(resL.first instanceof Long)) {
-                            logger.error("Unable to interpret relative timelock "+locktime.nodeToString)
-                            throw new CompileException("Unable to interpret relative timelock "+locktime.nodeToString)
+                            logger.error("Unable to interpret relative timelock "+locktime.nodeToString+" with rho "+rho)
+                            throw new CompileException("Unable to interpret relative timelock "+locktime.nodeToString+" with rho "+rho)
                         }
                         val value = resL.first as Long
                         tb.addInput(parentTx, outIndex, inScript, value.getSequenceNumber(locktime.isBlock, rho))
@@ -169,7 +169,7 @@ class TransactionCompiler {
                                 // create a rho for the evaluation
                                 val newHookRho = rho.fresh
                                 for(fp : tx.params) {
-                                    rho.put( fp, values.get(fp.name) )
+                                    newHookRho.put( fp, values.get(fp.name) )
                                 }
                                 logger.trace('''rho «newHookRho»''')
                                 // re-interpret actualP
@@ -194,8 +194,8 @@ class TransactionCompiler {
                         val locktime = tx.relLocks.getRelativeForTx(parentTxB, rho)
                         val resL = locktime.exp.interpret(rho)
                         if (resL.failed || !(resL.first instanceof Long)) {
-                            logger.error("Unable to interpret relative timelock "+locktime.nodeToString)
-                            throw new CompileException("Unable to interpret relative timelock "+locktime.nodeToString)
+                            logger.error("Unable to interpret relative timelock "+locktime.nodeToString+" with rho "+rho)
+                            throw new CompileException("Unable to interpret relative timelock "+locktime.nodeToString+" with rho "+rho)
                         }
                         val value = resL.first as Long
                         tb.addInput(parentTxB, outIndex, inScript, value.getSequenceNumber(locktime.isBlock, rho))
@@ -210,7 +210,12 @@ class TransactionCompiler {
         // outputs
         for (output : tx.outputs) {
             val outScript = output.compileOutputScript(rho)
-            val satoshis = output.value.interpret(rho).first as Long
+            val res = output.value.interpret(rho)
+            if (res.failed || !(res.first instanceof Long)) {
+                logger.error("Unable to interpret output value "+output.value.nodeToString+" with rho "+rho)
+                throw new CompileException("Unable to interpret output value "+output.value.nodeToString+" with rho "+rho)
+            }
+            val satoshis = res.first as Long
             tb.addOutput(outScript, satoshis)
         }
 
@@ -218,8 +223,10 @@ class TransactionCompiler {
         if (tx.absLock !== null) {
             val res = tx.absLock.exp.interpret(rho)
 
-            if (res.failed)
-                throw new CompileException("Cannot evaluate the absolute timelock.")
+            if (res.failed || !(res.first instanceof Long)) {
+                logger.error("Unable to interpret absolute timelock "+tx.absLock.exp.nodeToString)                
+                throw new CompileException("Unable to interpret absolute timelock "+tx.absLock.exp.nodeToString)
+            }
 
             tb.locktime = res.first as Long
         }
