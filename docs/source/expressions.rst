@@ -74,7 +74,6 @@ The parsing rules are straightforward and conversions are done at parsing time:
         1day,       // 86400
         2days       // 172800
 
-
 Strings
 ^^^^^^^
 Strings are sequence of characters, whose type is :btm:`string`.
@@ -229,6 +228,22 @@ The precedence is: ``- (unary)`` > ``*`` ``/`` > ``+`` ``-`` > ``==`` ``!=`` > `
         a + 42 / 2,
         "Hello" + " World!",
         "Hello " + if a > 5 then "World" else "Balzac"
+
+---
+BTC
+---
+The expression :btm:`e BTC`, where ``e`` has type :btm:`int`, multiply ``e`` by ``10^8``.
+The return type is :btm:`int`.
+
+Optionally, ``e`` can be followed by a decimal part ``. INT``, where ``INT`` is a max 8-digit number (not an expression).
+
+.. code-block:: btm
+
+    eval
+        1 BTC,          // 100_000_000
+        (1+1) BTC,      // 200_000_000
+        (1+1).3 BTC,    // 230_000_000
+        (1+1).00003 BTC // 200_003_000
 
 ----------
 References
