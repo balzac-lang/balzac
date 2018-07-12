@@ -267,3 +267,9 @@ remove-lexer:
 .PHONY: loop
 loop:
 	./ifchanged.py source 'make build-doc'
+
+.PHONY: server
+server:
+	cd build/html/ && \
+	/usr/bin/env python2 -m SimpleHTTPServer 8000 && \
+	cd ..
