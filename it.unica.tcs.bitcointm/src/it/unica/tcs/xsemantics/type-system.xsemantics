@@ -15,7 +15,9 @@ import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
 import it.unica.tcs.balzac.BooleanType
 import it.unica.tcs.balzac.CheckBlock
+import it.unica.tcs.balzac.CheckBlockDelay
 import it.unica.tcs.balzac.CheckDate
+import it.unica.tcs.balzac.CheckTimeDelay
 import it.unica.tcs.balzac.Comparison
 import it.unica.tcs.balzac.Constant
 import it.unica.tcs.balzac.DateLiteral
@@ -75,12 +77,11 @@ import it.unica.tcs.balzac.Typeable
 import it.unica.tcs.balzac.Versig
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.validation.AbstractBalzacValidator
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.CheckBlockDelay
-import it.unica.tcs.balzac.CheckTimeDelay
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -88,6 +89,7 @@ validatorExtends AbstractBalzacValidator
 
 inject LambdaUtils lambdaUtils
 inject extension ASTUtils astUtils
+val logger = Logger.getLogger(BalzacTypeSystem)
 
 auxiliary {
     typesubstitution(TypeSubstitutions substitutions, Type original) : Type
@@ -332,8 +334,9 @@ from {
         }
     }
     else {
+        logger.^error("Unexpected class "+varRef.ref)
         fail
-            error "Unexpected class "+varRef.ref
+            error "Cannot type " + stringRep(varRef)
             source varRef
     }
 }

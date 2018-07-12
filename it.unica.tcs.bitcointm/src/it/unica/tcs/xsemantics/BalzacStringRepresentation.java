@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 
 import org.eclipse.xsemantics.runtime.StringRepresentation;
 
+import com.google.inject.Inject;
+
 import it.unica.tcs.balzac.AddressType;
 import it.unica.tcs.balzac.BooleanLiteral;
 import it.unica.tcs.balzac.BooleanType;
@@ -24,9 +26,11 @@ import it.unica.tcs.balzac.This;
 import it.unica.tcs.balzac.TransactionType;
 import it.unica.tcs.balzac.Type;
 import it.unica.tcs.balzac.TypeVariable;
+import it.unica.tcs.utils.ASTUtils;
 
 public class BalzacStringRepresentation extends StringRepresentation {
 
+    @Inject private ASTUtils astUtils;
 
     public String stringRep(This intConstant) {
         return "this";
@@ -47,7 +51,7 @@ public class BalzacStringRepresentation extends StringRepresentation {
     }
 
     public String stringRep(Reference ref) {
-        return stringRep(ref.getRef());
+        return stringRep(astUtils.nodeToString(ref));
     }
 
     public String stringRep(TypeSubstitutions substitutions) {

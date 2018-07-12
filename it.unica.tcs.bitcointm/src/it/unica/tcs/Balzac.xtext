@@ -38,7 +38,7 @@ Participant: {Participant} 'participant' pname=ID '{'
     '}';
 
 ParticipantElement returns Element:
-    Constant
+    PrivateConstant
 |   Transaction;
 
 Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
@@ -53,6 +53,9 @@ ScriptParameter returns Parameter: {ScriptParameter} name=ID (":" type=BasicType
 
 Constant:
 	"const" name=ID (":" type=BasicType)? "=" exp=(Expression|TransactionLiteral);
+
+PrivateConstant returns Constant:
+    (private?='private')? "const" name=ID (":" type=BasicType)? "=" exp=(Expression|TransactionLiteral);
 
 Transaction:
 	checks+=OnDemandCheck*

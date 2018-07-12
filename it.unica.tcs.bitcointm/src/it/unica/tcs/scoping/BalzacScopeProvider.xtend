@@ -85,8 +85,10 @@ class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
         
         val candidates = newHashMap
         for (p : participants) {
-            val pcandidates = p.declarations.filter(clazz)
-            pcandidates.forEach[c | candidates.put(c, p.pname)]             // map each declaration with the participant name
+            val pcandidates = p.declarations
+                .filter(clazz)
+                .filter[c | !(c instanceof Constant && (c as Constant).private)]    // remove private constants
+            pcandidates.forEach[c | candidates.put(c, p.pname)]                     // map each declaration with the participant name
         }
         val qualifiedNameProvider = [Referrable p| QualifiedName.create(candidates.get(p), p.name)]
         return Scopes.scopeFor(candidates.keySet, qualifiedNameProvider, outer)

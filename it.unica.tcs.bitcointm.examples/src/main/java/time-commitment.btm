@@ -1,7 +1,3 @@
-/*
- * Time commitment - Andrychowicz
- */
-
 package time_commitment
 
 // some constants
@@ -18,9 +14,9 @@ transaction A_funds { input = _ output = 10 BTC: fun(sigma) . versig(kApub; sigm
 
 participant Alice {
     // Alice's private key
-    const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+    private const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
-    const secret = "42"         // Alice's secret
+    private secret = "42"         // Alice's secret
     const h = sha256(secret)    // hash of the secret
     
     transaction T_commit {
@@ -38,7 +34,7 @@ participant Alice {
 
 participant Bob {
     // Bob's private key
-    const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+    private const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
     
     const T_commit = Alice.T_commit
     
