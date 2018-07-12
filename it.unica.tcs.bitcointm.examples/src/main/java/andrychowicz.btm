@@ -1,0 +1,102 @@
+/*
+ * Time commitment - Andrychowicz
+ */
+
+package it.unica.btm.andrychowicz
+
+const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+
+/*
+ * funds
+ */
+transaction T_fundsA { input = _ output = 20 BTC: fun(sigma) . versig(kA; sigma)}
+transaction T_fundsB { input = _ output = 20 BTC: fun(sigma) . versig(kB; sigma)}
+
+transaction T_funds(k:key) {
+	input = _
+	output = 20 BTC: fun(sigma) . versig(k; sigma)
+}
+
+/*
+ * commit
+ */
+transaction T_commitA {
+	input = _
+	output = 10 BTC:
+		fun(sigma1, sigma2, x:string).
+			hash160(x) == hash:9bc4f920cd2154cad285426b3fa1b18e823423d4 && versig(kA; sigma1)
+			||
+			versig(kA, kB; sigma1, sigma2)
+}
+
+transaction T_commitB {
+	input = _
+	output = 10 BTC:
+		fun(sigma1, sigma2, x:string).
+			hash160(x) == hash:b9871797591d23183cd726d7d7d8ef4c31befbb9 && versig(kB; sigma1)
+			||
+			versig(kA, kB; sigma1, sigma2)
+}
+
+transaction T_commit(hSecret:hash, k:key) {
+	input = _
+	output = 10 BTC:
+		fun(sigma1, sigma2, x:string).
+			hash160(x) == hSecret && versig(k; sigma1)
+			||
+			versig(kA, kB; sigma1, sigma2)
+}
+
+/*
+ * open
+ */
+transaction T_openA {
+	input = T_commitA: sig(kA) sig(kA) "secretA"	// second item is useless
+	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
+}
+
+transaction T_openB {
+	input = T_commitB: sig(kB) sig(kB) "secretB"	// second item is useless
+	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
+}
+
+//transaction T_open(k:key, secret:string) {	// TODO: consider taking tx as parameter
+//	input = T_commit(hash160(secret), k): sig(k) sig(k)et	// second item is useless
+//	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
+//}
+
+/*
+ * pay deposit
+ */
+transaction T_payDepositA {
+    input = T_commitA: sig(kA) sig(kB) ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kA; sigma)
+	absLock = block 45
+}
+
+transaction T_payDepositB {
+    input = T_commitB: sig(kA) sig(kB) ""
+ 	output = 10 BTC - 10: fun(sigma) . versig(kB; sigma)
+	absLock = block 45
+}
+
+/*
+ * compute
+ */
+transaction T_compute {
+    input = _
+	output =
+		2 BTC: fun(sigma1, sigma2, xA:string, xB:string) .
+			hash160(xA) == hash:9bc4f920cd2154cad285426b3fa1b18e823423d4 &&
+			hash160(xB) == hash:b9871797591d23183cd726d7d7d8ef4c31befbb9 &&
+			(size(xA) == 128 || size(xA) == 127) &&
+			(size(xB) == 128 || size(xB) == 127) &&
+			if size(xA) == size(xB)
+			then versig(kA; sigma1)
+			else versig(kB; sigma2)
+}
+
+
+
+
