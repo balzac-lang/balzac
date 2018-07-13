@@ -34,12 +34,12 @@ Alice starts defining some constants:
 
 .. code-block:: btm
 
-	// some constants
-	const fee = 0.00113 BTC     // miner's fee
-	const secret = "42"         // Alice's secret
-	const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of the secret - sha256(secret)
-	const deposit = 10 BTC      // Alice's deposit
-	const deadline = 2018-06-11 // deadline to reveal the secret
+    // some constants
+    const fee = 0.00113 BTC     // miner's fee
+    const secret = "42"         // Alice's secret
+    const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of the secret - sha256(secret)
+    const deposit = 10 BTC      // Alice's deposit
+    const deadline = 2018-06-11 // deadline to reveal the secret
 
 Funds
 ^^^^^
@@ -52,8 +52,8 @@ for the public key ``kApub`` of Alice.
 
 .. code-block:: btm
 
-	// Alice's public key
-	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+    // Alice's public key
+    const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
 It is possible to refer the **real** transaction ``A_funds`` declaring:
 
@@ -66,8 +66,8 @@ we are building are correct.
 
 .. code-block:: btm
 
-	// tx with Alice's funds, redeemable with kA
-	transaction A_funds { input = _ output = deposit: fun(sigma) . versig(kApub; sigma)}
+    // tx with Alice's funds, redeemable with kA
+    transaction A_funds { input = _ output = deposit: fun(sigma) . versig(kApub; sigma)}
 
 Now Alice owns a ``deposit``, stored in ``A_funds``, that she can pawn for the timed commitment protocol.
 
@@ -84,18 +84,18 @@ The transaction ``T_commit`` looks like:
 
 .. code-block:: btm
 
-	// Alice's private key
-	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+    // Alice's private key
+    const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
-	// Bob's public key
-	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+    // Bob's public key
+    const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
-	transaction T_commit {
-	    input = A_funds: sig(kA)
-	    output = input.value - fee:
-	        fun(x,s:string) . sha256(s) == h && versig(kApub;x)
-	            || after date deadline : versig(kBpub;x)
-	}
+    transaction T_commit {
+        input = A_funds: sig(kA)
+        output = input.value - fee:
+            fun(x,s:string) . sha256(s) == h && versig(kApub;x)
+                || after date deadline : versig(kBpub;x)
+    }
 
 Within this transaction Alice is committing the hash of the chosen secret:
 indeed, ``h`` is encoded within the output script of the transaction.
@@ -111,53 +111,53 @@ so making the former public.
 
 .. code-block:: btm
 
-	transaction T_reveal {
-	    input =  T_commit: sig(kA) secret
-	    output = deposit - fee*2: fun(x) . versig(kA;x)
-	}
+    transaction T_reveal {
+        input =  T_commit: sig(kA) secret
+        output = deposit - fee*2: fun(x) . versig(kA;x)
+    }
 
 We can evaluate Alice's transactions as follows.
 
 .. code-block:: btm
 
-	eval T_commit, T_reveal
+    eval T_commit, T_reveal
 
 To sum up, the whole file is:
 
 .. code-block:: btm
-	
-	// some constants
-	const fee = 0.00113 BTC     // miner's fee
-	const secret = "42"         // Alice's secret
-	const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of the secret - sha256(secret)
-	const deposit = 10 BTC      // Alice's deposit
-	const deadline = 2018-06-11 // deadline to reveal the secret
 
-	// Alice's private key
-	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	
-	// Alice's public key
-	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+    // some constants
+    const fee = 0.00113 BTC     // miner's fee
+    const secret = "42"         // Alice's secret
+    const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of the secret - sha256(secret)
+    const deposit = 10 BTC      // Alice's deposit
+    const deadline = 2018-06-11 // deadline to reveal the secret
 
-	// Bob's public key
-	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+    // Alice's private key
+    const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
-	// tx with Alice's funds, redeemable with kA
-	transaction A_funds { input = _ output = deposit: fun(sigma) . versig(kApub; sigma)}
+    // Alice's public key
+    const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
-	transaction T_commit {
-	    input = A_funds: sig(kA)
-	    output = deposit - fee:
-	        fun(x,s:string) . sha256(s) == h && versig(kApub;x)
-	            || after date deadline : versig(kBpub;x)
-	}
+    // Bob's public key
+    const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
-	transaction T_reveal {
-	    input =  T_commit: sig(kA) secret
-	    output = deposit - fee*2: fun(x) . versig(kA;x)
-	}
+    // tx with Alice's funds, redeemable with kA
+    transaction A_funds { input = _ output = deposit: fun(sigma) . versig(kApub; sigma)}
 
-	eval T_commit, T_reveal
+    transaction T_commit {
+        input = A_funds: sig(kA)
+        output = deposit - fee:
+            fun(x,s:string) . sha256(s) == h && versig(kApub;x)
+                || checkDate deadline : versig(kBpub;x)
+    }
+
+    transaction T_reveal {
+        input =  T_commit: sig(kA) secret
+        output = deposit - fee*2: fun(x) . versig(kA;x)
+    }
+
+    eval T_commit, T_reveal
 
 
 ----------
@@ -179,7 +179,7 @@ One can specify ``T_commit`` as follows:
 
 .. code-block:: btm
 
-	const T_commit = tx:02000000010bb...    // specify the transaction body
+    const T_commit = tx:02000000010bb...    // specify the transaction body
 
 Note that ``T_commit`` is public on the blockchain.
 
@@ -195,31 +195,31 @@ e.g. ``[fun(x) . x == 42]``, alongside the witnesses.
 The example below shows how to create Bob's ``T_timeout`` transaction.
 
 .. code-block:: btm
-	
-	// some constants
-	const fee = 0.00113 BTC     // miner's fee
-	const deposit = 10 BTC      // Alice's deposit
-	const deadline = 2018-06-11 // deadline to reveal the secret
-	const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of Alice's secret
 
-	// Alice's commit transaction
-	const T_commit = tx:02000000010bbd1756430fdd65b55f02f135a1d657ef5742f4b0ae3f1aed10baedd53c5b20000000006b483045022100ef81428e14f58cf6bcf34bd169b2ebcfc90611aac00c900ec30ad9eea9792051022029870f1cc257e08b52db93339423451d2a2288e8aa4376137ff7f5795d75a3f9012103ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3ffffffff019810993b0000000017a914904be77bfb6521b19e7d7712a5214c61c951f1668700000000
+    // some constants
+    const fee = 0.00113 BTC     // miner's fee
+    const deposit = 10 BTC      // Alice's deposit
+    const deadline = 2018-06-11 // deadline to reveal the secret
+    const h = hash:73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049   // hash of Alice's secret
 
-	// Alice's public key
-	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+    // Alice's commit transaction
+    const T_commit = tx:02000000010bbd1756430fdd65b55f02f135a1d657ef5742f4b0ae3f1aed10baedd53c5b20000000006b483045022100ef81428e14f58cf6bcf34bd169b2ebcfc90611aac00c900ec30ad9eea9792051022029870f1cc257e08b52db93339423451d2a2288e8aa4376137ff7f5795d75a3f9012103ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3ffffffff019810993b0000000017a914904be77bfb6521b19e7d7712a5214c61c951f1668700000000
 
-	// Bob's public key
-	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+    // Alice's public key
+    const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
-	// Bob's private key
-	const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
+    // Bob's public key
+    const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
 
-	transaction T_timeout {
-	    input = T_commit: sig(kB) "" [fun(x,s:string) . sha256(s) == h && versig(kApub;x) || after date deadline : versig(kBpub;x)]
-	    output = input.value - fee: fun(x) . versig(kB;x)
-	    timelock = after date deadline
-	}
+    // Bob's private key
+    const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 
-	eval T_timeout
+    transaction T_timeout {
+        input = T_commit: sig(kB) "" [fun(x,s:string) . sha256(s) == h && versig(kApub;x) || checkDate deadline : versig(kBpub;x)]
+        output = input.value - fee: fun(x) . versig(kB;x)
+        absLock = date deadline
+    }
+
+    eval T_timeout
 
 

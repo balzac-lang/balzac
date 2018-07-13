@@ -348,7 +348,7 @@ This expression has type :btm:`int` and expects that ``a`` and ``b`` have type :
 
 Between
 ^^^^^^^
-The :btm:`between(x,min:max)` expression checks a number `x` is in range ``[min,max]``.
+The expression :btm:`between(x,min:max)` checks a number `x` is in range ``[min,max]``.
 This expression has type :btm:`bool` and expects that ``x``, ``min`` and ``max`` have type :btm:`int`.
 
 
@@ -809,14 +809,13 @@ a block relative timelock greater than ``blockN``, fails otherwise. Its type is 
 Moreover, the Bitcoin specification imposes that ``blockN < 65535``.
 
 .. code-block:: btm
-    :emphasize-lines: 6,12,18
+    :emphasize-lines: 5,11,17
 
     const blockDelay = 500
 
     transaction T {
         input = _
-        output = 
-            1 BTC: fun(x) . checkBlockDelay blockDelay : x == 42
+        output = 1 BTC: fun(x) . checkBlockDelay blockDelay : x == 42
     }
 
     transaction T1 {
@@ -841,14 +840,13 @@ Moreover, the Bitcoin specification imposes that seconds is a multiple of 512,
 and that ``seconds / 512 <= 65535``.
 
 .. code-block:: btm
-    :emphasize-lines: 6,12,18
+    :emphasize-lines: 5,11,17
 
     const timeDelay = 1day
 
     transaction T {
         input = _
-        output = 
-            1 BTC: fun(x) . checkTimeDelay timeDelay : x == 42
+        output = 1 BTC: fun(x) . checkTimeDelay timeDelay : x == 42
     }
 
     transaction T1 {

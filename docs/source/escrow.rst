@@ -13,17 +13,17 @@ transaction redeemable by Alice. We model that transaction in the
 editor using a *fake coinbase transaction* ``A_funds``.
 
 .. code-block:: btm
-		
-    // Alice's public key	
+
+    // Alice's public key
     const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
     // tx with Alice's funds, redeemable with Alice's private key
     transaction A_funds {
-        input = _ 
+        input = _
         output = 1 BTC: fun(x). versig(kApub; x)
     }
 
-``kApub`` is the public key of Alice and ``versig(kApub; x)`` checks
+``kApub`` is the public key of Alice and :btm:`versig(kApub; x)` checks
 that ``x`` is a valid signature for ``kApub``.
 Assuming that only Alice owns the corresponding private part
 of ``kApub``, she is the only one able to spend ``A_funds``.
@@ -35,18 +35,18 @@ Simple contract
 In a naive attempt to realise a secure contract,  Alice generates the following transaction ``T``:
 
 .. code-block:: btm
-		
-	// Alice's private key
-	const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
-	// Alice's public key	
-	const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
-	// Bob's public key
-	const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
-	
-	transaction T {
-		input = A_funds: sig(kA)
-		output = 1 BTC: fun(x, y). versig(kApub, kBpub; x, y)
-	}
+
+    // Alice's private key
+    const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+    // Alice's public key
+    const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
+    // Bob's public key
+    const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+
+    transaction T {
+        input = A_funds: sig(kA)
+        output = 1 BTC: fun(x, y). versig(kApub, kBpub; x, y)
+    }
 
 
 Transaction ``T`` redeems transaction ``A_funds`` using the
@@ -59,8 +59,8 @@ Consider the following parametric transaction:
 .. code-block:: btm
 
    transaction T1(sigA:signature, sigB:signature, pubK:pubkey)  {
-		input = T: sigA sigB
-		output = 1 BTC: fun(x). versig(pubK; x)
+        input = T: sigA sigB
+        output = 1 BTC: fun(x). versig(pubK; x)
    }
 
 It takes the signatures ``sigA`` and ``sigB`` of both Alice and Bob, and 
@@ -75,15 +75,15 @@ Alice compute the signature as follows:
 
 .. code-block:: btm
 
-	// signature of T1 that send the money to Bob		
-	const sigA = sig(kA) of T1(_,_,kBpub)
+    // signature of T1 that send the money to Bob
+    const sigA = sig(kA) of T1(_,_,kBpub)
 
 Similarly Bob does the same:
 
 .. code-block:: btm
-   
-	// signature of T1 that send the money to Alice		
-	const sigB = sig(kB) of T1(_,_,kApub)
+
+    // signature of T1 that send the money to Alice
+    const sigB = sig(kB) of T1(_,_,kApub)
 
 Once only one of the participant receives the signature,
 he creates a transaction that spends ``T``.
@@ -92,19 +92,19 @@ Suppose Alice received Bob's signature. She completes ``T1`` as follows:
 
 .. code-block:: btm
 
-	const sigB = sig:<hex string made by Bob>[kBpub]
-	const sigA = sig(kA) of T1(_,_,kApub)
+    const sigB = sig:<hex string made by Bob>
+    const sigA = sig(kA) of T1(_,_,kApub)
 
-	eval T1(sigA, sigB, kApub)
+    eval T1(sigA, sigB, kApub)
 
 Otherwise, if Bob received Alice's signature:
 
 .. code-block:: btm
 
-	const sigA = sig:<hex string made by Alice>[kApub]
-	const sigB = sig(kB) of T1(_,_,kBpub)
+    const sigA = sig:<hex string made by Alice>
+    const sigB = sig(kB) of T1(_,_,kBpub)
 
-	eval T1(sigA, sigB, kBpub)
+    eval T1(sigA, sigB, kBpub)
 
 This approach assume that the two participant are honest and they
 will send their signature to the other party.
@@ -130,28 +130,28 @@ Indeed, transaction ``T`` is modified into a *2-of-3* multi signature schema:
 
 .. code-block:: btm
 
-	// Carl's public key
-	const kCpub = pubkey:02ede655785dacac6d6985588f6558be2d318012ee36067d3227871d350678c132
+    // Carl's public key
+    const kCpub = pubkey:02ede655785dacac6d6985588f6558be2d318012ee36067d3227871d350678c132
 
-	transaction T {
-		input = A_funds: sig(kA)
-		output = 1 BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
-	}
+    transaction T {
+        input = A_funds: sig(kA)
+        output = 1 BTC: fun(x, y). versig(kApub, kBpub, kCpub; x, y)
+    }
 
 Transaction ``T`` can be redeemed either with the signatures of Alice and
 Bob, or with the ones of Alice and the arbiter, or with the ones of
-Bob and the arbiter.	
+Bob and the arbiter.    
 In case of dispute, the arbiter (Carl) will send his signature either to Alice or Bob.
 
 For example, assume he decided to refund Alice. 
 In this case, she can instantiate Carl's signature and create the transaction ``T_A``
 to get her bitcoins back, as follows:
 
-.. code-block:: btm	
+.. code-block:: btm    
 
-	const sigC = sig:<hex string made by Carl> [kCpub]	
+    const sigC = sig:<hex string made by Carl>
 
-	transaction T_A {
-		input = T: sig(kA) sigC
-		output = 1 BTC: fun(x). versig(kApub; x)
-	}
+    transaction T_A {
+        input = T: sig(kA) sigC
+        output = 1 BTC: fun(x). versig(kApub; x)
+    }

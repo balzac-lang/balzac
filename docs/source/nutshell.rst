@@ -215,9 +215,9 @@ For instance, the amount of bitcoins in ``T4`` is split in two parts:
     transaction T4 {
         input = T3:sig(kA) 
         output = [
-                         40 BTC: fun(x) . versig(addrA; x);
-                         10 BTC: fun(x) . versig(addrA2; x)
-            ]
+            40 BTC: fun(x) . versig(addrA; x);
+            10 BTC: fun(x) . versig(addrA2; x)
+        ]
     }
 
 
@@ -240,7 +240,7 @@ For instance:
         input = [
             T4@0: sig(kA);
             T4@1: sig(kA2)
-            ]
+        ]
         output = 50 BTC: fun(x) . versig(addrA; x)
     }
 
@@ -257,7 +257,7 @@ of type ``pubkey`` and uses it in the output script.
 
 
 .. code-block:: btm
-        
+
     // parametric transaction
     transaction T6(k:pubkey) {
         input = _
@@ -267,7 +267,7 @@ of type ``pubkey`` and uses it in the output script.
 To be able to evaluate ``T6``, one must instantiate that one parameter, like:
     
 .. code-block:: btm
-        
+
     // Alice's public key
     const kApub = pubkey:037d33fad6067e7a76671be01f697c7667d81be0aef334385cdab2b6b8f9f484c1    
     eval T6(kApub)
@@ -282,7 +282,7 @@ One can also use T6 in the definition of its redeeming transaction, as follows:
     const kA = key:cQu93pLnEtyhkEMUxiRHP2ocPXi1LRbnZZ3PLz2gp6yu11tWKUaW
     // Bob's public key
     const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
-    
+
     transaction T7 {
         input = T6(kApub):sig(kA)
         output = 1BTC: fun(x). versig(kBpub;x)

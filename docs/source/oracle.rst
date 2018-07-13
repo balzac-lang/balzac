@@ -23,8 +23,8 @@ transaction redeemable by Alice. We model that transaction in the
 editor using a *fake coinbase transaction* ``A_funds``.
 
 .. code-block:: btm
-        
-    // Alice's public key    
+
+    // Alice's public key
     const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1b83c9c3
 
     // tx with Alice's funds, redeemable with Alice's private key
@@ -100,7 +100,7 @@ to the output script of ``T`` (we call this new one ``Ttimed``), as shown below:
     transaction Ttimed {
         input = A_funds: sig(kA)
         output = 1 BTC: fun(sigma, sigO). versig(kBpub, kOpub; sigma, sigO)
-                        || after date dateD : versig(kApub;sigma)
+                        || checkDate dateD : versig(kApub;sigma)
     }
 
 After the end of the year, Alice can redeem ``Ttimed``, since the output script
