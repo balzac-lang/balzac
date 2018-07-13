@@ -1,5 +1,11 @@
 {% extends "!layout.html" %}
 
+{%- block extrahead %}
+    {{ super() }}
+    <link href="https://fonts.googleapis.com/css?family=Raleway:400,500|Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+{% endblock %}
+
 {% block footer %}
     {{ super() }}
     <script type="text/javascript" src="_static/js/codesets.js"></script>

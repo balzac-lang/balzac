@@ -31,6 +31,14 @@ p {
     color: inherit;
 }
 
+code, .rst-content tt, .rst-content code {
+    font-size: 90%;
+}
+
+.rst-content pre.literal-block, .rst-content div[class^="highlight"] pre, .rst-content .linenodiv pre {
+    font-size: 80%;
+}
+
 p.caption {
     margin-top: 12px;
 }

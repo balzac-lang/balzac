@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    pygments.lexers.jvm
-    ~~~~~~~~~~~~~~~~~~~
-
-    Pygments lexers for BTM language. Based on JavaLexer
+    Pygments lexers for Balzac language. Based on JavaLexer
 
     :copyright: Copyright 2018 Nicola Atzei.
     :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
@@ -13,20 +10,20 @@
 import re
 
 from pygments.lexer import Lexer, RegexLexer, include, bygroups, using, this, combined, default, words
-from pygments.token import Generic, Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
+from pygments.token import Generic, Text, Comment, Operator, Keyword, Name, String, Number, Punctuation, Literal
 from pygments.util import shebang_matches
 from pygments import unistring as uni
 
-__all__ = ['BtmLexer']
+__all__ = ['BalzacLexer']
 
 
-class BtmLexer(RegexLexer):
+class BalzacLexer(RegexLexer):
     """
     For `Java <http://www.sun.com/java/>`_ source code.
     """
 
-    name = 'BTM'
-    aliases = ['btm']
+    name = 'Balzac'
+    aliases = ['balzac','BALZAC','btm','BTM']
     filenames = ['*.btm']
 
     flags = re.MULTILINE | re.DOTALL | re.UNICODE
@@ -38,10 +35,10 @@ class BtmLexer(RegexLexer):
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             # prefixes: go before keywords
-            (r'hash:|sig:|address:|key:|pubkey:|tx:|txid:', Name.Constant, 'literal'),
+            (r'hash:|sig:|address:|key:|pubkey:|tx:|txid:', Keyword.Pseudo, 'literal'),
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
-            (r'(network|mainnet|testnet|regtest|input|output|absLock|relLock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|sha1|min|max|between|size|eval|checkBlock|checkDate|checkBlockDelay|checkTimeDelay|toAddress|toPubkey|AIAO|AISO|AINO|SIAO|SISO|SINO)\b', Keyword),
+            (r'\b(network|mainnet|testnet|regtest|this|input|output|absLock|relLock|after|block|date|from|if|then|else|sig|of|versig|fun|BTC|hash160|hash256|ripemd160|sha256|sha1|min|max|between|size|eval|checkBlock|checkDate|checkBlockDelay|checkTimeDelay|toAddress|toPubkey|value|AIAO|AISO|AINO|SIAO|SISO|SINO)\b', Keyword),
             (r'(sig)'                           # sig
              r'\((([^\W\d]|\$)[\w\'$]*)\)',      # key
              bygroups(using(this), Text)),
@@ -62,7 +59,7 @@ class BtmLexer(RegexLexer):
             (r'\'(\\\\|\\\'|[^\'])*\'', String),
             (r'0[xX][0-9a-fA-F][0-9a-fA-F_]*', Number.Hex),
             (r'0|[1-9][0-9_]*(days|day|d|hours|hour|h|minutes|minute|min|m)?', Number.Integer),
-            (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
+            #(r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
             (r'^\s*([^\W\d]|\$)[\w$]*:', Name.Label),
             (r'([^\W\d]|\$)[\w$]*', Name),
             (r'[~^*!%&\[\](){}<>|+=:;,./?-]', Operator),
@@ -75,7 +72,7 @@ class BtmLexer(RegexLexer):
             (r'[\w.]+\*?', Name.Namespace, '#pop')
         ],
         'literal': [
-            (r'[A-Za-z0-9.< >]+', String, '#pop')
+            (r'[A-Za-z0-9.< >]+', Literal, '#pop')
         ],
     }
 

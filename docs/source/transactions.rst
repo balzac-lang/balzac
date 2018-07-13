@@ -49,11 +49,12 @@ The field :btm:`absLock` allow to specify when a transaction will be valid.
 
 The time can be expressed in two ways:
 
-*   :btm:`absLock = block N`, where ``N`` an expression of type :btm:`int`
-    representing the **block number** at which the transaction will be valid
+*   | :btm:`absLock = block N`
+    | where ``N`` an expression of type :btm:`int` representing the **block number** at which the transaction will be valid
+    |
 
-*   :btm:`absLock = date D`, where ``D`` an expression of type :btm:`int`
-    representing the **date** (in seconds from ``1970-01-01``) at which the transaction will be valid.
+*   | :btm:`absLock = date D`
+    | where ``D`` an expression of type :btm:`int` representing the **date** (in seconds from ``1970-01-01``) at which the transaction will be valid.
 
 The expression ``N`` and ``D`` are subject to the same constraints of :ref:`label_abslock_exp`.
 
@@ -67,11 +68,12 @@ The field :btm:`relLock` allow to specify when a transaction will be valid.
 
 The time can be expressed in two ways:
 
-*   :btm:`relLock = N block from T`, where ``N`` and ``T`` have type respectively :btm:`int` and :btm:`transaction`
-    representing the **number of blocks from T** at which the transaction will be valid
+*   | :btm:`relLock = N block from T`
+    | where ``N`` and ``T`` have type respectively :btm:`int` and :btm:`transaction` representing the **number of blocks from T** at which the transaction will be valid
+    |
 
-*   :btm:`relLock = D from T`, where ``D`` and ``T`` have type respectively :btm:`int` and :btm:`transaction`
-    representing the **seconds from T** at which the transaction will be valid
+*   | :btm:`relLock = D from T`
+    | where ``D`` and ``T`` have type respectively :btm:`int` and :btm:`transaction` representing the **seconds from T** at which the transaction will be valid
 
 The expression ``N`` and ``D`` are subject to the same constraints of :ref:`label_rellock_exp`,
 while the expression ``T`` must evaluate to one of the input transaction.
