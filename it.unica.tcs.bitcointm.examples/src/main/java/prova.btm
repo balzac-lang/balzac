@@ -127,6 +127,12 @@ transaction ABC(x:int) {
 	output = this.input.value - x : fun(x) . x == 42
 }
 
+
+transaction DEF(y:signature) {
+	input = coinbase: 1
+	output = this.input.value : fun(x) . x == y
+}
+
 eval
     foo2.output.value,
     foo2.input.value,
@@ -135,4 +141,6 @@ eval
     foo2,
     kAaddr,
     kApub,
-    ABC(100)
+    ABC(100),
+    _ + 9,
+    DEF(_)

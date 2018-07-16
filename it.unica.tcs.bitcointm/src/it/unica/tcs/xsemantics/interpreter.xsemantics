@@ -4,6 +4,7 @@
 
 import com.google.common.base.Throwables
 import it.unica.tcs.balzac.AddressLiteral
+import it.unica.tcs.balzac.AddressType
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
 import it.unica.tcs.balzac.BalzacFactory
@@ -11,34 +12,44 @@ import it.unica.tcs.balzac.Between
 import it.unica.tcs.balzac.BitcoinValue
 import it.unica.tcs.balzac.BooleanLiteral
 import it.unica.tcs.balzac.BooleanNegation
+import it.unica.tcs.balzac.BooleanType
 import it.unica.tcs.balzac.Comparison
 import it.unica.tcs.balzac.Constant
 import it.unica.tcs.balzac.DateLiteral
+import it.unica.tcs.balzac.DayLiteral
 import it.unica.tcs.balzac.Div
 import it.unica.tcs.balzac.Equals
 import it.unica.tcs.balzac.Hash160
 import it.unica.tcs.balzac.Hash256
 import it.unica.tcs.balzac.HashLiteral
+import it.unica.tcs.balzac.HashType
+import it.unica.tcs.balzac.HourLiteral
 import it.unica.tcs.balzac.IfThenElse
+import it.unica.tcs.balzac.IntType
 import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
+import it.unica.tcs.balzac.KeyType
 import it.unica.tcs.balzac.Max
 import it.unica.tcs.balzac.Min
 import it.unica.tcs.balzac.Minus
+import it.unica.tcs.balzac.MinuteLiteral
 import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
 import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.PubKeyLiteral
+import it.unica.tcs.balzac.PubkeyType
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Ripemd160
 import it.unica.tcs.balzac.Sha1
 import it.unica.tcs.balzac.Sha256
 import it.unica.tcs.balzac.Signature
 import it.unica.tcs.balzac.SignatureLiteral
-import it.unica.tcs.balzac.SignaturePlaceholder
+import it.unica.tcs.balzac.SignatureType
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
+import it.unica.tcs.balzac.StringType
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.ToAddress
@@ -48,6 +59,7 @@ import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
+import it.unica.tcs.balzac.TransactionType
 import it.unica.tcs.lib.Hash
 import it.unica.tcs.lib.Hash.HashAlgorithm
 import it.unica.tcs.lib.ITransactionBuilder
@@ -64,9 +76,7 @@ import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.MinuteLiteral
-import it.unica.tcs.balzac.HourLiteral
-import it.unica.tcs.balzac.DayLiteral
+import it.unica.tcs.xsemantics.interpreter.PlaceholderUtils
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -154,8 +164,33 @@ from {
     }
 }
 
-axiom InterpretSignaturePlaceholder
-    G |- SignaturePlaceholder p |> Rho rho ~> it.unica.tcs.xsemantics.interpreter.Signature.placeholder
+rule InterpretPlaceholder
+    G |- Placeholder p |> Rho rho ~> Object obj
+from {
+    if (p.type instanceof IntType) {
+        obj = PlaceholderUtils.INT
+    } else if (p.type instanceof StringType) {
+        obj = PlaceholderUtils.STRING
+    } else if (p.type instanceof BooleanType) {
+        obj = PlaceholderUtils.BOOLEAN
+    } else if (p.type instanceof HashType) {
+        obj = PlaceholderUtils.HASH
+    } else if (p.type instanceof KeyType) {
+        obj = PlaceholderUtils.KEY(rho.networkParams)
+    } else if (p.type instanceof PubkeyType) {
+        obj = PlaceholderUtils.PUBKEY(rho.networkParams)
+    } else if (p.type instanceof AddressType) {
+        obj = PlaceholderUtils.ADDRESS(rho.networkParams)
+    } else if (p.type instanceof TransactionType) {
+        obj = PlaceholderUtils.TX(rho.networkParams)
+    } else if (p.type instanceof SignatureType) {
+        obj = PlaceholderUtils.SIGNATURE
+    } else {
+        fail
+            error "Cannot interpret placeholder with type "+stringRep(p.type)
+            source p
+    }
+}
 
 axiom InterpretNumberLiteral
     G |- NumberLiteral number |> Rho rho ~> number.value

@@ -10,7 +10,6 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public class Signature {
 
-	public static final Signature placeholder = new Signature(new byte[0]);
     private final byte[] signature;
     
     public Signature(byte[] signature) {
@@ -23,7 +22,6 @@ public class Signature {
 
 	@Override
     public String toString() {
-        if (this == placeholder) return "_";
         return "sig:"+BitcoinUtils.encode(signature);
     }
 

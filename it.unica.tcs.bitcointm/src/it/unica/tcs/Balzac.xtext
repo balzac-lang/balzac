@@ -190,7 +190,7 @@ Literal:
 |	AddressLiteral
 |   PubKeyLiteral
 |	SignatureLiteral
-|   SignaturePlaceholder;
+|   Placeholder;
 
 
 NumberLiteral: value=Number;
@@ -205,7 +205,8 @@ KeyLiteral: value=KEY_WIF;
 AddressLiteral: value=ADDRESS_WIF;
 PubKeyLiteral: value=PUBKEY;
 SignatureLiteral: value=SIGHEX;
-SignaturePlaceholder: {SignaturePlaceholder} "_";
+Placeholder: {Placeholder} "_";
+PlaceholderWithType returns Placeholder: "_" type=Type;     // never parsed
 
 IfThenElse:
 	'if' if=Expression

@@ -1,5 +1,6 @@
 package it.unica.tcs.xsemantics.interpreter;
 
+import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
@@ -12,5 +13,9 @@ public interface PublicKey extends Address {
     
     public static PublicKey fromString(String str, NetworkParameters params) {
         return new PublicKeyImpl(BitcoinUtils.decode(str), params);
+    }
+
+    public static PublicKey fresh(NetworkParameters params) {
+        return new PublicKeyImpl(new ECKey().getPubKey(), params);
     }
 }

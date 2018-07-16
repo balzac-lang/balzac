@@ -34,6 +34,7 @@ import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
@@ -44,7 +45,6 @@ import it.unica.tcs.balzac.Sha1
 import it.unica.tcs.balzac.Sha256
 import it.unica.tcs.balzac.Signature
 import it.unica.tcs.balzac.SignatureLiteral
-import it.unica.tcs.balzac.SignaturePlaceholder
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
 import it.unica.tcs.balzac.TransactionParameter
@@ -277,7 +277,7 @@ class ScriptCompiler {
         throw new CompileException("Unable to compile expression "+exp)
     }
 
-    def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignaturePlaceholder p, Context ctx) {
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(Placeholder p, Context ctx) {
         new ScriptBuilderWithVar().data(#[])
     }
 

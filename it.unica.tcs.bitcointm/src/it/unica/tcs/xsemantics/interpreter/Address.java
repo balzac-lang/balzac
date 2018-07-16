@@ -25,4 +25,9 @@ public interface Address {
         LegacyAddress addr = LegacyAddress.fromKey(params, ECKey.fromPublicOnly(pubkey));
         return new AddressImpl(addr.getHash(), addr.getParameters());
     }
+
+    public static Address fresh(NetworkParameters params) {
+        LegacyAddress addr = LegacyAddress.fromKey(params, new ECKey());
+        return new AddressImpl(addr.getHash(), addr.getParameters());
+    }
 }

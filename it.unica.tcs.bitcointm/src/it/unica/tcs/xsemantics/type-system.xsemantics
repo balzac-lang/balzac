@@ -56,7 +56,7 @@ import it.unica.tcs.balzac.Sha1
 import it.unica.tcs.balzac.Sha256
 import it.unica.tcs.balzac.Signature
 import it.unica.tcs.balzac.SignatureLiteral
-import it.unica.tcs.balzac.SignaturePlaceholder
+import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.SignatureType
 import it.unica.tcs.balzac.Size
 import it.unica.tcs.balzac.StringLiteral
@@ -141,8 +141,8 @@ auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variabl
 auxiliary unify(EObject obj, TypeSubstitutions substitutions, Type actual, Type expected) {
     // if we get here we cannot unify the two types
     fail
-    error 'Invalid type '+stringRep(actual)+", expected type "+stringRep(expected)
-    source obj
+        error 'Invalid type '+stringRep(actual)+", expected type "+stringRep(expected)
+        source obj
     null
 }
 
@@ -184,6 +184,9 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Pub
 
 auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
     substitutions.add(typeVar.value, basicType)
+    if (obj instanceof Placeholder) {
+        obj.type = EcoreUtil.copy(basicType)
+    }
     EcoreUtil.copy(basicType)
 }
 
@@ -219,8 +222,18 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Add
 /*
  * Type system rules
  */
-axiom SignaturePlaceholder
-    G |- TypeSubstitutions substitutions |> SignaturePlaceholder p : BalzacFactory::eINSTANCE.createSignatureType 
+rule Placeholder
+    G |- TypeSubstitutions substitutions |> Placeholder p : Type type 
+from {
+    {
+        p.type !== null
+        type = EcoreUtil.copy(p.type)
+    }
+    or {
+        type = lambdaUtils.createFreshTypeVariable
+    }
+    G.add(p, type)
+}
 
 rule Parameter
     G |- TypeSubstitutions substitutions |> Parameter p : Type type
