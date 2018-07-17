@@ -39,7 +39,7 @@ Dates and Delays
 |langname| provides two different ways to express integers, in order to improve readability
 and avoid errors: **dates** and **delays**.
 
-**Dates** are parsed as integers and represent the amount of seconds that have been passed since ``1970-01-01T00:00:00``.
+**Dates** are parsed as integers and represent the amount of seconds that have been passed since :btm:`1970-01-01T00:00:00`.
 |langname| supports three different datetime format from `Java DateTime <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`_:
 
 * ``DateTimeFormatter.ISO_LOCAL_DATE`` (e.g. ``2018-01-31``)
@@ -51,7 +51,7 @@ and avoid errors: **dates** and **delays**.
     eval
         1969-12-31T23:59:59,  // -1
         1970-01-01T00:00:00,  //  0
-        1970-01-01T00:00:01   //  1
+        1970-01-01T00:00:01,  //  1
         2018-01-01            //  1514764800
 
 **Delays** can be expressed in minutes, hours, or days. 
