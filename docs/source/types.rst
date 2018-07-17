@@ -13,20 +13,20 @@ The table below shows the list of types
    ==================== ================================================================== =========
    Type                 Description                                                        Example
    ==================== ================================================================== =========
-   ``int``              64-bit signed number                                               ``42``
-   ``string``           A string of characters                                             ``"foo"``
+   :btm:`int`           64-bit signed number                                               :btm:`42`
+   :btm:`string`        A string of characters                                             :btm:`"foo"`
 
-                                                                                           ``'bar'``
-   ``boolean``          Either true or false value                                         ``true`` ``false``
-   ``hash``             A string of bytes in hexadecimal representation                    ``hash:c51b66bced5e4491001bd702669770dccf440982``
-   ``key``              A Bitcoin private key in the Wallet Input Format [#f1]_            ``key:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW``
-   ``address``          A Bitcoin address in the Wallet Input Format [#f1]_                ``address:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz``
+                                                                                           :btm:`'bar'`
+   :btm:`boolean`       Either true or false value                                         :btm:`true` :btm:`false`
+   :btm:`hash`          A string of bytes in hexadecimal representation                    :btm:`hash:c51b66bced5e4491001bd702669770dccf440982`
+   :btm:`key`           A Bitcoin private key in the Wallet Input Format [#f1]_            :btm:`key:KzKP2XkH93yuXTLFPMYE89WvviHSmgKF3CjYKfpkZn6qij1pWuMW`
+   :btm:`address`       A Bitcoin address in the Wallet Input Format [#f1]_                :btm:`address:1GT4D2wfwu7gJguvEdZXAKcENyPxinQqpz`
 
-   ``pubkey``           A raw public key as hexadecimal string                             ``pubkey:032b6cb7aa033a063dd01e20a971d6d4f85eb27ad0793b...``
-   ``signature``        A raw signature as hexadecimal string                              ``sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1...``
-   ``transaction``      A Bitcoin transaction, as hex payload or txid                      ``tx:0100000001cab433976b8a3dfeeb82fe6a10a59381d2f91341...``
+   :btm:`pubkey`        A raw public key as hexadecimal string                             :btm:`pubkey:032b6cb7aa033a063dd01e20a971d6d4f85eb27ad0793b...`
+   :btm:`signature`     A raw signature as hexadecimal string                              :btm:`sig:30450221008319289238e5ddb1aefa26db06a5f40b8a212d1...`
+   :btm:`transaction`   A Bitcoin transaction, as hex payload or txid                      :btm:`tx:0100000001cab433976b8a3dfeeb82fe6a10a59381d2f91341...`
 
-                                                                                           ``txid:0d7748674c8395cf288500b1c64330605fec54ae0dfdb22a...``
+                                                                                           :btm:`txid:0d7748674c8395cf288500b1c64330605fec54ae0dfdb22a...`
    ==================== ================================================================== =========
 
 .. Hint:: 
@@ -35,8 +35,8 @@ The table below shows the list of types
    Type coercion is an automatic type conversion by the compiler.
    In other words, some types can be *safely converted* to other ones:
 
-   - ``key`` can be used within expressions/statements where a type ``pubkey`` or ``address`` is expected;
-   - ``pubkey`` can be used where a type ``address`` is expected.
+   - :btm:`key` can be used within expressions/statements where a type :btm:`pubkey` or :btm:`address` is expected;
+   - :btm:`pubkey` can be used where a type :btm:`address` is expected.
 
 .. Hint:: 
    **Type Inference**
