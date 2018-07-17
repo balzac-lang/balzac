@@ -47,7 +47,7 @@ class BalzacLexer(RegexLexer):
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
              r'(\s*)(\()',                              # signature start
              bygroups(using(this), Name.Function, Text, Operator)),
-            (r'\s*@\s*', Generic.Emph),
+            (r'\s*@\s*', Text),
             (r'(transaction|const)(\s+)', bygroups(Keyword.Declaration, Text), 'declaration'),
             #(r'(abstract|const|enum|extends|final|implements|native|private|protected|public|static|strictfp|super|synchronized|throws|transient|volatile)\b', Keyword.Declaration),
             (r'(bool|boolean|string|hash|int|signature|transaction|address|key|pubkey)\b', Keyword.Type),

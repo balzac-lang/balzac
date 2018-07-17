@@ -306,5 +306,4 @@ rst_prolog = """
 
 .. role:: btm(code)
    :language: btm
-
 """.format(langname)
