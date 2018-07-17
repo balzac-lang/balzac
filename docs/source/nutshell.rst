@@ -191,7 +191,7 @@ You can use the online form on the sidebar to generate new addresses and keys.
 
 
 .. figure:: _static/img/sidebar.png
-    :scale: 100 %
+    :scale: 70 %
     :class: img-border
     :align: center  
 
