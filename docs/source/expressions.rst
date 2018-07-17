@@ -973,6 +973,72 @@ She creates a transaction ``T`` with two outputs: the first one pays
 Bob; the second one gives Alice the remaining bitcoins back,
 minus some fee that are left to the miner.
 
+------------
+Placeholders
+------------
+|langname| features a way of expressing a default value for any of its types.
+The *underscore* ``_`` can be used in situation in which we are not interested
+in providing a value. For example, the signature computation of parametric transaction
+which takes a signature as parameter, or an output scripts in which a parameter
+is not used.
+
+Consider the following example:
+
+.. code-block:: btm
+
+    const k = key:cPGZo8VsEopkNFugJpzSaZFhwBVnajhsD5g4XzfcbhDp4VoLdgfw
+    const kpub = k.toPubkey
+
+    transaction Coinbase {
+        input =  _
+        output = 1 BTC : fun(x,n) . versig(kpub;x) && n == 11
+    }
+
+    transaction T(s:signature, n:int) {
+        input = Coinbase: s n
+        output = this.input.value : fun(y, s:int) .
+            versig(kpub;y) ||
+            checkDate 2019-01-01 : sha256(s) == hash:684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1
+    }
+
+    // compute a signature to redeem Coinbase
+    const s = sig(k) of T(_,_)
+
+Transaction ``T`` is parametric: it takes a signature ``s`` and an integer ``n``
+and uses them as witnesses to redeem the transaction ``Coinbase``.
+In order to compute a valid ``s``, we must instantiate ``T`` with its
+actual parameters, otherwise the expression :btm:`sig(k) of T` complains
+with an error. Since ``s`` and ``n`` are witnesses in ``T``,
+their value does not affect the computation of the signature,
+and it is convenient to use ``_`` to express that we don't care what their value is.
+Also, consider that the actual parameter for ``s`` is exactly the value
+we want to compute.
+
+The output script of ``T`` takes two parameter ``y`` and ``s`` respectively of
+type :btm:`signature` and :btm:`int`. The script evaluates true
+either providing a valid signature for ``kpub``,
+or providing a secret ``s`` after the date :btm:`2019-01-01`
+whose :btm:`sha256` is equal to
+:btm:`hash:684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1`.
+
+.. code-block:: btm
+
+    // redeem T(s) providing a valid signature
+    transaction T1 {
+        input = T(s,11) : sig(k) _
+        output = this.input.value : fun(x) . x == 42
+    }
+
+    // redeem T(s) providing the secret
+    transaction T2 {
+        input = T(s,11) : _ 42
+        output = this.input.value : fun(x) . x == 42
+        absLock = date 2019-01-01
+    }
+
+Transactions ``T1`` and ``T2`` uses ``_`` to express the "unused" actual parameter.
+
+
 .. rubric:: References
 
 .. [BW] https://bitcoin.org/en/developer-guide#signature-hash-types
