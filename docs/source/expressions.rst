@@ -214,7 +214,7 @@ The syntax is Java-like:
 
 - ``a == b``: *true* if ``a`` and ``b`` are equals, *false* otherwise; ``a`` and ``b`` must have the same type
 - ``a != b``: *true* if ``a`` and ``b`` are not equals, *false* otherwise; ``a`` and ``b`` must have the same type
-- ``a + b``: sum ``a`` and ``b`` if both are :btm:`int` *or* concatenate ``a`` with ``b`` if both are :btm:`string`
+- ``a + b``: sum ``a`` and ``b``; both must be :btm:`int`
 - ``a - b``: subtract ``b`` from ``a``; both must be :btm:`int`
 - ``a < b``: *true* if ``a`` is less than ``b``, *false* otherwise (similarly for ``<=``, ``>``, ``>=``); both must be :btm:`int`
 - ``a * b``: multiply ``a`` from ``b``; both must be :btm:`int`
@@ -227,8 +227,7 @@ The precedence is: ``- (unary)`` > ``*`` ``/`` > ``+`` ``-`` > ``==`` ``!=`` > `
 
     eval
         a + 42 / 2,
-        "Hello" + " World!",
-        "Hello " + if a > 5 then "World" else "Balzac"
+        a + b > c - 1
 
 ---
 BTC
