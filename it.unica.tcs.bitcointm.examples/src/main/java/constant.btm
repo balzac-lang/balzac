@@ -3,8 +3,8 @@ package it.unica.btm.constants
 network mainnet
 
 const a:int  = 12+4*2               // integer 64-bit
-const b:bool   = true && false        // boolean
-const s:string = "Hello "+"world"     // string 
+const b:bool   = true && false    	// boolean
+const s:string = "Hello world"     	// string
 
 const h1:hash   = sha256(42)
 const h2:hash   = ripemd160("secret")

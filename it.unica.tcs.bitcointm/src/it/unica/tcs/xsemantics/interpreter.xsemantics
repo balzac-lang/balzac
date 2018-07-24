@@ -344,16 +344,10 @@ from {
     G |- plus.left |> rho ~> var Object leftResult
     G |- plus.right |> rho ~> var Object rightResult
 
-    if (leftResult instanceof String || rightResult instanceof String) {
-        var leftString = leftResult.toString
-        var rightString = rightResult.toString
-        result = leftString + rightString
-    } else {
-        // both are int if the expression is well-typed
-        var left = leftResult as Long
-        var right = rightResult as Long
-        result = Math.addExact(left, right)
-    }
+    // both are int if the expression is well-typed
+    var left = leftResult as Long
+    var right = rightResult as Long
+    result = Math.addExact(left, right)
 }
 
 rule InterpretArithmeticSigned

@@ -630,24 +630,15 @@ from {
 rule Plus
     G |- TypeSubstitutions substitutions |> Plus op : Type type
 from {
+    type = BalzacFactory::eINSTANCE.createIntType
     G |- substitutions |> op.left : var Type leftType
     G |- substitutions |> op.right : var Type rightType
 
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
-    {
-        type = BalzacFactory::eINSTANCE.createIntType
-        // the terms type must be unifiable with int type
-        unify(op.left, substitutions, leftType, type)
-    }
-    or
-    {
-        type = BalzacFactory::eINSTANCE.createStringType
-        // the terms type must be unifiable with string type
-        unify(op.left, substitutions, leftType, type)
-    }
-
+    // the terms type must be unifiable with int type
+    unify(op.left, substitutions, leftType, type)
     unify(op.right, substitutions, rightType, type)
 }
 
