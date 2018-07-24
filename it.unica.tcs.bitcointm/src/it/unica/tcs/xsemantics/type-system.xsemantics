@@ -408,11 +408,10 @@ from {
         unify(input.txRef, substitutions, t1, txType)
 
         val inputTxRef = input.txRef
-
-        if (inputTxRef instanceof Reference
-            && (inputTxRef as Reference).ref instanceof Transaction
-        ) {
-            val tx = (inputTxRef as Reference).ref as Transaction
+        
+        val optTx = inputTxRef.getTransactionFromReference
+        if ( optTx.isPresent ) {
+            val tx = optTx.get
 
             // check the actual parameters type match the formal ones (Script)
             var outputIndex = input.outpoint
@@ -420,7 +419,7 @@ from {
 
             if (input.exps.size != (outputScript as Script).params.size) {
                 fail
-                    error "Invalid number of actual parameters."
+                    error "Invalid number of witnesses."
                     source input
             }
 

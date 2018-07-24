@@ -29,6 +29,7 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -514,5 +515,22 @@ public class ASTUtils {
         case AINO: return false;
         default: throw new IllegalStateException();
         }
+    }
+
+    public Optional<it.unica.tcs.balzac.Transaction> getTransactionFromReference(TransactionExpression txExp) {
+        if (txExp instanceof Reference) {
+            Reference ref = (Reference) txExp;
+            if (ref.getRef() instanceof it.unica.tcs.balzac.Transaction) {
+                it.unica.tcs.balzac.Transaction tx = (it.unica.tcs.balzac.Transaction) ((Reference) txExp).getRef();
+                return Optional.of(tx);
+            }
+            if (ref.getRef() instanceof Constant) {
+                Constant c = (Constant) ref.getRef();
+                if (c.getExp() instanceof TransactionExpression) {
+                    return getTransactionFromReference((TransactionExpression) c.getExp());
+                }
+            }
+        }
+        return Optional.<it.unica.tcs.balzac.Transaction>absent();
     }
 }
