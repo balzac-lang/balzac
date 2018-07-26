@@ -82,6 +82,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.balzac.Participant
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -1060,6 +1061,19 @@ from {
     // type check all transactions
     for (tx : declarations.filter(Transaction)) {
         G |- substitutions |> tx: var Type t
+    }
+
+    // type check all transactions
+    for (p : declarations.filter(Participant)) {
+        // type check all constants firsts
+        for (c : p.declarations.filter(Constant)) {
+            G |- substitutions |> c: var Type t
+        }
+    
+        // type check all transactions
+        for (tx : p.declarations.filter(Transaction)) {
+            G |- substitutions |> tx: var Type t
+        }
     }
 
     // finally eval expressions

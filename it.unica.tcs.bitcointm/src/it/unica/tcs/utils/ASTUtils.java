@@ -521,7 +521,7 @@ public class ASTUtils {
         if (txExp instanceof Reference) {
             Reference ref = (Reference) txExp;
             if (ref.getRef() instanceof it.unica.tcs.balzac.Transaction) {
-                it.unica.tcs.balzac.Transaction tx = (it.unica.tcs.balzac.Transaction) ((Reference) txExp).getRef();
+                it.unica.tcs.balzac.Transaction tx = (it.unica.tcs.balzac.Transaction) ref.getRef();
                 return Optional.of(tx);
             }
             if (ref.getRef() instanceof Constant) {

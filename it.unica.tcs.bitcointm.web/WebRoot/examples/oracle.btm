@@ -1,0 +1,69 @@
+// tx with Alice's funds, redeemable with Alice's private key
+transaction A_funds {
+    input = _
+    output = 1 BTC: fun(x). versig(Alice.kApub; x)
+}
+
+participant Alice {
+    // Alice's private key
+    private const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+    // Alice's public key
+    const kApub = kA.toPubkey
+
+    transaction T {
+        input = A_funds: sig(kA)
+        output = 1 BTC: fun(sigB, sigO). versig(Bob.kBpub, Oscar.kOpub; sigB, sigO)
+    }
+
+    // alternative with timed constraint
+    const dateD = 2018-12-31
+
+    transaction Ttimed {
+        input = A_funds: sig(kA)
+        output = 1 BTC: fun(sigma, sigO). versig(Bob.kBpub, Oscar.kOpub; sigma, sigO)
+                        || checkDate dateD : versig(kApub;sigma)
+    }
+
+    transaction T1timed {
+        input = Ttimed: sig(kA) _
+        output = 1 BTC: fun(sigma, sigO). versig(Bob.kBpub, Oscar.kOpub; sigma, sigO)
+                        || checkDate dateD : versig(kApub;sigma)
+        absLock = date dateD
+    }
+}
+
+participant Bob {
+    // Bob's private key
+    private const kB = key:cQmSz3Tj3usor9byskhpCTfrmCM5cLetLU9Xw6y2csYhxSbKDzUn
+
+    // Bob's public key
+    const kBpub = kB.toPubkey
+
+    transaction T1(sigO) {
+        input = Alice.T: sig(kB) sigO
+        output = 1 BTC: fun(x). versig(kB; x)
+    }
+    
+    // alternative with time constraint
+    const deadline = 2019-01-01
+    
+    transaction T1timed(sigOtimed) {
+        input = Alice.Ttimed: sig(kB) sigOtimed
+        output = 1 BTC: fun(x). versig(kB; x)
+        absLock = date deadline
+    }
+}
+
+participant Oscar {
+    // Oscar's private key
+    private const kO = key:cTyxEAoUSKcC9NKFCjxKTaXzP8i1ufEKtwVVtY6AsRPpRgJTZQRt
+    // Oscar's public key
+    const kOpub = kO.toPubkey
+
+    const sigO = sig(kO) of Bob.T1(_)
+    const sigOtimed = sig(kO) of Bob.T1timed(_)
+}
+
+
+eval Alice.T, Alice.Ttimed, Bob.T1(Oscar.sigO), Bob.T1timed(Oscar.sigOtimed)
+
