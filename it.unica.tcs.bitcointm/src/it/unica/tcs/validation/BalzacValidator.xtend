@@ -78,6 +78,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
+import it.unica.tcs.balzac.Placeholder
 
 /**
  * This class contains custom validation rules.
@@ -579,6 +580,10 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
 
         if (ref.actualParams.empty) {
+            return
+        }
+
+        if (ref.actualParams.exists[e|e instanceof Placeholder]) {
             return
         }
 
