@@ -18,10 +18,10 @@ participant Alice {
     const h = sha256(secret)    // hash of the secret
     
     transaction T_commit {
-    input = A_funds: sig(kA)
-    output = this.input.value - fee:
-        fun(x,s:string) . sha256(s) == h && versig(kApub;x)
-            || checkDate deadline : versig(kBpub;x)
+        input = A_funds: sig(kA)
+        output = this.input.value - fee:
+            fun(x,s:string) . sha256(s) == h && versig(kApub;x)
+                || checkDate deadline : versig(kBpub;x)
     }
     
     transaction T_reveal {
@@ -37,7 +37,7 @@ participant Bob {
     const T_commit = Alice.T_commit
     
     transaction T_timeout {
-        input = T_commit: sig(kB) ""
+        input = T_commit: sig(kB) _
         output = this.input.value - fee: fun(x) . versig(kB;x)
         absLock = date deadline
     }
