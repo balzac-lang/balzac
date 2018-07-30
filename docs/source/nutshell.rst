@@ -166,8 +166,8 @@ Users may generate as many addresses as they want.
 
 The :ref:`predicate <label_c_functions>` ``versig(addrA; x)``
 in the output script of ``T2`` is true  if ``x`` is a valid signature
-of the transaction which redeems ``T3``, 
-done with Alice's private key. 
+of the transaction which redeems ``T2``, 
+computed with Alice's private key. 
 
 The transaction ``T2`` can be redeemed by a transaction ``T3`` made as follows:
 
