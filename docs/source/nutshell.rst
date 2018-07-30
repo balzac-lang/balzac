@@ -4,8 +4,8 @@
 
 .. highlight:: btm
 
-BALZaC (for Bitcoin Abstract Language, Analyzer and Compilter)
-is domain-specific language to write Bitcoin transactions,
+BALZaC (for Bitcoin Abstract Language, Analyzer and Compiler)
+is a domain-specific language to write Bitcoin transactions,
 based on the paper [AB+18POST]_.
 |langname| features a simple syntax to express Bitcoin transactions.
 We illustrate  it through a series of examples, that you can experiment with in the `online editor <http://blockchain.unica.it/balzac/>`_.
