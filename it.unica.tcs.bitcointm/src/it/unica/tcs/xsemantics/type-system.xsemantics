@@ -226,27 +226,39 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Add
 rule Placeholder
     G |- TypeSubstitutions substitutions |> Placeholder p : Type type 
 from {
-    {
-        p.type !== null
-        type = EcoreUtil.copy(p.type)
+    if (G.get(p) !== null) {
+        type = G.get(p) as Type
     }
-    or {
-        type = lambdaUtils.createFreshTypeVariable
+    else {
+        {
+            p.type !== null
+            type = EcoreUtil.copy(p.type)
+        }
+        or {
+            type = lambdaUtils.createFreshTypeVariable
+        }
+        
+        G.add(p, type)        
     }
-    G.add(p, type)
 }
 
 rule Parameter
     G |- TypeSubstitutions substitutions |> Parameter p : Type type
 from {
-    {
-        p.type !== null
-        type = EcoreUtil.copy(p.type)
+    if (G.get(p) !== null) {
+        type = G.get(p) as Type
     }
-    or {
-        type = lambdaUtils.createFreshTypeVariable
+    else {
+        {
+            p.type !== null
+            type = EcoreUtil.copy(p.type)
+        }
+        or {
+            type = lambdaUtils.createFreshTypeVariable
+        }
+        
+        G.add(p, type)        
     }
-    G.add(p, type)
 }
 
 // a constant always has a basic type (int, string, ...)
@@ -665,8 +677,11 @@ from {
     leftType = typesubstitution(substitutions, leftType)
     rightType = typesubstitution(substitutions, rightType)
 
-    // equals between elements of the same type
-    unify(op.right, substitutions, rightType, leftType)
+    if (leftType instanceof BasicType) {
+        unify(op.right, substitutions, rightType, leftType)
+    } else {
+        unify(op.left, substitutions, leftType, rightType)
+    }
 }
 
 rule BooleanNegation
@@ -685,12 +700,11 @@ rule Or
 from {
     boolType = BalzacFactory::eINSTANCE.createBooleanType
     G |- substitutions |> orExp.left : var Type leftType
-    G |- substitutions |> orExp.right : var Type rightType
-
     leftType = typesubstitution(substitutions, leftType)
-    rightType = typesubstitution(substitutions, rightType)
-
     unify(orExp.left, substitutions, leftType, boolType)
+
+    G |- substitutions |> orExp.right : var Type rightType
+    rightType = typesubstitution(substitutions, rightType)
     unify(orExp.right, substitutions, rightType, boolType)
 }
 

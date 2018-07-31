@@ -21,6 +21,8 @@ import it.unica.tcs.xsemantics.interpreter.PublicKey
 import org.bitcoinj.core.NetworkParameters
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
+import it.unica.tcs.balzac.ScriptParameter
+import it.unica.tcs.balzac.TransactionParameter
 
 class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
@@ -67,12 +69,20 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     }
     
     // base case getFirstLineInternal
-    def String getFirstLineInternal(EObject obj) {
+    dispatch def String getFirstLineInternal(EObject obj) {
         return super.getFirstLine(obj)
     }
 
-    def String getFirstLineInternal(Transaction tx) {
+    dispatch def String getFirstLineInternal(Transaction tx) {
         '''transaction «tx.name»'''
+    }
+
+    dispatch def String getFirstLineInternal(ScriptParameter p) {
+        '''Parameter «p.name»«IF p.type!==null» : «p.type.stringRep»«ENDIF»'''
+    }
+
+    dispatch def String getFirstLineInternal(TransactionParameter p) {
+        '''Parameter «p.name»«IF p.type!==null» : «p.type.stringRep»«ENDIF»'''
     }
 
     // base case getDocumentationInternal
