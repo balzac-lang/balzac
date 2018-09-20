@@ -4,6 +4,10 @@ cache:
   directories:
   - $HOME/.m2
 
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y protobuf-compiler
+
 before_script:
   - ./install-deps.sh
 
