@@ -65,18 +65,19 @@ import it.unica.tcs.lib.Hash.HashAlgorithm
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.utils.BalzacLogger
 import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.xsemantics.interpreter.Address
+import it.unica.tcs.xsemantics.interpreter.PlaceholderUtils
 import it.unica.tcs.xsemantics.interpreter.PrivateKey
 import it.unica.tcs.xsemantics.interpreter.PublicKey
 import java.math.BigInteger
 import java.security.KeyStoreException
-import org.apache.log4j.Logger
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.xsemantics.interpreter.PlaceholderUtils
+import org.slf4j.LoggerFactory
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -85,7 +86,7 @@ inject extension TransactionCompilerDelegate compiler
 inject extension ScriptCompilerDelegate scriptCompiler
 inject BitcoinClientFactory clientFactory
 
-val logger = Logger.getLogger(BalzacInterpreter)
+val logger = new BalzacLogger(LoggerFactory.getLogger(BalzacInterpreter))
 
 judgments {
     interpret |- Interpretable expression |> Rho rho ~> output Object
@@ -126,10 +127,9 @@ from {
             source v
     }
 
-    if (logger.isTraceEnabled) {        
-        if (G.get("tab")===null) G.add("tab","")
-        logger.trace(G.get("tab")+"INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
-        G.add("tab", G.get("tab")+"|\t")
+    if (logger.isTraceEnabled) {
+        logger.trace("INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
+        logger.increasePrefixCount
     }
 
     if (v.ref instanceof Transaction) {
@@ -159,8 +159,8 @@ from {
     }
     
     if (logger.isTraceEnabled) {
-        G.add("tab", (G.get("tab") as String).substring(2))
-        logger.trace(G.get("tab")+"RESULT: "+res)        
+        logger.decreasePrefixCount
+        logger.trace("RESULT: "+res)
     }
 }
 

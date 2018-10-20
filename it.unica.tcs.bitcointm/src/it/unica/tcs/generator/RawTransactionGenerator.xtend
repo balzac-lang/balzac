@@ -77,6 +77,7 @@ class RawTransactionGenerator extends AbstractGenerator {
                         val tx = obj.toTransaction(astUtils.getECKeyStore(model))
                         sb.append(tx).append("\n")
                         sb.append(BitcoinUtils.encode(tx.bitcoinSerialize)).append("\n\n\n")
+//                        sb.append(obj).append("\n\n\n")
                     }
                     else {
                         sb.append("    ").append(obj.toString).append("\n\n\n")

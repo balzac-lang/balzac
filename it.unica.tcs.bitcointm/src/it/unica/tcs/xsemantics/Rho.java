@@ -17,8 +17,8 @@ public class Rho extends HashMap<Referrable,Object> {
     private static final long serialVersionUID = 1L;
 
     private final Set<EObject> visited = new HashSet<>();
-
     public final NetworkParameters networkParams;
+    private boolean evaluateWitnesses = true;
 
     public Rho(NetworkParameters params) {
         this.networkParams = params;
@@ -27,6 +27,15 @@ public class Rho extends HashMap<Referrable,Object> {
     public Rho addVisited(EObject tx) {
         visited.add(tx);
         return this;
+    }
+
+    public Rho setEvaluateWitnesses(boolean value) {
+        evaluateWitnesses = value;
+        return this;
+    }
+
+    public boolean getEvaluateWitnesses() {
+        return evaluateWitnesses;
     }
 
     public Rho removeVisited(EObject tx) {

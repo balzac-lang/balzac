@@ -27,14 +27,12 @@ class AltStack extends HashMap<Parameter, AltStackEntry>{
 
 class AltStackEntry {
     public final Integer position;
-    public final Integer occurrences;
 
-    public AltStackEntry(Integer position, Integer occurrences) {
+    public AltStackEntry(Integer position) {
         this.position = position;
-        this.occurrences = occurrences;
     }
 
-    public static AltStackEntry of(Integer position, Integer occurrences) {
-        return new AltStackEntry(position, occurrences);
+    public static AltStackEntry of(Integer position) {
+        return new AltStackEntry(position);
     }
 }

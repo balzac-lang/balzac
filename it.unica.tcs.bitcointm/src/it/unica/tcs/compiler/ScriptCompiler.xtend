@@ -95,6 +95,11 @@ class ScriptCompiler {
      * @see InputScript
      */
     def InputScript compileInputScript(Input input, ITransactionBuilder parentTx, Rho rho) {
+
+        if (!rho.evaluateWitnesses) {
+            return InputScript.create()
+        }
+
         val outpoint = input.outpoint
         val outScript = parentTx.outputs.get(outpoint).script
         
@@ -254,9 +259,13 @@ class ScriptCompiler {
             val p = script.params.get(i)
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, Reference).filter[v|v.ref==p].size
 
-            ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size, numberOfRefs))    // update the context
-
-            redeemScript.op(OP_TOALTSTACK)
+            if (numberOfRefs == 0) {    // drop unused variables
+                redeemScript.op(OP_DROP)            
+            }
+            else {
+                ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size))    // update the context
+                redeemScript.op(OP_TOALTSTACK)
+            }
         }
 
         return redeemScript.append(script.exp.compileExpression(ctx)).optimize()
@@ -575,7 +584,7 @@ class ScriptCompiler {
 
                 /*
                  * N: altezza dell'altstack
-                 * i: posizione della variabile interessata
+                 * i: posizione della variabile interessata [0; N-1]
                  *
                  * OP_FROMALTSTACK( N - i )                svuota l'altstack fino a raggiungere x
                  *                                         x ora è in cima al main stack
@@ -588,30 +597,14 @@ class ScriptCompiler {
                 // script parameter
                 val sb = new ScriptBuilderWithVar()
                 val pos = ctx.altstack.get(param).position
-                var count = ctx.altstack.get(param).occurrences
 
                 if(pos === null) throw new CompileException;
 
-                (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+                (0 ..< ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
+                
+                sb.op(OP_DUP).op(OP_TOALTSTACK)
 
-                if (count==1) {
-                    // this is the last usage of the variable
-                    ctx.altstack.remove(param)                          // remove the reference to its altstack position
-                    for (e : ctx.altstack.entrySet.filter[e|e.value.position>pos]) {    // update all the positions of the remaing elements
-                        ctx.altstack.put(e.key, AltStackEntry.of(e.value.position-1, e.value.occurrences))
-                    }
-
-                    if (ctx.altstack.size - pos> 0)
-                        (1 .. ctx.altstack.size - pos).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-
-                }
-                else {
-                    ctx.altstack.put(param, AltStackEntry.of(pos, count-1))
-                    sb.op(OP_DUP).op(OP_TOALTSTACK)
-
-                    if (ctx.altstack.size - pos - 1 > 0)
-                        (1 .. ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
-                }
+                (0 ..< ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]
                 return sb
             }
             else if (param instanceof TransactionParameter) {

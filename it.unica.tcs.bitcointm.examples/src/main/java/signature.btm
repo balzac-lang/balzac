@@ -49,6 +49,18 @@ transaction T_sameOutput {
 // a random private key
 const kA = key:cRfPMbgvC4NNd3FZZeoQB2GmZJ2tJAPeNwJh9Bs27S2Csak72j46
 
+transaction TcycleCoinbase {
+	input = _
+	output = 10 BTC : fun(x) . versig(kA; x)
+}
+
+const sigTcycle = sig(kA) of Tcycle
+
+transaction Tcycle {
+	input = TcycleCoinbase: sigTcycle
+	output = 2 BTC: fun(x) . x == 1001
+} 
+
 eval
     // Signatures have modifiers
     // "sig(kA) of T" by default sign All Inputs ans All Outputs (AIAO) of T
