@@ -1,76 +1,79 @@
+/*
+ * Balzac in a Nutshell
+ *
+ * https://blockchain.unica.it/balzac/docs/nutshell.html
+ */
+
 transaction T {
-    input = _    // no input 
-    output = 50 BTC: fun(x) . x==42
+    input = _    // no input
+    output = 50 BTC: fun(x) . x == 42
 }
 
- transaction T1 {
+transaction T1 {
     input = T: 42
-    output = 50 BTC: fun(x). x != 0  // any constraint choosen by the user
+    output = 50 BTC: fun(x). x != 0  // any constraint chosen by the user
 }
 
-// Alice's pubkey
-const kApub = pubkey:0248653a4ed0b1f71d51d453ab380348e791205bb0bd3fc8b19ac65b13530bcc63
+// Alice's public key
+const pubA = pubkey:03d0272bb640bdbbcaedce10ef69ad6d9d8c7b9c61ff2aa4cf4ed27865d287c224 
 
 transaction T2 {
     input = T1: 12
-    output = 50 BTC: fun(x) . versig(kApub; x)
+    output = 50 BTC: fun(x) . versig(pubA; x)
 }
 
 //Alice's private key    
-const kA = key:cW6KUESJMsPhHfvvj6RViQbt4wHomJTHiifQWNbrixrxBKkbesyM
+const kA = key:cVdDtCe2Gb6HWeCEzRTpZEitgxYonPtvLfGZrpprWV6BTJ3N37Lw
 
 transaction T3 {
     input = T2: sig(kA)
-    output = 50 BTC: fun(x) . versig(kApub; x) // any condition chosen by Alice
+    output = 50 BTC: fun(x) . versig(pubA; x) // any condition chosen by Alice
 }
 
-//Alice's other public key
-const kApub2 = pubkey:024672b26126d71dd524ae8f60c99ae38af25984f74107b6e60c25d58582eec81a
+// Bob's other public key
+const pubB = pubkey:0289654c430032f20f8464a84a1f9b3289ceaff8d6cd93c9b654e59a8c5a1cc1b0
 
 transaction T4 {
     input = T3:sig(kA) 
     output = [
-                     40 BTC: fun(x) . versig(kApub; x);
-                     10 BTC: fun(x) . versig(kApub2; x)
-        ]
+        40 BTC: fun(x) . versig(pubA; x);
+        10 BTC: fun(x) . versig(pubB; x)
+    ]
 }
 
-//Alice's second private key
-const kA2= key:cMgw94UfbDLDkqNgUyu7ZcCsYKXkofb2s3uRfhpB973RubSgrMWT
+// Bob's private key    
+const kB = key:cVifQzXqqQ86udHggaDMz4Uq66Z7RGXJo5PdVjzRP12H1NDCFsLV
 
 transaction T5 {
     input = [
         T4@0: sig(kA);
-        T4@1: sig(kA2)
-        ]
-    output = 50 BTC: fun(x) . versig(kApub; x)
+        T4@1: sig(kB)
+    ]
+    output = 50 BTC: fun(x) . versig(pubA; x)
 }
 
 // parametric transaction
-transaction T6(k:pubkey) {
+transaction T6(pub) {
     input = _
-    output = 1BTC: fun(x). versig(k;x)
+    output = 1BTC: fun(x). versig(pub;x)
 }
 
-// Bob's public key
-const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
-
 transaction T7 {
-    input = T6(kApub):sig(kA)
-    output = 1BTC: fun(x). versig(kBpub;x)
+    input = T6(pubA):sig(kA)
+    output = 1BTC: fun(x). versig(pubB;x)
 }
 
 transaction T8(s:signature, n:int) {
-    input = T7:s 
-    output = 1BTC: fun(x, m). versig(kApub;x) && m == sha256( n )
+    input = T7: s 
+    output = 1BTC: fun(x, m). versig(pubA;x) && m == sha256( n )
 }
+
 //transaction with empty signature
 const T9 = T8(_, 4)
 
-transaction T9_bis(n:int) {
-    input = T6(kApub):sig(kA)
-    output = 1BTC: fun(x, m). versig(kBpub;x) && m == sha256( n )
+transaction T8_bis(n:int) {
+    input = T7: sig(kB)
+    output = 1BTC: fun(x, m). versig(pubB;x) && m == sha256( n )
 }
 
-
-eval T1, T2, T3, T4, T5, T6(kApub), T7, T8(_,4), T9, T9_bis(4)
+eval T, T1, T2, T3, T4, T5, T6(pubA), T6(pubB), T7, T8(_, 42), T9, T8_bis(42)
