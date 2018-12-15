@@ -1,0 +1,65 @@
+/*
+ * Oracle (timed version)
+ * 
+ * https://blockchain.unica.it/balzac/docs/oracle.html
+ */
+
+// tx with Alice's funds, redeemable with Alice's private key
+transaction A_funds {
+    input = _
+    output = 1 BTC: fun(x). versig(Alice.kApub; x)
+}
+
+participant Alice {
+    // Alice's private key
+    private const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
+    // Alice's public key
+    const kApub = kA.toPubkey
+    
+    // deadline
+    const deadline = 2018-12-31
+
+    transaction T {
+        input = A_funds: sig(kA)
+        output = 1 BTC: fun(sigma, sigO). 
+                versig(Bob.kBpub, Oscar.kOpub; sigma, sigO)
+                || checkDate deadline : versig(kApub;sigma)
+    }
+
+    // Alice takes back her deposit after the deadline
+    transaction T1 {
+        input = T: sig(kA) _
+        output = 1 BTC: fun(sigma, sigO). versig(Bob.kBpub, Oscar.kOpub; sigma, sigO)
+                        || checkDate deadline : versig(kApub;sigma)
+        absLock = date deadline
+    }
+}
+
+participant Bob {
+    // Bob's private key
+    private const kB = key:cQmSz3Tj3usor9byskhpCTfrmCM5cLetLU9Xw6y2csYhxSbKDzUn
+    // Bob's public key
+    const kBpub = kB.toPubkey
+
+    // alternative with time constraint
+    const deadline = 2019-01-01
+    
+    transaction T1(sigOtimed) {
+        input = Alice.T: sig(kB) sigOtimed
+        output = 1 BTC: fun(x). versig(kB; x)
+        absLock = date deadline
+    }
+}
+
+participant Oscar {
+    // Oscar's private key
+    private const kO = key:cTyxEAoUSKcC9NKFCjxKTaXzP8i1ufEKtwVVtY6AsRPpRgJTZQRt
+    // Oscar's public key
+    const kOpub = kO.toPubkey
+
+    const sigO = sig(kO) of Bob.T1(_)
+    const sigOtimed = sig(kO) of Bob.T1(_)
+}
+
+
+eval Alice.T, Alice.T1, Bob.T1(Oscar.sigO)
