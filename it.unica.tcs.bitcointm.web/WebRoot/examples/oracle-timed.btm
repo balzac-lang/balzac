@@ -21,7 +21,7 @@ participant Alice {
     transaction T {
         input = A_funds: sig(kA)
         output = 1 BTC: fun(sigma, sigO). 
-                versig(Bob.kBpub, Oscar.kOpub; sigma, sigO)
+                versig(Bob.kBpub, Oracle.kOpub; sigma, sigO)
                 || checkDate deadline : versig(kApub;sigma)
     }
 
@@ -45,15 +45,14 @@ participant Bob {
     }
 }
 
-participant Oscar {
-    // Oscar's private key
+participant Oracle {
+    // Oracle's private key
     private const kO = key:cTyxEAoUSKcC9NKFCjxKTaXzP8i1ufEKtwVVtY6AsRPpRgJTZQRt
-    // Oscar's public key
+    // Oracle's public key
     const kOpub = kO.toPubkey
 
     const sigO = sig(kO) of Bob.T1(_)
-    const sigOtimed = sig(kO) of Bob.T1(_)
 }
 
 
-eval Alice.T, Alice.T1, Bob.T1(Oscar.sigO)
+eval Alice.T, Alice.T1, Bob.T1(Oracle.sigO)
