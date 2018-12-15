@@ -25,7 +25,6 @@ participant Alice {
 participant Bob {
     // Bob's private key
     private const kB = key:cQmSz3Tj3usor9byskhpCTfrmCM5cLetLU9Xw6y2csYhxSbKDzUn
-
     // Bob's public key
     const kBpub = kB.toPubkey
 
