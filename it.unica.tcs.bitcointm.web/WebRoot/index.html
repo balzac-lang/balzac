@@ -7,8 +7,10 @@
     <title>Balzac (Bitcoin Abstract Language, analyZer and Compiler) - Web Editor (beta)</title>
     
     <link rel="stylesheet" type="text/css" href="xtext/2.14.0/xtext-ace.css"/>
-    <link rel="stylesheet" type="text/css" href="style.css"/>
 
+    <!-- Loading buttons -->
+    <link rel="stylesheet" type="text/css" href="loading-btn/loading.css"/>
+    <link rel="stylesheet" type="text/css" href="loading-btn/loading-btn.css"/>
         
     <!-- Bootstrap CSS -->
     <link rel='stylesheet' href='webjars/bootstrap/4.1.0/css/bootstrap.min.css'>
@@ -18,6 +20,8 @@
     
     <!-- Bootstrap Toggle CSS -->
     <link href="webjars/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="style.css"/>
 
     <script src="webjars/requirejs/2.3.5/require.min.js"></script>
     <script type="text/javascript">
@@ -73,10 +77,18 @@
                 })
                 
                 $("#compile").click(function() {
-                    editor.xtextServices.generate()
-                        .done(function(result){
-                            $("#result").html(result)
-                        });
+                    $("#compile").addClass("running")
+                    setTimeout(function() {
+                        editor.xtextServices.generate()
+                            .done(function(result){
+                                $("#result").html(result)
+                                $("#result").addClass("highlight-result")                                
+                                $("#compile").removeClass("running")
+                                setTimeout(function(){
+                                    $("#result").removeClass("highlight-result")                                
+                                },1000)
+                            });                	
+                    }, 300)
                 });
             });
         });
@@ -247,17 +259,6 @@
 		                <input id="newkey-button" class="btn btn-info btn-block mb-5" 
 		                    type="button" value="Generate new key"
 		                    aria-label="Generate new key">
-		                
-		<!--                 <div class="input-group input-group-sm mb-3"> -->
-		<!--                     <div class="input-group-prepend"> -->
-		<!--                         <div class="input-group-text"> -->
-		<!--                             <input id="warn-empty-fields" type="checkbox" -->
-		<!--                                 aria-label="Checkbox for following text input" checked> -->
-		<!--                         </div> -->
-		<!--                     </div> -->
-		<!--                     <span class="form-control" -->
-		<!--                         aria-label="Text input with checkbox">Warning on non-empty fields</span> -->
-		<!--                 </div> -->
                     </div>
                 </div>
                 
@@ -297,6 +298,7 @@
                                 <div class="dropdown-menu" aria-labelledby="selectExample">
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.btm')">Balzac in a nutshell</button>
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle.btm')">Oracle</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-timed.btm')">Oracle (timed)</button>
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/escrow-alice.btm')">Escrow (Alice's view)</button>
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.btm')">Timed Commitment</button>
                                     <button class="dropdown-item btn" type="button" onclick="loadExample('examples/signatures.btm')">Signature modifiers</button>
@@ -307,7 +309,9 @@
                             <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
                         </div>
                         <div class="text-center">
-                            <button id="compile" type="button" class="btn btn-primary">Evaluate</button>
+                            <div id="compile" type="button" class="btn btn-primary ld-ext-right">Evaluate
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">
