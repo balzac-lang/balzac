@@ -78,7 +78,6 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
-import it.unica.tcs.balzac.Remainder
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
