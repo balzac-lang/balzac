@@ -78,6 +78,7 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
+import it.unica.tcs.balzac.Remainder
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -311,7 +312,9 @@ from {
     unit = if (btc.isBtc)
         Math.multiplyExact(unit,100_000_000)
         else unit
-    result = Math.addExact(unit, btc.decimal)
+    result = if (unit < 0)
+        Math.subtractExact(unit,btc.decimal)
+        else Math.addExact(unit, btc.decimal)
 }
 
 rule InterpretMinus
