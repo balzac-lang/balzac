@@ -118,11 +118,11 @@
                     
                     e.preventDefault();
                     $.ajax({
-                        url : "new-key",
+                        url : "utils/new-key",
                         data : null,
                         success : populateKeys,
                         error : function(e) {
-                            console.log("error invoking /new-key")
+                            console.log("error invoking /utils/new-key")
                         }
                     });
                 });
@@ -151,6 +151,7 @@
             $.ajax({
                 url : url,
                 data : null,
+                cache : false,
                 success : function(data) {
                     var editor = ace.edit("xtext-editor");
                     editor.setValue(data);

@@ -8,22 +8,4 @@
 	<display-name>Balzac Web Editor</display-name>
 	<description>
 	</description>
-
-    <servlet> 
-        <servlet-name>XtextServices</servlet-name>
-        <servlet-class>it.unica.tcs.web.BalzacServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>XtextServices</servlet-name>
-        <url-pattern>/xtext-service/*</url-pattern>
-    </servlet-mapping>
-    
-    <servlet> 
-        <servlet-name>WebUtils</servlet-name>
-        <servlet-class>it.unica.tcs.web.WebUtilsServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>WebUtils</servlet-name>
-        <url-pattern>/new-key</url-pattern>
-    </servlet-mapping>
 </web-app>

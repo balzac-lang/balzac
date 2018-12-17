@@ -47,7 +47,5 @@ Export-Package: com.sulacosoft.bitcoindconnector4j,
  it.unica.tcs.balzac.impl,
  it.unica.tcs.balzac,
  it.unica.tcs.balzac.util
-Import-Package: org.apache.log4j,
- org.slf4j;version="1.7.2",
- org.slf4j.spi;version="1.7.2"
+Import-Package: org.apache.log4j
 Bundle-ClassPath: .antlr-generator-3.2.0-patch.jar,.,it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar
