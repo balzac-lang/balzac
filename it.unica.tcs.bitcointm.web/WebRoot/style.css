@@ -70,7 +70,7 @@
     margin-right: -400px;
 }
 
-@media(min-width:768px) {
+@media(min-width:576px) {
     #wrapper {
         padding-left: 400px;
     }
@@ -97,9 +97,9 @@
     }
 }
 
-@media(max-width:768px) {
+@media(max-width:576px) {
     #wrapper {
-        padding-left: 400px;
+        padding-left: 100%;
     }
 
     #wrapper.toggled {
@@ -107,7 +107,7 @@
     }
 
     #sidebar-wrapper {
-        width: 400px;
+        width: 100%;
     }
 
     #wrapper.toggled #sidebar-wrapper {
@@ -123,7 +123,7 @@
 }
 
 #sidebar-content {
-	width: 400px;
+	width: 100%;
 }
 
 /* FIX */
