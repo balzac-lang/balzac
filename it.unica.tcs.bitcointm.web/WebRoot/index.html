@@ -48,7 +48,7 @@
                     syntaxDefinition: "xtext-resources/generated/mode-btm"
                 });
                 
-                var text = "package example\n\ntransaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\neval T";
+                var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
                 
                 if (typeof(Storage) !== "undefined") {
                     // Code for localStorage/sessionStorage.
@@ -97,54 +97,69 @@
             require(["bootstrap"], function() {
                 require(["bootstrap-toggle"], function() {
             
-            $(document).ready(function () {
-            
-            	$("#menu-toggle").click(function(e) {
-                    e.preventDefault();
-                    $("#wrapper").toggleClass("toggled");
-                });
-                
-            	$("#clearLocalStorage").click(function(e) {
-                    e.preventDefault();
-                    localStorage.removeItem("file-content");
-                });
-                
-                $("#sidebar-close").click(function(e) {
-                    e.preventDefault();
-                    $("#wrapper").toggleClass("toggled");
-                });
-                
-                $("#newkey-button").click(function(e) {
-                    
-                    e.preventDefault();
-                    $.ajax({
-                        url : "utils/new-key",
-                        data : null,
-                        success : populateKeys,
-                        error : function(e) {
-                            console.log("error invoking /utils/new-key")
-                        }
-                    });
-                });
-                
-                $("#compute-hash-button").click(function(e) {
-                    const value = $("#value-to-hash").val()
-                    
-                    e.preventDefault();
-                    $.ajax({
-                        url : "utils/hash",
-                        data : {"of": value},
-                        success : populateHashes,
-                        error : function(e) {
-                            console.log("error invoking /utils/hash")
-                            console.log(e)
-                        }
-                    });
-                });
-                
-                
-                
-            }); 
+		            $(document).ready(function () {
+		            
+		            	$("#menu-toggle").click(function(e) {
+		                    e.preventDefault();
+		                    $("#wrapper").toggleClass("toggled");
+		                });
+		                
+		            	$("#clearLocalStorage").click(function(e) {
+		                    e.preventDefault();
+                            $("#clearLocalStorage").addClass("running")
+                            setTimeout(function() {
+                                localStorage.removeItem("file-content");
+                                   $("#clearLocalStorage").removeClass("running")
+                            }, 300);
+		                });
+		                
+		                $("#sidebar-close").click(function(e) {
+		                    e.preventDefault();
+		                    $("#wrapper").toggleClass("toggled");
+		                });
+		                
+		                $("#newkey-button").click(function(e) {
+	                        e.preventDefault();
+		                    $("#newkey-button").addClass("running")
+		                    setTimeout(function() {
+		                        $.ajax({
+		                            url : "utils/new-key",
+		                            data : null,
+		                            success : function(data) {
+		                                populateKeys(data)
+		                                $("#newkey-button").removeClass("running")
+		                            },
+		                            error : function(e) {
+		                                console.log("error invoking /utils/new-key")
+		                            }
+		                        });
+		                    }, 300);
+		                });
+		                
+		                $("#compute-hash-button").click(function(e) {
+		                    e.preventDefault();
+		                    $("#compute-hash-button").addClass("running")
+		                    setTimeout(function() {
+			                    const value = $("#value-to-hash").val()
+			                    
+			                    $.ajax({
+			                        url : "utils/hash",
+			                        data : {"of": value},
+			                        success : function(data) {
+		                                populateHashes(data)
+		                                $("#compute-hash-button").removeClass("running")
+		                            },
+			                        error : function(e) {
+			                            console.log("error invoking /utils/hash")
+			                            console.log(e)
+			                        }
+			                    });
+		                    }, 300);
+		                });
+		                
+		                
+		                
+		            }); 
             });});});
 
         function populateKeys(data) {
@@ -222,10 +237,10 @@
         <div id="sidebar-wrapper">
             <div id="sidebar-content" class="container">
                
-                <div class="row align-items-start h-75">
+                <div class="row">
 	                
                     <!-- Generate new key -->
-	                <div class="col-12">
+	                <div class="col-12 mb-5">
 		                <div class="text-right mb-4 pt-2">
 		                    <button id="sidebar-close" type="button" class="btn btn-default">
 		                        <i class="fa fa-times"></i>
@@ -284,20 +299,19 @@
 		                        >
 		                </div>
 		                
-		                
-		                <input id="newkey-button" class="btn btn-info btn-block mb-5" 
-		                    type="button" value="Generate new key"
-		                    aria-label="Generate new key">
+                        <div class="text-center" class="btn btn-info btn-block mb-5">
+                            <div id="newkey-button" type="button" class="btn btn-info btn-block ld-ext-right">Generate new key
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <hr/>
-                    
                     <!-- Hash -->
-                    <div class="col-12">
+                    <div class="col-12 mb-5 mt-5">
 
                         <input type="text" id="value-to-hash" class="form-control mb-3"
                                 aria-label="Value to Hash"
-                                aria-describedby="value-to-hash" autocomplete="off">
+                                aria-describedby="value-to-hash" autocomplete="off" placeholder="Enter a value to hash">
                         
                         <div class="input-group mb-2">
                             <div class="input-group-prepend">
@@ -365,17 +379,21 @@
                             </div>
                         </div>                        
                         
-                        <input id="compute-hash-button" class="btn btn-info btn-block mb-5" 
-                            type="button" value="Compute Hash"
-                            aria-label="Compute Hash">
+                        <div class="text-center" class="btn btn-info btn-block mb-5">
+                            <div id="compute-hash-button" type="button" class="btn btn-info btn-block ld-ext-right">Compute Hash
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
+                        </div>
+
                     </div>
-                    
-                </div>
-                
-                <div class="row align-items-end h-25">
-	                <div class="col-12 mb-2">
-	                    <input id="clearLocalStorage" class="btn btn-info btn-block mb-3" value="Delete local storage" aria-label="Delete local storage" type="button">
-	                </div>
+                    <!-- Delete local storage -->
+                    <div class="col-12 mb-5 mt-5">
+	                    <div class="text-center" class="btn btn-info btn-block mb-5">
+	                        <div id="clearLocalStorage" type="button" class="btn btn-info btn-block ld-ext-right">Delete local storage
+	                            <div class="loader ld ld-ring ld-spin"></div>
+	                        </div>
+	                    </div>
+                    </div>
                 </div>
                 
             </div>        
@@ -384,7 +402,7 @@
 
         <!-- Page Content -->
         <div id="page-content-wrapper" class="pt-2">
-            <button id="menu-toggle" type="button" class="btn btn-default ml-2">
+            <button id="menu-toggle" type="button" class="btn btn-default ml-2 mb-4">
                 <i class="fa fa-bars"></i>
             </button>
             <div class="container mb-3">

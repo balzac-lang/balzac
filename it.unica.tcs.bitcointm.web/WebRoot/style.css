@@ -54,7 +54,6 @@
     
     border-right: 1px solid rgba(0,0,0,.125);
     box-sizing: content-box;
-    overflow: hidden;
 }
 
 #wrapper.toggled #sidebar-wrapper {
