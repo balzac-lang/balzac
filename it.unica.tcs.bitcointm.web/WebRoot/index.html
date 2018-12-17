@@ -126,6 +126,24 @@
                         }
                     });
                 });
+                
+                $("#compute-hash-button").click(function(e) {
+                    const value = $("#value-to-hash").val()
+                    
+                    e.preventDefault();
+                    $.ajax({
+                        url : "utils/hash",
+                        data : {"of": value},
+                        success : populateHashes,
+                        error : function(e) {
+                            console.log("error invoking /utils/hash")
+                            console.log(e)
+                        }
+                    });
+                });
+                
+                
+                
             }); 
             });});});
 
@@ -139,6 +157,14 @@
             $('#isTestnet').change(function() {
                populateKeys(data)
             })
+        }
+        
+        function populateHashes(data) {
+            $("#sha1").prop("value", data.sha1)
+            $("#sha256").prop("value", data.sha256)
+            $("#ripemd160").prop("value", data.ripemd160)
+            $("#hash160").prop("value", data.hash160)
+            $("#hash256").prop("value", data.hash256)
         }
         
         function copyToClipboard(id) {
@@ -197,6 +223,8 @@
             <div id="sidebar-content" class="container">
                
                 <div class="row align-items-start h-75">
+	                
+                    <!-- Generate new key -->
 	                <div class="col-12">
 		                <div class="text-right mb-4 pt-2">
 		                    <button id="sidebar-close" type="button" class="btn btn-default">
@@ -204,39 +232,39 @@
 		                    </button>
 		                </div>
 		            
-		                <div class="input-group mb-3">
+		                <div class="input-group mb-2">
 		                    <div class="input-group-prepend">
 		                        <span class="input-group-text">Private key (wif)</span>
 		                    </div>
 		                    <input type="text" id="privkey" class="form-control"
 		                        aria-label="Private key in WIF format"
-		                        aria-describedby="privkey" autocomplete="off">
+		                        aria-describedby="privkey" autocomplete="off" readonly>
 		                    <div class="input-group-append">
 		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
 		                            <i class="fa fa-clone"></i>
 		                        </button>
 		                    </div>
 		                </div>
-		                <div class="input-group mb-3">
+		                <div class="input-group mb-2">
 		                    <div class="input-group-prepend">
 		                        <span class="input-group-text">Public key (hex)</span>
 		                    </div>
 		                    <input type="text" id="pubkey" class="form-control"
 		                        aria-label="Public key in hexadecimal format"
-		                        aria-describedby="pubkey" autocomplete="off">
+		                        aria-describedby="pubkey" autocomplete="off" readonly>
 		                    <div class="input-group-append">
 		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
 		                            <i class="fa fa-clone"></i>
 		                        </button>
 		                    </div>
 		                </div>
-		                <div class="input-group mb-3">
+		                <div class="input-group mb-2">
 		                    <div class="input-group-prepend">
 		                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 		                    </div>
 		                    <input type="text" id="addr" class="form-control"
 		                        aria-label="Public address in WIF format"
-		                        aria-describedby="addr" autocomplete="off">
+		                        aria-describedby="addr" autocomplete="off" readonly>
 		                    <div class="input-group-append">
 		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
 		                            <i class="fa fa-clone"></i>
@@ -261,6 +289,87 @@
 		                    type="button" value="Generate new key"
 		                    aria-label="Generate new key">
                     </div>
+                    
+                    <hr/>
+                    
+                    <!-- Hash -->
+                    <div class="col-12">
+
+                        <input type="text" id="value-to-hash" class="form-control mb-3"
+                                aria-label="Value to Hash"
+                                aria-describedby="value-to-hash" autocomplete="off">
+                        
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Sha1</span>
+                            </div>
+                            <input type="text" id="sha1" class="form-control"
+                                aria-label="Sha1 hash"
+                                aria-describedby="sha1" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha1')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Sha256</span>
+                            </div>
+                            <input type="text" id="sha256" class="form-control"
+                                aria-label="Sha256 hash"
+                                aria-describedby="sha256" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha256')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Ripemd160</span>
+                            </div>
+                            <input type="text" id="ripemd160" class="form-control"
+                                aria-label="Ripemd160 hash"
+                                aria-describedby="ripemd160" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('ripemd160')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Hash256</span>
+                            </div>
+                            <input type="text" id="hash256" class="form-control"
+                                aria-label="Hash256 hash"
+                                aria-describedby="hash256" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash256')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Hash160</span>
+                            </div>
+                            <input type="text" id="hash160" class="form-control"
+                                aria-label="Hash160 hash"
+                                aria-describedby="hash160" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash160')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>                        
+                        
+                        <input id="compute-hash-button" class="btn btn-info btn-block mb-5" 
+                            type="button" value="Compute Hash"
+                            aria-label="Compute Hash">
+                    </div>
+                    
                 </div>
                 
                 <div class="row align-items-end h-25">

@@ -55,6 +55,7 @@ class WebUtilsServlet extends HttpServlet {
             response.contentType = 'application/json'
             response.status = HttpServletResponse.SC_OK
             gson.toJson(result, response.writer)
+            return
         }
         else if (req.requestURI.contains("/utils/hash")) {
             response.contentType = 'application/json'
@@ -93,7 +94,7 @@ class WebUtilsServlet extends HttpServlet {
                  * Finally treat them as String
                  */
                 val strValue =
-                    if (value.charAt(0) == Character.valueOf('"') && value.charAt(value.length - 1) == Character.valueOf('"'))
+                    if (!value.isEmpty && value.charAt(0) == Character.valueOf('"') && value.charAt(value.length - 1) == Character.valueOf('"'))
                     value.substring(1, value.length-1).replace("\\\"", "\"")
                     else value
 
