@@ -467,6 +467,10 @@ from {
                 failIfTypeVariable(texp, exp)
             }
         }
+
+        if (input.redeemScript !== null) {
+            G |- substitutions |> input.redeemScript : var Type type
+        }
     }
 }
 
@@ -483,7 +487,12 @@ from {
     valType = typesubstitution(substitutions, valType)
     unify(satoshis, substitutions, valType, BalzacFactory::eINSTANCE.createIntType)
 
-    var script = _output.script as Script
+    G |- substitutions |> _output.script : var Type type
+}
+
+rule Script
+    G |- TypeSubstitutions substitutions |> Script script : BalzacFactory::eINSTANCE.createVoidType
+from {
     for (p : script.params) {
         G |- substitutions |> p : var Type type
     }
@@ -515,6 +524,7 @@ from {
         p.type = EcoreUtil::copy(ptype as BasicType)
     }
 }
+
 
 rule AbsoluteTime
     G |- TypeSubstitutions substitutions |> AbsoluteTime tlock : BalzacFactory::eINSTANCE.createVoidType
