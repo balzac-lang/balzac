@@ -62,55 +62,12 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
 
     public static OutputScript createP2PKH(Script script) {
         checkState(ScriptPattern.isPayToPubKeyHash(script));
-        return new OutputScript() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isP2SH() {
-                return false;
-            }
-
-            @Override
-            public boolean isP2PKH() {
-                return true;
-            }
-
-            @Override
-            public boolean isOP_RETURN() {
-                return false;
-            }
-
-            @Override
-            public Script getOutputScript() {
-                return script;
-            }
-        };
+        byte[] address = script.getChunks().get(2).data;
+        return createP2PKH(address);
     }
 
     public static OutputScript createP2PKH(Address addr) {
-        return new OutputScript() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isP2SH() {
-                return false;
-            }
-
-            @Override
-            public boolean isP2PKH() {
-                return true;
-            }
-
-            @Override
-            public boolean isOP_RETURN() {
-                return false;
-            }
-
-            @Override
-            public Script getOutputScript() {
-                return ScriptBuilder.createOutputScript(addr);
-            }
-        };
+        return createP2PKH(addr.getHash());
     }
 
     public static OutputScript createP2PKH(byte[] addressByte) {
@@ -141,34 +98,17 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
                         .op(OP_EQUALVERIFY)
                         .op(OP_CHECKSIG).build();
             }
+
+            @Override
+            public Script build() {
+                return getOutputScript();
+            }
         };
     }
 
     public static OutputScript createOP_RETURN(Script script) {
         checkState(ScriptPattern.isOpReturn(script));
-        return new OutputScript() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isP2SH() {
-                return false;
-            }
-
-            @Override
-            public boolean isP2PKH() {
-                return false;
-            }
-
-            @Override
-            public boolean isOP_RETURN() {
-                return true;
-            }
-
-            @Override
-            public Script getOutputScript() {
-                return script;
-            }
-        };
+        return createOP_RETURN(script.getProgram());
     }
 
     public static OutputScript createOP_RETURN(byte[] bytes) {
@@ -193,6 +133,11 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
             @Override
             public Script getOutputScript() {
                 return ScriptBuilder.createOpReturnScript(bytes);
+            }
+
+            @Override
+            public Script build() {
+                return getOutputScript();
             }
         };
     }

@@ -58,6 +58,7 @@ import it.unica.tcs.balzac.SignatureLiteral;
 import it.unica.tcs.balzac.StringLiteral;
 import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
+import it.unica.tcs.balzac.Versig;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
@@ -290,11 +291,11 @@ public class ASTUtils {
     }
 
     public boolean isP2PKH(Script script) {
-//        boolean isVersig = script.getExp() instanceof Versig;
-//        boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
-//
-//        return isVersig && onlyOnePubkey;
-        return false;   // TODO: temporarily disabled
+        boolean isVersig = script.getExp() instanceof Versig;
+        boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
+
+        return isVersig && onlyOnePubkey;
+//        return false;   // TODO: temporarily disabled
     }
 
     public boolean isOpReturn(Script script, Rho rho) {

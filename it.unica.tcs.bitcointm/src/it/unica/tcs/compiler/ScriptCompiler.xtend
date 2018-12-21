@@ -216,7 +216,7 @@ class ScriptCompiler {
             val addr = resAddr.first
             if (addr instanceof Address) {
                 /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-                return OutputScript.createP2PKH(addr.addressByte)
+                OutputScript.createP2PKH(addr.addressByte)
             }
             else {
                 throw new CompileException('''Unable to evaluate to a an address. Result is: «addr»''')

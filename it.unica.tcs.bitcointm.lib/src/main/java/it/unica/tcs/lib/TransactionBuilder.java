@@ -377,16 +377,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             checkState(sb.isReady(), "script cannot have free variables: "+sb.toString());
             checkState(sb.signatureSize()==0);
 
-            Script outScript;
-
-            if (sb.isP2SH()) {
-                // P2SH
-                outScript = sb.getOutputScript();
-            }
-            else {
-                outScript = sb.build();
-            }
-
+            Script outScript = sb.getOutputScript();
             Coin value = Coin.valueOf(output.getValue());
             tx.addOutput(value, outScript);
         }
