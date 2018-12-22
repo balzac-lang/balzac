@@ -257,7 +257,7 @@ class ScriptCompiler {
         var redeemScript = OutputScript.createP2SH()
         for (var i=script.params.size-1; i>=0; i--) {
             val p = script.params.get(i)
-            var numberOfRefs = EcoreUtil2.getAllContentsOfType(script.exp, Reference).filter[v|v.ref==p].size
+            var numberOfRefs = EcoreUtil2.getAllContentsOfType(script, Reference).filter[v|v.ref==p].size
 
             if (numberOfRefs == 0) {    // drop unused variables
                 redeemScript.op(OP_DROP)            
