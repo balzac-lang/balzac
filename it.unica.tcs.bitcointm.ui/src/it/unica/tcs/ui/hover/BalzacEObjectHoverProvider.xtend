@@ -100,7 +100,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
                 hex          = «privKey.privateKeyString»
 
             Public key
-                hex          = «privKey.privateKeyString»
+                hex          = «privKey.publicKeyString»
         
             Address
                 base58 (wif) = «privKey.addressWif»
