@@ -124,7 +124,7 @@ transaction coinbase {
 
 assert 
     ABC(10).txid == hash:46dc232e73a2a7bc7e08d0ee031a33d07d184bd1bd5049ecbe364a161fad62d4
-    : "Transaction id mismatched"
+    : "Transaction id mismatch. Found " + ABC(10).txid
 
 transaction ABC(x:int) {
 	input = coinbase: x
@@ -142,6 +142,10 @@ transaction DEF(y:hash) {
 }
 
 eval
+    "Hello " + "world!",
+    "Hello " + "world! " + 42,
+    "Hello " + 42 + " world! ",
+    foo2.txid,
     foo2.output.value,
     foo2.input.value,
     test("secret").output.value + foo(kA).output.value - 5,

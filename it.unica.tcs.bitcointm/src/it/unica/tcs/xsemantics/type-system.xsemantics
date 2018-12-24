@@ -657,16 +657,29 @@ from {
 rule Plus
     G |- TypeSubstitutions substitutions |> Plus op : Type type
 from {
-    type = BalzacFactory::eINSTANCE.createIntType
-    G |- substitutions |> op.left : var Type leftType
-    G |- substitutions |> op.right : var Type rightType
+    {   // sum of integers
+        type = BalzacFactory::eINSTANCE.createIntType
+        G |- substitutions |> op.left : var Type leftType
+        G |- substitutions |> op.right : var Type rightType
 
-    leftType = typesubstitution(substitutions, leftType)
-    rightType = typesubstitution(substitutions, rightType)
+        leftType = typesubstitution(substitutions, leftType)
+        rightType = typesubstitution(substitutions, rightType)
 
-    // the terms type must be unifiable with int type
-    unify(op.left, substitutions, leftType, type)
-    unify(op.right, substitutions, rightType, type)
+        // the terms type must be unifiable with int type
+        unify(op.left, substitutions, leftType, type)
+        unify(op.right, substitutions, rightType, type)
+    }
+    or {    // string concatenation
+        type = BalzacFactory::eINSTANCE.createStringType
+        G |- substitutions |> op.left : var Type leftType
+        G |- substitutions |> op.right : var Type rightType
+
+        leftType = typesubstitution(substitutions, leftType)
+
+        // only the first term must unify to a string
+        // we are able to convert any term to a string
+        unify(op.left, substitutions, leftType, type)
+    }
 }
 
 rule Comparison
