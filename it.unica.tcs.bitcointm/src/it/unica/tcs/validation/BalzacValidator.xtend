@@ -79,6 +79,7 @@ import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
 import it.unica.tcs.balzac.Placeholder
+import it.unica.tcs.balzac.Assertion
 
 /**
  * This class contains custom validation rules.
@@ -1410,4 +1411,27 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
     }
 
+    @Check
+    def void checkAssertions(Assertion assertion) {
+        val res = assertion.exp.interpretE
+        if (!res.failed && res.first instanceof Boolean) {
+            val assertOk = res.first as Boolean
+            if (!assertOk) {
+                val errorString =
+                    if (assertion.err === null) "Assertion failed"
+                    else {
+                        val resErr = assertion.err.interpretE
+                        if (!resErr.failed && resErr.first instanceof String) {
+                            resErr.first as String
+                        }
+                        else "Assertion failed"
+                    }
+                error(
+                    errorString,
+                    assertion.exp,
+                    null
+                );
+            }
+        }
+    }
 }

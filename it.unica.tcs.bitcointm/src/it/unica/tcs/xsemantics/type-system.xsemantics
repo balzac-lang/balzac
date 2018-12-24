@@ -86,6 +86,7 @@ import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
 import it.unica.tcs.balzac.TransactionId
+import it.unica.tcs.balzac.Assertion
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -1107,7 +1108,7 @@ from {
         G |- substitutions |> tx: var Type t
     }
 
-    // type check all transactions
+    // type check all participants
     for (p : declarations.filter(Participant)) {
         // type check all constants firsts
         for (c : p.declarations.filter(Constant)) {
@@ -1117,6 +1118,19 @@ from {
         // type check all transactions
         for (tx : p.declarations.filter(Transaction)) {
             G |- substitutions |> tx: var Type t
+        }
+    }
+
+    // type check all assertions
+    for (a : declarations.filter(Assertion)) {
+        G |- substitutions |> a.exp: var Type texp
+        texp = typesubstitution(substitutions, texp)
+        unify(a.exp, substitutions, texp, BalzacFactory::eINSTANCE.createBooleanType)
+
+        if (a.err !== null) {
+            G |- substitutions |> a.err: var Type terr
+            terr = typesubstitution(substitutions, terr)
+            unify(a.err, substitutions, terr, BalzacFactory::eINSTANCE.createStringType)
         }
     }
 

@@ -122,6 +122,10 @@ transaction coinbase {
     output = this.input.value + 10 BTC : fun(x) . x != 0
 }
 
+assert 
+    ABC(10).txid == hash:46dc232e73a2a7bc7e08d0ee031a33d07d184bd1bd5049ecbe364a161fad62d4
+    : "Transaction id mismatched"
+
 transaction ABC(x:int) {
 	input = coinbase: x
 	output = this.input.value - x : fun(x) . x == this.input.value - this.output.value

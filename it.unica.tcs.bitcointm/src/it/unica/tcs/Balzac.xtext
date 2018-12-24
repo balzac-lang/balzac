@@ -30,8 +30,11 @@ QualifiedNameWithWildcard:
 Element:
 	Constant
 |	Transaction
-|   Participant;
+|   Participant
+|   Assertion;
 
+Assertion:
+    'assert' exp=Expression (':' err=Expression)?;
 
 Participant: {Participant} 'participant' pname=ID '{'
         declarations+=ParticipantElement*
