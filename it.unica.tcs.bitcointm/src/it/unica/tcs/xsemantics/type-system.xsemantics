@@ -45,6 +45,7 @@ import it.unica.tcs.balzac.NumberLiteral
 import it.unica.tcs.balzac.OrExpression
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
+import it.unica.tcs.balzac.Participant
 import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.PubKeyLiteral
@@ -66,6 +67,7 @@ import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.ToAddress
 import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
+import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
@@ -82,7 +84,6 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
-import it.unica.tcs.balzac.Participant
 import org.slf4j.LoggerFactory
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
@@ -1063,6 +1064,14 @@ from {
     or {
         unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createPubkeyType)
     }
+}
+
+rule TransactionFees
+    G |- TypeSubstitutions substitutions |> TransactionFees elm: BalzacFactory::eINSTANCE.createIntType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    G |- substitutions |> elm.tx: var Type type
+    unify(elm.tx, substitutions, type, txType)
 }
 
 /*

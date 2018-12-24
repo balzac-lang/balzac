@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Nicola Atzei
+ * Copyright 2018 Nicola Atzei
  */
 
 grammar it.unica.tcs.Balzac with org.eclipse.xtext.common.Terminals
@@ -145,6 +145,7 @@ SelectorOperation returns Expression:
         => "." (
             {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
             | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
+            | {TransactionFees.tx=current} "fees"
             | {ToAddress.exp=current} "toAddress"
             | {ToPubkey.exp=current} "toPubkey"
         ))?;

@@ -55,6 +55,7 @@ import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.ToAddress
 import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
+import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
@@ -690,3 +691,18 @@ from {
     G |- stmt.exp |> rho ~> var PublicKey res
     result = PublicKey.fromString(res.publicKeyString, rho.networkParams)
 }
+
+rule InterpretTransactionFees
+    G |- TransactionFees op |> Rho rho ~> Long result
+from {
+    val txInputOp = BalzacFactory.eINSTANCE.createTransactionInputOperation
+    val txOutputOp = BalzacFactory.eINSTANCE.createTransactionOutputOperation
+    txInputOp.tx = EcoreUtil::copy(op.tx)
+    txOutputOp.tx = EcoreUtil::copy(op.tx)
+    G |- txInputOp |> rho ~> var Long inputValue
+    G |- txOutputOp |> rho ~> var Long outputValue
+    result = inputValue - outputValue
+}
+
+
+
