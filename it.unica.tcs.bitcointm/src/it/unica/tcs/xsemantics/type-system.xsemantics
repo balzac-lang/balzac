@@ -85,6 +85,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
+import it.unica.tcs.balzac.TransactionId
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 
@@ -1068,6 +1069,14 @@ from {
 
 rule TransactionFees
     G |- TypeSubstitutions substitutions |> TransactionFees elm: BalzacFactory::eINSTANCE.createIntType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    G |- substitutions |> elm.tx: var Type type
+    unify(elm.tx, substitutions, type, txType)
+}
+
+rule TransactionId
+    G |- TypeSubstitutions substitutions |> TransactionId elm: BalzacFactory::eINSTANCE.createHashType
 from {
     val txType = BalzacFactory::eINSTANCE.createTransactionType
     G |- substitutions |> elm.tx: var Type type

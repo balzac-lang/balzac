@@ -79,6 +79,7 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
+import it.unica.tcs.balzac.TransactionId
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -704,5 +705,11 @@ from {
     result = inputValue - outputValue
 }
 
-
+rule InterpretTransactionId
+    G |- TransactionId op |> Rho rho ~> Hash result
+from {
+    G |- op.tx |> rho ~> var ITransactionBuilder txB
+    val tx = txB.toTransaction
+    result = new Hash(tx.hash.bytes)
+}
 

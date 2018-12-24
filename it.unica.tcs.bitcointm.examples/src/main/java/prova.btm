@@ -132,9 +132,9 @@ transaction ABC_R {
     output = 0 : ""
 }
 
-transaction DEF(y:signature) {
+transaction DEF(y:hash) {
 	input = coinbase: 1
-	output = this.input.value: fun(x) . x == y 
+	output = this.input.value: fun(x) . x == y && y == ABC_R.txid
 }
 
 eval
@@ -145,6 +145,7 @@ eval
     ABC(1 BTC).fees,
     ABC(10).input.value,
     ABC(10).output.value,
+    ABC(10).txid,
     ABC(10)
     
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar" sourcepath="/it.unica.tcs.bitcointm.lib"/>
+	<classpathentry exported="true" kind="lib" path="it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar" sourcepath="/core"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-gen"/>

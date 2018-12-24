@@ -146,6 +146,7 @@ SelectorOperation returns Expression:
             {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
             | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
             | {TransactionFees.tx=current} "fees"
+            | {TransactionId.tx=current} "txid"
             | {ToAddress.exp=current} "toAddress"
             | {ToPubkey.exp=current} "toPubkey"
         ))?;
