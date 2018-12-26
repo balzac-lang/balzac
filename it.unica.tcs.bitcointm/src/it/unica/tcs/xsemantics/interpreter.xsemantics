@@ -584,13 +584,28 @@ from {
 rule InterpretSize
     G |- Size size |> Rho rho ~> Long result
 from {
-    G |- size.value |> rho ~> var Long res
+    G |- size.value |> rho ~> var Object res
 
-    if (res==0)
-        result=0L
-    else {
-        // ⌈(log2 |n| / 7)⌉
+    /*
+     * Encode the number in MPI byte[], then return the size of the array.
+     * Zero is encoded as an empty array, so its size is zero.
+     *
+     * size(0) == 0
+     * size(n) == ⌈(log2 |n| + 1) / 7⌉
+     */
+    if (res instanceof Long) {
         result = Long.valueOf(Utils.encodeMPI(BigInteger.valueOf(res), false).length)
+    }
+    else if (res instanceof Boolean) {
+        result = if (res) 1L else 0L
+    }
+    else if (res instanceof String) {
+        result = Long.valueOf(res.length)
+    }
+    else {
+        fail
+        error "Unexpected instance "+res.class
+        source size
     }
 }
 

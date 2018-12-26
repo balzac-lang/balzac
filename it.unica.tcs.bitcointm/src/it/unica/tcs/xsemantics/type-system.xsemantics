@@ -930,8 +930,17 @@ rule Size
     G |- TypeSubstitutions substitutions |> Size size: BalzacFactory::eINSTANCE.createIntType
 from {
     G |- substitutions |> size.value: var Type t
-
     t = typesubstitution(substitutions, t)
+
+    {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    }
+    or {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createBooleanType)
+    }
+    or {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createStringType)
+    }
 }
 
 rule CheckBlock
