@@ -730,7 +730,15 @@ rule InterpretTransactionId
     G |- TransactionId op |> Rho rho ~> Hash result
 from {
     G |- op.tx |> rho ~> var ITransactionBuilder txB
-    val tx = txB.toTransaction
-    result = new Hash(tx.hash.bytes)
+    
+    try {
+        val tx = txB.toTransaction(op.ECKeyStore)
+        result = new Hash(tx.hash.bytes)
+    }
+    catch (KeyStoreException e) {
+        fail
+            error "Error occurred when generating the keystore"
+            source op
+    }
 }
 

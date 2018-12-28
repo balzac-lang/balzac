@@ -1433,5 +1433,12 @@ class BalzacValidator extends AbstractBalzacValidator {
                 );
             }
         }
+        else {
+            warning(
+                    "Cannot evaluate expression "+assertion.exp.nodeToString,
+                    assertion.exp,
+                    null
+                );
+        }
     }
 }

@@ -31,11 +31,6 @@ class PublicKeyImpl implements PublicKey {
     }
 
     @Override
-    public String toString() {
-        return getPublicKeyString();
-    }
-
-    @Override
     public byte[] getAddressByte() {
         return address.getAddressByte();
     }
@@ -53,7 +48,7 @@ class PublicKeyImpl implements PublicKey {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = super.hashCode();
+        int result = 1;
         result = prime * result + Arrays.hashCode(pubkey);
         return result;
     }
@@ -62,7 +57,7 @@ class PublicKeyImpl implements PublicKey {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!super.equals(obj))
+        if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
@@ -70,5 +65,10 @@ class PublicKeyImpl implements PublicKey {
         if (!Arrays.equals(pubkey, other.pubkey))
             return false;
         return true;
+    }
+    
+    @Override
+    public String toString() {
+        return getPublicKeyString();
     }
 }

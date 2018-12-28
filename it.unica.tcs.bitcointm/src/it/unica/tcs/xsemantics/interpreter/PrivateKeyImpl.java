@@ -68,7 +68,7 @@ class PrivateKeyImpl implements PrivateKey {
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = super.hashCode();
+        int result = 1;
         result = prime * result + Arrays.hashCode(privkey);
         return result;
     }
@@ -77,7 +77,7 @@ class PrivateKeyImpl implements PrivateKey {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!super.equals(obj))
+        if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;

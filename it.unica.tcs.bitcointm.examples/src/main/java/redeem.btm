@@ -1,13 +1,15 @@
 const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
-const kApub = pubkey:03fed06d54f936a82333d7917da934111ae232a0c9a57b37d9b47dcd0bc879a7a4
-const addrA = address:mkCEpRJv2DnfZrwDZ7BRjitSXmTx3gz8gd
+const kB = key:cSyt51FL53tLuG9TGSLxtTapDWquwT6XN6NSbqh6PdquYXCmscXN
 
+transaction T_deposit {
+	input = _
+	output = 1BTC: fun(x). versig(kA; x)
+} 
 
-transaction T_deposit {input = _ output = 1BTC: fun(x). versig(kApub; x)} 
-
+assert T.txid == hash:df2ad5bdc765e7c0be1a6964f67c71d9be11e635cfeadc6920ff0973433dc464 : "Found: "+T.txid
 transaction T {
-        input = T_deposit: sig(kA)
-        output = this.input.value : fun(x, b). versig(kApub; x) && b
+        input = T_deposit: sig(kA) 
+        output = this.input.value : fun(x). versig(kB; x)
 }
 
-eval T_deposit, T
+eval T_deposit, T, T.txid
