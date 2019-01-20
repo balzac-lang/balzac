@@ -36,7 +36,7 @@ class PrivateKeyImpl implements PrivateKey {
     }
 
     @Override
-    public String getPrivateKeyString() {
+    public String getPrivateKeyByteString() {
         return BitcoinUtils.encode(privkey);
     }
 
@@ -46,8 +46,8 @@ class PrivateKeyImpl implements PrivateKey {
     }
 
     @Override
-    public String getPublicKeyString() {
-        return pubkey.getPublicKeyString();
+    public String getPublicKeyByteString() {
+        return pubkey.getPublicKeyByteString();
     }
 
     @Override
@@ -61,8 +61,8 @@ class PrivateKeyImpl implements PrivateKey {
     }
 
     @Override
-    public String getAddressString() {
-        return address.getAddressString();
+    public String getAddressByteString() {
+        return address.getAddressByteString();
     }
 
     @Override

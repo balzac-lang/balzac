@@ -1,3 +1,7 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
+
 package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.ECKey;
@@ -9,7 +13,7 @@ public interface PublicKey extends Address {
 
     public byte[] getPublicKeyByte();
 
-    public String getPublicKeyString();
+    public String getPublicKeyByteString();
     
     public static PublicKey fromString(String str, NetworkParameters params) {
         return new PublicKeyImpl(BitcoinUtils.decode(str), params);

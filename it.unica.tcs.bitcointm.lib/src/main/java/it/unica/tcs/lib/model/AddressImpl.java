@@ -32,7 +32,7 @@ class AddressImpl implements Address {
     }
 
     @Override
-    public String getAddressString() {
+    public String getAddressByteString() {
         return BitcoinUtils.encode(address);
     }
 

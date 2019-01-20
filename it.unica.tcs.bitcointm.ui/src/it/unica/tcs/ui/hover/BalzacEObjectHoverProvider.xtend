@@ -97,14 +97,14 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         <pre>
             Private key
                 base58 (wif) = «privKey.privateKeyWif»
-                hex          = «privKey.privateKeyString»
+                hex          = «privKey.privateKeyByteString»
 
             Public key
-                hex          = «privKey.publicKeyString»
+                hex          = «privKey.publicKeyByteString»
         
             Address
                 base58 (wif) = «privKey.addressWif»
-                hash160      = «privKey.addressString»
+                hash160      = «privKey.addressByteString»
         </pre>
         '''
 
@@ -113,12 +113,12 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         «val testPubkey = PublicKey.fromString(pkey.value, NetworkParameters.fromID(NetworkParameters.ID_TESTNET))»
         <pre>
             Public key
-                hex          = «mainPubkey.publicKeyString»
+                hex          = «mainPubkey.publicKeyByteString»
             
             Address
                 base58 (wif) [MAINNET] = «mainPubkey.addressWif»
                 base58 (wif) [TESTNET] = «testPubkey.addressWif»
-                hash160                = «mainPubkey.addressString»
+                hash160                = «mainPubkey.addressByteString»
         </pre>
         '''
         
@@ -127,7 +127,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         <pre>
             Address
                 base58 (wif) = «addr.addressWif»
-                hash160      = «addr.addressString»
+                hash160      = «addr.addressByteString»
         </pre>
         '''
 

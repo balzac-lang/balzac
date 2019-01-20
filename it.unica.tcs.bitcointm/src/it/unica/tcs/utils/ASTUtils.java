@@ -208,7 +208,7 @@ public class ASTUtils {
         }
         else if (value instanceof PublicKey) {
             PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            res.setValue(((PublicKey) value).getPublicKeyString());
+            res.setValue(((PublicKey) value).getPublicKeyByteString());
             return res;
         }
         else if (value instanceof Address) {

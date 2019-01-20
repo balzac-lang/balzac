@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model;
@@ -14,7 +14,7 @@ public interface Address {
 
     public String getAddressWif();
 
-    public String getAddressString();
+    public String getAddressByteString();
 
     public static Address fromBase58(String wif) {
         LegacyAddress addr = LegacyAddress.fromBase58(null, wif);

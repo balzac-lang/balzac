@@ -704,6 +704,8 @@ rule InterpretToAddress
     G |- ToAddress stmt |> Rho rho ~> Address result
 from {
     G |- stmt.exp |> rho ~> var Address res
+    // create a new Address because `res` could be either a PrivateKey or PublicKey or Address
+    // and we want to lose this extra info
     result = Address.fromBase58(res.addressWif)
 }
 
@@ -711,7 +713,9 @@ rule InterpretToPubkey
     G |- ToPubkey stmt |> Rho rho ~> PublicKey result
 from {
     G |- stmt.exp |> rho ~> var PublicKey res
-    result = PublicKey.fromString(res.publicKeyString, rho.networkParams)
+    // create a new PublicKey because `res` could be either a PrivateKey o PublicKey
+    // and we want to lose this extra info
+    result = PublicKey.fromBytes(res.publicKeyByte, rho.networkParams)
 }
 
 rule InterpretTransactionFees

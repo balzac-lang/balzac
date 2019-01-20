@@ -26,7 +26,7 @@ class PublicKeyImpl implements PublicKey {
     }
 
     @Override
-    public String getPublicKeyString() {
+    public String getPublicKeyByteString() {
         return BitcoinUtils.encode(pubkey);
     }
 
@@ -41,8 +41,8 @@ class PublicKeyImpl implements PublicKey {
     }
 
     @Override
-    public String getAddressString() {
-        return address.getAddressString();
+    public String getAddressByteString() {
+        return address.getAddressByteString();
     }
 
     @Override
@@ -69,6 +69,6 @@ class PublicKeyImpl implements PublicKey {
     
     @Override
     public String toString() {
-        return getPublicKeyString();
+        return getPublicKeyByteString();
     }
 }

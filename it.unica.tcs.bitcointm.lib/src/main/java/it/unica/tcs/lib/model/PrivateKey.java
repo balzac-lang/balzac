@@ -1,3 +1,7 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
+
 package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.DumpedPrivateKey;
@@ -10,7 +14,7 @@ public interface PrivateKey extends PublicKey, Address {
 
     public String getPrivateKeyWif();
 
-    public String getPrivateKeyString();
+    public String getPrivateKeyByteString();
 
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif); 
