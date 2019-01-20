@@ -2,18 +2,22 @@
  * Copyright 2018 Nicola Atzei
  */
 
-package it.unica.tcs.xsemantics.interpreter;
+package it.unica.tcs.lib.model;
 
 import java.util.Arrays;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 public class Signature {
 
     private final byte[] signature;
-    
-    public Signature(byte[] signature) {
+    private byte[] pubkey;
+
+    public Signature(byte[] signature, byte[] pubkey) {
 		this.signature = signature;
+		this.pubkey = pubkey;
 	}
 
 	public byte[] getSignature() {
@@ -22,7 +26,7 @@ public class Signature {
 
 	@Override
     public String toString() {
-        return "sig:"+BitcoinUtils.encode(signature);
+        return "sig:"+BitcoinUtils.encode(signature) + (hasPubkey()? "[pubkey:" + BitcoinUtils.encode(pubkey) +  "]" : "");
     }
 
 	@Override
@@ -45,5 +49,18 @@ public class Signature {
 		if (!Arrays.equals(signature, other.signature))
 			return false;
 		return true;
+	}
+
+	public boolean hasPubkey() {
+		return pubkey != null;
+	}
+
+	public byte[] getPubkey() {
+		checkNotNull(pubkey);
+		return pubkey;
+	}
+
+	public void setPubkey(byte[] pubkey) {
+		this.pubkey = pubkey;
 	}
 }

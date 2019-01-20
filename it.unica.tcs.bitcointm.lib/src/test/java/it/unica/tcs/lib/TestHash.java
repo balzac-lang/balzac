@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import it.unica.tcs.lib.model.Hash;
+
 public class TestHash {
 
     @Test

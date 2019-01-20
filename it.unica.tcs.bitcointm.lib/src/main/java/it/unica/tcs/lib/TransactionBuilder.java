@@ -402,19 +402,26 @@ public class TransactionBuilder implements ITransactionBuilder {
             checkState(inputScript.isReady(), "script cannot have free variables: "+inputScript.toString());
 
             byte[] outScript;
+            boolean isP2PKH = false;
+
             if (txInput.isCoinBase()) {
                 outScript = new byte[]{};
             }
             else {
+            	// set outScript
                 if (ScriptPattern.isPayToScriptHash(txInput.getOutpoint().getConnectedOutput().getScriptPubKey())) {
                     checkState(inputScript.isP2SH(), "why not?");
                     outScript = inputScript.getRedeemScript().build().getProgram();
                 }
                 else
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
+
+                // set isP2PKH
+                isP2PKH = ScriptPattern.isPayToPubKeyHash(txInput.getOutpoint().getConnectedOutput().getScriptPubKey());
             }
+
             try {
-                inputScript.setAllSignatures(keystore, tx, i, outScript);
+                inputScript.setAllSignatures(keystore, tx, i, outScript, isP2PKH);
             } catch (KeyStoreException e) {
                 throw new RuntimeException(e);
             }

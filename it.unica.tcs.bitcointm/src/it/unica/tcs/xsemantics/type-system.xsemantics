@@ -572,8 +572,17 @@ axiom TransactionHexLiteral
 axiom TransactionIDLiteral
     G |- TypeSubstitutions substitutions |> TransactionIDLiteral tx : BalzacFactory::eINSTANCE.createTransactionType
 
-axiom SignatureLiteral
+rule SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BalzacFactory::eINSTANCE.createSignatureType
+from {
+	if (s.pubkey !== null) {
+		var pubkeyType =  BalzacFactory::eINSTANCE.createPubkeyType
+
+        G |- substitutions |> s.pubkey : var Type t
+        t = typesubstitution(substitutions, t)
+        unify(s.pubkey, substitutions, t, pubkeyType)
+	}	
+}
 
 axiom DateLiteral
     G |- TypeSubstitutions substitutions |> DateLiteral d : BalzacFactory::eINSTANCE.createIntType

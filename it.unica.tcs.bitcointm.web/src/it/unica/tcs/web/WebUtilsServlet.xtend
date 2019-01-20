@@ -16,7 +16,7 @@ import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.TestNet3Params
 import org.eclipse.xtend.lib.annotations.Accessors
 import it.unica.tcs.lib.utils.BitcoinUtils
-import it.unica.tcs.lib.Hash.HashAlgorithm
+import it.unica.tcs.lib.model.Hash.HashAlgorithm
 
 @WebServlet(name = 'WebUtils', urlPatterns = '/utils/*')
 class WebUtilsServlet extends HttpServlet {

@@ -1,0 +1,83 @@
+/*
+ * Balzac in a Nutshell
+ *
+ * https://blockchain.unica.it/balzac/docs/nutshell.html
+ */
+
+transaction T {
+    input = _    // no input
+    output = 50 BTC: fun(x) . x == 42
+}
+
+transaction T1 {
+    input = T: 42
+    output = 50 BTC: fun(x). x != 0  // any constraint chosen by the user
+}
+
+// Alice's public key
+const pubA = pubkey:03d0272bb640bdbbcaedce10ef69ad6d9d8c7b9c61ff2aa4cf4ed27865d287c224 
+
+transaction T2 {
+    input = T1: 12
+    output = 50 BTC: fun(x) . versig(pubA; x)
+}
+
+//Alice's private key
+const kA = key:cVdDtCe2Gb6HWeCEzRTpZEitgxYonPtvLfGZrpprWV6BTJ3N37Lw
+
+transaction T3 {
+    input = T2: sig(kA)
+    output = 50 BTC: fun(x) . versig(pubA; x) // any condition chosen by Alice
+}
+
+// Bob's other public key
+const pubB = pubkey:0289654c430032f20f8464a84a1f9b3289ceaff8d6cd93c9b654e59a8c5a1cc1b0
+
+transaction T4 {
+    input = T3:sig(kA) 
+    output = [
+        40 BTC: fun(x) . versig(pubA; x);
+        10 BTC: fun(x) . versig(pubB; x)
+    ]
+}
+
+// Bob's private key    
+const kB = key:cVifQzXqqQ86udHggaDMz4Uq66Z7RGXJo5PdVjzRP12H1NDCFsLV
+
+transaction T5 {
+    input = [
+        T4@0: sig(kA);
+        T4@1: sig(kB)
+    ]
+    output = 50 BTC: fun(x) . versig(pubA; x)
+}
+
+// parametric transaction
+transaction T6(pub) {
+    input = _
+    output = 1 BTC: fun(x). versig(pub;x)
+}
+
+transaction T7 {
+    input = T6(pubA):sig(kA)
+    output = 1 BTC: fun(x). versig(pubB;x)
+}
+
+transaction T8(y:signature, n:int) {
+    input = T7: y
+    output = 1 BTC: fun(x, m). versig(pubB;x) && m == sha256( n )
+}
+
+//transaction with empty signature
+const T9 = T8(_, 42)
+
+transaction T8_bis(n:int) {
+    input = T7: sig(kB)
+    output = 1 BTC: fun(x, m). versig(pubB;x) && m == sha256( n )
+}
+
+// compute a signature for T8
+const s = sig(kB) of T8_bis(42)
+assert T8(s,42) == T8_bis(42)
+
+eval T, T1, T2, T3, T4, T5, T6(pubA), T6(pubB), T7, T8(_, 42), T9, T8_bis(42), s, T8(s,42)

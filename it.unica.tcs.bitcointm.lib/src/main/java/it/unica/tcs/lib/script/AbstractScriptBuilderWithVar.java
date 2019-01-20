@@ -40,7 +40,8 @@ import org.bitcoinj.script.ScriptOpCodes;
 import it.unica.tcs.lib.ECKeyStore;
 import it.unica.tcs.lib.Env;
 import it.unica.tcs.lib.EnvI;
-import it.unica.tcs.lib.Hash;
+import it.unica.tcs.lib.model.Hash;
+import it.unica.tcs.lib.model.Signature;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
@@ -197,7 +198,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @throws KeyStoreException if an error occurs retrieving private keys
      */
     @SuppressWarnings("unchecked")
-    public T setAllSignatures(ECKeyStore keystore, Transaction tx, int inputIndex, byte[] outScript) throws KeyStoreException {
+    public T setAllSignatures(ECKeyStore keystore, Transaction tx, int inputIndex, byte[] outScript, boolean isP2PKH) throws KeyStoreException {
 
         List<ScriptChunk> newChunks = new ArrayList<>();
 
@@ -231,6 +232,9 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 checkState(isValid);
                 checkState(txSig.isCanonical());
                 sb.data(txSig.encodeToBitcoin());
+                if (isP2PKH) {
+                	sb.data(key.getPubKey());
+                }
             }
             else {
                 sb.addChunk(chunk);
@@ -580,7 +584,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     @Override
     public T addVariable(String name, Class<?> type) {
         checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
-                || Hash.class.isAssignableFrom(type), "invalid type "+type);
+                || Hash.class.isAssignableFrom(type) || Signature.class.isAssignableFrom(type), "invalid type "+type);
         addVariableChunk(name);
         env.addVariable(name, type);
         return (T) this;

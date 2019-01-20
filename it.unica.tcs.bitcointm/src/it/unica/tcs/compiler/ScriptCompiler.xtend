@@ -61,13 +61,14 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.xsemantics.interpreter.Address
-import it.unica.tcs.xsemantics.interpreter.PrivateKey
-import it.unica.tcs.xsemantics.interpreter.PublicKey
+import it.unica.tcs.lib.model.Address
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
 import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
+import it.unica.tcs.balzac.PubKeyLiteral
 
 /*
  * EXPRESSIONS
@@ -107,26 +108,9 @@ class ScriptCompiler {
             /*
              * P2PKH
              */
-            var sigE = input.exps.get(0)
-            if (sigE instanceof Signature) {
-                var sig = input.exps.get(0) as Signature
-                var sb = sig.compileInputExpression(rho)
-
-                val resKey = sig.privkey.interpret(rho)
-
-                if (resKey.failed)
-                    throw new CompileException('''Unable to evaluate to a private key''')
-
-                val key = resKey.first
-                if (key instanceof PrivateKey) {
-                    sb.data(key.publicKeyByte)
-                }
-                else {
-                    throw new CompileException('''Unable to evaluate to a private key: «key»''')
-                }
-
-                /* <sig> <pubkey> */
-                return InputScript.create().append(sb)
+            if (input.exps.size == 1) {
+	            var sigE = input.exps.get(0)
+            	return sigE.compileInputExpression(rho)
             }
             else {
                 val sigI = input.exps.get(0).interpret(rho)
@@ -138,13 +122,13 @@ class ScriptCompiler {
                 if (pubkeyI.failed)
                     throw new CompileException('''Unable to evaluate to a valid pubkey''')
 
-                if (!(sigI.first instanceof it.unica.tcs.xsemantics.interpreter.Signature))
+                if (!(sigI.first instanceof it.unica.tcs.lib.model.Signature))
                     throw new CompileException('''Unexpected result evaluating the signature. Result is «sigI.first»''')
                 
                 if (!(pubkeyI.first instanceof PublicKey))
                     throw new CompileException('''Unexpected result evaluating the public key. Result is «pubkeyI.first»''')
                 
-                val sig = sigI.first as it.unica.tcs.xsemantics.interpreter.Signature
+                val sig = sigI.first as it.unica.tcs.lib.model.Signature
                 val pubkey = pubkeyI.first as PublicKey
                 
                 val sb = InputScript.create()
@@ -314,8 +298,16 @@ class ScriptCompiler {
         new ScriptBuilderWithVar().number(s.value)
     }
 
-    def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignatureLiteral s, Context ctx) {
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(PubKeyLiteral s, Context ctx) {
         new ScriptBuilderWithVar().data(BitcoinUtils.decode(s.value))
+    }
+
+    def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignatureLiteral s, Context ctx) {
+        val sb = new ScriptBuilderWithVar().data(BitcoinUtils.decode(s.value))
+        if (s.pubkey !== null) {
+        	sb.append(s.pubkey.compileExpression(ctx))
+        }
+        sb
     }
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(Signature stmt, Context ctx) {

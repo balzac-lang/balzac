@@ -61,17 +61,17 @@ import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.TransactionType
-import it.unica.tcs.lib.Hash
-import it.unica.tcs.lib.Hash.HashAlgorithm
+import it.unica.tcs.lib.model.Hash
+import it.unica.tcs.lib.model.Hash.HashAlgorithm
 import it.unica.tcs.lib.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BalzacLogger
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.xsemantics.interpreter.Address
-import it.unica.tcs.xsemantics.interpreter.PlaceholderUtils
-import it.unica.tcs.xsemantics.interpreter.PrivateKey
-import it.unica.tcs.xsemantics.interpreter.PublicKey
+import it.unica.tcs.lib.model.Address
+import it.unica.tcs.lib.model.PlaceholderUtils
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
 import java.math.BigInteger
 import java.security.KeyStoreException
 import org.bitcoinj.core.ECKey
@@ -206,8 +206,16 @@ axiom InterpretBooleanLiteral
 axiom InterpretHashLiteral
     G |- HashLiteral hash |> Rho rho ~> new Hash(hash.value)
 
-axiom InterpretSignatureLiteral
-    G |- SignatureLiteral s |> Rho rho ~> new it.unica.tcs.xsemantics.interpreter.Signature(BitcoinUtils.decode(s.value))
+rule InterpretSignatureLiteral
+    G |- SignatureLiteral s |> Rho rho ~> it.unica.tcs.lib.model.Signature sig
+from {
+	sig = new it.unica.tcs.lib.model.Signature(BitcoinUtils.decode(s.value), null)
+
+	if (s.pubkey !== null) {
+		G |- s.pubkey |> rho ~> var PublicKey key		
+		sig.pubkey = key.publicKeyByte
+	}
+}
 
 axiom InterpretDateLiteral
     G |- DateLiteral d |> Rho rho ~> d.value
@@ -242,18 +250,12 @@ from {
 }
 
 rule InterpretSignature
-    G |- Signature s |> Rho rho ~> it.unica.tcs.xsemantics.interpreter.Signature res
+    G |- Signature s |> Rho rho ~> it.unica.tcs.lib.model.Signature res
 from {
     { s.hasTx }
 
-    G |- s.privkey |> rho ~> var Object key
+    G |- s.privkey |> rho ~> var PrivateKey key
     G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
-
-    if (!(key instanceof PrivateKey)) {
-        fail
-            error "Key must be private"
-            source s.privkey
-    }
 
     try {
         val tx = txBuilder.toTransaction(s.ECKeyStore)
@@ -264,17 +266,15 @@ from {
         val input = txBuilder.inputs.get(inputIndex)
         val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
     
-        val privkey = key as PrivateKey
-    
         val sig = tx.calculateSignature(
             inputIndex,
-            ECKey.fromPrivate(privkey.privateKeyByte),
+            ECKey.fromPrivate(key.privateKeyByte),
             outScript,
             sigHashType,
             anyonecanpay
         )
         
-        res = new it.unica.tcs.xsemantics.interpreter.Signature(sig.encodeToBitcoin)        
+        res = new it.unica.tcs.lib.model.Signature(sig.encodeToBitcoin, key.publicKeyByte)
     }
     catch (KeyStoreException e) {
         fail

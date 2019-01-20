@@ -60,18 +60,18 @@ import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.balzac.Versig;
 import it.unica.tcs.lib.ECKeyStore;
-import it.unica.tcs.lib.Hash;
+import it.unica.tcs.lib.model.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 import it.unica.tcs.lib.SerialTransactionBuilder;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
+import it.unica.tcs.lib.model.Address;
+import it.unica.tcs.lib.model.PrivateKey;
+import it.unica.tcs.lib.model.PublicKey;
+import it.unica.tcs.lib.model.Signature;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BalzacInterpreter;
 import it.unica.tcs.xsemantics.Rho;
-import it.unica.tcs.xsemantics.interpreter.Address;
-import it.unica.tcs.xsemantics.interpreter.PrivateKey;
-import it.unica.tcs.xsemantics.interpreter.PublicKey;
-import it.unica.tcs.xsemantics.interpreter.Signature;
 
 @Singleton
 public class ASTUtils {
@@ -216,14 +216,20 @@ public class ASTUtils {
             res.setValue(((Address) value).getAddressWif());
             return res;
         }
-        else if (value instanceof ECKey) {
+        else if (value instanceof ECKey) {	// TODO remove this case
             PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
             res.setValue(((ECKey) value).getPublicKeyAsHex());
             return res;
         }
         else if (value instanceof Signature) {
+        	Signature sig = (Signature) value;
             SignatureLiteral res = BalzacFactory.eINSTANCE.createSignatureLiteral();
-            res.setValue(BitcoinUtils.encode(((Signature) value).getSignature()));
+            res.setValue(BitcoinUtils.encode(sig.getSignature()));
+            if (sig.hasPubkey()) {
+            	PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
+            	pubkey.setValue(BitcoinUtils.encode(sig.getPubkey()));
+            	res.setPubkey(pubkey);
+            }
             return res;
         }
         else {

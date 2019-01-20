@@ -15,9 +15,9 @@ import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BalzacStringRepresentation
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.xsemantics.interpreter.Address
-import it.unica.tcs.xsemantics.interpreter.PrivateKey
-import it.unica.tcs.xsemantics.interpreter.PublicKey
+import it.unica.tcs.lib.model.Address
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
 import org.bitcoinj.core.NetworkParameters
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider

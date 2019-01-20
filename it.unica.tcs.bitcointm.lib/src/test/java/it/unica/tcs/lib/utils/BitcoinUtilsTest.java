@@ -12,8 +12,8 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.junit.Test;
 
-import it.unica.tcs.lib.Hash;
-import it.unica.tcs.lib.Hash.HashAlgorithm;
+import it.unica.tcs.lib.model.Hash;
+import it.unica.tcs.lib.model.Hash.HashAlgorithm;
 
 public class BitcoinUtilsTest {
 

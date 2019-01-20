@@ -6,7 +6,7 @@ transaction T_deposit {
 	output = 1BTC: fun(x). versig(kA; x)
 } 
 
-assert T.txid == hash:df2ad5bdc765e7c0be1a6964f67c71d9be11e635cfeadc6920ff0973433dc464 : "Found: "+T.txid
+//assert T.txid == hash:df2ad5bdc765e7c0be1a6964f67c71d9be11e635cfeadc6920ff0973433dc464 : "Found: "+T.txid
 transaction T {
         input = T_deposit: sig(kA) 
         output = this.input.value : fun(x). versig(kB; x)

@@ -118,7 +118,7 @@ public class ScriptBuilderWithVarTest {
 
         Transaction tx = new Transaction(new MainNetParams());
         tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-        sb.setAllSignatures(ecks, tx, 0, new byte[]{});
+        sb.setAllSignatures(ecks, tx, 0, new byte[]{}, false);
         System.out.println(sb);
 
         assertEquals(2, sb.size());

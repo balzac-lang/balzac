@@ -1,4 +1,4 @@
-package it.unica.tcs.xsemantics.interpreter;
+package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;

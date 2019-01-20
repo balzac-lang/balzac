@@ -2,7 +2,7 @@
  * Copyright 2018 Nicola Atzei
  */
 
-package it.unica.tcs.xsemantics.interpreter;
+package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.LegacyAddress;

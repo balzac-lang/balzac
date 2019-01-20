@@ -18,13 +18,15 @@ import it.unica.tcs.balzac.StringType
 import it.unica.tcs.balzac.TransactionType
 import it.unica.tcs.balzac.Type
 import it.unica.tcs.compiler.CompileException
-import it.unica.tcs.lib.Hash
+import it.unica.tcs.lib.model.Hash
 import it.unica.tcs.lib.ITransactionBuilder
 import java.util.List
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
+import it.unica.tcs.lib.model.Address
+import it.unica.tcs.lib.model.Signature
 
 @Singleton
 class CompilerUtils {
@@ -62,11 +64,11 @@ class CompilerUtils {
         if(type instanceof StringType) return String
         if(type instanceof BooleanType) return Boolean
         if(type instanceof HashType) return Hash
-        if(type instanceof KeyType) return DumpedPrivateKey
-        if(type instanceof PubkeyType) return typeof(byte[])
+        if(type instanceof KeyType) return PrivateKey
+        if(type instanceof PubkeyType) return PublicKey
         if(type instanceof AddressType) return Address
         if(type instanceof TransactionType) return ITransactionBuilder
-        if(type instanceof SignatureType) return typeof(byte[])
+        if(type instanceof SignatureType) return Signature
 
         throw new CompileException("Unexpected type "+type.class.simpleName)
     }

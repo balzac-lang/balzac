@@ -7,6 +7,7 @@ package it.unica.tcs.validation
 import com.google.inject.Inject
 import it.unica.tcs.balzac.AbsoluteTime
 import it.unica.tcs.balzac.AddressLiteral
+import it.unica.tcs.balzac.Assertion
 import it.unica.tcs.balzac.BalzacPackage
 import it.unica.tcs.balzac.CheckBlock
 import it.unica.tcs.balzac.CheckBlockDelay
@@ -24,6 +25,7 @@ import it.unica.tcs.balzac.Modifier
 import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.PackageDeclaration
 import it.unica.tcs.balzac.Participant
+import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
@@ -47,7 +49,6 @@ import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.xsemantics.interpreter.PublicKey
 import java.util.HashMap
 import java.util.HashSet
 import java.util.Map
@@ -78,8 +79,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static org.bitcoinj.script.Script.*
-import it.unica.tcs.balzac.Placeholder
-import it.unica.tcs.balzac.Assertion
 
 /**
  * This class contains custom validation rules.
@@ -706,56 +705,6 @@ class BalzacValidator extends AbstractBalzacValidator {
         else if (inputTx instanceof TransactionBuilder) {
             input.failIfRedeemScriptIsDefined
         }
-
-        if (inputTx.outputs.get(outputIdx).script.isP2PKH) {
-            
-            if (input.exps.size == 1) {
-                if (!(input.exps.get(0) instanceof Signature)) {
-                    error(
-                        "Signature constructor expected, i.e. sig(k)",
-                        input,
-                        BalzacPackage.Literals.INPUT__EXPS,
-                        0
-                    )
-                    return false
-                }
-            }
-            else if (input.exps.size == 2) {
-                val sig = input.exps.get(0).interpretE
-                if (sig.failed || !(sig.first instanceof it.unica.tcs.xsemantics.interpreter.Signature)) {
-                    error(
-                        "Invalid expression type, signature is expected",
-                        input,
-                        BalzacPackage.Literals.INPUT__EXPS,
-                        0
-                    )
-                    return false
-                }
-                val pubkey = input.exps.get(1).interpretE
-                if (pubkey.failed || !(pubkey.first instanceof PublicKey)
-                ) {
-                    error(
-                        "Invalid expression type, pubkey is expected",
-                        input,
-                        BalzacPackage.Literals.INPUT__EXPS,
-                        1
-                    )
-                    return false
-                }
-            }
-            else {
-                error(
-                    "Invalid number of expressions",
-                    input,
-                    null
-                )
-                return false
-            }
-            
-            for (e : input.exps) {
-            }
-        }
-
         return true
     }
 

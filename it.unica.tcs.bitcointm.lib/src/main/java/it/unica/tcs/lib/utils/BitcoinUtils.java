@@ -23,8 +23,9 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.spongycastle.crypto.digests.RIPEMD160Digest;
 import org.spongycastle.crypto.digests.SHA1Digest;
 
-import it.unica.tcs.lib.Hash;
-import it.unica.tcs.lib.Hash.HashAlgorithm;
+import it.unica.tcs.lib.model.Hash;
+import it.unica.tcs.lib.model.Hash.HashAlgorithm;
+import it.unica.tcs.lib.model.Signature;
 
 public class BitcoinUtils {
 
@@ -189,7 +190,7 @@ public class BitcoinUtils {
     private static final byte[] ZERO = FALSE;
 
 
-
+    // TODO: move this to a new interface
     public static Script toScript(Object obj) {
 
         if (obj instanceof Number)
@@ -204,11 +205,17 @@ public class BitcoinUtils {
         else if (obj instanceof Boolean)
             return ((Boolean) obj)? new ScriptBuilder().opTrue().build(): new ScriptBuilder().opFalse().build();
 
-        else if (obj instanceof DumpedPrivateKey)
-            return new ScriptBuilder().data(((DumpedPrivateKey) obj).getKey().getPubKey()).build();
-
         else if (obj instanceof TransactionSignature)
             return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
+       
+        else if (obj instanceof Signature) {
+        	Signature sig = (Signature) obj;
+        	ScriptBuilder sb = new ScriptBuilder();
+        	sb.data(sig.getSignature());
+        	if (sig.hasPubkey())
+        		sb.data(sig.getPubkey());
+        	return sb.build();
+        }
 
         throw new IllegalArgumentException();
     }

@@ -1,9 +1,8 @@
-package it.unica.tcs.xsemantics.interpreter;
+package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 
-import it.unica.tcs.lib.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 
 public class PlaceholderUtils {
@@ -11,7 +10,7 @@ public class PlaceholderUtils {
     public static final String STRING = "";
     public static final boolean BOOLEAN = false;
     public static final Hash HASH = new Hash(new byte[0]);
-    public static final Signature SIGNATURE = new Signature(new byte[0]);
+    public static final Signature SIGNATURE = new Signature(new byte[0], new byte[0]);
 
     public static PrivateKey KEY(NetworkParameters params) {
         return PrivateKey.fresh(params);
