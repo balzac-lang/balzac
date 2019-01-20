@@ -212,8 +212,8 @@ public class BitcoinUtils {
         	Signature sig = (Signature) obj;
         	ScriptBuilder sb = new ScriptBuilder();
         	sb.data(sig.getSignature());
-        	if (sig.hasPubkey())
-        		sb.data(sig.getPubkey());
+        	if (sig.getPubkey().isPresent())
+        		sb.data(sig.getPubkey().get());
         	return sb.build();
         }
 

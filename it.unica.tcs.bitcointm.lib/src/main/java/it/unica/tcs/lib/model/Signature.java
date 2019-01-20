@@ -1,32 +1,47 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Arrays;
+import java.util.Optional;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 public class Signature {
 
     private final byte[] signature;
-    private byte[] pubkey;
+    private Optional<byte[]> pubkey = Optional.empty();
+
+    public Signature(byte[] signature) {
+    	this(signature, null);
+    }
 
     public Signature(byte[] signature, byte[] pubkey) {
-		this.signature = signature;
-		this.pubkey = pubkey;
+    	checkArgument(signature != null, "Signature cannot be null");
+    	this.signature = Arrays.copyOf(signature, signature.length);
+    	setPubkey(pubkey);	
 	}
 
 	public byte[] getSignature() {
 		return signature;
 	}
+	
+	public Optional<byte[]> getPubkey() {
+		return pubkey;
+	}
+	
+	public void setPubkey(byte[] pubkey) {
+		this.pubkey = Optional.ofNullable(pubkey != null? Arrays.copyOf(pubkey, pubkey.length): null);
+	}
 
 	@Override
     public String toString() {
-        return "sig:"+BitcoinUtils.encode(signature) + (hasPubkey()? "[pubkey:" + BitcoinUtils.encode(pubkey) +  "]" : "");
+        return "sig:"+BitcoinUtils.encode(signature) + (pubkey.isPresent()? "[pubkey:" + BitcoinUtils.encode(pubkey.get()) +  "]" : "");
     }
 
 	@Override
@@ -49,18 +64,5 @@ public class Signature {
 		if (!Arrays.equals(signature, other.signature))
 			return false;
 		return true;
-	}
-
-	public boolean hasPubkey() {
-		return pubkey != null;
-	}
-
-	public byte[] getPubkey() {
-		checkNotNull(pubkey);
-		return pubkey;
-	}
-
-	public void setPubkey(byte[] pubkey) {
-		this.pubkey = pubkey;
 	}
 }

@@ -225,9 +225,9 @@ public class ASTUtils {
         	Signature sig = (Signature) value;
             SignatureLiteral res = BalzacFactory.eINSTANCE.createSignatureLiteral();
             res.setValue(BitcoinUtils.encode(sig.getSignature()));
-            if (sig.hasPubkey()) {
+            if (sig.getPubkey().isPresent()) {
             	PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            	pubkey.setValue(BitcoinUtils.encode(sig.getPubkey()));
+            	pubkey.setValue(BitcoinUtils.encode(sig.getPubkey().get()));
             	res.setPubkey(pubkey);
             }
             return res;
