@@ -11,10 +11,6 @@
     <artifactId>it.unica.tcs.bitcointm</artifactId>
     <packaging>eclipse-plugin</packaging>
 
-    <properties>
-        <xsemantics.version>1.14.0-SNAPSHOT</xsemantics.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>it.unica.tcs.bitcointm</groupId>
@@ -64,17 +60,17 @@
                     <dependency>
                         <groupId>org.eclipse.xtext</groupId>
                         <artifactId>org.eclipse.xtext.common.types</artifactId>
-                        <version>${xtextVersion}</version>
+                        <version>${xtext-version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.eclipse.xtext</groupId>
                         <artifactId>org.eclipse.xtext.xtext.generator</artifactId>
-                        <version>${xtextVersion}</version>
+                        <version>${xtext-version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.eclipse.xtext</groupId>
                         <artifactId>org.eclipse.xtext.xbase</artifactId>
-                        <version>${xtextVersion}</version>
+                        <version>${xtext-version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.eclipse.xtext</groupId>
@@ -113,7 +109,7 @@
                     <dependency>
                         <groupId>org.eclipse.xsemantics</groupId>
                         <artifactId>org.eclipse.xsemantics.dsl</artifactId>
-                        <version>${xsemantics.version}</version>
+                        <version>${xsemantics-version}</version>
                     </dependency>
                     <!-- workaround for issue https://github.com/eclipse/xtext-xtend/issues/493  -->
                     <dependency>

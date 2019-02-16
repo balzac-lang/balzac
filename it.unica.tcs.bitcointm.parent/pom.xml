@@ -8,8 +8,9 @@
     <packaging>pom</packaging>
 
     <properties>
-        <xtextVersion>2.14.0</xtextVersion>
-        <tycho-version>1.1.0</tycho-version>
+	<xtext-version>2.14.0</xtext-version>
+	<tycho-version>1.1.0</tycho-version>
+	<xsemantics-version>1.14.0-SNAPSHOT</xsemantics-version>	
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -124,7 +125,7 @@
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
                     <artifactId>xtext-maven-plugin</artifactId>
-                    <version>${xtextVersion}</version>
+                    <version>${xtext-version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.eclipse.platform</groupId>
@@ -136,7 +137,7 @@
                 <plugin>
                     <groupId>org.eclipse.xtend</groupId>
                     <artifactId>xtend-maven-plugin</artifactId>
-                    <version>${xtextVersion}</version>
+                    <version>${xtext-version}</version>
                     <executions>
                         <execution>
                             <goals>
