@@ -120,6 +120,7 @@
 
         <pluginManagement>
             <plugins>
+                <!-- https://github.com/eclipse/xtext/issues/1231#issuecomment-401833957 -->
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
                     <artifactId>xtext-maven-plugin</artifactId>
@@ -151,6 +152,7 @@
                         <testOutputDirectory>${basedir}/xtend-gen</testOutputDirectory>
                     </configuration>
                     <dependencies>
+                        <!-- https://github.com/eclipse/xtext/issues/1231#issuecomment-401833957 -->
                         <dependency>
                             <groupId>org.eclipse.platform</groupId>
                             <artifactId>org.eclipse.equinox.common</artifactId>

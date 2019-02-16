@@ -3,7 +3,7 @@ rm -rf $HOME/bitcoinj
 
 echo "Cloning https://github.com/natzei/BitcoindConnector4J.git"
 git -C $HOME clone https://github.com/natzei/BitcoindConnector4J.git
-git -C $HOME/BitcoindConnector4J checkout release-0.16
+git -C $HOME/BitcoindConnector4J checkout v0.16.0
 gradle -p $HOME/BitcoindConnector4J install
 rm -rf $HOME/BitcoindConnector4J
 
