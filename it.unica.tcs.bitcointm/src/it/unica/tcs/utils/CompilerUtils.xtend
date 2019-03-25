@@ -70,6 +70,6 @@ class CompilerUtils {
         if(type instanceof TransactionType) return ITransactionBuilder
         if(type instanceof SignatureType) return Signature
 
-        throw new CompileException("Unexpected type "+type.class.simpleName)
+        throw new CompileException("Unexpected type "+type?.class?.simpleName)
     }
 }
