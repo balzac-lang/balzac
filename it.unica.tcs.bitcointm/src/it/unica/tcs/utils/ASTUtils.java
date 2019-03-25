@@ -60,11 +60,12 @@ import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.balzac.Versig;
 import it.unica.tcs.lib.ECKeyStore;
-import it.unica.tcs.lib.model.Hash;
 import it.unica.tcs.lib.ITransactionBuilder;
 import it.unica.tcs.lib.SerialTransactionBuilder;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.model.Address;
+import it.unica.tcs.lib.model.Hash;
+import it.unica.tcs.lib.model.PlaceholderUtils;
 import it.unica.tcs.lib.model.PrivateKey;
 import it.unica.tcs.lib.model.PublicKey;
 import it.unica.tcs.lib.model.Signature;
@@ -87,7 +88,7 @@ public class ASTUtils {
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
     	Resource resource = obj.eResource();
     	logger.debug("Get the ECKeyStore for resource "+resource);
- 
+    	
     	try {
         	ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
         
@@ -99,8 +100,10 @@ public class ASTUtils {
         				kstore = new ECKeyStore();
         				EObject root = EcoreUtil2.getRootContainer(obj);
         				List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
+        				keys.add(getPlaceholderPrivateKey(obj));
         				for (KeyLiteral k : keys) {
-        					kstore.addKey(k.getValue());
+        					String uniqueID = kstore.addKey(k.getValue());
+        					logger.info("keystore: added key "+uniqueID);
         				}
         				return kstore;
         			} catch (KeyStoreException e) {
@@ -117,6 +120,13 @@ public class ASTUtils {
     	    }
     	    else throw e;
     	}
+    }
+    
+    private KeyLiteral getPlaceholderPrivateKey(EObject obj) {
+    	PrivateKey privateKey = PlaceholderUtils.KEY(networkParams(obj));
+    	KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();
+    	key.setValue(privateKey.getPrivateKeyWif());
+    	return key;
     }
 
     public String nodeToString(EObject eobj) {

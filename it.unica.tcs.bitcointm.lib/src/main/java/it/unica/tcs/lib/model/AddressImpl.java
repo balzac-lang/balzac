@@ -16,9 +16,14 @@ class AddressImpl implements Address {
     private final byte[] address;
     protected final NetworkParameters params;
 
-    public AddressImpl(byte[] address, NetworkParameters params) {
+    AddressImpl(byte[] address, NetworkParameters params) {
         this.address = address;
         this.params = params;
+    }
+
+    @Override
+    public NetworkParameters getNetworkParameters() {
+    	return params;
     }
 
     @Override

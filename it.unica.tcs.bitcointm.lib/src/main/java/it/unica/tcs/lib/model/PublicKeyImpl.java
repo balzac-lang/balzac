@@ -12,12 +12,19 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class PublicKeyImpl implements PublicKey {
 
+    private final NetworkParameters params;
     private final byte[] pubkey;
     private final Address address;
 
-    public PublicKeyImpl(byte[] pubkey, NetworkParameters params) {
+    PublicKeyImpl(byte[] pubkey, NetworkParameters params) {
+        this.params = params;
         this.pubkey = pubkey;
         this.address = Address.fromPubkey(pubkey, params);
+    }
+
+    @Override
+    public NetworkParameters getNetworkParameters() {
+    	return params;
     }
 
     @Override

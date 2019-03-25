@@ -10,6 +10,8 @@ import org.bitcoinj.core.NetworkParameters;
 
 public interface Address {
 
+	public NetworkParameters getNetworkParameters();
+
     public byte[] getAddressByte();
 
     public String getAddressWif();
@@ -24,6 +26,10 @@ public interface Address {
     public static Address fromPubkey(byte[] pubkey, NetworkParameters params) {
         LegacyAddress addr = LegacyAddress.fromKey(params, ECKey.fromPublicOnly(pubkey));
         return new AddressImpl(addr.getHash(), addr.getParameters());
+    }
+
+    public static Address from(Address address) {
+        return fromBase58(address.getAddressWif());
     }
 
     public static Address fresh(NetworkParameters params) {

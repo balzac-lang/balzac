@@ -15,15 +15,19 @@ public interface PublicKey extends Address {
 
     public String getPublicKeyByteString();
     
+    public static PublicKey fromBytes(byte[] pubkey, NetworkParameters params) {
+    	return new PublicKeyImpl(pubkey, params);
+    }
+    
     public static PublicKey fromString(String str, NetworkParameters params) {
-        return new PublicKeyImpl(BitcoinUtils.decode(str), params);
+        return fromBytes(BitcoinUtils.decode(str), params);
     }
 
     public static PublicKey fresh(NetworkParameters params) {
-        return new PublicKeyImpl(new ECKey().getPubKey(), params);
+        return fromBytes(new ECKey().getPubKey(), params);
     }
 
-    public static PublicKey fromBytes(byte[] pubkey, NetworkParameters params) {
-    	return new PublicKeyImpl(pubkey, params);
+    public static PublicKey from(PublicKey key) {
+    	return fromBytes(key.getPublicKeyByte(), key.getNetworkParameters());
     }
 }

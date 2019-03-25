@@ -18,11 +18,16 @@ class PrivateKeyImpl implements PrivateKey {
     private final PublicKey pubkey;
     private final Address address;
     
-    public PrivateKeyImpl(byte[] privkey, NetworkParameters params) {
+    PrivateKeyImpl(byte[] privkey, NetworkParameters params) {
         this.params = params;
         this.privkey = privkey;
         this.pubkey = PublicKey.fromString(BitcoinUtils.encode(ECKey.fromPrivate(privkey).getPubKey()), params);
         this.address = Address.fromPubkey(pubkey.getPublicKeyByte(), params);
+    }
+
+    @Override
+    public NetworkParameters getNetworkParameters() {
+    	return params;
     }
 
     @Override

@@ -22,6 +22,12 @@
             <artifactId>org.eclipse.equinox.security</artifactId>
             <version>1.2.300</version>
         </dependency>
+        <!-- Leave this dependency here to avoid "java.lang.ClassNotFoundException: org.eclipse.xsemantics.runtime.StringRepresentation" -->
+        <dependency>
+            <groupId>org.eclipse.xsemantics</groupId>
+            <artifactId>org.eclipse.xsemantics.dsl</artifactId>
+            <version>${xsemantics-version}</version>
+        </dependency>
     </dependencies>
 
     <build>
