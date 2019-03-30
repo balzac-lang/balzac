@@ -247,34 +247,6 @@ public class ASTUtils {
         }
     }
 
-//  public boolean allAbsoluteAreBlock(Tlock tlock) {
-//      return tlock.getTimes().stream()
-//              .filter(x -> x instanceof AbsoluteTime)
-//              .map(x -> (AbsoluteTime) x)
-//              .allMatch(ASTUtils::isAbsoluteBlock);
-//    }
-//
-//  public boolean allRelativeAreBlock(Tlock tlock) {
-//      return tlock.getTimes().stream()
-//              .filter(x -> x instanceof RelativeTime)
-//              .map(x -> (RelativeTime) x)
-//              .allMatch(ASTUtils::isRelativeBlock);
-//    }
-//
-//  public boolean allAbsoluteAreDate(Tlock tlock) {
-//      return tlock.getTimes().stream()
-//              .filter(x -> x instanceof AbsoluteTime)
-//              .map(x -> (AbsoluteTime) x)
-//              .allMatch(ASTUtils::isAbsoluteDate);
-//    }
-//
-//  public boolean allRelativeAreDate(Tlock tlock) {
-//      return tlock.getTimes().stream()
-//              .filter(x -> x instanceof RelativeTime)
-//              .map(x -> (RelativeTime) x)
-//              .allMatch(ASTUtils::isRelativeDate);
-//    }
-
     public boolean isCoinbase(it.unica.tcs.balzac.Transaction tx) {
         return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
     }
@@ -311,7 +283,6 @@ public class ASTUtils {
         boolean onlyOnePubkey = isVersig && ((Versig) script.getExp()).getPubkeys().size() == 1;
 
         return isVersig && onlyOnePubkey;
-//        return false;   // TODO: temporarily disabled
     }
 
     public boolean isOpReturn(Script script, Rho rho) {
@@ -343,39 +314,6 @@ public class ASTUtils {
                 .collect(Collectors.toList()).get(0);
     }
 
-
-
-
-
-//  public boolean isBlock(Time time) {
-//      if (isRelative(time)) return isRelativeBlock(time);
-//      if (isAbsolute(time)) return isAbsoluteBlock(time);
-//      throw new IllegalArgumentException();
-//    }
-//
-//  public boolean isDate(Time time) {
-//      if (isRelative(time)) return isRelativeDate(time);
-//      if (isAbsolute(time)) return isAbsoluteDate(time);
-//      throw new IllegalArgumentException();
-//    }
-//
-//    public boolean isAbsolute(Time time) {
-//      return time instanceof AbsoluteTime;
-//    }
-//
-//    public boolean isRelative(Time time) {
-//      return time instanceof RelativeTime;
-//    }
-//
-//    public boolean isAbsoluteBlock(Time time) {
-//      return isAbsolute(time) && ((AbsoluteTime) time).isBlock();
-//    }
-//
-//    public boolean isAbsoluteDate(Time time) {
-//      return isAbsolute(time) && ((AbsoluteTime)time).isDate();
-//    }
-//
-//
     public long getDelayValue(long seconds) {
         return convertSeconds(seconds);
     }
