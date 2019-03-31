@@ -7,7 +7,7 @@ import com.google.inject.Inject;
 
 import it.unica.tcs.balzac.Transaction;
 import it.unica.tcs.compiler.TransactionCompiler;
-import it.unica.tcs.lib.ITransactionBuilder;
+import it.unica.tcs.lib.model.ITransactionBuilder;
 
 /**
  * This class solves maven-build problems of interpreter.xsemantics

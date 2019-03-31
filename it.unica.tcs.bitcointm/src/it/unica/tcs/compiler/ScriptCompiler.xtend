@@ -36,6 +36,7 @@ import it.unica.tcs.balzac.Output
 import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.Placeholder
 import it.unica.tcs.balzac.Plus
+import it.unica.tcs.balzac.PubKeyLiteral
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
 import it.unica.tcs.balzac.Ripemd160
@@ -50,25 +51,24 @@ import it.unica.tcs.balzac.StringLiteral
 import it.unica.tcs.balzac.TransactionParameter
 import it.unica.tcs.balzac.Versig
 import it.unica.tcs.lib.ECKeyStore
-import it.unica.tcs.lib.ITransactionBuilder
-import it.unica.tcs.lib.SerialTransactionBuilder
-import it.unica.tcs.lib.TransactionBuilder
-import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar
-import it.unica.tcs.lib.script.InputScript
-import it.unica.tcs.lib.script.OutputScript
+import it.unica.tcs.lib.model.Address
+import it.unica.tcs.lib.model.ITransactionBuilder
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
+import it.unica.tcs.lib.model.SerialTransactionBuilder
+import it.unica.tcs.lib.model.TransactionBuilder
+import it.unica.tcs.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar
+import it.unica.tcs.lib.model.script.InputScript
+import it.unica.tcs.lib.model.script.OutputScript
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
-import it.unica.tcs.lib.model.Address
-import it.unica.tcs.lib.model.PrivateKey
-import it.unica.tcs.lib.model.PublicKey
 import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 
 import static org.bitcoinj.script.ScriptOpCodes.*
-import it.unica.tcs.balzac.PubKeyLiteral
 
 /*
  * EXPRESSIONS

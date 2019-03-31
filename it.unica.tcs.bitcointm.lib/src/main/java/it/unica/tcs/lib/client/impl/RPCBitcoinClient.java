@@ -126,4 +126,14 @@ public class RPCBitcoinClient implements BitcoinClient {
             throw new BitcoinClientException(e);
         }
     }
+
+	@Override
+	public boolean isTestnet() {
+        return getApi().getblockchaininfo().getChain().equals("test");
+	}
+
+	@Override
+	public boolean isMainnet() {
+        return getApi().getblockchaininfo().getChain().equals("main");
+	}
 }

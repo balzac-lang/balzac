@@ -8,8 +8,9 @@ import com.google.inject.Inject
 import it.unica.tcs.balzac.Eval
 import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.PackageDeclaration
-import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.model.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import java.io.File
 import org.apache.log4j.Logger
@@ -20,7 +21,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
-import it.unica.tcs.utils.ASTUtils
 
 class RawTransactionGenerator extends AbstractGenerator {
 

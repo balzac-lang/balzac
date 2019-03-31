@@ -58,20 +58,21 @@ import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.TransactionId
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.TransactionType
+import it.unica.tcs.lib.model.Address
 import it.unica.tcs.lib.model.Hash
 import it.unica.tcs.lib.model.Hash.HashAlgorithm
-import it.unica.tcs.lib.ITransactionBuilder
+import it.unica.tcs.lib.model.ITransactionBuilder
+import it.unica.tcs.lib.model.PlaceholderUtils
+import it.unica.tcs.lib.model.PrivateKey
+import it.unica.tcs.lib.model.PublicKey
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BalzacLogger
 import it.unica.tcs.utils.BitcoinClientFactory
-import it.unica.tcs.lib.model.Address
-import it.unica.tcs.lib.model.PlaceholderUtils
-import it.unica.tcs.lib.model.PrivateKey
-import it.unica.tcs.lib.model.PublicKey
 import java.math.BigInteger
 import java.security.KeyStoreException
 import org.bitcoinj.core.ECKey
@@ -79,7 +80,6 @@ import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
-import it.unica.tcs.balzac.TransactionId
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 

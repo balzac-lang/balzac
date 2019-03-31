@@ -37,10 +37,9 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Injector;
-import com.sulacosoft.bitcoindconnector4j.BitcoindApi;
 
 import it.unica.tcs.bitcointm.ui.internal.BitcointmActivator;
-import it.unica.tcs.lib.client.BitcoinClientI;
+import it.unica.tcs.lib.client.BitcoinClient;
 import it.unica.tcs.lib.client.impl.RPCBitcoinClient;
 import it.unica.tcs.utils.BitcoinClientFactory;
 import it.unica.tcs.utils.SecureStorageUtils;
@@ -277,8 +276,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
                         timeout, TimeUnit.MILLISECONDS);
 
                 try {
-                    BitcoindApi api = bitcoinClient.getApi();
-                    boolean isTestnet = api.getblockchaininfo().getChain().equals("test");
+                    boolean isTestnet = bitcoinClient.isTestnet();
 
                     if (isTestnet != testnet) {
                         String expected = testnet ? "testnet" : "mainnet";
@@ -442,33 +440,45 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
     public static void setBitcoinClientFactoryNodes(IPreferenceStore store) throws StorageException {
         ISecurePreferences secureStore = SecurePreferencesFactory.getDefault();
 
-        String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
-        int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
-        String testnetProtocol = store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS) ? "https" : "http";
-        String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
-        String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
-        int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
-        String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
-                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
-
-        String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
-        int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
-        String mainnetProtocol = store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS) ? "https" : "http";
-        String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
-        String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
-        int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
-        String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
-                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
-
-        BitcoinClientI testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
-                testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-        BitcoinClientI mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
-                mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClient testnetClient = getTestnetBitcoinClient(store, secureStore);
+        BitcoinClient mainnetClient = getMainnetBitcoinClient(store, secureStore);
 
         Injector injector = BitcointmActivator.getInstance().getInjector(BitcointmActivator.IT_UNICA_TCS_BALZAC);
         BitcoinClientFactory factory = injector.getInstance(BitcoinClientFactory.class);
         factory.setMainnetClient(mainnetClient);
         factory.setTestnetClient(testnetClient);
+    }
+
+    private static BitcoinClient getMainnetBitcoinClient(IPreferenceStore store, ISecurePreferences secureStore)  throws StorageException {
+    	String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
+    	int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
+    	String mainnetProtocol = store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS) ? "https" : "http";
+    	String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
+    	String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
+    	int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
+    	String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
+    			.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
+
+    	BitcoinClient mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
+    			mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+    	
+    	return mainnetClient;
+    }
+
+    private static BitcoinClient getTestnetBitcoinClient(IPreferenceStore store, ISecurePreferences secureStore)  throws StorageException {
+    	String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
+    	int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
+    	String testnetProtocol = store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS) ? "https" : "http";
+    	String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
+    	String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
+    	int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
+    	String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
+    			.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
+    	
+    	BitcoinClient testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
+    			testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
+    	
+    	return testnetClient;
     }
 
     private boolean isTestnetPasswordSaved() {

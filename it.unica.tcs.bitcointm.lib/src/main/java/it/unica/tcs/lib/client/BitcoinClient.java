@@ -57,4 +57,17 @@ public interface BitcoinClient {
      * @throws TransactionNotFoundException if the transaction is not within the blockchain.
      */
     public boolean isUTXO(String txid, int n) throws TransactionNotFoundException;
+
+    /**
+     * Check if the client is connected to the Bitcoin testnet.
+     * @return true if the client is connected to the Bitcoin testnet.
+     */
+    public boolean isTestnet();
+
+    /**
+     * Check if the client is connected to the Bitcoin mainnet.
+     * @return true if the client is connected to the Bitcoin mainnet.
+     */
+    public boolean isMainnet();
+    
 }

@@ -8,9 +8,9 @@ import com.google.inject.Inject;
 import it.unica.tcs.balzac.Input;
 import it.unica.tcs.balzac.Output;
 import it.unica.tcs.compiler.ScriptCompiler;
-import it.unica.tcs.lib.ITransactionBuilder;
-import it.unica.tcs.lib.script.InputScript;
-import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.model.ITransactionBuilder;
+import it.unica.tcs.lib.model.script.InputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
 
 /**
  * This class solves maven-build problems of interpreter.xsemantics

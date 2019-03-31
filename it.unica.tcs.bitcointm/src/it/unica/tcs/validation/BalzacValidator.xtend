@@ -39,11 +39,11 @@ import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.Versig
-import it.unica.tcs.lib.ITransactionBuilder
-import it.unica.tcs.lib.SerialTransactionBuilder
-import it.unica.tcs.lib.TransactionBuilder
 import it.unica.tcs.lib.client.BitcoinClientException
 import it.unica.tcs.lib.client.TransactionNotFoundException
+import it.unica.tcs.lib.model.ITransactionBuilder
+import it.unica.tcs.lib.model.SerialTransactionBuilder
+import it.unica.tcs.lib.model.TransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory

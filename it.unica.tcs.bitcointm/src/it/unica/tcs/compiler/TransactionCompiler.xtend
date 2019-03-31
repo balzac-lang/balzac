@@ -7,10 +7,10 @@ package it.unica.tcs.compiler
 import com.google.inject.Inject
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Transaction
-import it.unica.tcs.lib.CoinbaseTransactionBuilder
-import it.unica.tcs.lib.ITransactionBuilder
-import it.unica.tcs.lib.TransactionBuilder
-import it.unica.tcs.lib.script.InputScript
+import it.unica.tcs.lib.model.CoinbaseTransactionBuilder
+import it.unica.tcs.lib.model.ITransactionBuilder
+import it.unica.tcs.lib.model.TransactionBuilder
+import it.unica.tcs.lib.model.script.InputScript
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.CompilerUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter

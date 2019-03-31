@@ -16,7 +16,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
-import it.unica.tcs.lib.client.BitcoinClientI;
+import it.unica.tcs.lib.client.BitcoinClient;
 import it.unica.tcs.lib.client.impl.RPCBitcoinClient;
 
 @Singleton
@@ -38,10 +38,10 @@ public class BitcoinClientFactory {
     @Inject(optional=true) @Named("tnMainnetPassword") private String mainnetPassword;
     @Inject(optional=true) @Named("tnMainnetTimeout") private Integer mainnetTimeout;
 
-    private BitcoinClientI mainnetClient;
-    private BitcoinClientI testnetClient;
+    private BitcoinClient mainnetClient;
+    private BitcoinClient testnetClient;
 
-    public BitcoinClientI getBitcoinClient(NetworkParameters params) {
+    public BitcoinClient getBitcoinClient(NetworkParameters params) {
         if (TestNet3Params.get().equals(params)) {
             if (testnetHost != null && testnetPort != null && testnetPath != null && testnetUsername != null && testnetPassword != null && testnetTimeout != null) {
                 logger.info("Returning trusted node defined by properties [testnet]");
@@ -65,19 +65,19 @@ public class BitcoinClientFactory {
         throw new IllegalArgumentException("Invalid parameter "+params);
     }
 
-    public BitcoinClientI getMainnetClient() {
+    public BitcoinClient getMainnetClient() {
         return mainnetClient;
     }
 
-    public void setMainnetClient(BitcoinClientI mainnetClient) {
+    public void setMainnetClient(BitcoinClient mainnetClient) {
         this.mainnetClient = mainnetClient;
     }
 
-    public BitcoinClientI getTestnetClient() {
+    public BitcoinClient getTestnetClient() {
         return testnetClient;
     }
 
-    public void setTestnetClient(BitcoinClientI testnetClient) {
+    public void setTestnetClient(BitcoinClient testnetClient) {
         this.testnetClient = testnetClient;
     }
 }
