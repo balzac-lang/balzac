@@ -8,13 +8,17 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 
-public interface PrivateKey extends PublicKey, Address {
+public interface PrivateKey {
 
-    public byte[] getPrivateKeyByte();
+    public byte[] getBytes();
 
-    public String getPrivateKeyWif();
+    public String getWif();
 
-    public String getPrivateKeyByteString();
+    public String getBytesAsString();
+
+    public PublicKey toPublicKey();
+
+    public Address toAddress();
 
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif); 

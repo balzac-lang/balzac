@@ -21,53 +21,33 @@ class PrivateKeyImpl implements PrivateKey {
     PrivateKeyImpl(byte[] privkey, NetworkParameters params) {
         this.params = params;
         this.privkey = privkey;
-        this.pubkey = PublicKey.fromString(BitcoinUtils.encode(ECKey.fromPrivate(privkey).getPubKey()), params);
-        this.address = Address.fromPubkey(pubkey.getPublicKeyByte(), params);
+        this.pubkey = PublicKey.fromString(BitcoinUtils.encode(ECKey.fromPrivate(privkey).getPubKey()));
+        this.address = Address.fromPubkey(pubkey.getBytes(), params);
     }
 
     @Override
-    public NetworkParameters getNetworkParameters() {
-    	return params;
-    }
-
-    @Override
-    public byte[] getPrivateKeyByte() {
+    public byte[] getBytes() {
         return Arrays.copyOf(privkey, privkey.length);
     }
 
     @Override
-    public String getPrivateKeyWif() {
+    public String getWif() {
         return ECKey.fromPrivate(privkey).getPrivateKeyAsWiF(params);
     }
 
     @Override
-    public String getPrivateKeyByteString() {
+    public String getBytesAsString() {
         return BitcoinUtils.encode(privkey);
     }
 
     @Override
-    public byte[] getPublicKeyByte() {
-        return pubkey.getPublicKeyByte();
+    public PublicKey toPublicKey() {
+    	return pubkey;
     }
-
+    
     @Override
-    public String getPublicKeyByteString() {
-        return pubkey.getPublicKeyByteString();
-    }
-
-    @Override
-    public byte[] getAddressByte() {
-        return address.getAddressByte();
-    }
-
-    @Override
-    public String getAddressWif() {
-        return address.getAddressWif();
-    }
-
-    @Override
-    public String getAddressByteString() {
-        return address.getAddressByteString();
+    public Address toAddress() {
+    	return address;
     }
 
     @Override
@@ -94,6 +74,6 @@ class PrivateKeyImpl implements PrivateKey {
 
     @Override
     public String toString() {
-        return getPrivateKeyWif();
+        return getWif();
     }
 }

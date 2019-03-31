@@ -12,11 +12,11 @@ public interface Address {
 
 	public NetworkParameters getNetworkParameters();
 
-    public byte[] getAddressByte();
+    public byte[] getBytes();
 
-    public String getAddressWif();
+    public String getWif();
 
-    public String getAddressByteString();
+    public String getBytesAsString();
 
     public static Address fromBase58(String wif) {
         LegacyAddress addr = LegacyAddress.fromBase58(null, wif);
@@ -29,7 +29,15 @@ public interface Address {
     }
 
     public static Address from(Address address) {
-        return fromBase58(address.getAddressWif());
+        return fromBase58(address.getWif());
+    }
+
+    public static Address from(PublicKey pubkey,  NetworkParameters params) {
+        return from(pubkey.toAddress(params));
+    }
+
+    public static Address from(PrivateKey key) {
+        return from(key.toAddress());
     }
 
     public static Address fresh(NetworkParameters params) {

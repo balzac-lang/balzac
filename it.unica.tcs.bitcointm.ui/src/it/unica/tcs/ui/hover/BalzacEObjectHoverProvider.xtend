@@ -11,18 +11,16 @@ import it.unica.tcs.balzac.Interpretable
 import it.unica.tcs.balzac.KeyLiteral
 import it.unica.tcs.balzac.Parameter
 import it.unica.tcs.balzac.PubKeyLiteral
+import it.unica.tcs.balzac.ScriptParameter
 import it.unica.tcs.balzac.Transaction
-import it.unica.tcs.utils.ASTUtils
-import it.unica.tcs.xsemantics.BalzacStringRepresentation
-import it.unica.tcs.xsemantics.Rho
+import it.unica.tcs.balzac.TransactionParameter
 import it.unica.tcs.lib.model.Address
 import it.unica.tcs.lib.model.PrivateKey
 import it.unica.tcs.lib.model.PublicKey
-import org.bitcoinj.core.NetworkParameters
+import it.unica.tcs.utils.ASTUtils
+import it.unica.tcs.xsemantics.BalzacStringRepresentation
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider
-import it.unica.tcs.balzac.ScriptParameter
-import it.unica.tcs.balzac.TransactionParameter
 
 class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
@@ -89,36 +87,35 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     def dispatch String getDocumentationInternal(EObject obj) ''''''
 
     def dispatch String getDocumentationInternal(Constant c) {
-        (c.exp as Interpretable).interpretSafe(new Rho(c.networkParams)).documentationInternal
+        (c.exp as Interpretable).interpretSafe.documentationInternal
     }
     
     def dispatch String getDocumentationInternal(KeyLiteral key) '''
         «val privKey = PrivateKey.fromBase58(key.value)»
         <pre>
             Private key
-                base58 (wif) = «privKey.privateKeyWif»
-                hex          = «privKey.privateKeyByteString»
+                base58 (wif) = «privKey.wif»
+                hex          = «privKey.bytesAsString»
 
             Public key
-                hex          = «privKey.publicKeyByteString»
+                hex          = «privKey.toPublicKey.bytesAsString»
         
             Address
-                base58 (wif) = «privKey.addressWif»
-                hash160      = «privKey.addressByteString»
+                base58 (wif) = «privKey.toAddress.wif»
+                hash160      = «privKey.toAddress.bytesAsString»
         </pre>
         '''
 
     def dispatch String getDocumentationInternal(PubKeyLiteral pkey) '''
-        «val mainPubkey = PublicKey.fromString(pkey.value, NetworkParameters.fromID(NetworkParameters.ID_MAINNET))»
-        «val testPubkey = PublicKey.fromString(pkey.value, NetworkParameters.fromID(NetworkParameters.ID_TESTNET))»
+        «val pubkey = PublicKey.fromString(pkey.value)»
         <pre>
             Public key
-                hex          = «mainPubkey.publicKeyByteString»
+                hex          = «pubkey.bytesAsString»
             
             Address
-                base58 (wif) [MAINNET] = «mainPubkey.addressWif»
-                base58 (wif) [TESTNET] = «testPubkey.addressWif»
-                hash160                = «mainPubkey.addressByteString»
+                base58 (wif) [MAINNET] = «pubkey.toMainnetAddress.wif»
+                base58 (wif) [TESTNET] = «pubkey.toTestnetAddress.wif»
+                hash160                = «pubkey.toMainnetAddress.bytesAsString»
         </pre>
         '''
         
@@ -126,8 +123,8 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         «val addr = Address.fromBase58(addrLit.value)»
         <pre>
             Address
-                base58 (wif) = «addr.addressWif»
-                hash160      = «addr.addressByteString»
+                base58 (wif) = «addr.wif»
+                hash160      = «addr.bytesAsString»
         </pre>
         '''
 

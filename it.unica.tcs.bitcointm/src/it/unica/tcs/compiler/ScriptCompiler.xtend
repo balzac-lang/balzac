@@ -133,7 +133,7 @@ class ScriptCompiler {
                 
                 val sb = InputScript.create()
                 sb.data(sig.getSignature)
-                sb.data(pubkey.publicKeyByte)
+                sb.data(pubkey.bytes)
                 return InputScript.create().append(sb)
             }
 
@@ -200,7 +200,7 @@ class ScriptCompiler {
             val addr = resAddr.first
             if (addr instanceof Address) {
                 /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
-                OutputScript.createP2PKH(addr.addressByte)
+                OutputScript.createP2PKH(addr.bytes)
             }
             else {
                 throw new CompileException('''Unable to evaluate to a an address. Result is: «addr»''')
@@ -332,7 +332,7 @@ class ScriptCompiler {
 
         val key = resKey.first
         if (key instanceof PrivateKey) {
-            var sb = new ScriptBuilderWithVar().signaturePlaceholder(ECKeyStore.getUniqueID(key.privateKeyWif), hashType, anyoneCanPay)
+            var sb = new ScriptBuilderWithVar().signaturePlaceholder(ECKeyStore.getUniqueID(key.wif), hashType, anyoneCanPay)
             sb
         }
         else {
@@ -514,7 +514,7 @@ class ScriptCompiler {
 
             val key = resKey.first
             if (key instanceof PublicKey) {
-                sb.data(key.publicKeyByte)
+                sb.data(key.bytes)
             }
             else {
                 throw new CompileException('''Unable to evaluate key «key»''')
@@ -533,7 +533,7 @@ class ScriptCompiler {
 
                 val key = resKey.first
                 if (key instanceof PublicKey) {
-                    sb.data(key.publicKeyByte)
+                    sb.data(key.bytes)
                 }
                 else {
                     throw new CompileException('''Unable to evaluate key «key»''')

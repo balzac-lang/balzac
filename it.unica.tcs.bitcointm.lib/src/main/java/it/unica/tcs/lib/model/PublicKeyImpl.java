@@ -12,44 +12,35 @@ import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class PublicKeyImpl implements PublicKey {
 
-    private final NetworkParameters params;
     private final byte[] pubkey;
-    private final Address address;
 
-    PublicKeyImpl(byte[] pubkey, NetworkParameters params) {
-        this.params = params;
+    PublicKeyImpl(byte[] pubkey) {
         this.pubkey = pubkey;
-        this.address = Address.fromPubkey(pubkey, params);
     }
 
     @Override
-    public NetworkParameters getNetworkParameters() {
-    	return params;
-    }
-
-    @Override
-    public byte[] getPublicKeyByte() {
+    public byte[] getBytes() {
         return Arrays.copyOf(pubkey, pubkey.length);
     }
 
     @Override
-    public String getPublicKeyByteString() {
+    public String getBytesAsString() {
         return BitcoinUtils.encode(pubkey);
     }
 
     @Override
-    public byte[] getAddressByte() {
-        return address.getAddressByte();
+    public Address toAddress(NetworkParameters params) {
+    	return Address.fromPubkey(pubkey, params);
     }
-
+    
     @Override
-    public String getAddressWif() {
-        return address.getAddressWif();
+    public Address toTestnetAddress() {
+    	return toAddress(NetworkParameters.fromID(NetworkParameters.ID_TESTNET));
     }
-
+    
     @Override
-    public String getAddressByteString() {
-        return address.getAddressByteString();
+    public Address toMainnetAddress() {
+    	return toAddress(NetworkParameters.fromID(NetworkParameters.ID_MAINNET));
     }
 
     @Override
@@ -76,6 +67,6 @@ class PublicKeyImpl implements PublicKey {
     
     @Override
     public String toString() {
-        return getPublicKeyByteString();
+        return getBytesAsString();
     }
 }

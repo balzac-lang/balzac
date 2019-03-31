@@ -7,6 +7,7 @@ import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.AddressType
 import it.unica.tcs.balzac.AndExpression
 import it.unica.tcs.balzac.ArithmeticSigned
+import it.unica.tcs.balzac.Assertion
 import it.unica.tcs.balzac.BalzacFactory
 import it.unica.tcs.balzac.BasicType
 import it.unica.tcs.balzac.Between
@@ -70,6 +71,7 @@ import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
 import it.unica.tcs.balzac.TransactionIDLiteral
+import it.unica.tcs.balzac.TransactionId
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.TransactionType
@@ -85,8 +87,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xsemantics.runtime.RuleEnvironment
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
-import it.unica.tcs.balzac.TransactionId
-import it.unica.tcs.balzac.Assertion
 
 system it.unica.tcs.xsemantics.BalzacTypeSystem
 

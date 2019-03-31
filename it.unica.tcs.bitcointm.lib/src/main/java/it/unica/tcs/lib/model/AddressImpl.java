@@ -27,17 +27,17 @@ class AddressImpl implements Address {
     }
 
     @Override
-    public byte[] getAddressByte() {
+    public byte[] getBytes() {
         return Arrays.copyOf(address, address.length);
     }
 
     @Override
-    public String getAddressWif() {
+    public String getWif() {
         return LegacyAddress.fromPubKeyHash(params, address).toBase58();
     }
 
     @Override
-    public String getAddressByteString() {
+    public String getBytesAsString() {
         return BitcoinUtils.encode(address);
     }
 
@@ -65,6 +65,6 @@ class AddressImpl implements Address {
 
     @Override
     public String toString() {
-        return getAddressWif();
+        return getWif();
     }
 }

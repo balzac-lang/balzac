@@ -125,7 +125,7 @@ public class ASTUtils {
     private KeyLiteral getPlaceholderPrivateKey(EObject obj) {
     	PrivateKey privateKey = PlaceholderUtils.KEY(networkParams(obj));
     	KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();
-    	key.setValue(privateKey.getPrivateKeyWif());
+    	key.setValue(privateKey.getWif());
     	return key;
     }
 
@@ -171,6 +171,10 @@ public class ASTUtils {
         return !getTxVariables(exp).isEmpty();
     }
 
+    public <T extends Interpretable> T interpretSafe(T exp) {
+        return interpretSafe(exp, new Rho(networkParams(exp)));
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends Interpretable> T interpretSafe(T exp, Rho rho) {
         // returns the same type of exp
@@ -213,17 +217,17 @@ public class ASTUtils {
         }
         else if (value instanceof PrivateKey) {
             KeyLiteral res = BalzacFactory.eINSTANCE.createKeyLiteral();
-            res.setValue(((PrivateKey) value).getPrivateKeyWif());
+            res.setValue(((PrivateKey) value).getWif());
             return res;
         }
         else if (value instanceof PublicKey) {
             PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            res.setValue(((PublicKey) value).getPublicKeyByteString());
+            res.setValue(((PublicKey) value).getBytesAsString());
             return res;
         }
         else if (value instanceof Address) {
             AddressLiteral res = BalzacFactory.eINSTANCE.createAddressLiteral();
-            res.setValue(((Address) value).getAddressWif());
+            res.setValue(((Address) value).getWif());
             return res;
         }
         else if (value instanceof ECKey) {	// TODO remove this case

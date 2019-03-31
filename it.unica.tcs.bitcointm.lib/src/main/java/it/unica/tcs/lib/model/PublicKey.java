@@ -9,25 +9,35 @@ import org.bitcoinj.core.NetworkParameters;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
-public interface PublicKey extends Address {
+public interface PublicKey {
 
-    public byte[] getPublicKeyByte();
+    public byte[] getBytes();
 
-    public String getPublicKeyByteString();
+    public String getBytesAsString();
     
-    public static PublicKey fromBytes(byte[] pubkey, NetworkParameters params) {
-    	return new PublicKeyImpl(pubkey, params);
+    public Address toAddress(NetworkParameters params);
+
+    public Address toTestnetAddress();
+
+    public Address toMainnetAddress();
+
+    public static PublicKey fromBytes(byte[] pubkey) {
+    	return new PublicKeyImpl(pubkey);
     }
     
-    public static PublicKey fromString(String str, NetworkParameters params) {
-        return fromBytes(BitcoinUtils.decode(str), params);
+    public static PublicKey fromString(String str) {
+        return fromBytes(BitcoinUtils.decode(str));
     }
 
-    public static PublicKey fresh(NetworkParameters params) {
-        return fromBytes(new ECKey().getPubKey(), params);
+    public static PublicKey fresh() {
+        return fromBytes(new ECKey().getPubKey());
     }
 
     public static PublicKey from(PublicKey key) {
-    	return fromBytes(key.getPublicKeyByte(), key.getNetworkParameters());
+    	return fromBytes(key.getBytes());
+    }
+
+    public static PublicKey from(PrivateKey key) {
+    	return from(key.toPublicKey());
     }
 }

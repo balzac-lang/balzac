@@ -40,7 +40,6 @@ Export-Package: it.unica.tcs,
  it.unica.tcs.validation,
  it.unica.tcs.xsemantics,
  it.unica.tcs.xsemantics.validation,
- org.bitcoinj.core,
  it.unica.tcs.balzac.impl,
  it.unica.tcs.balzac,
  it.unica.tcs.balzac.util

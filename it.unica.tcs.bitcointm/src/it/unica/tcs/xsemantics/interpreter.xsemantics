@@ -213,7 +213,7 @@ from {
 
 	if (s.pubkey !== null) {
 		G |- s.pubkey |> rho ~> var PublicKey key		
-		sig.pubkey = key.publicKeyByte
+		sig.pubkey = key.bytes
 	}
 }
 
@@ -268,13 +268,13 @@ from {
     
         val sig = tx.calculateSignature(
             inputIndex,
-            ECKey.fromPrivate(key.privateKeyByte),
+            ECKey.fromPrivate(key.bytes),
             outScript,
             sigHashType,
             anyonecanpay
         )
         
-        res = new it.unica.tcs.lib.model.Signature(sig.encodeToBitcoin, key.publicKeyByte)
+        res = new it.unica.tcs.lib.model.Signature(sig.encodeToBitcoin, key.toPublicKey.bytes)
     }
     catch (KeyStoreException e) {
         fail
@@ -290,7 +290,7 @@ axiom InterpretAddressLiteral
     G |- AddressLiteral addr |> Rho rho ~> Address.fromBase58(addr.value)
 
 axiom InterpretPubkeyLiteral
-    G |- PubKeyLiteral k |> Rho rho ~> PublicKey.fromString(k.value, rho.networkParams)
+    G |- PubKeyLiteral k |> Rho rho ~> PublicKey.fromString(k.value)
 
 rule InterpretTransaction
     G |- Transaction tx |> Rho rho ~> ITransactionBuilder res
@@ -703,19 +703,38 @@ from {
 rule InterpretToAddress
     G |- ToAddress stmt |> Rho rho ~> Address result
 from {
-    G |- stmt.exp |> rho ~> var Address res
-    // create a new Address because `res` could be either a PrivateKey or PublicKey or Address
-    // and we want to lose this extra info
-    result = Address.fromBase58(res.addressWif)
+    G |- stmt.exp |> rho ~> var Object res
+    if (res instanceof Address) {
+    	result = res
+    }
+    else if (res instanceof PublicKey) {
+    	result = res.toAddress(stmt.networkParams)
+    }
+    else if (res instanceof PrivateKey) {
+    	result = res.toAddress
+    }
+    else {
+    	fail
+            error "Unexpected result of type " + res.class
+            source stmt
+    }
 }
 
 rule InterpretToPubkey
     G |- ToPubkey stmt |> Rho rho ~> PublicKey result
 from {
-    G |- stmt.exp |> rho ~> var PublicKey res
-    // create a new PublicKey because `res` could be either a PrivateKey o PublicKey
-    // and we want to lose this extra info
-    result = PublicKey.fromBytes(res.publicKeyByte, rho.networkParams)
+    G |- stmt.exp |> rho ~> var Object res
+    if (res instanceof PublicKey) {
+        result = res
+    }
+    else if (res instanceof PrivateKey) {
+        result = res.toPublicKey
+    }
+    else {
+        fail
+            error "Unexpected result of type " + res.class
+            source stmt
+    }
 }
 
 rule InterpretTransactionFees
