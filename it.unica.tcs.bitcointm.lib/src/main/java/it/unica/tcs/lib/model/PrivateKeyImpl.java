@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model;
@@ -32,7 +32,7 @@ class PrivateKeyImpl implements PrivateKey {
 
     @Override
     public byte[] getPrivateKeyByte() {
-        return privkey;
+        return Arrays.copyOf(privkey, privkey.length);
     }
 
     @Override

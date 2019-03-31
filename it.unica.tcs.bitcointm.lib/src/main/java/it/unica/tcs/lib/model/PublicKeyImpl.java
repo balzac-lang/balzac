@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model;
@@ -29,7 +29,7 @@ class PublicKeyImpl implements PublicKey {
 
     @Override
     public byte[] getPublicKeyByte() {
-        return pubkey;
+        return Arrays.copyOf(pubkey, pubkey.length);
     }
 
     @Override

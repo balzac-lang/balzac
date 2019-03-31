@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model;
@@ -28,7 +28,7 @@ class AddressImpl implements Address {
 
     @Override
     public byte[] getAddressByte() {
-        return address;
+        return Arrays.copyOf(address, address.length);
     }
 
     @Override

@@ -1,6 +1,7 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
+
 package it.unica.tcs.lib.model;
 
 import java.math.BigInteger;
@@ -18,7 +19,7 @@ public class Hash implements Comparable<Hash> {
     }
 
     public byte[] getBytes() {
-        return bytes;
+        return Arrays.copyOf(bytes, bytes.length);
     }
 
     public String getBytesAsString() {
