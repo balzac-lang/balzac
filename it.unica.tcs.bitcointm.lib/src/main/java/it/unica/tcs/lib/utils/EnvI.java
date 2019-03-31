@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.utils;
 
 import java.io.Serializable;
 import java.util.Collection;

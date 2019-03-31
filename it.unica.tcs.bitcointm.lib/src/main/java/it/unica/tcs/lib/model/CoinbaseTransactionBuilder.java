@@ -2,11 +2,11 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.NetworkParameters;
 
-import it.unica.tcs.lib.script.InputScript;
+import it.unica.tcs.lib.model.script.InputScript;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {
 

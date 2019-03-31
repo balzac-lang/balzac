@@ -2,7 +2,7 @@
 za * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.script;
+package it.unica.tcs.lib.model.script;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,11 +38,11 @@ import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 import it.unica.tcs.lib.ECKeyStore;
-import it.unica.tcs.lib.Env;
-import it.unica.tcs.lib.EnvI;
 import it.unica.tcs.lib.model.Hash;
 import it.unica.tcs.lib.model.Signature;
 import it.unica.tcs.lib.utils.BitcoinUtils;
+import it.unica.tcs.lib.utils.Env;
+import it.unica.tcs.lib.utils.EnvI;
 
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>

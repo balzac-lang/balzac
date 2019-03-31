@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,8 +35,11 @@ import org.bitcoinj.script.ScriptPattern;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import it.unica.tcs.lib.script.InputScript;
-import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.ECKeyStore;
+import it.unica.tcs.lib.model.script.InputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
+import it.unica.tcs.lib.utils.Env;
+import it.unica.tcs.lib.utils.EnvI;
 import it.unica.tcs.lib.utils.TablePrinter;
 
 public class TransactionBuilder implements ITransactionBuilder {

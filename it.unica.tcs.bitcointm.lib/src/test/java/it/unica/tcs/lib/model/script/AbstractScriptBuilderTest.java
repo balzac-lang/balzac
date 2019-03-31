@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib.script;
+package it.unica.tcs.lib.model.script;
 
 import static org.bitcoinj.script.ScriptOpCodes.OP_16;
 import static org.bitcoinj.script.ScriptOpCodes.OP_4;
@@ -15,7 +15,8 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.junit.Test;
 
-import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
+import it.unica.tcs.lib.model.script.AbstractScriptBuilder;
+import it.unica.tcs.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class AbstractScriptBuilderTest {
 

@@ -1,11 +1,13 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.utils;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import it.unica.tcs.lib.utils.Env;
 
 public class EnvTest {
 

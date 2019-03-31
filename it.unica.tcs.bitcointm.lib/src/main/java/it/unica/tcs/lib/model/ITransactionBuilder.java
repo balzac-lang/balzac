@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -13,6 +13,9 @@ import java.util.List;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
+
+import it.unica.tcs.lib.ECKeyStore;
+import it.unica.tcs.lib.utils.EnvI;
 
 public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, Serializable {
 

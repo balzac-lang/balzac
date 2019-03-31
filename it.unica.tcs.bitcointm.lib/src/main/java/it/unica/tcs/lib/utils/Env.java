@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.utils;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -12,8 +12,6 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import it.unica.tcs.lib.utils.TablePrinter;
 
 public class Env<T> implements EnvI<T,Env<T>> {
 

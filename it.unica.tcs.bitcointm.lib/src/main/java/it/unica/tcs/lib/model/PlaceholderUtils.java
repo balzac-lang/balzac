@@ -6,8 +6,6 @@ package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.NetworkParameters;
 
-import it.unica.tcs.lib.ITransactionBuilder;
-
 public class PlaceholderUtils {
     public static final long INT = 0L;
     public static final String STRING = "";

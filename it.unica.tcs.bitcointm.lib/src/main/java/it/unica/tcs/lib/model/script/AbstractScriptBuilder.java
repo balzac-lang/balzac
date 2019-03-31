@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib.script;
+package it.unica.tcs.lib.model.script;
 
 import java.io.Serializable;
 import java.util.List;

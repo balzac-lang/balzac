@@ -2,11 +2,11 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import java.io.Serializable;
 
-import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
 
 public class Output implements Serializable {
 

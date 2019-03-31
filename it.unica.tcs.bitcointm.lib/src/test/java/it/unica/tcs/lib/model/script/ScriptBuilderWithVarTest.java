@@ -2,7 +2,7 @@
  * Copyright 2017 Nicola Atzei
  */
 
-package it.unica.tcs.lib.script;
+package it.unica.tcs.lib.model.script;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import it.unica.tcs.lib.ECKeyStore;
-import it.unica.tcs.lib.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
+import it.unica.tcs.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class ScriptBuilderWithVarTest {
 

@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib.script;
+package it.unica.tcs.lib.model.script;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.bitcoinj.script.ScriptOpCodes.OP_CHECKSIG;

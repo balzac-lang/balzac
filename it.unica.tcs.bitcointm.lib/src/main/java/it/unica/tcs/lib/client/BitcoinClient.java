@@ -3,7 +3,7 @@
  */
 package it.unica.tcs.lib.client;
 
-public interface BitcoinClientI {
+public interface BitcoinClient {
 
     /**
      * Return the number of blocks of the blockchain.

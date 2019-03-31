@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,8 +17,9 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptPattern;
 
-import it.unica.tcs.lib.script.InputScript;
-import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.ECKeyStore;
+import it.unica.tcs.lib.model.script.InputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
 
 public class SerialTransactionBuilder implements ITransactionBuilder {
 

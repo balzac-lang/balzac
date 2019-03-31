@@ -1,7 +1,7 @@
 /*
  * Copyright 2017 Nicola Atzei
  */
-package it.unica.tcs.lib;
+package it.unica.tcs.lib.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -13,8 +13,12 @@ import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
-import it.unica.tcs.lib.script.InputScript;
-import it.unica.tcs.lib.script.OutputScript;
+import it.unica.tcs.lib.model.CoinbaseTransactionBuilder;
+import it.unica.tcs.lib.model.ITransactionBuilder;
+import it.unica.tcs.lib.model.Input;
+import it.unica.tcs.lib.model.TransactionBuilder;
+import it.unica.tcs.lib.model.script.InputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
 import it.unica.tcs.lib.utils.ObjectUtils;
 
 public class TransactionBuilderTest {

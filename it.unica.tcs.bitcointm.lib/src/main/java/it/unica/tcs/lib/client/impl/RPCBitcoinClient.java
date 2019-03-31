@@ -15,11 +15,11 @@ import com.sulacosoft.bitcoindconnector4j.core.RPCErrorCode;
 import com.sulacosoft.bitcoindconnector4j.response.RawTransaction;
 
 import it.unica.tcs.lib.client.BitcoinClientException;
-import it.unica.tcs.lib.client.BitcoinClientI;
+import it.unica.tcs.lib.client.BitcoinClient;
 import it.unica.tcs.lib.client.Confidentiality;
 import it.unica.tcs.lib.client.TransactionNotFoundException;
 
-public class RPCBitcoinClient implements BitcoinClientI {
+public class RPCBitcoinClient implements BitcoinClient {
 
     private static final Logger logger = LoggerFactory.getLogger(RPCBitcoinClient.class);
     private BitcoindApi api;
