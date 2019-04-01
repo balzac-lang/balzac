@@ -17,16 +17,13 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xsemantics.runtime.Result;
 import org.eclipse.xtext.EcoreUtil2;
-import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
 import org.eclipse.xtext.util.OnChangeEvictingCache;
 
 import com.google.common.base.Optional;
@@ -36,7 +33,6 @@ import com.google.inject.Singleton;
 
 import it.unica.tcs.balzac.AddressLiteral;
 import it.unica.tcs.balzac.BalzacFactory;
-import it.unica.tcs.balzac.BalzacPackage;
 import it.unica.tcs.balzac.BooleanLiteral;
 import it.unica.tcs.balzac.Constant;
 import it.unica.tcs.balzac.Delay;
@@ -45,13 +41,10 @@ import it.unica.tcs.balzac.HashLiteral;
 import it.unica.tcs.balzac.Interpretable;
 import it.unica.tcs.balzac.KeyLiteral;
 import it.unica.tcs.balzac.Literal;
-import it.unica.tcs.balzac.Modifier;
 import it.unica.tcs.balzac.Network;
 import it.unica.tcs.balzac.NumberLiteral;
-import it.unica.tcs.balzac.Parameter;
 import it.unica.tcs.balzac.PubKeyLiteral;
 import it.unica.tcs.balzac.Reference;
-import it.unica.tcs.balzac.Referrable;
 import it.unica.tcs.balzac.RelativeTime;
 import it.unica.tcs.balzac.Script;
 import it.unica.tcs.balzac.SignatureLiteral;
@@ -127,30 +120,6 @@ public class ASTUtils {
     	KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();
     	key.setValue(privateKey.getWif());
     	return key;
-    }
-
-    public String nodeToString(EObject eobj) {
-    	return NodeModelUtils.getTokenText(NodeModelUtils.getNode(eobj));
-    }
-
-    public String getName(Referrable ref) {
-        if (ref instanceof Parameter)
-            return ((Parameter) ref).getName();
-        if (ref instanceof it.unica.tcs.balzac.Transaction)
-            return ((it.unica.tcs.balzac.Transaction) ref).getName();
-        if (ref instanceof Constant)
-            return ((Constant) ref).getName();    
-        throw new IllegalStateException("Unexpected class "+ref.getClass());
-    }
-
-    public EAttribute getLiteralName(Referrable ref) {
-        if (ref instanceof Parameter)
-            return BalzacPackage.Literals.PARAMETER__NAME;
-        if (ref instanceof it.unica.tcs.balzac.Transaction)
-            return BalzacPackage.Literals.TRANSACTION__NAME;
-        if (ref instanceof Constant)
-            return BalzacPackage.Literals.CONSTANT__NAME;
-        throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 
     public Set<TransactionParameter> getTxVariables(EObject exp) {
@@ -241,7 +210,7 @@ public class ASTUtils {
             res.setValue(BitcoinUtils.encode(sig.getSignature()));
             if (sig.getPubkey().isPresent()) {
             	PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            	pubkey.setValue(BitcoinUtils.encode(sig.getPubkey().get()));
+            	pubkey.setValue(sig.getPubkey().get().getBytesAsString());
             	res.setPubkey(pubkey);
             }
             return res;
@@ -440,40 +409,6 @@ public class ASTUtils {
     public Transaction getTransactionById(String txid, NetworkParameters params) throws TransactionNotFoundException {
         byte[] payloadBytes = BitcoinUtils.decode(bitcoinClientFactory.getBitcoinClient(params).getRawTransaction(txid));
         return new Transaction(params, payloadBytes);
-    }
-
-    public long getOutputAmount(String txString, NetworkParameters params, int index) {
-        try {
-            Transaction tx = new Transaction(params, BitcoinUtils.decode(txString));
-            return tx.getOutput(index).getValue().value;
-        }
-        catch (Exception e) {
-            return -1;
-        }
-    }
-
-    public SigHash toHashType(Modifier mod) {
-        switch (mod) {
-        case AIAO:
-        case SIAO: return SigHash.ALL;
-        case AISO:
-        case SISO: return SigHash.SINGLE;
-        case AINO:
-        case SINO: return SigHash.NONE;
-        default: throw new IllegalStateException();
-        }
-    }
-
-    public boolean toAnyoneCanPay(Modifier mod) {
-        switch (mod) {
-        case SIAO:
-        case SISO:
-        case SINO: return true;
-        case AIAO:
-        case AISO:
-        case AINO: return false;
-        default: throw new IllegalStateException();
-        }
     }
 
     public Optional<it.unica.tcs.balzac.Transaction> getTransactionFromReference(TransactionExpression txExp) {

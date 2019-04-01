@@ -10,7 +10,6 @@ import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.PackageDeclaration
 import it.unica.tcs.lib.model.ITransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
-import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.xsemantics.BalzacInterpreter
 import java.io.File
 import org.apache.log4j.Logger
@@ -22,12 +21,13 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
 
+import static extension it.unica.tcs.utils.ASTExtensions.*
+
 class RawTransactionGenerator extends AbstractGenerator {
 
     static final Logger logger = Logger.getLogger(RawTransactionGenerator)
     @Inject extension IQualifiedNameProvider
     @Inject extension BalzacInterpreter
-    @Inject extension ASTUtils
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
         logger.info("Evaluating expressions for resource "+resource.URI)

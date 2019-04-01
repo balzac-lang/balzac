@@ -4,7 +4,6 @@
 
 package it.unica.tcs.scoping
 
-import com.google.inject.Inject
 import it.unica.tcs.balzac.Constant
 import it.unica.tcs.balzac.Model
 import it.unica.tcs.balzac.Participant
@@ -12,7 +11,6 @@ import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
 import it.unica.tcs.balzac.Script
 import it.unica.tcs.balzac.Transaction
-import it.unica.tcs.utils.ASTUtils
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
@@ -21,6 +19,8 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+
+import static extension it.unica.tcs.utils.ASTExtensions.*
 
 /**
  * This class contains custom scoping description.
@@ -31,7 +31,6 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
 
     static final Logger logger = Logger.getLogger(BalzacScopeProvider);
-    @Inject extension ASTUtils
 
     def IScope scope_Referrable(Reference v, EReference ref) {
         logger.trace("resolving reference: "+v)

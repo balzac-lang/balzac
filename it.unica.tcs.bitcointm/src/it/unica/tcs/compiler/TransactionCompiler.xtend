@@ -17,6 +17,7 @@ import it.unica.tcs.xsemantics.BalzacInterpreter
 import it.unica.tcs.xsemantics.Rho
 import org.apache.log4j.Logger
 import org.eclipse.xtext.util.OnChangeEvictingCache
+import static extension it.unica.tcs.utils.ASTExtensions.*
 
 class TransactionCompiler {
 

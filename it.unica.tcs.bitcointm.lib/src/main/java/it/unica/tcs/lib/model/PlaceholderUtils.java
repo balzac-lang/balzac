@@ -11,7 +11,7 @@ public class PlaceholderUtils {
     public static final String STRING = "";
     public static final boolean BOOLEAN = false;
     public static final Hash HASH = new Hash(new byte[0]);
-    public static final Signature SIGNATURE = new Signature(new byte[0], new byte[0]);
+    public static final Signature SIGNATURE = new Signature(new byte[0], PublicKey.fresh());
 
     private static final NetworkParameters TESTNET = NetworkParameters.fromID(NetworkParameters.ID_TESTNET);
     private static final NetworkParameters MAINNET = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);

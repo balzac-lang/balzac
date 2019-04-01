@@ -68,6 +68,8 @@ import it.unica.tcs.xsemantics.Rho
 import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 
+import static extension it.unica.tcs.utils.ASTExtensions.*
+
 import static org.bitcoinj.script.ScriptOpCodes.*
 
 /*
@@ -312,8 +314,8 @@ class ScriptCompiler {
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(Signature stmt, Context ctx) {
 
-        val hashType = stmt.modifier.toHashType
-        val anyoneCanPay = stmt.modifier.toAnyoneCanPay
+        val hashType = stmt.modifier.toSignatureModifier.toHashType
+        val anyoneCanPay = stmt.modifier.toSignatureModifier.toAnyoneCanPay
         val resKey = stmt.privkey.interpret(ctx.rho)
 
         if (resKey.failed) {

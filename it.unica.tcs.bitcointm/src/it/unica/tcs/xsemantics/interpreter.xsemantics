@@ -73,13 +73,12 @@ import it.unica.tcs.lib.utils.BitcoinUtils
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BalzacLogger
 import it.unica.tcs.utils.BitcoinClientFactory
-import java.math.BigInteger
 import java.security.KeyStoreException
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Utils
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.EcoreUtil2
 import org.slf4j.LoggerFactory
+
+import static extension it.unica.tcs.utils.ASTExtensions.*
 
 system it.unica.tcs.xsemantics.BalzacInterpreter
 
@@ -130,7 +129,7 @@ from {
     }
 
     if (logger.isTraceEnabled) {
-        logger.trace("INTERPRET: "+astUtils.nodeToString(v)+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
+        logger.trace("INTERPRET: "+v.nodeToString+" ("+v.ref.class.simpleName+")"+" rho:"+rho)
         logger.increasePrefixCount
     }
 
@@ -213,7 +212,7 @@ from {
 
 	if (s.pubkey !== null) {
 		G |- s.pubkey |> rho ~> var PublicKey key		
-		sig.pubkey = key.bytes
+		sig.pubkey = key
 	}
 }
 
@@ -258,23 +257,13 @@ from {
     G |- s.tx |> rho ~> var ITransactionBuilder txBuilder
 
     try {
-        val tx = txBuilder.toTransaction(s.ECKeyStore)
-        val inputIndex = s.inputIdx
-        val sigHashType = astUtils.toHashType(s.modifier)
-        val anyonecanpay = astUtils.toAnyoneCanPay(s.modifier)
-    
-        val input = txBuilder.inputs.get(inputIndex)
-        val outScript = input.parentTx.outputs.get(input.outIndex).script.build.program
-    
-        val sig = tx.calculateSignature(
-            inputIndex,
-            ECKey.fromPrivate(key.bytes),
-            outScript,
-            sigHashType,
-            anyonecanpay
-        )
-        
-        res = new it.unica.tcs.lib.model.Signature(sig.encodeToBitcoin, key.toPublicKey.bytes)
+         res = it.unica.tcs.lib.model.Signature.computeSignature(
+            key,
+            txBuilder,
+            s.ECKeyStore,
+            s.inputIdx,
+            s.modifier.toSignatureModifier
+        )   
     }
     catch (KeyStoreException e) {
         fail
@@ -565,15 +554,15 @@ from {
 
     // hash the bytes
     if (hash instanceof Hash160)
-        result = BitcoinUtils.hash(expResult, HashAlgorithm.HASH160)
+        result = Hash.hash(expResult, HashAlgorithm.HASH160)
     else if (hash instanceof Hash256)
-        result = BitcoinUtils.hash(expResult, HashAlgorithm.HASH256)
+        result = Hash.hash(expResult, HashAlgorithm.HASH256)
     else if (hash instanceof Ripemd160)
-        result = BitcoinUtils.hash(expResult, HashAlgorithm.RIPEMD160)
+        result = Hash.hash(expResult, HashAlgorithm.RIPEMD160)
     else if (hash instanceof Sha256)
-        result = BitcoinUtils.hash(expResult, HashAlgorithm.SHA256)
+        result = Hash.hash(expResult, HashAlgorithm.SHA256)
     else if (hash instanceof Sha1)
-        result = BitcoinUtils.hash(expResult, HashAlgorithm.SHA1)
+        result = Hash.hash(expResult, HashAlgorithm.SHA1)
     else {
         fail
         error "Unexpected instance "+hash.class
@@ -594,13 +583,13 @@ from {
      * size(n) == ⌈(log2 |n| + 1) / 7⌉
      */
     if (res instanceof Long) {
-        result = Long.valueOf(Utils.encodeMPI(BigInteger.valueOf(res), false).length)
+        result = BitcoinUtils.sizeOf(res)
     }
     else if (res instanceof Boolean) {
-        result = if (res) 1L else 0L
+        result = BitcoinUtils.sizeOf(res)
     }
     else if (res instanceof String) {
-        result = Long.valueOf(res.length)
+        result = BitcoinUtils.sizeOf(res)
     }
     else {
         fail

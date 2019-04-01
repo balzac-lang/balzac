@@ -77,7 +77,7 @@ import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
-
+import static extension it.unica.tcs.utils.ASTExtensions.*
 import static org.bitcoinj.script.Script.*
 
 /**
@@ -812,7 +812,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     def boolean correctlySpendsOutput(Transaction tx, Rho rho, EObject source) {
 
         
-        var txStr = astUtils.nodeToString(tx)
+        var txStr = tx.nodeToString
         txStr = txStr.substring(0, txStr.indexOf("{")).trim
 
         logger.debug("witness check: interpreting "+txStr+" with rho="+rho)

@@ -4,6 +4,8 @@
 package it.unica.tcs.web
 
 import com.google.gson.Gson
+import it.unica.tcs.lib.model.Hash
+import it.unica.tcs.lib.model.Hash.HashAlgorithm
 import java.io.IOException
 import javax.servlet.ServletException
 import javax.servlet.annotation.WebServlet
@@ -15,8 +17,6 @@ import org.bitcoinj.core.LegacyAddress
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.TestNet3Params
 import org.eclipse.xtend.lib.annotations.Accessors
-import it.unica.tcs.lib.utils.BitcoinUtils
-import it.unica.tcs.lib.model.Hash.HashAlgorithm
 
 @WebServlet(name = 'WebUtils', urlPatterns = '/utils/*')
 class WebUtilsServlet extends HttpServlet {
@@ -109,11 +109,11 @@ class WebUtilsServlet extends HttpServlet {
         new HashResult(
             b.toString,
             b.class.simpleName,
-            BitcoinUtils.hash(b, HashAlgorithm.SHA1).toString,
-            BitcoinUtils.hash(b, HashAlgorithm.SHA256).toString,
-            BitcoinUtils.hash(b, HashAlgorithm.RIPEMD160).toString,
-            BitcoinUtils.hash(b, HashAlgorithm.HASH256).toString,
-            BitcoinUtils.hash(b, HashAlgorithm.HASH160).toString
+            Hash.hash(b, HashAlgorithm.SHA1).toString,
+            Hash.hash(b, HashAlgorithm.SHA256).toString,
+            Hash.hash(b, HashAlgorithm.RIPEMD160).toString,
+            Hash.hash(b, HashAlgorithm.HASH256).toString,
+            Hash.hash(b, HashAlgorithm.HASH160).toString
         )
     }
 }
