@@ -204,6 +204,14 @@ class ScriptCompiler {
                 /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
                 OutputScript.createP2PKH(addr.bytes)
             }
+            else if (addr instanceof PublicKey) {
+                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+                OutputScript.createP2PKH(addr.toAddress(rho.networkParams).bytes)
+            }
+            else if (addr instanceof PrivateKey) {
+                /* OP_DUP OP_HASH160 <pkHash> OP_EQUALVERIFY OP_CHECKSIG */
+                OutputScript.createP2PKH(addr.toPublicKey.toAddress(rho.networkParams).bytes)
+            }
             else {
                 throw new CompileException('''Unable to evaluate to a an address. Result is: «addr»''')
             }
@@ -518,6 +526,9 @@ class ScriptCompiler {
             if (key instanceof PublicKey) {
                 sb.data(key.bytes)
             }
+            else if (key instanceof PrivateKey) {
+                sb.data(key.toPublicKey.bytes)
+            }
             else {
                 throw new CompileException('''Unable to evaluate key «key»''')
             }
@@ -536,6 +547,9 @@ class ScriptCompiler {
                 val key = resKey.first
                 if (key instanceof PublicKey) {
                     sb.data(key.bytes)
+                }
+                else if (key instanceof PrivateKey) {
+                    sb.data(key.toPublicKey.bytes)
                 }
                 else {
                     throw new CompileException('''Unable to evaluate key «key»''')
