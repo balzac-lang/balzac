@@ -7,23 +7,17 @@ package it.unica.tcs.lib.model;
 import java.util.Arrays;
 
 import org.bitcoinj.core.LegacyAddress;
-import org.bitcoinj.core.NetworkParameters;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class AddressImpl implements Address {
     
     private final byte[] address;
-    protected final NetworkParameters params;
+    protected final NetworkType params;
 
-    AddressImpl(byte[] address, NetworkParameters params) {
+    AddressImpl(byte[] address, NetworkType params) {
         this.address = address;
         this.params = params;
-    }
-
-    @Override
-    public NetworkParameters getNetworkParameters() {
-    	return params;
     }
 
     @Override
@@ -33,7 +27,7 @@ class AddressImpl implements Address {
 
     @Override
     public String getWif() {
-        return LegacyAddress.fromPubKeyHash(params, address).toBase58();
+        return LegacyAddress.fromPubKeyHash(params.toNetworkParameters(), address).toBase58();
     }
 
     @Override

@@ -6,7 +6,6 @@ package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 
 public interface PrivateKey {
 
@@ -22,11 +21,19 @@ public interface PrivateKey {
 
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif); 
-        return new PrivateKeyImpl(key.getKey().getPrivKeyBytes(), key.getParameters());
+        return from(key.getKey().getPrivKeyBytes(), NetworkType.from(key.getParameters()));
     }
 
-    public static PrivateKey fresh(NetworkParameters params) {
-        DumpedPrivateKey key = new ECKey().getPrivateKeyEncoded(params); 
-        return new PrivateKeyImpl(key.getKey().getPrivKeyBytes(), key.getParameters());
+    public static PrivateKey from(byte[] keyBytes, NetworkType params) {
+        return new PrivateKeyImpl(keyBytes, params);
     }
+
+    public static PrivateKey fresh(NetworkType params) {
+        return from(new ECKey().getPrivKeyBytes(), params);
+    }
+
+    public static PrivateKey copy(PrivateKey key, NetworkType params) {
+        return from(key.getBytes(), params);
+    }
+
 }

@@ -6,8 +6,6 @@ package it.unica.tcs.lib.model;
 
 import java.util.Arrays;
 
-import org.bitcoinj.core.NetworkParameters;
-
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class PublicKeyImpl implements PublicKey {
@@ -15,7 +13,7 @@ class PublicKeyImpl implements PublicKey {
     private final byte[] pubkey;
 
     PublicKeyImpl(byte[] pubkey) {
-        this.pubkey = pubkey;
+        this.pubkey = Arrays.copyOf(pubkey, pubkey.length);
     }
 
     @Override
@@ -29,18 +27,18 @@ class PublicKeyImpl implements PublicKey {
     }
 
     @Override
-    public Address toAddress(NetworkParameters params) {
+    public Address toAddress(NetworkType params) {
     	return Address.fromPubkey(pubkey, params);
     }
     
     @Override
     public Address toTestnetAddress() {
-    	return toAddress(NetworkParameters.fromID(NetworkParameters.ID_TESTNET));
+    	return toAddress(NetworkType.TESTNET);
     }
     
     @Override
     public Address toMainnetAddress() {
-    	return toAddress(NetworkParameters.fromID(NetworkParameters.ID_MAINNET));
+    	return toAddress(NetworkType.MAINNET);
     }
 
     @Override

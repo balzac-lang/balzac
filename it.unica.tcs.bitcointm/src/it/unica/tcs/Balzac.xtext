@@ -44,7 +44,7 @@ ParticipantElement returns Element:
     PrivateConstant
 |   Transaction;
 
-Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet" | regtest?="regtest");
+Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet");
 
 Parameter: name=ID (":" type=BasicType)?;
 TransactionParameter returns Parameter: {TransactionParameter} name=ID (":" type=BasicType)?;

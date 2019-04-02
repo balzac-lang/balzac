@@ -4,18 +4,17 @@
 package it.unica.tcs.web
 
 import com.google.gson.Gson
+import it.unica.tcs.lib.model.Address
 import it.unica.tcs.lib.model.Hash
 import it.unica.tcs.lib.model.Hash.HashAlgorithm
+import it.unica.tcs.lib.model.NetworkType
+import it.unica.tcs.lib.model.PrivateKey
 import java.io.IOException
 import javax.servlet.ServletException
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.LegacyAddress
-import org.bitcoinj.params.MainNetParams
-import org.bitcoinj.params.TestNet3Params
 import org.eclipse.xtend.lib.annotations.Accessors
 
 @WebServlet(name = 'WebUtils', urlPatterns = '/utils/*')
@@ -45,12 +44,12 @@ class WebUtilsServlet extends HttpServlet {
 
     override protected doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
         if (req.requestURI.contains("/utils/new-key")) {
-            val k = new ECKey
-            val privkeyTestnet = k.getPrivateKeyEncoded(TestNet3Params.get).toBase58
-            val privkeyMainnet = k.getPrivateKeyEncoded(MainNetParams.get).toBase58
-            val publickey = k.publicKeyAsHex
-            val addressTestnet = LegacyAddress.fromPubKeyHash(TestNet3Params.get, k.pubKeyHash).toBase58
-            val addressMainnet = LegacyAddress.fromPubKeyHash(MainNetParams.get, k.pubKeyHash).toBase58
+            val key = PrivateKey.fresh(NetworkType.TESTNET)
+            val privkeyTestnet = key.wif
+            val privkeyMainnet = PrivateKey.copy(key, NetworkType.MAINNET).wif
+            val publickey = key.toPublicKey.bytesAsString
+            val addressTestnet = Address.from(key.toPublicKey, NetworkType.TESTNET).wif
+            val addressMainnet = Address.from(key.toPublicKey, NetworkType.MAINNET).wif
             val result = new KeyResult(privkeyTestnet, privkeyMainnet, publickey, addressTestnet, addressMainnet)
             response.contentType = 'application/json'
             response.status = HttpServletResponse.SC_OK

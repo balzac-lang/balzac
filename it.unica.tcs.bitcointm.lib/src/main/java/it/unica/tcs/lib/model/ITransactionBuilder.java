@@ -10,7 +10,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.Serializable;
 import java.util.List;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 
@@ -64,7 +63,7 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
      * @param bytes the payload of the transaction
      * @return the builder
      */
-    public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, String bytes) {
+    public static ITransactionBuilder fromSerializedTransaction(NetworkType params, String bytes) {
         return fromSerializedTransaction(params, Utils.HEX.decode(bytes));
     }
 
@@ -75,7 +74,7 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
      * @return the builder
      */
     public static ITransactionBuilder fromSerializedTransaction(Transaction tx) {
-        return fromSerializedTransaction(tx.getParams(), tx.bitcoinSerialize());
+        return fromSerializedTransaction(NetworkType.from(tx.getParams()), tx.bitcoinSerialize());
     }
 
     /**
@@ -84,7 +83,7 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
      * @param bytes the payload of the transaction
      * @return the builder
      */
-    public static ITransactionBuilder fromSerializedTransaction(NetworkParameters params, byte[] bytes) {
+    public static ITransactionBuilder fromSerializedTransaction(NetworkType params, byte[] bytes) {
         return new SerialTransactionBuilder(params, bytes);
     }
 

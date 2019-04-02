@@ -7,20 +7,19 @@ package it.unica.tcs.lib.model;
 import java.util.Arrays;
 
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class PrivateKeyImpl implements PrivateKey {
 
-    private final NetworkParameters params;
+    private final NetworkType params;
     private final byte[] privkey;
     private final PublicKey pubkey;
     private final Address address;
     
-    PrivateKeyImpl(byte[] privkey, NetworkParameters params) {
+    PrivateKeyImpl(byte[] privkey, NetworkType params) {
         this.params = params;
-        this.privkey = privkey;
+        this.privkey = Arrays.copyOf(privkey, privkey.length);
         this.pubkey = PublicKey.fromString(BitcoinUtils.encode(ECKey.fromPrivate(privkey).getPubKey()));
         this.address = Address.fromPubkey(pubkey.getBytes(), params);
     }
@@ -32,17 +31,17 @@ class PrivateKeyImpl implements PrivateKey {
 
     @Override
     public String getWif() {
-        return ECKey.fromPrivate(privkey).getPrivateKeyAsWiF(params);
+        return ECKey.fromPrivate(privkey).getPrivateKeyAsWiF(params.toNetworkParameters());
     }
 
     @Override
     public String getBytesAsString() {
         return BitcoinUtils.encode(privkey);
     }
-
+    
     @Override
     public PublicKey toPublicKey() {
-    	return pubkey;
+        return pubkey;
     }
     
     @Override

@@ -5,7 +5,6 @@
 package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
@@ -15,7 +14,7 @@ public interface PublicKey {
 
     public String getBytesAsString();
     
-    public Address toAddress(NetworkParameters params);
+    public Address toAddress(NetworkType params);
 
     public Address toTestnetAddress();
 

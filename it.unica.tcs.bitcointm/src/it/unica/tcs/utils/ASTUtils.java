@@ -17,9 +17,6 @@ import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xsemantics.runtime.Result;
@@ -53,10 +50,10 @@ import it.unica.tcs.balzac.TransactionExpression;
 import it.unica.tcs.balzac.TransactionParameter;
 import it.unica.tcs.balzac.Versig;
 import it.unica.tcs.lib.ECKeyStore;
-import it.unica.tcs.lib.client.TransactionNotFoundException;
 import it.unica.tcs.lib.model.Address;
 import it.unica.tcs.lib.model.Hash;
 import it.unica.tcs.lib.model.ITransactionBuilder;
+import it.unica.tcs.lib.model.NetworkType;
 import it.unica.tcs.lib.model.PlaceholderUtils;
 import it.unica.tcs.lib.model.PrivateKey;
 import it.unica.tcs.lib.model.PublicKey;
@@ -72,7 +69,6 @@ public class ASTUtils {
 	
     private static Logger logger = Logger.getLogger(ASTUtils.class);
 
-    @Inject private BitcoinClientFactory bitcoinClientFactory;
     @Inject private BalzacInterpreter interpreter;
     @Inject private OnChangeEvictingCache cache;
     
@@ -384,31 +380,23 @@ public class ASTUtils {
         }
     }
 
-    public NetworkParameters networkParams(EObject obj) {
+    public NetworkType networkParams(EObject obj) {
         List<Network> list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network.class);
 
         if (list.size()==0) // network undeclared, assume testnet
-            return TestNet3Params.get();
+            return NetworkType.TESTNET;
 
         if (list.size()==1) {
             Network net = list.get(0);
 
             if (net.isTestnet())
-                return TestNet3Params.get();
+                return NetworkType.TESTNET;
 
             if (net.isMainnet())
-                return MainNetParams.get();
-
-            if (net.isRegtest())
-                return RegTestParams.get();
+                return NetworkType.MAINNET;
         }
 
         throw new IllegalStateException();
-    }
-
-    public Transaction getTransactionById(String txid, NetworkParameters params) throws TransactionNotFoundException {
-        byte[] payloadBytes = BitcoinUtils.decode(bitcoinClientFactory.getBitcoinClient(params).getRawTransaction(txid));
-        return new Transaction(params, payloadBytes);
     }
 
     public Optional<it.unica.tcs.balzac.Transaction> getTransactionFromReference(TransactionExpression txExp) {

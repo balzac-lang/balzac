@@ -59,7 +59,6 @@ import org.bitcoinj.core.AddressFormatException
 import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.core.VerificationException
-import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptException
 import org.bitcoinj.script.ScriptPattern
@@ -77,8 +76,10 @@ import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
-import static extension it.unica.tcs.utils.ASTExtensions.*
+
 import static org.bitcoinj.script.Script.*
+
+import static extension it.unica.tcs.utils.ASTExtensions.*
 
 /**
  * This class contains custom validation rules.
@@ -416,10 +417,10 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkKeyDeclaration(KeyLiteral k) {
         val net = k.networkParams
         try {
-            DumpedPrivateKey.fromBase58(net, k.value)
+            DumpedPrivateKey.fromBase58(net.toNetworkParameters, k.value)
         }
         catch (AddressFormatException.WrongNetwork e) {
-            error('''This key is not valid on the «IF net == MainNetParams.get()»mainnet«ELSE»testnet.«ENDIF»''',
+            error('''This key is not valid on the «IF net.isMainnet»mainnet«ELSE»testnet.«ENDIF»''',
                 k,
                 BalzacPackage.Literals.KEY_LITERAL__VALUE
             )
@@ -437,10 +438,10 @@ class BalzacValidator extends AbstractBalzacValidator {
 
         val net = k.networkParams
         try {
-            Address.fromString(net, k.value)
+            Address.fromString(net.toNetworkParameters, k.value)
         }
         catch (AddressFormatException.WrongNetwork e) {
-            error('''This address is not valid on the «IF net == MainNetParams.get()»mainnet«ELSE»testnet.«ENDIF»''',
+            error('''This address is not valid on the «IF net.isMainnet»mainnet«ELSE»testnet.«ENDIF»''',
                 k,
                 BalzacPackage.Literals.ADDRESS_LITERAL__VALUE
             )
@@ -522,7 +523,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkSerialTransaction(TransactionHexLiteral tx) {
 
         try {
-            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams, BitcoinUtils.decode(tx.value))
+            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams.toNetworkParameters, BitcoinUtils.decode(tx.value))
             txJ.verify
         }
         catch (VerificationException e) {
@@ -541,7 +542,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             val id = tx.value
             val client = clientFactory.getBitcoinClient(tx.networkParams)
             val hex = client.getRawTransaction(id)
-            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams, BitcoinUtils.decode(hex))
+            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams.toNetworkParameters, BitcoinUtils.decode(hex))
             txJ.verify
         }
         catch (TransactionNotFoundException e) {

@@ -68,7 +68,7 @@ class KeyStoreGenerator extends AbstractGenerator {
             val ecks = new ECKeyStore(getKsPassword())
 
             for (k : keys) {
-                val key = DumpedPrivateKey.fromBase58(k.networkParams, k.value).key
+                val key = DumpedPrivateKey.fromBase58(k.networkParams.toNetworkParameters, k.value).key
             	val alias = ecks.addKey(key)
             	logger.info('''adding key with alias «alias»''')
             }

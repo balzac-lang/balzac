@@ -7,20 +7,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.eclipse.emf.ecore.EObject;
 
 import it.unica.tcs.balzac.Referrable;
+import it.unica.tcs.lib.model.NetworkType;
 
 public class Rho extends HashMap<Referrable,Object> {
 
     private static final long serialVersionUID = 1L;
 
     private final Set<EObject> visited = new HashSet<>();
-    public final NetworkParameters networkParams;
+    public final NetworkType networkParams;
     private boolean evaluateWitnesses = true;
 
-    public Rho(NetworkParameters params) {
+    public Rho(NetworkType params) {
         this.networkParams = params;
     }
 

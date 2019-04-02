@@ -3,16 +3,12 @@
  */
 package it.unica.tcs.lib.model;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptPattern;
@@ -27,17 +23,17 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
 
     transient private Transaction tx;
 
-    private transient NetworkParameters params;
+    private transient NetworkType params;
     private final byte[] bytes;
 
-    public SerialTransactionBuilder(NetworkParameters params, byte[] bytes) {
+    public SerialTransactionBuilder(NetworkType params, byte[] bytes) {
         this.params = params;
         this.bytes = bytes;
     }
 
     private Transaction getTx() {
         if (tx == null) {
-            tx = new Transaction(params, bytes);
+            tx = new Transaction(params.toNetworkParameters(), bytes);
         }
         return tx;
     }
@@ -204,17 +200,5 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
         } else if (!params.equals(other.params))
             return false;
         return true;
-    }
-
-    // Java serialization
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeUTF(params.getId());
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        params = NetworkParameters.fromID(in.readUTF());
     }
 }

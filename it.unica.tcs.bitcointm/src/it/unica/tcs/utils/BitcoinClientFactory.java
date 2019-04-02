@@ -7,9 +7,6 @@ package it.unica.tcs.utils;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet3Params;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
@@ -18,6 +15,7 @@ import com.google.inject.name.Named;
 
 import it.unica.tcs.lib.client.BitcoinClient;
 import it.unica.tcs.lib.client.impl.RPCBitcoinClient;
+import it.unica.tcs.lib.model.NetworkType;
 
 @Singleton
 public class BitcoinClientFactory {
@@ -41,8 +39,8 @@ public class BitcoinClientFactory {
     private BitcoinClient mainnetClient;
     private BitcoinClient testnetClient;
 
-    public BitcoinClient getBitcoinClient(NetworkParameters params) {
-        if (TestNet3Params.get().equals(params)) {
+    public BitcoinClient getBitcoinClient(NetworkType params) {
+        if (params.isTestnet()) {
             if (testnetHost != null && testnetPort != null && testnetPath != null && testnetUsername != null && testnetPassword != null && testnetTimeout != null) {
                 logger.info("Returning trusted node defined by properties [testnet]");
                 return new RPCBitcoinClient(testnetHost, testnetPort, "http", testnetPath, testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
@@ -52,7 +50,7 @@ public class BitcoinClientFactory {
                 return testnetClient;                
             }
         }
-        else if (MainNetParams.get().equals(params)) {
+        else if (params.isMainnet()) {
             if (mainnetHost != null && mainnetPort != null && mainnetPath != null && mainnetUsername != null && mainnetPassword != null && mainnetTimeout != null) {
                 logger.info("Returning trusted node defined by properties [mainnet]");
                 return new RPCBitcoinClient(mainnetHost, mainnetPort, "http", mainnetPath, mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);

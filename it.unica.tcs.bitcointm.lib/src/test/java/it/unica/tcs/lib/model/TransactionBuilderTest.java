@@ -7,16 +7,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
-import it.unica.tcs.lib.model.CoinbaseTransactionBuilder;
-import it.unica.tcs.lib.model.ITransactionBuilder;
-import it.unica.tcs.lib.model.Input;
-import it.unica.tcs.lib.model.TransactionBuilder;
 import it.unica.tcs.lib.model.script.InputScript;
 import it.unica.tcs.lib.model.script.OutputScript;
 import it.unica.tcs.lib.utils.ObjectUtils;
@@ -26,7 +20,7 @@ public class TransactionBuilderTest {
 
     @Test
     public void test_coinbase_serialization() {
-        CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(MainNetParams.get());
+        CoinbaseTransactionBuilder net = new CoinbaseTransactionBuilder(NetworkType.MAINNET);
         net.addInput(Input.of(InputScript.create()));
         String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
         ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
@@ -37,7 +31,7 @@ public class TransactionBuilderTest {
 
     @Test
     public void test_tx_serialization() {
-        TransactionBuilder net = new TransactionBuilder(MainNetParams.get());
+        TransactionBuilder net = new TransactionBuilder(NetworkType.MAINNET);
         net.addInput(Input.of(InputScript.create()));
         String s2 = ObjectUtils.serializeObjectToStringQuietly(net);
         ITransactionBuilder net2 = ObjectUtils.deserializeObjectFromStringQuietly(s2, ITransactionBuilder.class);
@@ -48,7 +42,7 @@ public class TransactionBuilderTest {
 
     @Test
     public void test() {
-        TransactionBuilder tb = new TransactionBuilder(TestNet3Params.get());
+        TransactionBuilder tb = new TransactionBuilder(NetworkType.MAINNET);
         tb.addVariable("foo", Integer.class);
         tb.addVariable("veryLongName", String.class);
         tb.addVariable("anotherVeryLongName", String.class).bindVariable("anotherVeryLongName", "hihihhihihihihihiihihihi");
@@ -63,7 +57,7 @@ public class TransactionBuilderTest {
 
     @Test
     public void test_addInput() {
-        TransactionBuilder tb = new TransactionBuilder(MainNetParams.get());
+        TransactionBuilder tb = new TransactionBuilder(NetworkType.MAINNET);
         tb.addVariable("foo", Integer.class);
 
         Input in = Input.of(InputScript.create().number(5).addVariable("foo", String.class), 34);
@@ -78,7 +72,7 @@ public class TransactionBuilderTest {
     @Test
     public void test_hook() {
 
-        TransactionBuilder tb = new TransactionBuilder(TestNet3Params.get());
+        TransactionBuilder tb = new TransactionBuilder(NetworkType.MAINNET);
 
         tb.addVariable("a", Integer.class);
         tb.addVariable("b", String.class);
