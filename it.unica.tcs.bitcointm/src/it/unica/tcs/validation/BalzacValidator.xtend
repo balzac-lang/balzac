@@ -45,6 +45,7 @@ import it.unica.tcs.lib.model.ITransactionBuilder
 import it.unica.tcs.lib.model.SerialTransactionBuilder
 import it.unica.tcs.lib.model.TransactionBuilder
 import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.lib.validation.Validator
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
 import it.unica.tcs.xsemantics.BalzacInterpreter
@@ -54,9 +55,6 @@ import java.util.HashSet
 import java.util.Map
 import java.util.Set
 import org.apache.log4j.Logger
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.AddressFormatException
-import org.bitcoinj.core.DumpedPrivateKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.core.VerificationException
 import org.bitcoinj.script.Script
@@ -415,39 +413,20 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkKeyDeclaration(KeyLiteral k) {
-        val net = k.networkParams
-        try {
-            DumpedPrivateKey.fromBase58(net.toNetworkParameters, k.value)
-        }
-        catch (AddressFormatException.WrongNetwork e) {
-            error('''This key is not valid on the «IF net.isMainnet»mainnet«ELSE»testnet.«ENDIF»''',
+        val result = Validator.validatePrivateKey(k.value, k.networkParams)
+        if (result.error) {
+            error(result.message,
                 k,
                 BalzacPackage.Literals.KEY_LITERAL__VALUE
             )
         }
-        catch (AddressFormatException e) {
-            error("Invalid key. "+e.message,
-                k,
-                BalzacPackage.Literals.KEY_LITERAL__VALUE
-            )
-        }
-	}
+  	}
 
     @Check
     def void checkAddressDeclaration(AddressLiteral k) {
-
-        val net = k.networkParams
-        try {
-            Address.fromString(net.toNetworkParameters, k.value)
-        }
-        catch (AddressFormatException.WrongNetwork e) {
-            error('''This address is not valid on the «IF net.isMainnet»mainnet«ELSE»testnet.«ENDIF»''',
-                k,
-                BalzacPackage.Literals.ADDRESS_LITERAL__VALUE
-            )
-        }
-        catch (AddressFormatException e) {
-            error("Invalid address. "+e.message,
+        val result = Validator.validateAddress(k.value, k.networkParams)
+        if (result.error) {
+            error(result.message,
                 k,
                 BalzacPackage.Literals.ADDRESS_LITERAL__VALUE
             )

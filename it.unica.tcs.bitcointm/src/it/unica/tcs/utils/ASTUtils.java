@@ -11,11 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-import org.bitcoinj.core.AddressFormatException;
-import org.bitcoinj.core.Base58;
-import org.bitcoinj.core.DumpedPrivateKey;
 import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -60,7 +56,6 @@ import it.unica.tcs.lib.model.PublicKey;
 import it.unica.tcs.lib.model.SerialTransactionBuilder;
 import it.unica.tcs.lib.model.Signature;
 import it.unica.tcs.lib.utils.BitcoinUtils;
-import it.unica.tcs.validation.ValidationResult;
 import it.unica.tcs.xsemantics.BalzacInterpreter;
 import it.unica.tcs.xsemantics.Rho;
 
@@ -351,33 +346,6 @@ public class ASTUtils {
 
     public long getSequenceNumber(long value, boolean isBlock, Rho rho) {
         return isBlock? castUnsignedShort(value): setRelativeTimelockFlag(getDelayValue(value));
-    }
-
-    public ValidationResult isBase58WithChecksum(String key) {
-        try {
-            Base58.decodeChecked(key);
-            return ValidationResult.VALIDATION_OK;
-        } catch (AddressFormatException e1) {
-            return new ValidationResult(false, e1.getMessage());
-        }
-    }
-
-    public ValidationResult isValidPrivateKey(String key, NetworkParameters params) {
-        try {
-            DumpedPrivateKey.fromBase58(params, key);
-            return ValidationResult.VALIDATION_OK;
-        } catch (AddressFormatException e2) {
-            return new ValidationResult(false, e2.getMessage());
-        }
-    }
-
-    public ValidationResult isValidPublicKey(String key, NetworkParameters params) {
-        try {
-            org.bitcoinj.core.Address.fromString(params, key);
-            return ValidationResult.VALIDATION_OK;
-        } catch (AddressFormatException e2) {
-            return new ValidationResult(false, e2.getMessage());
-        }
     }
 
     public NetworkType networkParams(EObject obj) {

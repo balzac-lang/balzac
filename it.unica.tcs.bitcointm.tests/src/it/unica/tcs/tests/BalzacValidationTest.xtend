@@ -8,14 +8,11 @@
 package it.unica.tcs.tests
 
 import com.google.inject.Inject
-import it.unica.tcs.balzac.BalzacFactory
 import it.unica.tcs.balzac.Model
-import it.unica.tcs.validation.IssueCodes
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
 import org.eclipse.xtext.testing.validation.ValidationTestHelper
-import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 
