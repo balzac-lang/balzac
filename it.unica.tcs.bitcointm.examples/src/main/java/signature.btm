@@ -54,12 +54,12 @@ transaction TcycleCoinbase {
 	output = 10 BTC : fun(x) . versig(kA; x)
 }
 
-const sigTcycle = sig(kA) of Tcycle
-
-transaction Tcycle {
-	input = TcycleCoinbase: sigTcycle
-	output = 2 BTC: fun(x) . x == 1001
-} 
+//const sigTcycle = sig(kA) of Tcycle
+//
+//transaction Tcycle {
+//	input = TcycleCoinbase: sigTcycle
+//	output = 2 BTC: fun(x) . x == 1001
+//} 
 
 eval
     // Signatures have modifiers

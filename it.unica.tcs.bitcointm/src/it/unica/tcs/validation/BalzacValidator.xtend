@@ -30,6 +30,7 @@ import it.unica.tcs.balzac.Plus
 import it.unica.tcs.balzac.Reference
 import it.unica.tcs.balzac.Referrable
 import it.unica.tcs.balzac.RelativeTime
+import it.unica.tcs.balzac.Script
 import it.unica.tcs.balzac.Signature
 import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
@@ -40,11 +41,10 @@ import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.Versig
 import it.unica.tcs.lib.client.BitcoinClientException
-import it.unica.tcs.lib.client.TransactionNotFoundException
 import it.unica.tcs.lib.model.ITransactionBuilder
 import it.unica.tcs.lib.model.SerialTransactionBuilder
 import it.unica.tcs.lib.model.TransactionBuilder
-import it.unica.tcs.lib.utils.BitcoinUtils
+import it.unica.tcs.lib.validation.ValidationResult.InputValidationError
 import it.unica.tcs.lib.validation.Validator
 import it.unica.tcs.utils.ASTUtils
 import it.unica.tcs.utils.BitcoinClientFactory
@@ -55,11 +55,6 @@ import java.util.HashSet
 import java.util.Map
 import java.util.Set
 import org.apache.log4j.Logger
-import org.bitcoinj.core.Utils
-import org.bitcoinj.core.VerificationException
-import org.bitcoinj.script.Script
-import org.bitcoinj.script.ScriptException
-import org.bitcoinj.script.ScriptPattern
 import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
@@ -74,8 +69,6 @@ import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
-
-import static org.bitcoinj.script.Script.*
 
 import static extension it.unica.tcs.utils.ASTExtensions.*
 
@@ -96,7 +89,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Inject BitcoinClientFactory clientFactory;
 
     @Check
-    def void checkUnusedParameters__Script(it.unica.tcs.balzac.Script script){
+    def void checkUnusedParameters__Script(Script script){
 
         for (param : script.params) {
             var references = EcoreUtil.UsageCrossReferencer.find(param, script.exp);
@@ -162,7 +155,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkConstantScripts(it.unica.tcs.balzac.Script script) {
+    def void checkConstantScripts(Script script) {
 
         val res = script.exp.interpretE
 
@@ -434,7 +427,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkUniqueParameterNames__Script(it.unica.tcs.balzac.Script p) {
+    def void checkUniqueParameterNames__Script(Script p) {
 
         for (var i=0; i<p.params.size-1; i++) {
             for (var j=i+1; j<p.params.size; j++) {
@@ -466,7 +459,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     @Check
-    def void checkScriptWithoutMultply(it.unica.tcs.balzac.Script p) {
+    def void checkScriptWithoutMultply(Script p) {
 
         val exp = p.exp
 
@@ -500,51 +493,26 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkSerialTransaction(TransactionHexLiteral tx) {
-
-        try {
-            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams.toNetworkParameters, BitcoinUtils.decode(tx.value))
-            txJ.verify
-        }
-        catch (VerificationException e) {
+        val result = Validator.validateRawTransaction(tx.value, tx.networkParams)
+        if (result.error) {
             error(
-                '''Transaction is invalid. Details: «e.message»''',
+                result.message,
                 tx,
                 null
-            );
+            )            
         }
     }
 
     @Check
     def void checkSerialTransaction(TransactionIDLiteral tx) {
-
-        try {
-            val id = tx.value
-            val client = clientFactory.getBitcoinClient(tx.networkParams)
-            val hex = client.getRawTransaction(id)
-            val txJ = new org.bitcoinj.core.Transaction(tx.networkParams.toNetworkParameters, BitcoinUtils.decode(hex))
-            txJ.verify
-        }
-        catch (TransactionNotFoundException e) {
+        val client = clientFactory.getBitcoinClient(tx.networkParams)
+        val result = Validator.validateTransactionById(tx.value, client, tx.networkParams)
+        if (result.error) {
             error(
-                '''Transaction not found, please verify you have specified the correct network. Details: «e.message»''',
+                result.message,
                 tx,
                 null
-            );
-        }
-        catch (VerificationException e) {
-            error(
-                '''Transaction is invalid. Details: «e.message»''',
-                tx,
-                null
-            );
-        }
-        catch (Exception e) {
-            error(
-                '''Unable to fetch the transaction from its ID. Check that trusted nodes are configured correctly''',
-                tx,
-                null
-            );
-            e.printStackTrace
+            )            
         }
     }
 
@@ -801,62 +769,31 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (!res.failed) {
             var txBuilder = res.first as ITransactionBuilder
 
-            if (txBuilder.isCoinbase) {
-                logger.debug("witness check: tx "+txStr+" with rho="+rho+" is a coibase (skip)")
-                return true
-            }
+            val validationResult = Validator.checkWitnessesCorrecltySpendsOutputs(txBuilder, tx.ECKeyStore)
 
-            if (!txBuilder.isReady) {
-                logger.debug("witness check: tx "+txStr+" with rho="+rho+" is not ready (skip)")
-                return true
-            }
-
-            for (var i=0; i<tx.inputs.size; i++) {
-                logger.debug('''witness check: «tx.inputs.get(i).nodeToString.replaceAll("\n"," \\ ")»''')
-
-                var Script inScript = null
-                var Script outScript = null
-
-                try {
-                    // compile the transaction to BitcoinJ representation
-                    var txJ = txBuilder.toTransaction(tx.ECKeyStore)
-
-                    inScript = txJ.getInput(i).scriptSig
-                    outScript = txJ.getInput(i).outpoint.connectedOutput.scriptPubKey
-//                    val value = txJ.getInput(i).outpoint.connectedOutput.value
-
-                    inScript.correctlySpends(
-                            txJ,
-                            i,
-                            outScript,
-//                            value,
-                            ALL_VERIFY_FLAGS
-                        )
-                } catch(ScriptException e) {
-
-                    warning(
-                        '''
-                        Input «i» does not redeem the specified output script.
-
-                        Details: «e.message»
-
-                        INPUT:   «inScript»
-                        OUTPUT:  «outScript»
-                        «IF ScriptPattern.isPayToScriptHash(outScript)»
-                        REDEEM SCRIPT:  «new Script(inScript.chunks.get(inScript.chunks.size-1).data)»
-                        REDEEM SCRIPT HASH:  «BitcoinUtils.encode(Utils.sha256hash160(new Script(inScript.chunks.get(inScript.chunks.size-1).data).program))»
-                        «ENDIF»
-                        ''',
+            if (validationResult.error) {
+                if (validationResult instanceof InputValidationError) {
+                    warning('''
+                        Input «validationResult.index» does not redeem the specified output script.
+                        Reason: «validationResult.message»
+                        
+                        INPUT:   «validationResult.inputScript»
+                        OUTPUT:  «validationResult.outputScript»
+                        «IF validationResult.reedemScript !== null»
+                        REDEEM SCRIPT:  «validationResult.reedemScript»
+                        «ENDIF»''',
                         source,
                         if (source === tx) BalzacPackage.Literals.TRANSACTION__INPUTS,
-                        i
-                    );
-                } catch(Exception e) {
-                    error('''Something went wrong: see error for details''',
-                            source,
-                            if (source === tx) BalzacPackage.Literals.TRANSACTION__INPUTS,
-                            i)
-                    e.printStackTrace
+                        validationResult.index
+                    )
+                }
+                else {
+                    warning('''
+                        Something went wrong verifying the input witnesses.
+                        «validationResult.message»''',
+                        tx,
+                        BalzacPackage.Literals.TRANSACTION__INPUTS
+                    )
                 }
             }
         }
@@ -871,7 +808,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkPositiveOutValue(Output output) {
 
         var value = output.value.interpretE.first as Long
-        var script = output.script as it.unica.tcs.balzac.Script
+        var script = output.script as Script
 
         if (script.isOpReturn(new Rho(output.networkParams)) && value>0) {
             error("OP_RETURN output scripts must have 0 value.",
@@ -905,7 +842,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 var outputB = tx.outputs.get(j)
 
                 // these checks need to be executed in this order
-                if ((outputA.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho(tx.networkParams)) && (outputB.script as it.unica.tcs.balzac.Script).isOpReturn(new Rho(tx.networkParams))
+                if ((outputA.script as Script).isOpReturn(new Rho(tx.networkParams)) && (outputB.script as Script).isOpReturn(new Rho(tx.networkParams))
                 ) {
                     if (!error.get(i) && (error.set(i,true) && true))
                         warning(
@@ -930,7 +867,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Check
     def void checkUniqueRelativeTimelock(RelativeTime tlock) {
 
-        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, it.unica.tcs.balzac.Script) !== null;
+        val isScriptTimelock = EcoreUtil2.getContainerOfType(tlock, Script) !== null;
 
         if (isScriptTimelock)
             return
@@ -1009,7 +946,7 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     def private boolean checkExpressionIsWithinScript(EObject obj) {
-        val script = EcoreUtil2.getContainerOfType(obj, it.unica.tcs.balzac.Script)
+        val script = EcoreUtil2.getContainerOfType(obj, Script)
 
         if (script === null) {
             error(

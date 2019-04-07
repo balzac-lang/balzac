@@ -28,7 +28,7 @@ transaction inTx {
 }
 
 transaction A {
-	input = inTx: 44
+	input = inTx: 42
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
