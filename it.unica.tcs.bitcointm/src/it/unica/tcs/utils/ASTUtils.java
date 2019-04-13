@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.Transaction;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xsemantics.runtime.Result;
@@ -141,10 +139,6 @@ public class ASTUtils {
         if (exp instanceof Literal)
             return exp;
 
-        if (exp instanceof Transaction)
-            return exp;
-
-
         Result<Object> interpreted = interpreter.interpret(exp, rho);
         if (interpreted.failed())
             return exp;
@@ -188,11 +182,6 @@ public class ASTUtils {
         else if (value instanceof Address) {
             AddressLiteral res = BalzacFactory.eINSTANCE.createAddressLiteral();
             res.setValue(((Address) value).getWif());
-            return res;
-        }
-        else if (value instanceof ECKey) {	// TODO remove this case
-            PubKeyLiteral res = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            res.setValue(((ECKey) value).getPublicKeyAsHex());
             return res;
         }
         else if (value instanceof Signature) {
