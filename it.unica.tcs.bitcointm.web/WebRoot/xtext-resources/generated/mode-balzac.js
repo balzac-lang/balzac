@@ -24,7 +24,7 @@ define(["ace/lib/oop", "ace/mode/text", "ace/mode/text_highlight_rules"], functi
 		this.HighlightRules = HighlightRules;
 	};
 	oop.inherits(Mode, mText.Mode);
-	Mode.prototype.$id = "xtext/btm";
+	Mode.prototype.$id = "xtext/balzac";
 	Mode.prototype.getCompletions = function(state, session, pos, prefix) {
 		return [];
 	}

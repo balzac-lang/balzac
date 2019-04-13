@@ -45,7 +45,7 @@ mvn -f it.unica.tcs.bitcointm.parent/ clean install
 
 ### Run standalone server
 
-In order to locally run the server (same of [http://blockchain.unica.it/btm/](http://blockchain.unica.it/btm/)):
+In order to locally run the server (the same available at [http://balzac-lang.xyz](http://balzac-lang.xyz)):
 
 ```
 mvn -f it.unica.tcs.bitcointm.web/ jetty:run

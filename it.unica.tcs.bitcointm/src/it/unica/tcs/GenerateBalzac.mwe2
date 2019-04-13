@@ -40,7 +40,7 @@ Workflow {
 		}
 		language = StandardLanguage {
 			name = "it.unica.tcs.Balzac"
-			fileExtensions = "btm"
+			fileExtensions = "balzac"
 
 			serializer = {
 				generateStub = false

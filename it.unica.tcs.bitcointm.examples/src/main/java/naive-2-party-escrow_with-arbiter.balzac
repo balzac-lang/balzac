@@ -10,7 +10,7 @@
  * https://www.bitaddress.org/?testnet=true
  */
 
-package it.unica.btm.naive_2_party_escrow_arbiter
+package balzac.naive_2_party_escrow_arbiter
 
 const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ

@@ -1,4 +1,4 @@
-package it.unica.btm.test_tx_params
+package balzac.test_tx_params
 
 
 //transaction T(a:int, b: int) {

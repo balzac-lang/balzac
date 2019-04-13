@@ -14,7 +14,7 @@
 /*
  * https://www.bitaddress.org/?testnet=true
  */
-package it.unica.btm.naive_2_party_escrow
+package balzac.naive_2_party_escrow
 
 network testnet
 

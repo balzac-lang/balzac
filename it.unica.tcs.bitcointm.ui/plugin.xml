@@ -7,7 +7,7 @@
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
 			contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
 			default="true"
-			extensions="btm"
+			extensions="balzac"
 			id="it.unica.tcs.Balzac"
 			name="Balzac Editor">
 		</editor>
@@ -207,7 +207,7 @@
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 		<content-type
 			base-type="org.eclipse.core.runtime.text"
-			file-extensions="btm"
+			file-extensions="balzac"
 			id="it.unica.tcs.Balzac.contenttype"
 			name="Balzac File"
 			priority="normal">
@@ -218,13 +218,13 @@
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
-			type="btm">
+			type="balzac">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 		<resourceServiceProvider
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
-			uriExtension="btm">
+			uriExtension="balzac">
 		</resourceServiceProvider>
 	</extension>
 	<!-- marker definitions for it.unica.tcs.Balzac -->
@@ -261,7 +261,7 @@
 	<extension point="org.eclipse.xtext.builder.participant">
 		<participant
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
-			fileExtensions="btm"/>
+			fileExtensions="balzac"/>
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
@@ -404,7 +404,7 @@
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="it.unica.tcs.Balzac.compare.contentViewers"
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="btm">
+			extensions="balzac">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="it.unica.tcs.Balzac.contenttype"
@@ -413,7 +413,7 @@
 	<extension point="org.eclipse.compare.contentMergeViewers">
 		<viewer id="it.unica.tcs.Balzac.compare.contentMergeViewers"
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="btm" label="Balzac Compare">
+			extensions="balzac" label="Balzac Compare">
 		</viewer>
 		<contentTypeBinding
 			contentTypeId="it.unica.tcs.Balzac.contenttype"
@@ -422,12 +422,12 @@
 	<extension point="org.eclipse.ui.editors.documentProviders">
 		<provider id="it.unica.tcs.Balzac.editors.documentProviders"
 			class="it.unica.tcs.ui.BalzacExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
-			extensions="btm">
+			extensions="balzac">
 		</provider>
 	</extension>
 	<extension point="org.eclipse.team.core.fileTypes">
 		<fileTypes
-			extension="btm"
+			extension="balzac"
 			type="text">
 		</fileTypes>
 	</extension>

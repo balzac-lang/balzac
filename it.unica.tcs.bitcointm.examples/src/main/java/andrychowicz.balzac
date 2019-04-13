@@ -2,7 +2,7 @@
  * Time commitment - Andrychowicz
  */
 
-package it.unica.btm.andrychowicz
+package balzac.andrychowicz
 
 const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ

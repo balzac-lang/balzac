@@ -45,7 +45,7 @@
                 
                 var editor = xtext.createEditor({
                     baseUrl: baseUrl,
-                    syntaxDefinition: "xtext-resources/generated/mode-btm"
+                    syntaxDefinition: "xtext-resources/generated/mode-balzac"
                 });
                 
                 var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
@@ -424,17 +424,17 @@
                                     id="selectExample" data-toggle="dropdown" aria-haspopup="true"
                                     aria-expanded="false">Select an example</button>
                                 <div class="dropdown-menu" aria-labelledby="selectExample">
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.btm')">Balzac in a nutshell</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle.btm')">Oracle</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-timed.btm')">Oracle (timed)</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/escrow-alice.btm')">Escrow (Alice's view)</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.btm')">Timed Commitment</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/signatures.btm')">Signature modifiers</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.balzac')">Balzac in a nutshell</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle.balzac')">Oracle</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-timed.balzac')">Oracle (timed)</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/escrow-alice.balzac')">Escrow (Alice's view)</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.balzac')">Timed Commitment</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/signatures.balzac')">Signature modifiers</button>
                                 </div>
                             </div>
                         </div>
                         <div class="border border-dark mb-3" >
-                            <div id="xtext-editor" class="" data-editor-xtext-lang="btm"></div>                
+                            <div id="xtext-editor" class="" data-editor-xtext-lang="balzac"></div>                
                         </div>
                         <div class="text-center">
                             <div id="compile" type="button" class="btn btn-primary ld-ext-right">Evaluate
