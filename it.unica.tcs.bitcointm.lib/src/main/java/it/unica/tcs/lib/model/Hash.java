@@ -16,8 +16,8 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.ScriptBuilder;
-import org.spongycastle.crypto.digests.RIPEMD160Digest;
-import org.spongycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.crypto.digests.SHA1Digest;
 
 import it.unica.tcs.lib.utils.BitcoinUtils;
 

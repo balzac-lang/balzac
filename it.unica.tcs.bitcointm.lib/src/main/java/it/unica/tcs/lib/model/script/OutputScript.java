@@ -61,7 +61,7 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
     }
 
     public static OutputScript createP2PKH(Script script) {
-        checkState(ScriptPattern.isPayToPubKeyHash(script));
+        checkState(ScriptPattern.isP2PKH(script));
         byte[] address = script.getChunks().get(2).data;
         return createP2PKH(address);
     }

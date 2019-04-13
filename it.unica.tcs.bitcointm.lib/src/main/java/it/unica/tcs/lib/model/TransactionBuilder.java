@@ -408,7 +408,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             }
             else {
             	// set outScript
-                if (ScriptPattern.isPayToScriptHash(txInput.getOutpoint().getConnectedOutput().getScriptPubKey())) {
+                if (ScriptPattern.isP2SH(txInput.getOutpoint().getConnectedOutput().getScriptPubKey())) {
                     checkState(inputScript.isP2SH(), "why not?");
                     outScript = inputScript.getRedeemScript().build().getProgram();
                 }
@@ -416,7 +416,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
 
                 // set isP2PKH
-                isP2PKH = ScriptPattern.isPayToPubKeyHash(txInput.getOutpoint().getConnectedOutput().getScriptPubKey());
+                isP2PKH = ScriptPattern.isP2SH(txInput.getOutpoint().getConnectedOutput().getScriptPubKey());
             }
 
             try {

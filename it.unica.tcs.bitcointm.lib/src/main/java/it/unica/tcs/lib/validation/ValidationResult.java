@@ -44,7 +44,7 @@ public class ValidationResult {
         }
 
         private static boolean isP2SH(Script script) {
-            return ScriptPattern.isPayToScriptHash(script);
+            return ScriptPattern.isP2SH(script);
         }
 
         private static Script decode(byte[] scriptByte) {

@@ -81,10 +81,10 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
             @Override
             public Output get(int index) {
                 Script s = getTx().getOutput(index).getScriptPubKey();
-                if (ScriptPattern.isPayToScriptHash(s)) {
+                if (ScriptPattern.isP2SH(s)) {
                     return Output.of(OutputScript.createP2SH().append(s), getTx().getOutput(index).getValue().value);
                 }
-                if (ScriptPattern.isPayToPubKeyHash(s)) {
+                if (ScriptPattern.isP2PKH(s)) {
                     return Output.of(OutputScript.createP2PKH(s), getTx().getOutput(index).getValue().value);
                 }
                 if (ScriptPattern.isOpReturn(s)) {
