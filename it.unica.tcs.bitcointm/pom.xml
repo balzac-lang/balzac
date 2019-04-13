@@ -54,7 +54,7 @@
                     </arguments>
                     <classpathScope>compile</classpathScope>
                     <includePluginDependencies>true</includePluginDependencies>
-                    <cleanupDaemonThreads>false</cleanupDaemonThreads><!-- 
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads><!--
                         see https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098#c3 -->
                 </configuration>
                 <dependencies>
@@ -109,8 +109,8 @@
                     </languages>
                 </configuration>
                 <dependencies>
-                    <!-- add a dependency to the language core bundle, this 
-                        will only be needed during generation and will not pollute your project's 
+                    <!-- add a dependency to the language core bundle, this
+                        will only be needed during generation and will not pollute your project's
                         classpath. -->
                     <dependency>
                         <groupId>org.eclipse.xsemantics</groupId>
@@ -233,7 +233,7 @@
     </build>
     <repositories>
         <repository>
-            <!-- we also need this one because this is an eclipse project, 
+            <!-- we also need this one because this is an eclipse project,
                 so it needs to resolve xsemantics runtime dependencies from the p2 repository -->
             <id>Xsemantics</id>
             <layout>p2</layout>

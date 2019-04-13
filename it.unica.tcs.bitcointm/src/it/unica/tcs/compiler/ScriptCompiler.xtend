@@ -144,7 +144,7 @@ class ScriptCompiler {
             /*
              * P2SH
              */
-            val redeemScript = 
+            val redeemScript =
                 if (parentTx instanceof SerialTransactionBuilder) {
 
                     // get the redeem script from the AST (specified by the user)
@@ -254,7 +254,7 @@ class ScriptCompiler {
             var numberOfRefs = EcoreUtil2.getAllContentsOfType(script, Reference).filter[v|v.ref==p].size
 
             if (numberOfRefs == 0) {    // drop unused variables
-                redeemScript.op(OP_DROP)            
+                redeemScript.op(OP_DROP)
             }
             else {
                 ctx.altstack.put(p, AltStackEntry.of(ctx.altstack.size))    // update the context
@@ -327,7 +327,7 @@ class ScriptCompiler {
         val resKey = stmt.privkey.interpret(ctx.rho)
 
         if (resKey.failed) {
-            // check if the privkey is a tx parameter 
+            // check if the privkey is a tx parameter
             if (stmt.privkey instanceof Reference) {
                 val ref = stmt.privkey as Reference
                 if (ref.ref instanceof TransactionParameter) {
@@ -380,14 +380,14 @@ class ScriptCompiler {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
         sb.op(OP_DROP)
-        sb.append(stmt.continuation.compileExpression(ctx))        
+        sb.append(stmt.continuation.compileExpression(ctx))
     }
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckDate stmt, Context ctx) {
         var sb = stmt.exp.compileExpression(ctx)
         sb.op(OP_CHECKLOCKTIMEVERIFY)
         sb.op(OP_DROP)
-        sb.append(stmt.continuation.compileExpression(ctx))                
+        sb.append(stmt.continuation.compileExpression(ctx))
     }
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(CheckBlockDelay stmt, Context ctx) {

@@ -47,7 +47,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 
     /**
      * Create contents of the preference page.
-     * 
+     *
      * @param parent
      *            the parent composite
      */
@@ -64,14 +64,14 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 
 //        Label oldPasswordLabel = new Label(container, SWT.NONE);
 //        oldPasswordLabel.setText("Old Password");
-//        
+//
 //        Text oldPasswordText = new Text(container, SWT.BORDER | SWT.PASSWORD);
 //        oldPasswordText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 //        oldPasswordText.setEnabled(isPasswordSaved());
 //        if (!isPasswordSaved()) {
 //            oldPasswordText.setMessage("Password not set");
 //        }
-//        
+//
 //        Label newPasswordLabel = new Label(container, SWT.NONE);
 //        newPasswordLabel.setText("New Password");
 //
@@ -109,12 +109,12 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 //        newPasswordText.setText("");
 //        newPasswordText.setMessage("Enter a new password");
         repeatPasswordText.setText("");
-        repeatPasswordText.setMessage("Enter a new password");        
+        repeatPasswordText.setMessage("Enter a new password");
         super.updateApplyButton();
     }
 
     @Override
-    public boolean isValid() {        
+    public boolean isValid() {
         // check the old password
 //        if (oldPasswordText.isEnabled()) {
 //            try {
@@ -130,7 +130,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 //                return false;
 //            }
 //        }
-//        
+//
 //        // check new == repeat
 //        if (!newPasswordText.getText().equals(repeatPasswordText.getText())) {
 //            this.setErrorMessage("Passwords do not match");

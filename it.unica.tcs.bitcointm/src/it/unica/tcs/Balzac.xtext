@@ -69,7 +69,7 @@ Transaction:
 		("relLock" "=" (relLocks+=RelativeTime| (multiLock?="[" relLocks+=RelativeTime (";" relLocks+=RelativeTime)* ";"? "]") ))?
 	"}";
 
-Script returns Expression: 
+Script returns Expression:
     {Script} (lambda?="fun" "(" (params+=ScriptParameter ("," params+=ScriptParameter)*)? ")" ".")? exp=Expression;
 
 Input:
@@ -142,7 +142,7 @@ Prefixed returns Expression:
     SelectorOperation;
 
 SelectorOperation returns Expression:
-    AtomicExpression ( 
+    AtomicExpression (
         => "." (
             {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
             | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
@@ -172,7 +172,7 @@ AtomicExpression returns Expression:
 ;
 
 Reference:
-    {This} "this" 
+    {This} "this"
 | ref=[Referrable|QualifiedName] ( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Referrable:

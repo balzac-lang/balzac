@@ -56,7 +56,7 @@ public class ECKeyStore {
 
     /**
      * Create a new ECKeyStore with the specified password.
-     * The same password is used to store the keystore via {@link #store(File)} and for entries. 
+     * The same password is used to store the keystore via {@link #store(File)} and for entries.
      * Use {@link #changePassword(char[])} to set a new password.
      * @param password a password for the store and its entries.
      * @return an instance of ECKeyStore.

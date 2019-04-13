@@ -60,5 +60,5 @@ public enum SignatureModifier {
         default:
             throw new IllegalStateException();
         }
-    }    
+    }
 }

@@ -39,7 +39,7 @@ transaction T1(sigA:signature, sigB:signature, pubK:pubkey)  {
     output = 1 BTC: fun(x). versig(pubK; x)
 }
 
-// signature of T1 that send the money to Bob		
+// signature of T1 that send the money to Bob
 const sigA_to_Bob = sig(kA) of T1(_,_,kBpub)
 
 //

@@ -57,7 +57,7 @@
                     }
                 } else {
                     // Sorry! No Web Storage support..
-                }  
+                }
 
                 editor.setValue(text);
 //                 editor.setTheme("ace/theme/monokai");
@@ -82,12 +82,12 @@
                         editor.xtextServices.generate()
                             .done(function(result){
                                 $("#result").html(result)
-                                $("#result").addClass("highlight-result")                                
+                                $("#result").addClass("highlight-result")
                                 $("#compile").removeClass("running")
                                 setTimeout(function(){
-                                    $("#result").removeClass("highlight-result")                                
+                                    $("#result").removeClass("highlight-result")
                                 },1000)
-                            });                	
+                            });
                     }, 300)
                 });
             });
@@ -159,7 +159,7 @@
 
 
 
-		            }); 
+		            });
             });});});
 
         function populateKeys(data) {
@@ -290,10 +290,10 @@
 		                <div class="text-right">
 		                    <input id="isTestnet" checked type="checkbox"
 		                        data-style="mb-3"
-		                        data-toggle="toggle" 
-		                        data-on="Testnet" 
-		                        data-off="Mainnet" 
-		                        data-onstyle="info" 
+		                        data-toggle="toggle"
+		                        data-on="Testnet"
+		                        data-off="Mainnet"
+		                        data-onstyle="info"
 		                        data-offstyle="info"
 		                        data-size="small"
 		                        >
@@ -377,7 +377,7 @@
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
-                        </div>                        
+                        </div>
 
                         <div class="text-center" class="btn btn-info btn-block mb-5">
                             <div id="compute-hash-button" type="button" class="btn btn-info btn-block ld-ext-right">Compute Hash
@@ -396,7 +396,7 @@
                     </div>
                 </div>
 
-            </div>        
+            </div>
         </div>
         <!-- /#sidebar-wrapper -->
 
@@ -434,7 +434,7 @@
                             </div>
                         </div>
                         <div class="border border-dark mb-3" >
-                            <div id="xtext-editor" class="" data-editor-xtext-lang="balzac"></div>                
+                            <div id="xtext-editor" class="" data-editor-xtext-lang="balzac"></div>
                         </div>
                         <div class="text-center">
                             <div id="compile" type="button" class="btn btn-primary ld-ext-right">Evaluate

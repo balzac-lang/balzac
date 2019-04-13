@@ -13,7 +13,7 @@ const addrB = address:mmGQmi9svUp8ky7u9YPgHZ3TwU1aeNq7Tq
 transaction T_deposit {input = _ output = 1BTC: fun(x). versig(kApub; x)}
 
 transaction T {
-        input = T_deposit: sig(kA) 
+        input = T_deposit: sig(kA)
         output = 1BTC: fun(sigA, sigB). versig(kApub, kBpub; sigA, sigB)
 }
 
@@ -77,9 +77,9 @@ eval
     sigA2_ok,
     sigB2_ok,
     sigA,
-    T_escrow_Alice,       
+    T_escrow_Alice,
     T_escrow_Alice_bis,  // uguale a quello sopra
-    T_escrow_Bob, 
+    T_escrow_Bob,
     T_escrow_Bob_bis     // uguale a quello sopra
 
 

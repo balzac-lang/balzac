@@ -34,7 +34,7 @@ class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
 
     def IScope scope_Referrable(Reference v, EReference ref) {
         logger.trace("resolving reference: "+v)
-        val scope = 
+        val scope =
             getIScopeForParameters(v,
                 getParticipantIScope(v,
                     getGlobalParticipantIScope(v,

@@ -7,7 +7,7 @@ transaction T_input1 {
 // simple coinbase 2
 transaction T_input2 {
     input = _
-    output = 1 BTC: fun(x) . x != 0 
+    output = 1 BTC: fun(x) . x != 0
 }
 
 // focus on this transaction
@@ -40,7 +40,7 @@ transaction T_sameInput {
 
 transaction T_sameOutput {
     input = [                   // inputs are swapped
-        T_input2 : 1; 
+        T_input2 : 1;
         T_input1 : 42
     ]
     output = 2 BTC: fun(x) . x == 1001
@@ -59,7 +59,7 @@ transaction TcycleCoinbase {
 //transaction Tcycle {
 //	input = TcycleCoinbase: sigTcycle
 //	output = 2 BTC: fun(x) . x == 1001
-//} 
+//}
 
 eval
     // Signatures have modifiers
@@ -75,7 +75,7 @@ eval
     sig(kA) of T == sig(kA) of T@0,                         // true
     sig(kA) of T == sig(kA) of T@1,                         // false
 
-    // Signature can also sign a single output or none 
+    // Signature can also sign a single output or none
     T == T_sameInput,                                       // false, transactions are different
     sig(kA) of T == sig(kA) of T_sameInput,                 // false, signatures AIAO are different
     sig(kA)[AINO] of T == sig(kA)[AINO] of T_sameInput,     // true, because it ignores all the outputs

@@ -33,17 +33,17 @@ transaction A {
 }
 
 transaction A_bis(inTxP:transaction) {
-	input = inTxP: 44 
+	input = inTxP: 44
 	output = 0.5 BTC : fun(a:int) . a==42
 }
 
 /*
- * signature as parameter 
+ * signature as parameter
  */
 
 eval
 //	T(3,4)
-//	T2(10,5,15) 
+//	T2(10,5,15)
 //	T3
 	A,
 	A_bis(inTx)

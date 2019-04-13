@@ -47,7 +47,7 @@ public class BitcoinClientFactory {
             }
             else {
                 Preconditions.checkNotNull(testnetClient);
-                return testnetClient;                
+                return testnetClient;
             }
         }
         else if (params.isMainnet()) {

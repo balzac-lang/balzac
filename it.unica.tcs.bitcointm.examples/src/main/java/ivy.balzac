@@ -70,7 +70,7 @@ transaction RevealPreimage(h, val) {	// same of LockWithPublicKey
  *     unlock val
  *   }
  * }
- * 
+ *
  * 2DUP EQUAL NOT VERIFY SHA1 SWAP SHA1 EQUAL (non standard!)
  */
 transaction RevealCollision(val) {
@@ -85,7 +85,7 @@ transaction RevealCollision(val) {
  *     unlock val
  *   }
  * }
- * 
+ *
  * DUP SHA256 EQUAL (non standard!)
  */
 transaction RevealFixedPoint(val) {

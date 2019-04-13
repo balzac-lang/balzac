@@ -6,7 +6,7 @@
 A domain-specific language to write Bitcoin transactions, based on the paper
 [A formal model of Bitcoin transactions](https://eprint.iacr.org/2017/1124.pdf) presented at [Financial Cryptography and Data Security 2018](http://fc18.ifca.ai/).
 
-**Online editor**: 
+**Online editor**:
 
 - [http://blockchain.unica.it/balzac/](http://blockchain.unica.it/balzac/)
 - [http://balzac-lang.xyz](http://balzac-lang.xyz) (mirror)

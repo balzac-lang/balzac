@@ -498,7 +498,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 result.message,
                 tx,
                 null
-            )            
+            )
         }
     }
 
@@ -727,7 +727,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         for (output : tx.outputs) {
             val res = output.value.interpret(rho)
             if (!res.failed) {
-                val value = res.first as Long                
+                val value = res.first as Long
                 amount -= value
             }
         }
@@ -917,7 +917,7 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check
     def void checkCheckTimeDelay(CheckTimeDelay check) {
-        checkExpressionIsWithinScript(check)        
+        checkExpressionIsWithinScript(check)
         checkTimeExpression(check.exp, false, false, check, BalzacPackage.Literals.CHECK_TIME_DELAY__EXP)
     }
 

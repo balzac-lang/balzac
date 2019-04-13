@@ -1,0 +1,1 @@
+find . -type f -not \( -path "*target*" -or -path "*.git*" -or -path "*-gen*" -prune \) -exec grep -Iq . {} \; -print0 | xargs -0 sed -i "s/\s*$//g"

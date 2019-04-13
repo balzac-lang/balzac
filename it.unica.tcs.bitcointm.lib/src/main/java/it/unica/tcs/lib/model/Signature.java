@@ -29,7 +29,7 @@ public class Signature {
     public Signature(byte[] signature, PublicKey pubkey) {
         checkArgument(signature != null, "Signature cannot be null");
         this.signature = Arrays.copyOf(signature, signature.length);
-        setPubkey(pubkey);    
+        setPubkey(pubkey);
     }
 
     public byte[] getSignature() {
@@ -86,8 +86,8 @@ public class Signature {
         byte[] outputScript = output.getScript().build().getProgram();
 
         TransactionSignature sig = tx.calculateSignature(
-                inputIndex, 
-                ECKey.fromPrivate(key.getBytes()), 
+                inputIndex,
+                ECKey.fromPrivate(key.getBytes()),
                 outputScript,
                 modifier.toHashType(),
                 modifier.toAnyoneCanPay());

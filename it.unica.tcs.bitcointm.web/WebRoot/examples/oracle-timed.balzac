@@ -1,6 +1,6 @@
 /*
  * Oracle (timed version)
- * 
+ *
  * https://blockchain.unica.it/balzac/docs/oracle.html
  */
 
@@ -20,7 +20,7 @@ participant Alice {
 
     transaction T {
         input = A_funds: sig(kA)
-        output = 1 BTC: fun(sigma, sigO). 
+        output = 1 BTC: fun(sigma, sigO).
                 versig(Bob.kBpub, Oracle.kOpub; sigma, sigO)
                 || checkDate deadline : versig(kApub;sigma)
     }

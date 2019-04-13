@@ -37,13 +37,13 @@ class BalzacConverterService extends DefaultTerminalConverters {
             override toValue(String string, INode node) throws ValueConverterException {
                 val value = string.split(":").get(1).toLowerCase
                 if (value.length % 2 == 1) {
-                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash: digits must be even.", node, null);                                        
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash: digits must be even.", node, null);
                 }
                 try {
                     return BitcoinUtils.decode(value)
                 }
                 catch (Exception e) {
-                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash. Details: "+e.message, node, null);                    
+                    throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid hash. Details: "+e.message, node, null);
                 }
             }
         }

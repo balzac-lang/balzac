@@ -38,7 +38,7 @@ class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
         if (date===null) {
             throw new ValueConverterException(
                 '''
-                Invalid date '«s»'. 
+                Invalid date '«s»'.
 
                 Some examples of valid formats are:
                     2011-12-03

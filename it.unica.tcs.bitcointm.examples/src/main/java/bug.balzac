@@ -2,8 +2,8 @@ const k = key:cUrNnjUauKYmbqvBvt1J1aB5WwgVmUZS18J7FkfEZqqFtXMiDbho
 const pub = k.toPubkey
 
 transaction T {
-    input = _    // no input 
-    output = 50 BTC: fun(a:int,x,y:int,z:bool) . 
+    input = _    // no input
+    output = 50 BTC: fun(a:int,x,y:int,z:bool) .
         y == 0 && x == 0 || z //&& (x != 0 || y != 0)
 }
 

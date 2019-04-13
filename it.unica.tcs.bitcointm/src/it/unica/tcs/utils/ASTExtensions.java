@@ -35,7 +35,7 @@ public class ASTExtensions {
         if (ref instanceof it.unica.tcs.balzac.Transaction)
             return ((it.unica.tcs.balzac.Transaction) ref).getName();
         if (ref instanceof Constant)
-            return ((Constant) ref).getName();    
+            return ((Constant) ref).getName();
         throw new IllegalStateException("Unexpected class "+ref.getClass());
     }
 

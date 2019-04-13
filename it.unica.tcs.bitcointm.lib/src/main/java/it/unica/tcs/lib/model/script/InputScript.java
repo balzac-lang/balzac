@@ -71,5 +71,5 @@ public abstract class InputScript extends AbstractScriptBuilderWithVar<InputScri
         public String toString() {
             return super.toString()+" <"+redeemScript.toString()+">";
         }
-    }    
+    }
 }

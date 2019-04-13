@@ -33,8 +33,8 @@ class TransactionCompiler {
         logger.debug('''Compiling «tx.name». Rho «rho.entrySet.map[e|'''«e.key.name -> e.value.toString»''']»''')
         var key = 1;
         val prime = 31;
-        key = prime * key + tx.hashCode 
-        key = prime * key + rho.hashCode 
+        key = prime * key + tx.hashCode
+        key = prime * key + rho.hashCode
         return cache.get(key, tx.eResource, [ internalCompileTransaction(tx,rho) ])
     }
 
@@ -122,7 +122,7 @@ class TransactionCompiler {
                      * recursively compile using this method, that allows free variables for tx builder
                      */
 
-                    // we use a fresh rho to avoid confusion, since some actual parameters might be bound and other not 
+                    // we use a fresh rho to avoid confusion, since some actual parameters might be bound and other not
                     val parentTxB = compileTransaction(parentTx, rho.fresh)
                     logger.trace('''input tx compiled: name=«parentTx.name» vars=«parentTxB.variables», fv=«parentTxB.freeVariables»''')
 
@@ -225,7 +225,7 @@ class TransactionCompiler {
             val res = tx.absLock.exp.interpret(rho)
 
             if (res.failed || !(res.first instanceof Long)) {
-                logger.error("Unable to interpret absolute timelock "+tx.absLock.exp.nodeToString)                
+                logger.error("Unable to interpret absolute timelock "+tx.absLock.exp.nodeToString)
                 throw new CompileException("Unable to interpret absolute timelock "+tx.absLock.exp.nodeToString)
             }
 

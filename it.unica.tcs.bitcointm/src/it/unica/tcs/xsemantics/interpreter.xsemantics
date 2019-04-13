@@ -209,7 +209,7 @@ from {
 	sig = new it.unica.tcs.lib.model.Signature(BitcoinUtils.decode(s.value), null)
 
 	if (s.pubkey !== null) {
-		G |- s.pubkey |> rho ~> var PublicKey key		
+		G |- s.pubkey |> rho ~> var PublicKey key
 		sig.pubkey = key
 	}
 }
@@ -245,7 +245,7 @@ from {
             s.ECKeyStore,
             s.inputIdx,
             s.modifier.toSignatureModifier
-        )   
+        )
     }
     catch (KeyStoreException e) {
         fail
@@ -327,7 +327,7 @@ from {
     or {
         var left = leftResult as String
         var right = rightResult.toString
-        result = left + right        
+        result = left + right
     }
 }
 

@@ -61,25 +61,25 @@ public class Validator {
         return transactionExceptionHandler(() -> {
             String bytes = client.getRawTransaction(txid);
             Transaction tx = new Transaction(params.toNetworkParameters(), BitcoinUtils.decode(bytes));
-            tx.verify();            
+            tx.verify();
         });
     }
 
     public static ValidationResult validateRawTransaction(String bytes, NetworkType params) {
         return transactionExceptionHandler(() -> {
             Transaction tx = new Transaction(params.toNetworkParameters(), BitcoinUtils.decode(bytes));
-            tx.verify();            
+            tx.verify();
         });
     }
 
     public static ValidationResult validatePrivateKey(String wif, NetworkType params) {
-        return base58ExceptionHandler(() -> {            
+        return base58ExceptionHandler(() -> {
             DumpedPrivateKey.fromBase58(params.toNetworkParameters(), wif);
         });
     }
 
     public static ValidationResult validateAddress(String wif, NetworkType params) {
-        return base58ExceptionHandler(() -> {            
+        return base58ExceptionHandler(() -> {
             Address.fromString(params.toNetworkParameters(), wif);
         });
     }
@@ -109,7 +109,7 @@ public class Validator {
             message = "Generic error.";
             message += e.getMessage() != null? " Details: " + e.getMessage() : "";
         }
-        return ValidationResult.error(message);        
+        return ValidationResult.error(message);
     }
 
     private static ValidationResult transactionExceptionHandler(Runnable body) {
@@ -128,7 +128,7 @@ public class Validator {
             message = "Generic error.";
             message += e.getMessage() != null? " Details: " + e.getMessage() : "";
         }
-        return ValidationResult.error(message);        
+        return ValidationResult.error(message);
     }
 
 }

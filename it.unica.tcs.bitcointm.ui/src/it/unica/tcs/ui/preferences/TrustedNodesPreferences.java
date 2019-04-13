@@ -91,7 +91,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
     /**
      * Create contents of the preference page.
-     * 
+     *
      * @param parent
      *            the parent composite
      */

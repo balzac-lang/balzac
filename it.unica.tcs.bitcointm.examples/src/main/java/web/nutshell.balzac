@@ -15,7 +15,7 @@ transaction T1 {
 }
 
 // Alice's public key
-const pubA = pubkey:03d0272bb640bdbbcaedce10ef69ad6d9d8c7b9c61ff2aa4cf4ed27865d287c224 
+const pubA = pubkey:03d0272bb640bdbbcaedce10ef69ad6d9d8c7b9c61ff2aa4cf4ed27865d287c224
 
 transaction T2 {
     input = T1: 12
@@ -34,14 +34,14 @@ transaction T3 {
 const pubB = pubkey:0289654c430032f20f8464a84a1f9b3289ceaff8d6cd93c9b654e59a8c5a1cc1b0
 
 transaction T4 {
-    input = T3:sig(kA) 
+    input = T3:sig(kA)
     output = [
         40 BTC: fun(x) . versig(pubA; x);
         10 BTC: fun(x) . versig(pubB; x)
     ]
 }
 
-// Bob's private key    
+// Bob's private key
 const kB = key:cVifQzXqqQ86udHggaDMz4Uq66Z7RGXJo5PdVjzRP12H1NDCFsLV
 
 transaction T5 {

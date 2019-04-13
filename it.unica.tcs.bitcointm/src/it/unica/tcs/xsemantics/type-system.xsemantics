@@ -228,7 +228,7 @@ auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, Add
  * Type system rules
  */
 rule Placeholder
-    G |- TypeSubstitutions substitutions |> Placeholder p : Type type 
+    G |- TypeSubstitutions substitutions |> Placeholder p : Type type
 from {
     if (G.get(p) !== null) {
         type = G.get(p) as Type
@@ -242,7 +242,7 @@ from {
             type = lambdaUtils.createFreshTypeVariable
         }
 
-        G.add(p, type)        
+        G.add(p, type)
     }
 }
 
@@ -261,7 +261,7 @@ from {
             type = lambdaUtils.createFreshTypeVariable
         }
 
-        G.add(p, type)        
+        G.add(p, type)
     }
 }
 
@@ -511,7 +511,7 @@ from {
             fail
             error "expected type boolean or string"
             source script.exp
-        }     
+        }
     }
     else {
         unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
@@ -577,7 +577,7 @@ from {
         G |- substitutions |> s.pubkey : var Type t
         t = typesubstitution(substitutions, t)
         unify(s.pubkey, substitutions, t, pubkeyType)
-	}	
+	}
 }
 
 axiom DateLiteral
@@ -1024,7 +1024,7 @@ from {
             val input = tx.inputs.get(index)
             if (!input.isPlaceholder) {
                 val inTx = input.txRef
-                G |- substitutions |> inTx: var Type type                
+                G |- substitutions |> inTx: var Type type
             }
         }
         substitutions.removeVisited(op)
