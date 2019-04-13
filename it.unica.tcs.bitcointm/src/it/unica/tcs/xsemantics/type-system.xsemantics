@@ -70,7 +70,6 @@ import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
-import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionId
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
@@ -568,9 +567,6 @@ axiom HashLiteral
 
 axiom TransactionHexLiteral
     G |- TypeSubstitutions substitutions |> TransactionHexLiteral tx : BalzacFactory::eINSTANCE.createTransactionType
-
-axiom TransactionIDLiteral
-    G |- TypeSubstitutions substitutions |> TransactionIDLiteral tx : BalzacFactory::eINSTANCE.createTransactionType
 
 rule SignatureLiteral
     G |- TypeSubstitutions substitutions |> SignatureLiteral s : BalzacFactory::eINSTANCE.createSignatureType

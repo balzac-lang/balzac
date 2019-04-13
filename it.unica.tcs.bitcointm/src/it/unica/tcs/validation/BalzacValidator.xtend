@@ -36,7 +36,6 @@ import it.unica.tcs.balzac.This
 import it.unica.tcs.balzac.Times
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionHexLiteral
-import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
 import it.unica.tcs.balzac.Versig
@@ -494,19 +493,6 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Check
     def void checkSerialTransaction(TransactionHexLiteral tx) {
         val result = Validator.validateRawTransaction(tx.value, tx.networkParams)
-        if (result.error) {
-            error(
-                result.message,
-                tx,
-                null
-            )            
-        }
-    }
-
-    @Check
-    def void checkSerialTransaction(TransactionIDLiteral tx) {
-        val client = clientFactory.getBitcoinClient(tx.networkParams)
-        val result = Validator.validateTransactionById(tx.value, client, tx.networkParams)
         if (result.error) {
             error(
                 result.message,

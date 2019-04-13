@@ -108,11 +108,9 @@ AtomicTransactionExpression returns TransactionExpression:
 |   Reference;
 
 TransactionLiteral:
-    TransactionHexLiteral
-|   TransactionIDLiteral;
+    TransactionHexLiteral;
 
 TransactionHexLiteral: value=TXSERIAL;
-TransactionIDLiteral: value=TXID;
 
 Expression:
     OrExpression;
@@ -327,7 +325,6 @@ terminal INT returns ecore::EInt:
 BTC_DECIMAL returns ecore::EInt:       '.' INT;
 
 terminal HASH_TERM returns ecore::EByteArray:  'hash:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
-terminal TXID returns ecore::EString:          'txid:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal TXSERIAL returns ecore::EString:      'tx:'        ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal SIGHEX returns ecore::EString:        'sig:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
 terminal KEY_WIF returns ecore::EString:       'key:'       ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;

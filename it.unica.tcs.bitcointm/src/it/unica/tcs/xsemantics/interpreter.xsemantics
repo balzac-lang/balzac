@@ -2,7 +2,6 @@
  * Copyright 2017 Nicola Atzei
  */
 
-import com.google.common.base.Throwables
 import it.unica.tcs.balzac.AddressLiteral
 import it.unica.tcs.balzac.AddressType
 import it.unica.tcs.balzac.AndExpression
@@ -57,7 +56,6 @@ import it.unica.tcs.balzac.ToPubkey
 import it.unica.tcs.balzac.Transaction
 import it.unica.tcs.balzac.TransactionFees
 import it.unica.tcs.balzac.TransactionHexLiteral
-import it.unica.tcs.balzac.TransactionIDLiteral
 import it.unica.tcs.balzac.TransactionId
 import it.unica.tcs.balzac.TransactionInputOperation
 import it.unica.tcs.balzac.TransactionOutputOperation
@@ -231,22 +229,6 @@ axiom InterpretDayLiteral
 axiom InterpretTransactionHexLiteral
     G |- TransactionHexLiteral tx |> Rho rho ~> ITransactionBuilder.fromSerializedTransaction(rho.networkParams, BitcoinUtils.decode(tx.value))
 
-rule InterpretTransactionIDLiteral
-    G |- TransactionIDLiteral tx |> Rho rho ~> ITransactionBuilder res
-from {
-    val id = tx.value
-    val client = clientFactory.getBitcoinClient(rho.networkParams)
-
-    try {
-        val hex = client.getRawTransaction(id);
-        res = ITransactionBuilder.fromSerializedTransaction(rho.networkParams, BitcoinUtils.decode(hex))
-    }
-    catch (Exception e) {
-        fail
-            error "Cannot interpret transaction with ID "+id+". Error: "+Throwables.getStackTraceAsString(e)
-            source tx
-    }
-}
 
 rule InterpretSignature
     G |- Signature s |> Rho rho ~> it.unica.tcs.lib.model.Signature res
