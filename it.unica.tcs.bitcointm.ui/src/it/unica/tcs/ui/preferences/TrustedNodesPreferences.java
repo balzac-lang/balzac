@@ -461,7 +461,7 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
 
     	BitcoinClient mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
     			mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
-    	
+
     	return mainnetClient;
     }
 
@@ -474,10 +474,10 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
     	int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
     	String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
     			.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
-    	
+
     	BitcoinClient testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
     			testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
-    	
+
     	return testnetClient;
     }
 

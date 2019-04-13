@@ -111,8 +111,8 @@ class BalzacConverterService extends DefaultTerminalConverters {
             }
         }
     }
-    
-    
+
+
     @ValueConverter(rule = "ADDRESS_WIF")
     def IValueConverter<String> getAddressWIF() {
         return new AbstractLexerBasedConverter<String>() {

@@ -81,7 +81,7 @@ class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
         logger.trace("fetching all fullt qualified participant objects of type "+clazz.name)
         val model = EcoreUtil2.getContainerOfType(ctx, Model)               // get the model
         val participants = model.declarations.filter(Participant)           // get all participants
-        
+
         val candidates = newHashMap
         for (p : participants) {
             val pcandidates = p.declarations
@@ -134,7 +134,7 @@ class BalzacScopeProvider extends AbstractDeclarativeScopeProvider {
         return Scopes.scopeFor(obj.params, outer)
         // stop recursion
     }
-    
+
     def dispatch IScope getIScopeForParameters(Model obj, IScope outer) {
         return outer
         // stop recursion

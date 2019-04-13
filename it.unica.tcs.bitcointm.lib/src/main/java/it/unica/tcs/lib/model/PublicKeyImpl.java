@@ -30,12 +30,12 @@ class PublicKeyImpl implements PublicKey {
     public Address toAddress(NetworkType params) {
     	return Address.fromPubkey(pubkey, params);
     }
-    
+
     @Override
     public Address toTestnetAddress() {
     	return toAddress(NetworkType.TESTNET);
     }
-    
+
     @Override
     public Address toMainnetAddress() {
     	return toAddress(NetworkType.MAINNET);
@@ -62,7 +62,7 @@ class PublicKeyImpl implements PublicKey {
             return false;
         return true;
     }
-    
+
     @Override
     public String toString() {
         return getBytesAsString();

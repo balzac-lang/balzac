@@ -321,7 +321,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         // TODO: check there are not signatures to compute
         return toTransaction(null);
     }
-    
+
     @Override
     public Transaction toTransaction(ECKeyStore keystore) {
         checkState(this.isReady(), "the transaction and all its ancestors are not ready");

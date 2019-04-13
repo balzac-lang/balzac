@@ -156,7 +156,7 @@ from {
         { rho.containsKey(param) }
         res = rho.get(param)
     }
-    
+
     if (logger.isTraceEnabled) {
         logger.decreasePrefixCount
         logger.trace("RESULT: "+res)
@@ -724,7 +724,7 @@ rule InterpretTransactionId
     G |- TransactionId op |> Rho rho ~> Hash result
 from {
     G |- op.tx |> rho ~> var ITransactionBuilder txB
-    
+
     try {
         val tx = txB.toTransaction(op.ECKeyStore)
         result = new Hash(tx.hash.bytes)

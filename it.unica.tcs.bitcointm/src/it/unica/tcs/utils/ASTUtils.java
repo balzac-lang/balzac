@@ -59,21 +59,21 @@ import it.unica.tcs.xsemantics.Rho;
 
 @Singleton
 public class ASTUtils {
-	
+
     private static Logger logger = Logger.getLogger(ASTUtils.class);
 
     @Inject private BalzacInterpreter interpreter;
     @Inject private OnChangeEvictingCache cache;
-    
+
     private static final String cacheECKeyStoreID = "eckeystore";
-    
+
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
     	Resource resource = obj.eResource();
     	logger.debug("Get the ECKeyStore for resource "+resource);
-    	
+
     	try {
         	ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
-        
+
         		@Override
         		public ECKeyStore get() {
         		    logger.debug("Generating new ECKeyStore for resource "+resource);
@@ -103,7 +103,7 @@ public class ASTUtils {
     	    else throw e;
     	}
     }
-    
+
     private KeyLiteral getPlaceholderPrivateKey(EObject obj) {
     	PrivateKey privateKey = PlaceholderUtils.KEY(networkParams(obj));
     	KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();

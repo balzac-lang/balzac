@@ -31,7 +31,7 @@ public class SignatureTest {
 		assertFalse("Signature must be immutable", Arrays.equals(sig.getSignature(), sigbytes));
 		assertFalse(sig.getPubkey().isPresent());
 	}
-	
+
 	@Test
 	public void testEquality() {
 		// two signature are equals despite their public keys

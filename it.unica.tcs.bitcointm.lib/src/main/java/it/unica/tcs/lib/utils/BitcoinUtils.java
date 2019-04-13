@@ -16,7 +16,7 @@ import it.unica.tcs.lib.model.Hash;
 import it.unica.tcs.lib.model.Signature;
 
 public class BitcoinUtils {
-    
+
     public static Long sizeOf(Long value) {
         return Long.valueOf(Utils.encodeMPI(BigInteger.valueOf(value), false).length);
     }
@@ -24,11 +24,11 @@ public class BitcoinUtils {
     public static Long sizeOf(Boolean value) {
         return value? 1L : 0L;
     }
-    
+
     public static Long sizeOf(String value) {
         return Long.valueOf(value.length());
     }
-    
+
     public static String encode(byte[] bytes) {
         return Utils.HEX.encode(bytes);
     }
@@ -54,7 +54,7 @@ public class BitcoinUtils {
 
         else if (obj instanceof TransactionSignature)
             return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
-       
+
         else if (obj instanceof Signature) {
         	Signature sig = (Signature) obj;
         	ScriptBuilder sb = new ScriptBuilder();

@@ -87,7 +87,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 //        this.oldPasswordText = oldPasswordText;
 //        this.newPasswordText = newPasswordText;
         this.repeatPasswordText = repeatPasswordText;
-        
+
         initialize(); // initialize properties values
 
         return container;
@@ -136,13 +136,13 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
 //            this.setErrorMessage("Passwords do not match");
 //            return false;
 //        }
-        
+
         return true;
     }
 
     @Override
     public boolean performOk() {
-        
+
         // store
         if (!repeatPasswordText.getText().isEmpty()) {
             try {
@@ -155,7 +155,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
                 return false;
             }
         }
-        
+
         return true;
     }
 

@@ -70,9 +70,9 @@ class RawTransactionGenerator extends AbstractGenerator {
                 if (!res.failed) {
 
                     val obj = res.first
-                    
+
                     sb.append(nodeString).append("\n")
-                    
+
                     if (obj instanceof ITransactionBuilder) {
                         val tx = obj.toTransaction(astUtils.getECKeyStore(model))
                         sb.append(tx).append("\n")

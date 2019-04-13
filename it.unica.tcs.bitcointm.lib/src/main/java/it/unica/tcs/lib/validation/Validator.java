@@ -34,7 +34,7 @@ public class Validator {
         if (!txBuilder.isReady()) {
             return ValidationResult.ok("Transaction is not ready");
         }
-        
+
         try {
             Transaction tx = txBuilder.toTransaction(keyStore);
             for (int i=0; i<tx.getInputs().size(); i++) {
@@ -77,7 +77,7 @@ public class Validator {
             DumpedPrivateKey.fromBase58(params.toNetworkParameters(), wif);
         });
     }
-    
+
     public static ValidationResult validateAddress(String wif, NetworkType params) {
         return base58ExceptionHandler(() -> {            
             Address.fromString(params.toNetworkParameters(), wif);

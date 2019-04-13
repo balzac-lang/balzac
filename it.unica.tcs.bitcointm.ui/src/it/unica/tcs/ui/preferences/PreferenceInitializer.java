@@ -35,7 +35,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.P_MAINNET_USERNAME, "bitcoin");
         store.setDefault(PreferenceConstants.P_MAINNET_TIMEOUT, 3000);
         store.setDefault(PreferenceConstants.P_MAINNET_HTTPS, false);
-        
+
         try {
             TrustedNodesPreferences.setBitcoinClientFactoryNodes(store);
         } catch (StorageException e) {

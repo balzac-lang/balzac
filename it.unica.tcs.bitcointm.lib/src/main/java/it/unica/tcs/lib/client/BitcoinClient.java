@@ -69,5 +69,5 @@ public interface BitcoinClient {
      * @return true if the client is connected to the Bitcoin mainnet.
      */
     public boolean isMainnet();
-    
+
 }

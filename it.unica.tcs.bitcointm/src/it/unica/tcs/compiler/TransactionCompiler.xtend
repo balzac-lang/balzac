@@ -39,7 +39,7 @@ class TransactionCompiler {
     }
 
     def private ITransactionBuilder internalCompileTransaction(Transaction tx, Rho rho) {
-    
+
         if (rho.isAlreadyVisited(tx)) {
             logger.error('''Transaction «tx.name» already visited. Cyclic dependency.''')
             throw new CompileException('''Transaction «tx.name» already visited. Cyclic dependency.''')

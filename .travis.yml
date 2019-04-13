@@ -9,7 +9,7 @@ install:
   - sudo apt-get install -y protobuf-compiler
 
 before_script:
-  - ./install-deps.sh
+  - ./scripts/install-deps.sh
 
 script:
   - mvn -f it.unica.tcs.bitcointm.parent/ install

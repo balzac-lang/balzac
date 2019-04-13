@@ -45,10 +45,10 @@ participant Bob {
 	    input = Alice.T: sig(kB) sigO
 	    output = 1 BTC: fun(x). versig(kB; x)
 	}
-	
+
 	// alternative with time constraint
 	const deadline = 2019-01-01
-	
+
 	transaction T1timed(sigOtimed) {
 	    input = Alice.Ttimed: sig(kB) sigOtimed
 	    output = 1 BTC: fun(x). versig(kB; x)

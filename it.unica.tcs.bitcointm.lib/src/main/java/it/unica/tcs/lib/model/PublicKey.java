@@ -13,7 +13,7 @@ public interface PublicKey {
     public byte[] getBytes();
 
     public String getBytesAsString();
-    
+
     public Address toAddress(NetworkType params);
 
     public Address toTestnetAddress();
@@ -23,7 +23,7 @@ public interface PublicKey {
     public static PublicKey fromBytes(byte[] pubkey) {
     	return new PublicKeyImpl(pubkey);
     }
-    
+
     public static PublicKey fromString(String str) {
         return fromBytes(BitcoinUtils.decode(str));
     }

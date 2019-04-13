@@ -65,7 +65,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     dispatch def String getLabelInternal(Constant p) {
         return p.name+" : "+p.type.stringRep
     }
-    
+
     // base case getFirstLineInternal
     dispatch def String getFirstLineInternal(EObject obj) {
         return super.getFirstLine(obj)
@@ -89,7 +89,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
     def dispatch String getDocumentationInternal(Constant c) {
         (c.exp as Interpretable).interpretSafe.documentationInternal
     }
-    
+
     def dispatch String getDocumentationInternal(KeyLiteral key) '''
         «val privKey = PrivateKey.fromBase58(key.value)»
         <pre>
@@ -99,7 +99,7 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
 
             Public key
                 hex          = «privKey.toPublicKey.bytesAsString»
-        
+
             Address
                 base58 (wif) = «privKey.toAddress.wif»
                 hash160      = «privKey.toAddress.bytesAsString»
@@ -111,14 +111,14 @@ class BalzacEObjectHoverProvider extends DefaultEObjectHoverProvider {
         <pre>
             Public key
                 hex          = «pubkey.bytesAsString»
-            
+
             Address
                 base58 (wif) [MAINNET] = «pubkey.toMainnetAddress.wif»
                 base58 (wif) [TESTNET] = «pubkey.toTestnetAddress.wif»
                 hash160                = «pubkey.toMainnetAddress.bytesAsString»
         </pre>
         '''
-        
+
     def dispatch String getDocumentationInternal(AddressLiteral addrLit) '''
         «val addr = Address.fromBase58(addrLit.value)»
         <pre>

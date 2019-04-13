@@ -241,7 +241,7 @@ from {
         or {
             type = lambdaUtils.createFreshTypeVariable
         }
-        
+
         G.add(p, type)        
     }
 }
@@ -260,7 +260,7 @@ from {
         or {
             type = lambdaUtils.createFreshTypeVariable
         }
-        
+
         G.add(p, type)        
     }
 }
@@ -276,7 +276,7 @@ from {
     or {
         type = lambdaUtils.createFreshTypeVariable
     }
-    
+
     substitutions.addVisited(c)
     G |- substitutions |> (c.exp as Typeable) : var Type expType
     type = unify(c.exp, substitutions, expType, type)
@@ -425,7 +425,7 @@ from {
         unify(input.txRef, substitutions, t1, txType)
 
         val inputTxRef = input.txRef
-        
+
         val optTx = inputTxRef.getTransactionFromReference
         if ( optTx.isPresent ) {
             val tx = optTx.get
@@ -516,7 +516,7 @@ from {
     else {
         unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
     }
-    
+
     // all the parameters should have a basic type (generic types are not allowed)
     for (p : script.params) {
         var ptype = env(G, p, Type)
@@ -954,7 +954,7 @@ from {
     G |- substitutions |> check.exp: var Type t
     t = typesubstitution(substitutions, t)
     unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
-    
+
     G |- substitutions |> check.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
@@ -965,7 +965,7 @@ from {
     G |- substitutions |> check.exp: var Type t
     t = typesubstitution(substitutions, t)
     unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
-    
+
     G |- substitutions |> check.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
@@ -976,7 +976,7 @@ from {
     G |- substitutions |> check.exp: var Type t
     t = typesubstitution(substitutions, t)
     unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
-    
+
     G |- substitutions |> check.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
@@ -987,7 +987,7 @@ from {
     G |- substitutions |> check.exp: var Type t
     t = typesubstitution(substitutions, t)
     unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
-    
+
     G |- substitutions |> check.continuation: texpr
     texpr = typesubstitution(substitutions, texpr)
 }
@@ -1124,7 +1124,7 @@ from {
     val G = new RuleEnvironment
     val substitutions = new TypeSubstitutions
     val declarations = model.declarations
-    
+
     // type check all constants firsts
     for (c : declarations.filter(Constant)) {
         G |- substitutions |> c: var Type t
@@ -1141,7 +1141,7 @@ from {
         for (c : p.declarations.filter(Constant)) {
             G |- substitutions |> c: var Type t
         }
-    
+
         // type check all transactions
         for (tx : p.declarations.filter(Transaction)) {
             G |- substitutions |> tx: var Type t

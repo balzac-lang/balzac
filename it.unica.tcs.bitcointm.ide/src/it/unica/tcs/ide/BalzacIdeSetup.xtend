@@ -16,5 +16,5 @@ class BalzacIdeSetup extends BalzacStandaloneSetup {
 	override createInjector() {
 		Guice.createInjector(Modules2.mixin(new BalzacRuntimeModule, new BalzacIdeModule))
 	}
-	
+
 }

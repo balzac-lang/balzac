@@ -35,11 +35,11 @@ public class Signature {
     public byte[] getSignature() {
         return signature;
     }
-    
+
     public Optional<PublicKey> getPubkey() {
         return pubkey;
     }
-    
+
     public void setPubkey(PublicKey pubkey) {
         this.pubkey = Optional.ofNullable(pubkey);
     }
@@ -77,22 +77,22 @@ public class Signature {
             ECKeyStore keyStore,
             int inputIndex,
             SignatureModifier modifier) {
-        
+
         Transaction tx = txBuilder.toTransaction(keyStore);
-        
+
         Input input = txBuilder.getInputs().get(inputIndex);
         int outputIndex = input.getOutIndex();
         Output output = input.getParentTx().getOutputs().get(outputIndex);
         byte[] outputScript = output.getScript().build().getProgram();
-        
+
         TransactionSignature sig = tx.calculateSignature(
                 inputIndex, 
                 ECKey.fromPrivate(key.getBytes()), 
                 outputScript,
                 modifier.toHashType(),
                 modifier.toAnyoneCanPay());
-        
-        
+
+
         return new Signature(sig.encodeToBitcoin(), key.toPublicKey());
     }
 }

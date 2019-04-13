@@ -260,7 +260,7 @@ public class HashTest {
             break;
             default: throw new IllegalArgumentException("unexpected class "+alg);
         }
-        
+
         LinkedList<byte[]> stack = new LinkedList<>();
         Script.executeScript(null, 0, new ScriptBuilder(s).op(operation).build(), stack, Script.ALL_VERIFY_FLAGS);
         byte[] res = stack.getLast();

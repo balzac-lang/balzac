@@ -16,7 +16,7 @@ class PrivateKeyImpl implements PrivateKey {
     private final byte[] privkey;
     private final PublicKey pubkey;
     private final Address address;
-    
+
     PrivateKeyImpl(byte[] privkey, NetworkType params) {
         this.params = params;
         this.privkey = Arrays.copyOf(privkey, privkey.length);
@@ -38,12 +38,12 @@ class PrivateKeyImpl implements PrivateKey {
     public String getBytesAsString() {
         return BitcoinUtils.encode(privkey);
     }
-    
+
     @Override
     public PublicKey toPublicKey() {
         return pubkey;
     }
-    
+
     @Override
     public Address toAddress() {
     	return address;

@@ -41,12 +41,12 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
             public boolean isP2SH() {
                 return true;
             }
-            
+
             @Override
             public boolean isP2PKH() {
                 return false;
             }
-            
+
             @Override
             public boolean isOP_RETURN() {
                 return false;

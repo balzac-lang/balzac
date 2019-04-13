@@ -25,7 +25,7 @@ transaction T_escrow_template(sigA:signature, sigB:signature, pubK:pubkey) {
 
 // la signature che Alice invia a Bob
 const sigA = sig(kA) of T_escrow_template(_,_,kBpub)    // notare kBpub
- 
+
 // la signature che Bob invia a Alice
 const sigB = sig(kB) of T_escrow_template(_,_,kApub)    // notare kApub
 

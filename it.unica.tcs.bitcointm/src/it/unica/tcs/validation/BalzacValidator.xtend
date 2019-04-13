@@ -374,7 +374,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
 
         val res = sig.tx.interpretE
-        
+
         if (!res.failed) {
             val tx = res.first as ITransactionBuilder
             val inputSize = tx.inputs.size
@@ -745,7 +745,7 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     def boolean correctlySpendsOutput(Transaction tx, Rho rho, EObject source) {
 
-        
+
         var txStr = tx.nodeToString
         txStr = txStr.substring(0, txStr.indexOf("{")).trim
 
@@ -762,7 +762,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                     warning('''
                         Input «validationResult.index» does not redeem the specified output script.
                         Reason: «validationResult.message»
-                        
+
                         INPUT:   «validationResult.inputScript»
                         OUTPUT:  «validationResult.outputScript»
                         «IF validationResult.reedemScript !== null»
@@ -1083,7 +1083,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         // 'this' reference is allowed only inside transactions
         val containingTx = EcoreUtil2.getContainerOfType(ref, Transaction);
         val isInsideTx = containingTx !== null
-        
+
         if (!isInsideTx) {
             error(
                 "Reference 'this' is allowed only within transactions.",

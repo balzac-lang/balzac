@@ -3,14 +3,14 @@ package it.unica.tcs.lib.model;
 import org.bitcoinj.core.Transaction.SigHash;
 
 public enum SignatureModifier {
-    
+
     ALL_INPUT_ALL_OUTPUT,
     ALL_INPUT_SINGLE_OUTPUT,
     ALL_INPUT_NO_OUTPUT,
     SINGLE_INPUT_ALL_OUTPUT,
     SINGLE_INPUT_SINGLE_OUTPUT,
     SINGLE_INPUT_NO_OUTPUT;
-    
+
     public boolean isAllInput() {
         return this == ALL_INPUT_ALL_OUTPUT || this == ALL_INPUT_SINGLE_OUTPUT || this == ALL_INPUT_NO_OUTPUT;
     }

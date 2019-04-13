@@ -31,25 +31,25 @@ import it.unica.tcs.xsemantics.TypeSubstitutions;
 
 @SuppressWarnings("restriction")
 public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
-    
+
     @Inject private BalzacGrammarAccess grammar;
     @Inject private BalzacTypeSystem typeSystem;
     @Inject private BalzacStringRepresentation strRep;
-    
+
     @Override
 	protected void createCodeMinings(IDocument document, XtextResource resource, CancelIndicator indicator,
 		IAcceptor<? super ICodeMining> acceptor) throws BadLocationException {
-		
+
 	    // get all operations to open document
         List<Constant> allConstants = EcoreUtil2.eAllOfType(resource.getContents().get(0), Constant.class);
-        
+
         Keyword colon = grammar.getConstantAccess().getColonKeyword_2_0();
         Keyword equalsSign = grammar.getConstantAccess().getEqualsSignKeyword_3();
-        
+
         for (Constant c : allConstants) {
             // find document offset for inline annotation
             ICompositeNode node = NodeModelUtils.findActualNodeFor(c);
-            
+
             boolean hasType = false;
             for (Iterator<INode> it = node.getAsTreeIterable().iterator(); it.hasNext();) {
                 INode child = it.next();
@@ -66,10 +66,10 @@ public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
                 }
             }
         }
-        
+
 	    // TODO: implement me
 		// use acceptor.accept(super.createNewLineHeaderCodeMining(...)) to add a new code mining to the final list
-		
+
 		// example:
 		// acceptor.accept(createNewLineHeaderCodeMining(1, document, "Header annotation"));
 	}

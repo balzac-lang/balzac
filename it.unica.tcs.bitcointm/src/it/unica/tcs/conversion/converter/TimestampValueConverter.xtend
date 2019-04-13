@@ -39,7 +39,7 @@ class TimestampValueConverter extends AbstractLexerBasedConverter<Long> {
             throw new ValueConverterException(
                 '''
                 Invalid date '«s»'. 
-                
+
                 Some examples of valid formats are:
                     2011-12-03
                     2011-12-03T10:15

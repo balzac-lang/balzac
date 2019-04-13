@@ -47,7 +47,7 @@ import it.unica.tcs.lib.utils.EnvI;
 public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
-    
+
     private static final long serialVersionUID = 1L;
     private static final String SIGNATURE_PREFIX = "[$sig$]";
     private static final String FREEVAR_PREFIX = "[$var$]";
@@ -549,37 +549,37 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     public boolean hasVariable(String name) {
         return env.hasVariable(name);
     }
-    
+
     @Override
     public boolean isFree(String name) {
         return env.isFree(name);
     }
-    
+
     @Override
     public boolean isBound(String name) {
         return env.isBound(name);
     }
-    
+
     @Override
     public Class<?> getType(String name) {
         return env.getType(name);
     }
-    
+
     @Override
     public Object getValue(String name) {
         return env.getValue(name);
     }
-    
+
     @Override
     public <E> E getValue(String name, Class<E> clazz) {
         return env.getValue(name, clazz);
     }
-    
+
     @Override
     public Object getValueOrDefault(String name, Object defaultValue) {
         return env.getValueOrDefault(name, defaultValue);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public T addVariable(String name, Class<?> type) {
@@ -589,7 +589,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         env.addVariable(name, type);
         return (T) this;
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public T removeVariable(String name) {
@@ -597,34 +597,34 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         env.removeVariable(name);
         return (T) this;
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public T bindVariable(String name, Object value) {
         env.bindVariable(name, value);
         return (T) this;
     }
-    
+
     @Override
     public Collection<String> getVariables() {
         return env.getVariables();
     }
-    
+
     @Override
     public Collection<String> getFreeVariables() {
         return env.getFreeVariables();
     }
-    
+
     @Override
     public Collection<String> getBoundVariables() {
         return env.getBoundVariables();
     }
-    
+
     @Override
     public boolean isReady() {
         return env.isReady();
     }
-    
+
     @Override
     public void clear() {
         env.clear();

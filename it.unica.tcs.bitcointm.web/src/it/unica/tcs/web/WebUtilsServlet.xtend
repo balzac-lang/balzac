@@ -83,7 +83,7 @@ class WebUtilsServlet extends HttpServlet {
                     gson.toJson(hash(true), response.writer)
                     return
                 }
-                
+
                 if (value.toLowerCase == "false") {
                     gson.toJson(hash(false), response.writer)
                     return
@@ -103,7 +103,7 @@ class WebUtilsServlet extends HttpServlet {
         }
         response.status = HttpServletResponse.SC_NOT_FOUND
     }
-    
+
     private def HashResult hash(Object b) {
         new HashResult(
             b.toString,

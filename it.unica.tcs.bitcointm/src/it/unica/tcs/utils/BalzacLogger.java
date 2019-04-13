@@ -9,7 +9,7 @@ public class BalzacLogger implements Logger {
 
     private String prefix = "    ";
     private int prefixCount = 0;
-    
+
     public BalzacLogger(Logger logger) {
         this.logger = logger;
     }

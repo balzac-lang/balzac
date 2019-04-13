@@ -11,7 +11,7 @@ import org.bitcoinj.core.LegacyAddress;
 import it.unica.tcs.lib.utils.BitcoinUtils;
 
 class AddressImpl implements Address {
-    
+
     private final byte[] address;
     protected final NetworkType params;
 

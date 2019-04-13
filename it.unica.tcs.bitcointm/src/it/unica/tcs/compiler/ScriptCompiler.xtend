@@ -105,7 +105,7 @@ class ScriptCompiler {
 
         val outpoint = input.outpoint
         val outScript = parentTx.outputs.get(outpoint).script
-        
+
         if (outScript.isP2PKH) {
             /*
              * P2PKH
@@ -117,7 +117,7 @@ class ScriptCompiler {
             else {
                 val sigI = input.exps.get(0).interpret(rho)
                 val pubkeyI = input.exps.get(1).interpret(rho)
-                
+
                 if (sigI.failed)
                     throw new CompileException('''Unable to evaluate to a valid signature''')
 
@@ -126,13 +126,13 @@ class ScriptCompiler {
 
                 if (!(sigI.first instanceof it.unica.tcs.lib.model.Signature))
                     throw new CompileException('''Unexpected result evaluating the signature. Result is «sigI.first»''')
-                
+
                 if (!(pubkeyI.first instanceof PublicKey))
                     throw new CompileException('''Unexpected result evaluating the public key. Result is «pubkeyI.first»''')
-                
+
                 val sig = sigI.first as it.unica.tcs.lib.model.Signature
                 val pubkey = pubkeyI.first as PublicKey
-                
+
                 val sb = InputScript.create()
                 sb.data(sig.getSignature)
                 sb.data(pubkey.bytes)
@@ -146,13 +146,13 @@ class ScriptCompiler {
              */
             val redeemScript = 
                 if (parentTx instanceof SerialTransactionBuilder) {
-    
+
                     // get the redeem script from the AST (specified by the user)
                     val s = (input.redeemScript as Script).compileRedeemScript(rho)
-    
+
                     if (!s.ready)
                         throw new CompileException("This redeem script cannot have free variables")
-    
+
                     s
                 }
                 else if (parentTx instanceof TransactionBuilder) {
@@ -571,7 +571,7 @@ class ScriptCompiler {
     }
 
     def private dispatch ScriptBuilderWithVar compileReferrable(Constant const, Context ctx) {
-                
+
         val value = (const.exp as Interpretable).interpretSafe(ctx.rho)
 
         if (value instanceof Literal) {
@@ -609,7 +609,7 @@ class ScriptCompiler {
                 if(pos === null) throw new CompileException;
 
                 (0 ..< ctx.altstack.size - pos).forEach[x|sb.op(OP_FROMALTSTACK)]
-                
+
                 sb.op(OP_DUP).op(OP_TOALTSTACK)
 
                 (0 ..< ctx.altstack.size - pos - 1).forEach[x|sb.op(OP_SWAP).op(OP_TOALTSTACK)]

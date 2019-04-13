@@ -83,7 +83,7 @@ public class Hash implements Comparable<Hash> {
         checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);
 
         String methodName = null;
-        
+
         switch (alg) {
         case HASH160: methodName = "hash160"; break;
         case HASH256: methodName = "hash256"; break;
@@ -92,7 +92,7 @@ public class Hash implements Comparable<Hash> {
         case SHA1: methodName = "sha1"; break;
             default: throw new IllegalArgumentException("unexpected class "+alg);
         }
-            
+
         try {
             Method method = MethodUtils.getMatchingMethod(Hash.class, methodName, input.getClass());
             return Hash.class.cast(method.invoke(null, input));

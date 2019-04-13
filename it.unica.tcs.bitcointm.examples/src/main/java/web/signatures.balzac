@@ -52,11 +52,11 @@ const kA = key:cRfPMbgvC4NNd3FZZeoQB2GmZJ2tJAPeNwJh9Bs27S2Csak72j46
 // Signatures have modifiers
 // "sig(kA) of T" by default sign All Inputs ans All Outputs (AIAO) of T
 assert sig(kA) of T == sig(kA)[AIAO] of T
-    
+
 // Signatures ignore the witness
 assert T != T_differentWitness
 assert sig(kA) of T == sig(kA) of T_differentWitness
-    
+
 // Signatures are specific to the input position in which they will be put
 // "sig(kA) of T" by default is bound to position 0
 assert sig(kA) of T == sig(kA) of T@0
