@@ -416,7 +416,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                     outScript = txInput.getOutpoint().getConnectedPubKeyScript();
 
                 // set isP2PKH
-                isP2PKH = ScriptPattern.isP2SH(txInput.getOutpoint().getConnectedOutput().getScriptPubKey());
+                isP2PKH = ScriptPattern.isP2PKH(txInput.getOutpoint().getConnectedOutput().getScriptPubKey());
             }
 
             try {
