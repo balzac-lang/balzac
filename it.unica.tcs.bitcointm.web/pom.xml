@@ -41,6 +41,10 @@
                 <version>9.2.13.v20150730</version>
                 <configuration>
                     <webAppSourceDirectory>WebRoot</webAppSourceDirectory>
+                    <webAppConfig>
+                        <contextPath>/</contextPath>
+                        <webInfIncludeJarPattern>.*/bootstrap-toggle-[^/]*\.jar$|.*/font-awesome-[^/]*\.jar$|.*/requirejs-[^/]*\.jar$|.*/bootstrap-[^/]*\.jar$|.*/org.eclipse.xtext.web-[^/]*\.jar$|.*/jquery-[^/]*\.jar$|.*/popper.js-[^/]*\.jar$|.*/ace-[^/]*\.jar$|.*/classes/.*</webInfIncludeJarPattern>
+                    </webAppConfig>
                 </configuration>
             </plugin>
             <plugin>
