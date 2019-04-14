@@ -112,7 +112,7 @@ class ScriptCompiler {
              */
             if (input.exps.size == 1) {
 	            var sigE = input.exps.get(0)
-            	return sigE.compileInputExpression(rho)
+            	return sigE.compileInputExpression(rho,false)
             }
             else {
                 val sigI = input.exps.get(0).interpret(rho)
@@ -165,7 +165,7 @@ class ScriptCompiler {
 
             // build the list of expression pushes (actual parameters)
             input.exps.forEach[e|
-                p2sh.append(e.compileInputExpression(rho))
+                p2sh.append(e.compileInputExpression(rho,true))
             ]
 
             /* <e1> ... <en> <serialized script> */
@@ -175,8 +175,8 @@ class ScriptCompiler {
             throw new CompileException("cannot redeem OP_RETURN outputs")
     }
 
-    def private InputScript compileInputExpression(Expression exp, Rho rho) {
-        var ctx = new Context(rho)
+    def private InputScript compileInputExpression(Expression exp, Rho rho, boolean isP2SH) {
+        var ctx = new Context(rho, isP2SH)
         InputScript.create().append(exp.compileExpression(ctx))
     }
 
@@ -245,7 +245,7 @@ class ScriptCompiler {
      */
     def private OutputScript compileRedeemScript(Script script, Rho rho) {
 
-        var ctx = new Context(rho)
+        var ctx = new Context(rho, true)
 
         // build the redeem script to serialize
         var redeemScript = OutputScript.createP2SH()
@@ -314,7 +314,8 @@ class ScriptCompiler {
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignatureLiteral s, Context ctx) {
         val sb = new ScriptBuilderWithVar().data(BitcoinUtils.decode(s.value))
-        if (s.pubkey !== null) {
+        if (s.pubkey !== null && !ctx.isP2SH) {
+            println('''Adding public key «s.pubkey.nodeToString»''')
         	sb.append(s.pubkey.compileExpression(ctx))
         }
         sb

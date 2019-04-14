@@ -75,5 +75,3 @@ assert sig(kA) of T != sig(kA) of T_sameOutput                  : "signatures AI
 assert sig(kA)[SIAO] of T != sig(kA)[SIAO] of T_sameOutput      : "input 0 is different"
 assert sig(kA)[SIAO] of T == sig(kA)[SIAO] of T_sameOutput@1    : "input is the same"
 assert sig(kA)[SIAO] of T@1 == sig(kA)[SIAO] of T_sameOutput    : "input is the same"
-
-1

@@ -15,9 +15,11 @@ import it.unica.tcs.xsemantics.Rho;
 public class Context {
     public final AltStack altstack = new AltStack();
     public final Rho rho;
+    public final boolean isP2SH;
 
-    public Context(Rho rho) {
+    public Context(Rho rho, boolean isP2SH) {
         this.rho = rho;
+        this.isP2SH = isP2SH;
     }
 }
 

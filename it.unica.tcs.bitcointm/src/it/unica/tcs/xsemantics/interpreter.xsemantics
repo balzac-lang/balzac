@@ -727,7 +727,7 @@ from {
 
     try {
         val tx = txB.toTransaction(op.ECKeyStore)
-        result = new Hash(tx.hash.bytes)
+        result = new Hash(tx.txId.bytes)
     }
     catch (KeyStoreException e) {
         fail

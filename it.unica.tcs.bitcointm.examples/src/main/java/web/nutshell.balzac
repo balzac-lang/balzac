@@ -78,6 +78,6 @@ transaction T8_bis(n:int) {
 
 // compute a signature for T8
 const s = sig(kB) of T8_bis(42)
-assert T8(s,42) == T8_bis(42)
+//assert T8(s,42) == T8_bis(42)
 
 eval T, T1, T2, T3, T4, T5, T6(pubA), T6(pubB), T7, T8(_, 42), T9, T8_bis(42), s, T8(s,42)
