@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 package it.unica.tcs.ui.preferences;
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2018 Nicola Atzei
+ */
 package it.unica.tcs.scoping;
 
 import org.eclipse.emf.ecore.EReference;

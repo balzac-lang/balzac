@@ -1,3 +1,6 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
 package it.unica.tcs.lib.model;
 
 import org.bitcoinj.core.Transaction.SigHash;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nicola Atzei
+ * Copyright 2019 Nicola Atzei
  */
 
 grammar it.unica.tcs.Balzac with org.eclipse.xtext.common.Terminals

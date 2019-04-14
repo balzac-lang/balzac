@@ -1,5 +1,5 @@
 /*
-za * Copyright 2017 Nicola Atzei
+za * Copyright 2019 Nicola Atzei
  */
 
 package it.unica.tcs.lib.model.script;

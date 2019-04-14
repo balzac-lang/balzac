@@ -1,3 +1,6 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
 package it.unica.tcs.utils;
 
 public class SecureStorageUtils {

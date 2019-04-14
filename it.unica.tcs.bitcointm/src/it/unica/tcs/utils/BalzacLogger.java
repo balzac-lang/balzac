@@ -1,3 +1,6 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
 package it.unica.tcs.utils;
 
 import org.slf4j.Logger;
