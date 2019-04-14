@@ -9,10 +9,11 @@ import static org.bitcoinj.script.ScriptOpCodes.OP_DUP;
 import static org.bitcoinj.script.ScriptOpCodes.OP_EQUALVERIFY;
 import static org.bitcoinj.script.ScriptOpCodes.OP_HASH160;
 
-import org.bitcoinj.core.Address;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptPattern;
+
+import it.unica.tcs.lib.model.Address;
 
 public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputScript> {
 
@@ -67,7 +68,7 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
     }
 
     public static OutputScript createP2PKH(Address addr) {
-        return createP2PKH(addr.getHash());
+        return createP2PKH(addr.getBytes());
     }
 
     public static OutputScript createP2PKH(byte[] addressByte) {

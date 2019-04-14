@@ -4,6 +4,9 @@
 
 package it.unica.tcs.lib.model;
 
+import it.unica.tcs.lib.model.script.InputScript;
+import it.unica.tcs.lib.model.script.OutputScript;
+
 public class PlaceholderUtils {
     public static final long INT = 0L;
     public static final String STRING = "";
@@ -17,8 +20,6 @@ public class PlaceholderUtils {
     private static final PublicKey publicKeyMain = PublicKey.from(privateKeyMain);
     private static final Address addressTest = Address.from(privateKeyTest);
     private static final Address addressMain = Address.from(privateKeyMain);
-    private static final ITransactionBuilder txTest = ITransactionBuilder.fromSerializedTransaction(NetworkType.TESTNET, "02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff02012affffffff0a00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00000000");
-    private static final ITransactionBuilder txMain = ITransactionBuilder.fromSerializedTransaction(NetworkType.MAINNET, "02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff02012affffffff0a00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00e1f505000000001976a91402d997548d397534c4d8175c047cb38909beb9b888ac00000000");
 
     public static PrivateKey KEY(NetworkType params) {
         return params.isTestnet()? privateKeyTest : privateKeyMain;
@@ -33,6 +34,17 @@ public class PlaceholderUtils {
     }
 
     public static ITransactionBuilder TX(NetworkType params) {
-        return params.isTestnet()? txTest : txMain;
-	}
+        return params.isTestnet()?
+                placeholderTransaction(NetworkType.TESTNET):
+                placeholderTransaction(NetworkType.MAINNET);
+    }
+
+    private static ITransactionBuilder placeholderTransaction(NetworkType params) {
+        CoinbaseTransactionBuilder tx = new CoinbaseTransactionBuilder(params);
+        tx.addInput(InputScript.create().number(42));
+        for (int i=0; i<10; i++) {
+            tx.addOutput(OutputScript.createP2PKH(ADDRESS(params)), 50_000_000_00L);
+        }
+        return tx;
+    }
 }
