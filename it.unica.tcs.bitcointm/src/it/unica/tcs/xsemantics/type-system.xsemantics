@@ -915,9 +915,9 @@ from {
 }
 
 rule Between
-    G |- TypeSubstitutions substitutions |> Between between: IntType t
+    G |- TypeSubstitutions substitutions |> Between between: BalzacFactory::eINSTANCE.createBooleanType
 from {
-    t = BalzacFactory::eINSTANCE.createIntType
+    val t = BalzacFactory::eINSTANCE.createIntType
     G |- substitutions |> between.value: var Type tValue
     G |- substitutions |> between.left: var Type tLeft
     G |- substitutions |> between.right: var Type tRight
