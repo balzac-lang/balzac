@@ -241,7 +241,7 @@ Sha1:       'sha1' "(" value=Expression ")";
 
 Min: "min" "(" left=Expression "," right=Expression ")";
 Max: "max" "(" left=Expression"," right=Expression ")";
-Between: "between" "(" value=Expression "," left=Expression":" right=Expression ")";
+Between: "between" "(" value=Expression "," left=Expression "," right=Expression ")";
 Size: "size" "(" value=Expression ")";
 CheckBlock: "checkBlock" exp=Expression ":" continuation=AtomicExpression;
 CheckDate: "checkDate" exp=Expression ":" continuation=AtomicExpression;
