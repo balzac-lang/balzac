@@ -1,0 +1,8 @@
+package balzac.expressions
+
+const a = 6
+
+assert between(5, 0, 10) == true
+assert between(5, 10, 100) == false
+
+eval between(a+4, 10, 1)// == true

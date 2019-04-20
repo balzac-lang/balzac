@@ -70,6 +70,7 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.CheckType
 
 import static extension it.unica.tcs.utils.ASTExtensions.*
+import it.unica.tcs.balzac.Between
 
 /**
  * This class contains custom validation rules.
@@ -1042,7 +1043,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
         else {
             val txBuilder = res.first as ITransactionBuilder
-            val txid = txBuilder.toTransaction(tx.ECKeyStore).hashAsString
+            val txid = txBuilder.toTransaction(tx.ECKeyStore).txId.toString
 
             try {
                 val client = clientFactory.getBitcoinClient(tx.networkParams)
@@ -1291,6 +1292,35 @@ class BalzacValidator extends AbstractBalzacValidator {
                     assertion.exp,
                     null
                 );
+        }
+    }
+
+    @Check
+    def void checkBetween(Between between) {
+        val leftRes = between.left.interpretE
+        val rightRes = between.right.interpretE
+
+        if (!leftRes.failed && (leftRes.value instanceof Long) &&
+            !rightRes.failed && (rightRes.value instanceof Long)
+        ) {
+            val left = leftRes.value as Long
+            val right = rightRes.value as Long
+
+            if (left >= right) {
+                error(
+                    '''Invalid range. Value «left» must be lower than «right»''',
+                    between,
+                    BalzacPackage.Literals.BETWEEN__LEFT
+                )
+            }
+            if (left + 1 == right) {
+                warning(
+                    '''Unnecessary usage of between. Replace with «between.value.nodeToString» == «left»''',
+                    between,
+                    null
+                )
+            }
+
         }
     }
 }
