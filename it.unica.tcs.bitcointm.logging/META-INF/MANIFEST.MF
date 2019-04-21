@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Automatic-Module-Name: it.unica.tcs.bitcointm.logging
-Bundle-ManifestVersion: 2
-Bundle-Name: it.unica.tcs.bitcointm.logging
-Bundle-Vendor: University of Cagliari
-Bundle-SymbolicName: it.unica.tcs.bitcointm.logging
-Bundle-Version: 1.0.0.qualifier
-Fragment-Host: org.apache.log4j;bundle-version="1.2.15"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -1,0 +1,465 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Language" content="en-us">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Balzac (Bitcoin Abstract Language, analyZer and Compiler) - Web Editor (beta)</title>
+
+    <link rel="stylesheet" type="text/css" href="xtext/2.14.0/xtext-ace.css"/>
+
+    <!-- Loading buttons -->
+    <link rel="stylesheet" type="text/css" href="loading-btn/loading.css"/>
+    <link rel="stylesheet" type="text/css" href="loading-btn/loading-btn.css"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel='stylesheet' href='webjars/bootstrap/4.1.0/css/bootstrap.min.css'>
+
+    <!-- Font Awesome -->
+    <script defer src="webjars/font-awesome/5.0.13/svg-with-js/js/fontawesome-all.min.js"></script>
+
+    <!-- Bootstrap Toggle CSS -->
+    <link href="webjars/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+
+    <script src="webjars/requirejs/2.3.6/require.min.js"></script>
+    <script type="text/javascript">
+        var baseUrl = window.location.pathname;
+        var fileIndex = baseUrl.indexOf("index.html");
+        if (fileIndex > 0)
+            baseUrl = baseUrl.slice(0, fileIndex);
+        require.config({
+            baseUrl: baseUrl,
+            paths: {
+                "jquery": "webjars/jquery/3.3.1-1/jquery.min",
+                "ace": "webjars/ace/1.2.8/src/ace",
+                "ace/ext/language_tools": "webjars/ace/1.2.8/src/ext-language_tools",
+                "xtext/xtext-ace": "xtext/2.17.1/xtext-ace",
+                "bootstrap": "webjars/bootstrap/4.1.0/js/bootstrap.bundle.min",
+                "bootstrap-toggle": "webjars/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min"
+            }
+        });
+        require(["ace"], function() {
+            require(["xtext/xtext-ace"], function(xtext) {
+
+                var editor = xtext.createEditor({
+                    baseUrl: baseUrl,
+                    syntaxDefinition: "xtext-resources/generated/mode-balzac"
+                });
+
+                var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
+
+                if (typeof(Storage) !== "undefined") {
+                    // Code for localStorage/sessionStorage.
+                    if (localStorage.getItem("file-content") != null) {
+                        text = localStorage.getItem("file-content");
+                    }
+                } else {
+                    // Sorry! No Web Storage support..
+                }
+
+                editor.setValue(text);
+//                 editor.setTheme("ace/theme/monokai");
+                editor.setAutoScrollEditorIntoView(true);
+                editor.setOptions({
+                  //fontFamily: "tahoma",
+                  fontSize: "11pt"
+                });
+
+                editor.on("change", function(e) {
+                    if (typeof(Storage) !== "undefined") {
+                        // Code for localStorage/sessionStorage.
+                        localStorage.setItem("file-content", editor.getValue());
+                    } else {
+                        // Sorry! No Web Storage support..
+                    }
+                })
+
+                $("#compile").click(function() {
+                    $("#compile").addClass("running")
+                    setTimeout(function() {
+                        editor.xtextServices.generate()
+                            .done(function(result){
+                                $("#result").html(result)
+                                $("#result").addClass("highlight-result")
+                                $("#compile").removeClass("running")
+                                setTimeout(function(){
+                                    $("#result").removeClass("highlight-result")
+                                },1000)
+                            });
+                    }, 300)
+                });
+            });
+        });
+
+        require(["jquery"], function() {
+            require(["bootstrap"], function() {
+                require(["bootstrap-toggle"], function() {
+
+		            $(document).ready(function () {
+
+		            	$("#menu-toggle").click(function(e) {
+		                    e.preventDefault();
+		                    $("#wrapper").toggleClass("toggled");
+		                });
+
+		            	$("#clearLocalStorage").click(function(e) {
+		                    e.preventDefault();
+                            $("#clearLocalStorage").addClass("running")
+                            setTimeout(function() {
+                                localStorage.removeItem("file-content");
+                                   $("#clearLocalStorage").removeClass("running")
+                            }, 300);
+		                });
+
+		                $("#sidebar-close").click(function(e) {
+		                    e.preventDefault();
+		                    $("#wrapper").toggleClass("toggled");
+		                });
+
+		                $("#newkey-button").click(function(e) {
+	                        e.preventDefault();
+		                    $("#newkey-button").addClass("running")
+		                    setTimeout(function() {
+		                        $.ajax({
+		                            url : "utils/new-key",
+		                            data : null,
+		                            success : function(data) {
+		                                populateKeys(data)
+		                                $("#newkey-button").removeClass("running")
+		                            },
+		                            error : function(e) {
+		                                console.log("error invoking /utils/new-key")
+		                            }
+		                        });
+		                    }, 300);
+		                });
+
+		                $("#compute-hash-button").click(function(e) {
+		                    e.preventDefault();
+		                    $("#compute-hash-button").addClass("running")
+		                    setTimeout(function() {
+			                    const value = $("#value-to-hash").val()
+
+			                    $.ajax({
+			                        url : "utils/hash",
+			                        data : {"of": value},
+			                        success : function(data) {
+		                                populateHashes(data)
+		                                $("#compute-hash-button").removeClass("running")
+		                            },
+			                        error : function(e) {
+			                            console.log("error invoking /utils/hash")
+			                            console.log(e)
+			                        }
+			                    });
+		                    }, 300);
+		                });
+
+
+
+		            });
+            });});});
+
+        function populateKeys(data) {
+            const isTestnet = $("#isTestnet").prop("checked")
+
+            $("#privkey").prop("value", isTestnet? data.privkeyTestnet: data.privkeyMainnet)
+            $("#pubkey").prop("value", data.pubkey)
+            $("#addr").prop("value", isTestnet? data.addressTestnet: data.addressMainnet)
+
+            $('#isTestnet').change(function() {
+               populateKeys(data)
+            })
+        }
+
+        function populateHashes(data) {
+            $("#sha1").prop("value", data.sha1)
+            $("#sha256").prop("value", data.sha256)
+            $("#ripemd160").prop("value", data.ripemd160)
+            $("#hash160").prop("value", data.hash160)
+            $("#hash256").prop("value", data.hash256)
+        }
+
+        function copyToClipboard(id) {
+            var copyText = document.getElementById(id);
+            copyText.select();
+            document.execCommand("copy");
+        }
+
+        function loadExample(url) {
+            $.ajax({
+                url : url,
+                data : null,
+                cache : false,
+                success : function(data) {
+                    var editor = ace.edit("xtext-editor");
+                    editor.setValue(data);
+                },
+                dataType : "text"
+            });
+        }
+        </script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-101929937-2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-101929937-2');
+    </script>
+
+    <!-- Cookie Disclaimer -->
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+    <script>
+        window.addEventListener("load", function(){
+            window.cookieconsent.initialise({
+                "palette": {
+                    "popup": {
+                        "background": "#edeff5",
+                        "text": "#838391"
+                    },
+                    "button": {
+                        "background": "#4b81e8"
+                    }
+                }
+            })});
+    </script>
+</head>
+<body>
+
+    <div id="wrapper" class="toggled">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div id="sidebar-content" class="container">
+
+                <div class="row">
+
+                    <!-- Generate new key -->
+	                <div class="col-12 mb-5">
+		                <div class="text-right mb-4 pt-2">
+		                    <button id="sidebar-close" type="button" class="btn btn-default">
+		                        <i class="fa fa-times"></i>
+		                    </button>
+		                </div>
+
+		                <div class="input-group mb-2">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Private key (wif)</span>
+		                    </div>
+		                    <input type="text" id="privkey" class="form-control"
+		                        aria-label="Private key in WIF format"
+		                        aria-describedby="privkey" autocomplete="off" readonly>
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+		                <div class="input-group mb-2">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Public key (hex)</span>
+		                    </div>
+		                    <input type="text" id="pubkey" class="form-control"
+		                        aria-label="Public key in hexadecimal format"
+		                        aria-describedby="pubkey" autocomplete="off" readonly>
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+		                <div class="input-group mb-2">
+		                    <div class="input-group-prepend">
+		                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		                    </div>
+		                    <input type="text" id="addr" class="form-control"
+		                        aria-label="Public address in WIF format"
+		                        aria-describedby="addr" autocomplete="off" readonly>
+		                    <div class="input-group-append">
+		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
+		                            <i class="fa fa-clone"></i>
+		                        </button>
+		                    </div>
+		                </div>
+
+		                <div class="text-right">
+		                    <input id="isTestnet" checked type="checkbox"
+		                        data-style="mb-3"
+		                        data-toggle="toggle"
+		                        data-on="Testnet"
+		                        data-off="Mainnet"
+		                        data-onstyle="info"
+		                        data-offstyle="info"
+		                        data-size="small"
+		                        >
+		                </div>
+
+                        <div class="text-center" class="btn btn-info btn-block mb-5">
+                            <div id="newkey-button" type="button" class="btn btn-info btn-block ld-ext-right">Generate new key
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hash -->
+                    <div class="col-12 mb-5 mt-5">
+
+                        <input type="text" id="value-to-hash" class="form-control mb-3"
+                                aria-label="Value to Hash"
+                                aria-describedby="value-to-hash" autocomplete="off" placeholder="Enter a value to hash">
+
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Sha1</span>
+                            </div>
+                            <input type="text" id="sha1" class="form-control"
+                                aria-label="Sha1 hash"
+                                aria-describedby="sha1" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha1')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Sha256</span>
+                            </div>
+                            <input type="text" id="sha256" class="form-control"
+                                aria-label="Sha256 hash"
+                                aria-describedby="sha256" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha256')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Ripemd160</span>
+                            </div>
+                            <input type="text" id="ripemd160" class="form-control"
+                                aria-label="Ripemd160 hash"
+                                aria-describedby="ripemd160" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('ripemd160')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Hash256</span>
+                            </div>
+                            <input type="text" id="hash256" class="form-control"
+                                aria-label="Hash256 hash"
+                                aria-describedby="hash256" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash256')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Hash160</span>
+                            </div>
+                            <input type="text" id="hash160" class="form-control"
+                                aria-label="Hash160 hash"
+                                aria-describedby="hash160" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash160')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-center" class="btn btn-info btn-block mb-5">
+                            <div id="compute-hash-button" type="button" class="btn btn-info btn-block ld-ext-right">Compute Hash
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Delete local storage -->
+                    <div class="col-12 mb-5 mt-5">
+	                    <div class="text-center" class="btn btn-info btn-block mb-5">
+	                        <div id="clearLocalStorage" type="button" class="btn btn-info btn-block ld-ext-right">Delete local storage
+	                            <div class="loader ld ld-ring ld-spin"></div>
+	                        </div>
+	                    </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="pt-2">
+            <button id="menu-toggle" type="button" class="btn btn-default ml-2 mb-4">
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="container mb-3">
+
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3 class="card-title">Balzac Online Editor</h3>
+                        <p class="small mb-0">beta version - USE ON THE MAINNET AT YOUR OWN RISK</p>
+
+                        <div class="ext-links mt-3">
+	                        <a href="http://github.com/balzac-lang/balzac" target="_blank" title="Github repository"><i class="fab fa-github"></i></a>
+	                        <a href="http://blockchain.unica.it/balzac/docs" target="_blank" title="Documentation"><i class="fas fa-book"></i></a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-2">
+                            <div class="dropdown">
+                                <button class="btn btn-info dropdown-toggle" type="button"
+                                    id="selectExample" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">Select an example</button>
+                                <div class="dropdown-menu" aria-labelledby="selectExample">
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.balzac')">Balzac in a nutshell</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle.balzac')">Oracle</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-timed.balzac')">Oracle (timed)</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/escrow-alice.balzac')">Escrow (Alice's view)</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.balzac')">Timed Commitment</button>
+                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/signatures.balzac')">Signature modifiers</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-dark mb-3" >
+                            <div id="xtext-editor" class="" data-editor-xtext-lang="balzac"></div>
+                        </div>
+                        <div class="text-center">
+                            <div id="compile" type="button" class="btn btn-primary ld-ext-right">Evaluate
+                                <div class="loader ld ld-ring ld-spin"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <pre id="result" class="mt-2 bg-white border border-dark resizable">
+                        </pre>
+                    </div>
+                </div>
+                <div class="row text-center small mt-5">
+                    <div class="col">
+                    Copyright © 2018 - Nicola Atzei
+                    </div>
+                </div>
+                <div class="row text-center small mt-1">
+                    <div class="col">
+                    <a href="http://blockchain.unica.it" target="_blank">Blockchain@Unica</a>, <a href="http://unica.it" target="_blank">University of Cagliari</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+</body>
+</html>

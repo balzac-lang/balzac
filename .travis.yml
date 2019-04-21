@@ -12,10 +12,11 @@ before_script:
   - ./scripts/install-deps.sh
 
 script:
-  - mvn -f it.unica.tcs.bitcointm.parent/ install
+  - ls -l "xyz.balzaclang.balzac" | grep -e "xyz\.balzaclang\.balzac\.lib.*-bundled\.jar"
+  - mvn -f xyz.balzaclang.balzac.parent/ clean install
 
 after_success:
-  - mvn -f it.unica.tcs.bitcointm.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
+  - mvn -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
 
 notifications:
   email:

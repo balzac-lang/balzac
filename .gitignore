@@ -21,6 +21,6 @@ xsemantics-gen
 !.classpath
 !.project
 !.travis.yml
-!it.unica.tcs.bitcointm.lib-1.0.0-SNAPSHOT-bundled.jar
+!xyz.balzaclang.balzac.lib-*-bundled.jar
 
 plugin.xml_gen

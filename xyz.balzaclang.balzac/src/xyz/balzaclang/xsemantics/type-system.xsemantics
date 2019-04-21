@@ -1,0 +1,1168 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
+
+import xyz.balzaclang.balzac.AbsoluteTime
+import xyz.balzaclang.balzac.AddressLiteral
+import xyz.balzaclang.balzac.AddressType
+import xyz.balzaclang.balzac.AndExpression
+import xyz.balzaclang.balzac.ArithmeticSigned
+import xyz.balzaclang.balzac.Assertion
+import xyz.balzaclang.balzac.BalzacFactory
+import xyz.balzaclang.balzac.BasicType
+import xyz.balzaclang.balzac.Between
+import xyz.balzaclang.balzac.BitcoinValue
+import xyz.balzaclang.balzac.BooleanLiteral
+import xyz.balzaclang.balzac.BooleanNegation
+import xyz.balzaclang.balzac.BooleanType
+import xyz.balzaclang.balzac.CheckBlock
+import xyz.balzaclang.balzac.CheckBlockDelay
+import xyz.balzaclang.balzac.CheckDate
+import xyz.balzaclang.balzac.CheckTimeDelay
+import xyz.balzaclang.balzac.Comparison
+import xyz.balzaclang.balzac.Constant
+import xyz.balzaclang.balzac.DateLiteral
+import xyz.balzaclang.balzac.DayLiteral
+import xyz.balzaclang.balzac.Div
+import xyz.balzaclang.balzac.Equals
+import xyz.balzaclang.balzac.Eval
+import xyz.balzaclang.balzac.Hash160
+import xyz.balzaclang.balzac.Hash256
+import xyz.balzaclang.balzac.HashLiteral
+import xyz.balzaclang.balzac.HashType
+import xyz.balzaclang.balzac.HashableType
+import xyz.balzaclang.balzac.HourLiteral
+import xyz.balzaclang.balzac.IfThenElse
+import xyz.balzaclang.balzac.Input
+import xyz.balzaclang.balzac.IntType
+import xyz.balzaclang.balzac.KeyLiteral
+import xyz.balzaclang.balzac.KeyType
+import xyz.balzaclang.balzac.Max
+import xyz.balzaclang.balzac.Min
+import xyz.balzaclang.balzac.Minus
+import xyz.balzaclang.balzac.MinuteLiteral
+import xyz.balzaclang.balzac.Model
+import xyz.balzaclang.balzac.NumberLiteral
+import xyz.balzaclang.balzac.OrExpression
+import xyz.balzaclang.balzac.Output
+import xyz.balzaclang.balzac.Parameter
+import xyz.balzaclang.balzac.Participant
+import xyz.balzaclang.balzac.Placeholder
+import xyz.balzaclang.balzac.Plus
+import xyz.balzaclang.balzac.PubKeyLiteral
+import xyz.balzaclang.balzac.PubkeyType
+import xyz.balzaclang.balzac.Reference
+import xyz.balzaclang.balzac.RelativeTime
+import xyz.balzaclang.balzac.Ripemd160
+import xyz.balzaclang.balzac.Script
+import xyz.balzaclang.balzac.Sha1
+import xyz.balzaclang.balzac.Sha256
+import xyz.balzaclang.balzac.Signature
+import xyz.balzaclang.balzac.SignatureLiteral
+import xyz.balzaclang.balzac.SignatureType
+import xyz.balzaclang.balzac.Size
+import xyz.balzaclang.balzac.StringLiteral
+import xyz.balzaclang.balzac.StringType
+import xyz.balzaclang.balzac.This
+import xyz.balzaclang.balzac.Times
+import xyz.balzaclang.balzac.ToAddress
+import xyz.balzaclang.balzac.ToPubkey
+import xyz.balzaclang.balzac.Transaction
+import xyz.balzaclang.balzac.TransactionFees
+import xyz.balzaclang.balzac.TransactionHexLiteral
+import xyz.balzaclang.balzac.TransactionId
+import xyz.balzaclang.balzac.TransactionInputOperation
+import xyz.balzaclang.balzac.TransactionOutputOperation
+import xyz.balzaclang.balzac.TransactionType
+import xyz.balzaclang.balzac.Type
+import xyz.balzaclang.balzac.TypeVariable
+import xyz.balzaclang.balzac.Typeable
+import xyz.balzaclang.balzac.Versig
+import xyz.balzaclang.utils.ASTUtils
+import xyz.balzaclang.utils.BalzacLogger
+import xyz.balzaclang.validation.AbstractBalzacValidator
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.util.EcoreUtil
+import org.eclipse.xsemantics.runtime.RuleEnvironment
+import org.eclipse.xtext.EcoreUtil2
+import org.slf4j.LoggerFactory
+
+system xyz.balzaclang.xsemantics.BalzacTypeSystem
+
+validatorExtends AbstractBalzacValidator
+
+inject LambdaUtils lambdaUtils
+inject extension ASTUtils astUtils
+
+val logger = new BalzacLogger(LoggerFactory.getLogger(BalzacTypeSystem))
+
+auxiliary {
+    typesubstitution(TypeSubstitutions substitutions, Type original) : Type
+    unify(EObject obj, TypeSubstitutions substitutions, Type left, Type right) : Type
+    failIfTypeVariable(Type type, EObject obj)
+    failIfNotBasic(Type type, EObject obj)
+}
+
+judgments {
+    typeExpression |- TypeSubstitutions substitutions |> Typeable exp : output Type
+        error "Cannot type " + stringRep(exp)
+        source exp
+}
+
+/*
+ * auxiliary functions
+ */
+
+auxiliary failIfTypeVariable(Type type, EObject obj) {
+    if (type instanceof TypeVariable) {
+        fail
+        error "Cannot infer the type"
+        source obj
+    }
+}
+
+auxiliary failIfNotBasic(Type type, EObject obj) {
+    if (!(type instanceof BasicType)) {
+        fail
+        error "Basic type expected: int, string, bool, hash160, hash256, ripemd160, sha256, transaction, signature, key, address, pubkey"
+        source obj
+    }
+}
+
+auxiliary typesubstitution(TypeSubstitutions substitutions, Type type) {
+    type
+}
+
+auxiliary typesubstitution(TypeSubstitutions substitutions, TypeVariable variable)
+{
+    var mapped = substitutions.mapped(variable.value)
+    if (mapped !== null) {
+        val result = EcoreUtil::copy(mapped)
+        typesubstitution(substitutions, result) // recursive
+    } else
+        variable
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, Type actual, Type expected) {
+    // if we get here we cannot unify the two types
+    fail
+        error 'Invalid type '+stringRep(actual)+", expected type "+stringRep(expected)
+        source obj
+    null
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, IntType t1, IntType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, HashType t1, HashType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, StringType t1, StringType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, BooleanType t1, BooleanType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, KeyType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, AddressType t1, AddressType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, SignatureType t1, SignatureType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TransactionType t1, TransactionType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, PubkeyType t2) {
+    EcoreUtil::copy(t1)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable typeVar, BasicType basicType) {
+    substitutions.add(typeVar.value, basicType)
+    if (obj instanceof Placeholder) {
+        obj.type = EcoreUtil.copy(basicType)
+    }
+    EcoreUtil.copy(basicType)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, BasicType basicType, TypeVariable typeVar) {
+    unify(obj, substitutions, typeVar, basicType)
+}
+
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, TypeVariable left, TypeVariable right) {
+    // unify both variables with a fresh new variable
+    val fresh = lambdaUtils.createFreshTypeVariable
+    substitutions.add(left.value, fresh)
+    substitutions.add(right.value, fresh)
+    fresh
+}
+
+// key is subtype of address: you can derive an address from its private part
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, AddressType t2) {
+    EcoreUtil::copy(t2)
+}
+
+// key is subtype of a pubkey: you can derive the public part from its private part
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, KeyType t1, PubkeyType t2) {
+    EcoreUtil::copy(t2)
+}
+
+// pubkey is subtype of an address: you can derive the address from its pubkey
+auxiliary unify(EObject obj, TypeSubstitutions substitutions, PubkeyType t1, AddressType t2) {
+    EcoreUtil::copy(t2)
+}
+
+
+
+/*
+ * Type system rules
+ */
+rule Placeholder
+    G |- TypeSubstitutions substitutions |> Placeholder p : Type type
+from {
+    if (G.get(p) !== null) {
+        type = G.get(p) as Type
+    }
+    else {
+        {
+            p.type !== null
+            type = EcoreUtil.copy(p.type)
+        }
+        or {
+            type = lambdaUtils.createFreshTypeVariable
+        }
+
+        G.add(p, type)
+    }
+}
+
+rule Parameter
+    G |- TypeSubstitutions substitutions |> Parameter p : Type type
+from {
+    if (G.get(p) !== null) {
+        type = G.get(p) as Type
+    }
+    else {
+        {
+            p.type !== null
+            type = EcoreUtil.copy(p.type)
+        }
+        or {
+            type = lambdaUtils.createFreshTypeVariable
+        }
+
+        G.add(p, type)
+    }
+}
+
+// a constant always has a basic type (int, string, ...)
+rule Constant
+    G |- TypeSubstitutions substitutions |> Constant c : Type type
+from {
+    {
+        c.type !== null
+        type = EcoreUtil.copy(c.type)
+    }
+    or {
+        type = lambdaUtils.createFreshTypeVariable
+    }
+
+    substitutions.addVisited(c)
+    G |- substitutions |> (c.exp as Typeable) : var Type expType
+    type = unify(c.exp, substitutions, expType, type)
+    substitutions.removeVisited(c)
+
+    failIfNotBasic(type, c)
+    c.type = EcoreUtil::copy(type as BasicType)     // store the type in the AST
+    G.add(c, type)                                  // store the type in env to avoid recomputation
+}
+
+rule This
+    G |- TypeSubstitutions substitutions |> This thiz : BalzacFactory::eINSTANCE.createTransactionType
+from {
+    val tx = EcoreUtil2.getContainerOfType(thiz, Transaction)
+
+    // check if tx is already visited
+    if (substitutions.isAlreadyVisited(tx)) {
+        fail
+            error "Found cyclic dependency"
+            source thiz
+    }
+}
+
+rule Reference
+    G |- TypeSubstitutions substitutions |> Reference varRef : Type type
+from {
+    if (substitutions.isAlreadyVisited(varRef.ref)) {
+        fail
+            error "Found cyclic dependency"
+            source varRef
+    }
+
+    if (varRef.ref instanceof Constant) {
+        if (!varRef.actualParams.^empty) {
+            fail
+                error "Constant reference cannot have actual parameters"
+                source varRef
+        }
+        val const = varRef.ref as Constant
+        type = G.get(const) as BasicType    // avoid recomputation if possible
+        if (type === null) {
+            G |- substitutions |> const : type
+        }
+    }
+    else if (varRef.ref instanceof Parameter) {
+        if (!varRef.actualParams.^empty) {
+            fail
+                error "Parameter reference cannot have actual parameters"
+                source varRef
+        }
+        val param = varRef.ref as Parameter
+        G |- substitutions |> param : type
+    }
+    else if (varRef.ref instanceof Transaction) {
+        val tx = varRef.ref as Transaction
+        if (varRef.actualParams.size != tx.params.size) {
+            fail
+                error "Invalid number of actual parameters."
+                source varRef
+        }
+
+        G |- substitutions |> tx : type
+        type = typesubstitution(substitutions, type)
+        unify(tx, substitutions, type, BalzacFactory::eINSTANCE.createTransactionType)
+
+        // check the actual parameters type match the formal ones
+        for (var i=0; i<varRef.actualParams.size; i++) {
+            var actualParam = varRef.actualParams.get(i)
+            var formalParam = tx.params.get(i)
+
+            // get formal parameter type
+            var formalParamType = env(G, formalParam, Type)
+            // apply eventual substitutions to get the basic type
+            formalParamType = typesubstitution(substitutions, formalParamType)
+            // ensure it's basic
+            failIfTypeVariable(formalParamType, formalParam)
+
+            // all the actual parameters are well typed
+            G |- substitutions |> actualParam : var Type actualParamType
+            // apply eventual substitutions
+            actualParamType = typesubstitution(substitutions, actualParamType)
+
+            // the actual param type must be unifiable with the formal param type
+            unify(actualParam, substitutions, actualParamType, formalParamType)
+        }
+    }
+    else {
+        logger.^error("Unexpected class "+varRef.ref)
+        fail
+            error "Cannot type " + stringRep(varRef)
+            source varRef
+    }
+}
+
+/*
+ * - all the inputs are well typed
+ * - all the outputs are well typed
+ */
+rule Transaction
+    G |- TypeSubstitutions substitutions |> Transaction tx : Type txType
+from {
+    txType = BalzacFactory::eINSTANCE.createTransactionType
+    substitutions.addVisited(tx)
+
+    for (p : tx.params) {
+        G |- substitutions |> p : var Type t    // type the parameters, possibly TypeVariable
+    }
+
+    for (in : tx.inputs) {
+        G |- substitutions |> in : var Type t1  // all inputs are well typed
+    }
+
+    for (out : tx.outputs) {
+        G |- substitutions |> out : var Type t2 // all outputs are well typed
+    }
+
+    substitutions.removeVisited(tx)
+
+    // after typing the parameters, all should have a basic type (generic types are not allowed)
+    for (p : tx.params) {
+        var ptype = env(G, p, Type)
+        ptype = typesubstitution(substitutions, ptype)
+        failIfTypeVariable(ptype, p)
+        // store the type in the AST
+        p.type = EcoreUtil::copy(ptype as BasicType)
+    }
+}
+
+/**
+ * An input is well typed if:
+ * - the body of the redeemed transaction is well typed
+ * - all the expressions are well typed and the type is basic (not generic)
+ * - if the redeemed tx has free variables, check that the actual types corresponds to the formal ones
+ * - if the redeemed tx is user defined, all the expression type corresponds to the expected type of the parameter
+ */
+rule Input
+    G |- TypeSubstitutions substitutions |> Input input : BalzacFactory::eINSTANCE.createVoidType
+from {
+    if (!input.isPlaceholder) {
+
+        val txType = BalzacFactory::eINSTANCE.createTransactionType
+
+        // the body of the redeemed transaction is well typed
+        G |- substitutions |> input.txRef : var Type t1     // eventual tx parameters have type BasicType
+        t1 = typesubstitution(substitutions, t1)
+        unify(input.txRef, substitutions, t1, txType)
+
+        val inputTxRef = input.txRef
+
+        val optTx = inputTxRef.getTransactionFromReference
+        if ( optTx.isPresent ) {
+            val tx = optTx.get
+
+            // check the actual parameters type match the formal ones (Script)
+            var outputIndex = input.outpoint
+            var outputScript = tx.outputs.get(outputIndex).script
+
+            if (input.exps.size != (outputScript as Script).params.size) {
+                fail
+                    error "Invalid number of witnesses."
+                    source input
+            }
+
+            for (var i=0; i<input.exps.size; i++) {
+                var inputExp = input.exps.get(i)
+                var outputParam = (outputScript as Script).params.get(i)
+
+                // get formal parameter type
+                var formalParamType = env(G, outputParam, Type)
+                // apply eventual substitutions to get the basic type
+                formalParamType = typesubstitution(substitutions, formalParamType)
+                // ensure it's basic
+                failIfTypeVariable(formalParamType, outputParam)
+
+                // all the actual parameters are well typed
+                G |- substitutions |> inputExp : var Type actualParamType
+                // apply eventual substitutions
+                actualParamType = typesubstitution(substitutions, actualParamType)
+
+                // the actual param type must be unifiable with the formal param type
+                unify(inputExp, substitutions, actualParamType, formalParamType)
+            }
+        }
+        else {
+            // all the input expressions are well typed and the type is basic
+            for (var i=0; i<input.exps.size; i++) {
+                var exp = input.exps.get(i)
+                G |- substitutions |> exp : var Type texp
+                texp = typesubstitution(substitutions, texp)
+                failIfTypeVariable(texp, exp)
+            }
+        }
+
+        if (input.redeemScript !== null) {
+            G |- substitutions |> input.redeemScript : var Type type
+        }
+    }
+}
+
+/**
+ * An Output is well typed if:
+ * - all the scripts parameters are well typed and the type is basic (not generic)
+ * - all the scripts expressions are well typed
+ */
+rule Output
+    G |- TypeSubstitutions substitutions |> Output _output : BalzacFactory::eINSTANCE.createVoidType
+from {
+    var satoshis = _output.value
+    G |- substitutions |> satoshis : var Type valType
+    valType = typesubstitution(substitutions, valType)
+    unify(satoshis, substitutions, valType, BalzacFactory::eINSTANCE.createIntType)
+
+    G |- substitutions |> _output.script : var Type type
+}
+
+rule Script
+    G |- TypeSubstitutions substitutions |> Script script : BalzacFactory::eINSTANCE.createVoidType
+from {
+    for (p : script.params) {
+        G |- substitutions |> p : var Type type
+    }
+
+    G |- substitutions |> script.exp : var Type expType
+    expType = typesubstitution(substitutions, expType)
+
+    if (script.params.size == 0) {
+        {
+            unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
+        } or {
+            unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createStringType)
+        } or {
+            fail
+            error "expected type boolean or string"
+            source script.exp
+        }
+    }
+    else {
+        unify(script.exp, substitutions, expType, BalzacFactory::eINSTANCE.createBooleanType)
+    }
+
+    // all the parameters should have a basic type (generic types are not allowed)
+    for (p : script.params) {
+        var ptype = env(G, p, Type)
+        ptype = typesubstitution(substitutions, ptype)
+        failIfNotBasic(ptype, p)
+        // store the type in the AST
+        p.type = EcoreUtil::copy(ptype as BasicType)
+    }
+}
+
+
+rule AbsoluteTime
+    G |- TypeSubstitutions substitutions |> AbsoluteTime tlock : BalzacFactory::eINSTANCE.createVoidType
+from {
+    G |- substitutions |> tlock.exp : var Type type
+    type = typesubstitution(substitutions, type)
+    unify(tlock.exp, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
+}
+
+rule RelativeTime
+    G |- TypeSubstitutions substitutions |> RelativeTime tlock : BalzacFactory::eINSTANCE.createVoidType
+from {
+    G |- substitutions |> tlock.exp : var Type type
+    type = typesubstitution(substitutions, type)
+    unify(tlock.exp, substitutions, type, BalzacFactory::eINSTANCE.createIntType)
+
+    if (tlock.tx !== null) {
+        G |- substitutions |> tlock.tx : var Type txtype
+        txtype = typesubstitution(substitutions, txtype)
+        unify(tlock.tx, substitutions, txtype, BalzacFactory::eINSTANCE.createTransactionType)
+    }
+}
+
+/*
+ * Expressions type system
+ */
+axiom NumeralLiteral
+    G |- TypeSubstitutions substitutions |> NumberLiteral num : BalzacFactory::eINSTANCE.createIntType
+
+axiom BooleanLiteral
+    G |- TypeSubstitutions substitutions |> BooleanLiteral bool : BalzacFactory::eINSTANCE.createBooleanType
+
+axiom StringLiteral
+    G |- TypeSubstitutions substitutions |> StringLiteral str : BalzacFactory::eINSTANCE.createStringType
+
+axiom HashLiteral
+    G |- TypeSubstitutions substitutions |> HashLiteral h : BalzacFactory::eINSTANCE.createHashType
+
+axiom TransactionHexLiteral
+    G |- TypeSubstitutions substitutions |> TransactionHexLiteral tx : BalzacFactory::eINSTANCE.createTransactionType
+
+rule SignatureLiteral
+    G |- TypeSubstitutions substitutions |> SignatureLiteral s : BalzacFactory::eINSTANCE.createSignatureType
+from {
+	if (s.pubkey !== null) {
+		var pubkeyType =  BalzacFactory::eINSTANCE.createPubkeyType
+
+        G |- substitutions |> s.pubkey : var Type t
+        t = typesubstitution(substitutions, t)
+        unify(s.pubkey, substitutions, t, pubkeyType)
+	}
+}
+
+axiom DateLiteral
+    G |- TypeSubstitutions substitutions |> DateLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom MinuteLiteral
+    G |- TypeSubstitutions substitutions |> MinuteLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom HourLiteral
+    G |- TypeSubstitutions substitutions |> HourLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom DayLiteral
+    G |- TypeSubstitutions substitutions |> DayLiteral d : BalzacFactory::eINSTANCE.createIntType
+
+axiom KeyLiteral
+    G |- TypeSubstitutions substitutions |> KeyLiteral key : BalzacFactory::eINSTANCE.createKeyType
+
+axiom AddressLiteral
+    G |- TypeSubstitutions substitutions |> AddressLiteral addr : BalzacFactory::eINSTANCE.createAddressType
+
+axiom PubkeyLiteral
+    G |- TypeSubstitutions substitutions |> PubKeyLiteral pk : BalzacFactory::eINSTANCE.createPubkeyType
+
+
+rule BitcoinValue
+    G |- TypeSubstitutions substitutions |> BitcoinValue btc : IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> btc.unit: var Type type
+
+    type = typesubstitution(substitutions, type)
+
+    // the terms type must be unifiable with int type
+    unify(btc.unit, substitutions, type, t)
+}
+
+rule Times
+    G |- TypeSubstitutions substitutions |> Times op : IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    // the terms type must be unifiable with int type
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
+}
+
+rule Div
+    G |- TypeSubstitutions substitutions |> Div op : IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    // the terms type must be unifiable with int type
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
+}
+
+rule Minus
+    G |- TypeSubstitutions substitutions |> Minus op : IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> op.left: var Type leftType
+    G |- substitutions |> op.right: var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    // the terms type must be unifiable with int type
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
+}
+
+rule Plus
+    G |- TypeSubstitutions substitutions |> Plus op : Type type
+from {
+    {   // sum of integers
+        type = BalzacFactory::eINSTANCE.createIntType
+        G |- substitutions |> op.left : var Type leftType
+        G |- substitutions |> op.right : var Type rightType
+
+        leftType = typesubstitution(substitutions, leftType)
+        rightType = typesubstitution(substitutions, rightType)
+
+        // the terms type must be unifiable with int type
+        unify(op.left, substitutions, leftType, type)
+        unify(op.right, substitutions, rightType, type)
+    }
+    or {    // string concatenation
+        type = BalzacFactory::eINSTANCE.createStringType
+        G |- substitutions |> op.left : var Type leftType
+        G |- substitutions |> op.right : var Type rightType
+
+        leftType = typesubstitution(substitutions, leftType)
+
+        // only the first term must unify to a string
+        // we are able to convert any term to a string
+        unify(op.left, substitutions, leftType, type)
+    }
+}
+
+rule Comparison
+    G |- TypeSubstitutions substitutions |> Comparison op : BalzacFactory::eINSTANCE.createBooleanType
+from {
+    var t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> op.left : var Type leftType
+    G |- substitutions |> op.right : var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    unify(op.left, substitutions, leftType, t)
+    unify(op.right, substitutions, rightType, t)
+}
+
+rule Equals
+    G |- TypeSubstitutions substitutions |> Equals op : BalzacFactory::eINSTANCE.createBooleanType
+from {
+    G |- substitutions |> op.left : var Type leftType
+    G |- substitutions |> op.right : var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    if (leftType instanceof BasicType) {
+        unify(op.right, substitutions, rightType, leftType)
+    } else {
+        unify(op.left, substitutions, leftType, rightType)
+    }
+}
+
+rule BooleanNegation
+    G |- TypeSubstitutions substitutions |> BooleanNegation negation : BooleanType boolType
+from {
+    boolType = BalzacFactory::eINSTANCE.createBooleanType
+    G |- substitutions |> negation.exp : var Type t
+
+    t = typesubstitution(substitutions, t)
+
+    unify(negation.exp, substitutions, t, boolType)
+}
+
+rule Or
+    G |- TypeSubstitutions substitutions |> OrExpression orExp : BooleanType boolType
+from {
+    boolType = BalzacFactory::eINSTANCE.createBooleanType
+    G |- substitutions |> orExp.left : var Type leftType
+    leftType = typesubstitution(substitutions, leftType)
+    unify(orExp.left, substitutions, leftType, boolType)
+
+    G |- substitutions |> orExp.right : var Type rightType
+    rightType = typesubstitution(substitutions, rightType)
+    unify(orExp.right, substitutions, rightType, boolType)
+}
+
+rule And
+    G |- TypeSubstitutions substitutions |> AndExpression andExp : BooleanType boolType
+from {
+    boolType = BalzacFactory::eINSTANCE.createBooleanType
+    G |- substitutions |> andExp.left : var Type leftType
+    G |- substitutions |> andExp.right : var Type rightType
+
+    leftType = typesubstitution(substitutions, leftType)
+    rightType = typesubstitution(substitutions, rightType)
+
+    unify(andExp.left, substitutions, leftType, boolType)
+    unify(andExp.right, substitutions, rightType, boolType)
+}
+
+rule ArithmeticSigned
+    G |- TypeSubstitutions substitutions |> ArithmeticSigned signed : IntType intType
+from {
+    intType = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> signed.exp : var Type t
+
+    t = typesubstitution(substitutions, t)
+
+    unify(signed.exp, substitutions, t, intType)
+}
+
+rule IfThenElse
+    G |- TypeSubstitutions substitutions |> IfThenElse stmt : Type type
+from {
+    var boolType = BalzacFactory::eINSTANCE.createBooleanType
+    G |- substitutions |> stmt.^if: var Type tIf
+    G |- substitutions |> stmt.then: var Type tThen
+    G |- substitutions |> stmt.^else: var Type tElse
+
+    tIf = typesubstitution(substitutions, tIf)
+    tThen = typesubstitution(substitutions, tThen)
+    tElse = typesubstitution(substitutions, tElse)
+
+    unify(stmt.^if, substitutions, tIf, boolType)
+    unify(stmt.^else, substitutions, tElse, tThen)
+
+    type=tThen
+}
+
+rule VerSig
+    G |- TypeSubstitutions substitutions |> Versig versig : BalzacFactory::eINSTANCE.createBooleanType
+from {
+    var sigType = BalzacFactory::eINSTANCE.createSignatureType
+
+    for (s : versig.signatures) {
+        G |- substitutions |> s : var Type ts
+        ts = typesubstitution(substitutions, ts)
+        unify(s, substitutions, ts, sigType)
+    }
+
+    var pubkeyType =  BalzacFactory::eINSTANCE.createPubkeyType
+
+    for (k : versig.pubkeys) {
+        G |- substitutions |> k : var Type t
+        t = typesubstitution(substitutions, t)
+        unify(k, substitutions, t, pubkeyType)
+    }
+}
+
+rule Signature
+    G |- TypeSubstitutions substitutions |> Signature s : BalzacFactory::eINSTANCE.createSignatureType
+from {
+    var keyType = BalzacFactory::eINSTANCE.createKeyType
+
+    G |- substitutions |> s.privkey : var Type t
+    t = typesubstitution(substitutions, t)
+    unify(s.privkey, substitutions, t, keyType)
+
+    if (s.tx !== null) {
+        var txType = BalzacFactory::eINSTANCE.createTransactionType
+
+        G |- substitutions |> s.tx : var Type t1
+        t1 = typesubstitution(substitutions, t1)
+        unify(s.tx, substitutions, t1, txType)
+    }
+}
+
+rule Hash160
+    G |- TypeSubstitutions substitutions |> Hash160 hash: BalzacFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
+        source hash.value
+    }
+}
+
+rule Hash256
+    G |- TypeSubstitutions substitutions |> Hash256 hash: BalzacFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
+        source hash.value
+    }
+}
+
+rule Ripemd160
+    G |- TypeSubstitutions substitutions |> Ripemd160 hash: BalzacFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
+        source hash.value
+    }
+}
+
+rule Sha256
+    G |- TypeSubstitutions substitutions |> Sha256 hash: BalzacFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
+        source hash.value
+    }
+}
+
+rule Sha1
+    G |- TypeSubstitutions substitutions |> Sha1 hash: BalzacFactory::eINSTANCE.createHashType
+from {
+    G |- substitutions |> hash.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    if (!(t instanceof HashableType)) {
+        fail
+        error "Invalid type "+stringRep(t)+", int string bool or hash expected"
+        source hash.value
+    }
+}
+rule Min
+    G |- TypeSubstitutions substitutions |> Min min: IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> min.left: var Type tleft
+    G |- substitutions |> min.right: var Type tright
+
+    tleft = typesubstitution(substitutions, tleft)
+    tright = typesubstitution(substitutions, tright)
+
+    unify(min.left, substitutions, tleft, t)
+    unify(min.right, substitutions, tright, t)
+}
+
+rule Max
+    G |- TypeSubstitutions substitutions |> Max max: IntType t
+from {
+    t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> max.left: var Type tleft
+    G |- substitutions |> max.right: var Type tright
+
+    tleft = typesubstitution(substitutions, tleft)
+    tright = typesubstitution(substitutions, tright)
+
+    unify(max.left, substitutions, tleft, t)
+    unify(max.right, substitutions, tright, t)
+}
+
+rule Between
+    G |- TypeSubstitutions substitutions |> Between between: BalzacFactory::eINSTANCE.createBooleanType
+from {
+    val t = BalzacFactory::eINSTANCE.createIntType
+    G |- substitutions |> between.value: var Type tValue
+    G |- substitutions |> between.left: var Type tLeft
+    G |- substitutions |> between.right: var Type tRight
+
+    tValue = typesubstitution(substitutions, tValue)
+    tLeft = typesubstitution(substitutions, tLeft)
+    tRight = typesubstitution(substitutions, tRight)
+
+    unify(between.value, substitutions, tValue, t)
+    unify(between.left, substitutions, tLeft, t)
+    unify(between.right, substitutions, tRight, t)
+}
+
+rule Size
+    G |- TypeSubstitutions substitutions |> Size size: BalzacFactory::eINSTANCE.createIntType
+from {
+    G |- substitutions |> size.value: var Type t
+    t = typesubstitution(substitutions, t)
+
+    {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+    }
+    or {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createBooleanType)
+    }
+    or {
+        unify(size.value, substitutions, t, BalzacFactory::eINSTANCE.createStringType)
+    }
+}
+
+rule CheckBlock
+    G |- TypeSubstitutions substitutions |> CheckBlock check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule CheckDate
+    G |- TypeSubstitutions substitutions |> CheckDate check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule CheckBlockDelay
+    G |- TypeSubstitutions substitutions |> CheckBlockDelay check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule CheckTimeDelay
+    G |- TypeSubstitutions substitutions |> CheckTimeDelay check: Type texpr
+from {
+    G |- substitutions |> check.exp: var Type t
+    t = typesubstitution(substitutions, t)
+    unify(check.exp, substitutions, t, BalzacFactory::eINSTANCE.createIntType)
+
+    G |- substitutions |> check.continuation: texpr
+    texpr = typesubstitution(substitutions, texpr)
+}
+
+rule Compile
+    G |- TypeSubstitutions substitutions |> Eval compile: BalzacFactory::eINSTANCE.createVoidType
+from {
+    for (e : compile.exps) {
+        G |- substitutions |> e: var Type texpr
+        texpr = typesubstitution(substitutions, texpr)
+        failIfNotBasic(texpr, e)
+    }
+}
+
+
+rule TransactionInputOperation
+    G |- TypeSubstitutions substitutions |> TransactionInputOperation op: BalzacFactory::eINSTANCE.createIntType
+from {
+    {
+        // we can deal with it in the interpreter
+        op.tx instanceof This
+
+        if (substitutions.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
+        }
+
+        // check that evaluation of input tx does not cause a loop
+        substitutions.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        val indexes = if (op.indexes.^empty) 0 ..< tx.inputs.size else op.indexes.filter[i|i>=tx.inputs.size].toSet
+        for(index : indexes) {
+            val input = tx.inputs.get(index)
+            if (!input.isPlaceholder) {
+                val inTx = input.txRef
+                G |- substitutions |> inTx: var Type type
+            }
+        }
+        substitutions.removeVisited(op)
+    }
+    or {
+        val txType = BalzacFactory::eINSTANCE.createTransactionType
+        G |- substitutions |> op.tx: var Type type
+        unify(op.tx, substitutions, type, txType)
+    }
+}
+
+rule TransactionOutputOperation
+    G |- TypeSubstitutions substitutions |> TransactionOutputOperation op: BalzacFactory::eINSTANCE.createIntType
+from {
+    {
+        // we can deal with it in the interpreter
+        op.tx instanceof This
+
+        if (substitutions.isAlreadyVisited(op)) {
+            fail
+                error "Found cyclic dependency"
+                source op
+        }
+
+        // check that evaluation of output values does not cause a loop
+        substitutions.addVisited(op)
+        val tx = EcoreUtil2.getContainerOfType(op, Transaction)
+        val indexes = if (op.indexes.^empty) 0 ..< tx.outputs.size else op.indexes.filter[i|i>=tx.outputs.size].toSet
+        for(index : indexes) {
+            val vExp = tx.outputs.get(index.intValue).value
+            G |- substitutions |> vExp: var Type type
+        }
+        substitutions.removeVisited(op)
+    }
+    or {
+        val txType = BalzacFactory::eINSTANCE.createTransactionType
+        G |- substitutions |> op.tx: var Type type
+        unify(op.tx, substitutions, type, txType)
+    }
+}
+
+rule ToAddress
+    G |- TypeSubstitutions substitutions |> ToAddress elm: BalzacFactory::eINSTANCE.createAddressType
+from {
+    G |- substitutions |> elm.exp: var Type texp
+    texp = typesubstitution(substitutions, texp)
+    {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createKeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createPubkeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createAddressType)
+    }
+}
+
+rule ToPubkey
+    G |- TypeSubstitutions substitutions |> ToPubkey elm: BalzacFactory::eINSTANCE.createPubkeyType
+from {
+    G |- substitutions |> elm.exp: var Type texp
+    texp = typesubstitution(substitutions, texp)
+    {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createKeyType)
+    }
+    or {
+        unify(elm.exp, substitutions, texp, BalzacFactory::eINSTANCE.createPubkeyType)
+    }
+}
+
+rule TransactionFees
+    G |- TypeSubstitutions substitutions |> TransactionFees elm: BalzacFactory::eINSTANCE.createIntType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    G |- substitutions |> elm.tx: var Type type
+    unify(elm.tx, substitutions, type, txType)
+}
+
+rule TransactionId
+    G |- TypeSubstitutions substitutions |> TransactionId elm: BalzacFactory::eINSTANCE.createHashType
+from {
+    val txType = BalzacFactory::eINSTANCE.createTransactionType
+    G |- substitutions |> elm.tx: var Type type
+    unify(elm.tx, substitutions, type, txType)
+}
+
+/*
+ *
+ * rule invocations
+ *
+ */
+
+checkrule CheckModel for
+    Model model
+from {
+    lambdaUtils.resetCounter
+    val G = new RuleEnvironment
+    val substitutions = new TypeSubstitutions
+    val declarations = model.declarations
+
+    // type check all constants firsts
+    for (c : declarations.filter(Constant)) {
+        G |- substitutions |> c: var Type t
+    }
+
+    // type check all transactions
+    for (tx : declarations.filter(Transaction)) {
+        G |- substitutions |> tx: var Type t
+    }
+
+    // type check all participants
+    for (p : declarations.filter(Participant)) {
+        // type check all constants firsts
+        for (c : p.declarations.filter(Constant)) {
+            G |- substitutions |> c: var Type t
+        }
+
+        // type check all transactions
+        for (tx : p.declarations.filter(Transaction)) {
+            G |- substitutions |> tx: var Type t
+        }
+    }
+
+    // type check all assertions
+    for (a : declarations.filter(Assertion)) {
+        G |- substitutions |> a.exp: var Type texp
+        texp = typesubstitution(substitutions, texp)
+        unify(a.exp, substitutions, texp, BalzacFactory::eINSTANCE.createBooleanType)
+
+        if (a.err !== null) {
+            G |- substitutions |> a.err: var Type terr
+            terr = typesubstitution(substitutions, terr)
+            unify(a.err, substitutions, terr, BalzacFactory::eINSTANCE.createStringType)
+        }
+    }
+
+    // finally eval expressions
+    if (model.eval !== null) {
+        G |- substitutions |> model.eval: var Type texpr
+    }
+}

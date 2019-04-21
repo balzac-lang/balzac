@@ -1,0 +1,358 @@
+/*
+ * Copyright 2019 Nicola Atzei
+ */
+
+grammar xyz.balzaclang.Balzac with org.eclipse.xtext.common.Terminals
+
+generate balzac "http://balzac-lang.xyz/Balzac"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+Model:
+	package=PackageDeclaration?
+//	imports+=Import*
+	net=Network?
+	declarations+=Element*
+	eval=Eval?
+;
+
+PackageDeclaration:
+    'package' name=QualifiedName;
+
+QualifiedName: ID ('.' ID)*;
+
+Import:
+    'import' importedNamespace=QualifiedNameWithWildcard;
+
+QualifiedNameWithWildcard:
+    QualifiedName '.*'?;
+
+Element:
+	Constant
+|	Transaction
+|   Participant
+|   Assertion;
+
+Assertion:
+    'assert' exp=Expression (':' err=Expression)?;
+
+Participant: {Participant} 'participant' pname=ID '{'
+        declarations+=ParticipantElement*
+    '}';
+
+ParticipantElement returns Element:
+    PrivateConstant
+|   Transaction;
+
+Network: {Network} "network" (testnet?="testnet" | mainnet?="mainnet");
+
+Parameter: name=ID (":" type=BasicType)?;
+TransactionParameter returns Parameter: {TransactionParameter} name=ID (":" type=BasicType)?;
+ScriptParameter returns Parameter: {ScriptParameter} name=ID (":" type=BasicType)?;
+
+/*
+ * transactions (special case of Declaration)
+ */
+
+Constant:
+	"const" name=ID (":" type=BasicType)? "=" exp=(Expression|TransactionLiteral);
+
+PrivateConstant returns Constant:
+    (private?='private')? "const" name=ID (":" type=BasicType)? "=" exp=(Expression|TransactionLiteral);
+
+Transaction:
+	checks+=OnDemandCheck*
+	"transaction" name=ID ("(" (params+=TransactionParameter ("," params+=TransactionParameter)*)? ")")? "{"
+		"input"  "=" (inputs+=(Input|InputPlaceholder)  | (multiIn?="["  inputs+=Input   (";" inputs+=Input)* ";"? "]") )
+		"output" "=" (outputs+=Output| (multiOut?="[" outputs+=Output (";" outputs+=Output)* ";"? "]") )
+		("absLock" "=" absLock=AbsoluteTime)?
+		("relLock" "=" (relLocks+=RelativeTime| (multiLock?="[" relLocks+=RelativeTime (";" relLocks+=RelativeTime)* ";"? "]") ))?
+	"}";
+
+Script returns Expression:
+    {Script} (lambda?="fun" "(" (params+=ScriptParameter ("," params+=ScriptParameter)*)? ")" ".")? exp=Expression;
+
+Input:
+	txRef=TransactionExpression ("@" outpoint=INT)? ":" exps+=AtomicExpression+ ("["redeemScript=Script"]")?;
+
+InputPlaceholder returns Input:
+	placeholder?="_";
+
+Output:
+	value=Expression ":" script=Script;
+
+AbsoluteTime:
+	(block?="block" | "date") exp=Expression;
+
+RelativeTime:
+	exp=Expression block?="block"? "from" tx=TransactionExpression;
+
+
+/* on-demand checks */
+OnDemandCheck:
+	IsMinedCheck
+|	IsNotMinedCheck;
+
+IsMinedCheck: {IsMinedCheck} mined?="@isMined";
+IsNotMinedCheck: {IsMinedCheck} "@isNotMined";
+
+
+/*
+ * expressions
+ */
+TransactionExpression:
+    AtomicTransactionExpression;
+
+AtomicTransactionExpression returns TransactionExpression:
+    TransactionLiteral
+|   Reference;
+
+TransactionLiteral:
+    TransactionHexLiteral;
+
+TransactionHexLiteral: value=TXSERIAL;
+
+Expression:
+    OrExpression;
+
+OrExpression returns Expression:
+	AndExpression (({OrExpression.left=current} => '||' ) right=AndExpression)*;
+
+AndExpression returns Expression:
+	Comparison (({AndExpression.left=current} '&&') right=Comparison)*;
+
+Comparison returns Expression:
+	Equals (({Comparison.left=current} op=('>=' | '<=' | '>' | '<') ) right=Equals)*;
+
+Equals returns Expression:
+	Addition (({Equals.left=current} op=("==" | "!=") ) right=Addition)*;
+
+Addition returns Expression:
+    Multiply (({Plus.left=current} '+' | {Minus.left=current} '-') right=Multiply)*;
+
+Multiply returns Expression:
+    BitcoinValue (({Times.left=current} '*' | {Div.left=current} '/') right=Prefixed)*;
+
+BitcoinValue returns Expression:
+    Prefixed ({BitcoinValue.unit=current} (decimal=BTC_DECIMAL)? btc?="BTC")?;
+
+Prefixed returns Expression:
+    {BooleanNegation} =>"!" exp=AtomicExpression | /* right associativity */
+    {ArithmeticSigned} =>"-" exp=AtomicExpression | /* right associativity */
+    SelectorOperation;
+
+SelectorOperation returns Expression:
+    AtomicExpression (
+        => "." (
+            {TransactionInputOperation.tx=current} "input" (=> "(" indexes+=INT ("," indexes+=INT)* ")")?  "." "value"
+            | {TransactionOutputOperation.tx=current} "output" (=> "(" indexes+=INT ("," indexes+=INT)* ")")? "." "value"
+            | {TransactionFees.tx=current} "fees"
+            | {TransactionId.tx=current} "txid"
+            | {ToAddress.exp=current} "toAddress"
+            | {ToPubkey.exp=current} "toPubkey"
+        ))?;
+
+AtomicExpression returns Expression:
+'(' Expression ')'
+|	Literal
+|	Reference
+
+|	Hash
+|   Signature
+|	Versig
+|	IfThenElse
+|	Min
+|   Max
+|   Between
+|   Size
+|	CheckBlock
+|   CheckDate
+|   CheckBlockDelay
+|   CheckTimeDelay
+;
+
+Reference:
+    {This} "this"
+| ref=[Referrable|QualifiedName] ( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+
+Referrable:
+	Parameter
+|   Transaction
+|	Constant;
+
+Literal:
+	NumberLiteral
+|	StringLiteral
+|	BooleanLiteral
+|	DateLiteral
+|   MinuteLiteral
+|   HourLiteral
+|   DayLiteral
+|	HashLiteral
+|	KeyLiteral
+|	AddressLiteral
+|   PubKeyLiteral
+|	SignatureLiteral
+|   Placeholder;
+
+
+NumberLiteral: value=Number;
+StringLiteral: value=STRING;
+BooleanLiteral: ^true?='true' | {BooleanLiteral} 'false';
+DateLiteral: value=TIMESTAMP;
+MinuteLiteral: value=MINUTE_DELAY;
+HourLiteral: value=HOUR_DELAY;
+DayLiteral: value=DAY_DELAY;
+HashLiteral: value=HASH_TERM;
+KeyLiteral: value=KEY_WIF;
+AddressLiteral: value=ADDRESS_WIF;
+PubKeyLiteral: value=PUBKEY;
+SignatureLiteral: value=SIGHEX (=> '[' pubkey=Expression ']')?;
+Placeholder: {Placeholder} "_";
+PlaceholderWithType returns Placeholder: "_" type=Type;     // never parsed
+
+IfThenElse:
+	'if' if=Expression
+	"then" then=AtomicExpression
+	'else' else=AtomicExpression;
+
+Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?="of" tx=TransactionExpression (=>"@" inputIdx=INT)?)?;
+
+enum Modifier:
+	AIAO
+|	AISO
+|	AINO
+|	SIAO
+|	SISO
+|	SINO;
+
+Versig:
+	"versig" "("
+		pubkeys+=Expression ("," pubkeys+=Expression)* ";"
+		signatures+=Expression ("," signatures+=Expression)*
+	")";
+
+Hash: Hash160 | Hash256 | Ripemd160 | Sha256 | Sha1;
+Hash160: 	'hash160' "(" value=Expression ")";
+Hash256: 	'hash256' "(" value=Expression ")";
+Ripemd160: 	'ripemd160' "(" value=Expression ")";
+Sha256:     'sha256' "(" value=Expression ")";
+Sha1:       'sha1' "(" value=Expression ")";
+
+Min: "min" "(" left=Expression "," right=Expression ")";
+Max: "max" "(" left=Expression"," right=Expression ")";
+Between: "between" "(" value=Expression "," left=Expression "," right=Expression ")";
+Size: "size" "(" value=Expression ")";
+CheckBlock: "checkBlock" exp=Expression ":" continuation=AtomicExpression;
+CheckDate: "checkDate" exp=Expression ":" continuation=AtomicExpression;
+CheckBlockDelay: "checkBlockDelay" exp=Expression ":" continuation=AtomicExpression;
+CheckTimeDelay: "checkTimeDelay" exp=Expression ":" continuation=AtomicExpression;
+
+Type:
+	BasicType
+|   {VoidType} value=VoidTypeEnum
+|	{TypeVariable} value=ID;
+
+BasicType:
+	{IntType} value=IntTypeEnum
+|	{StringType} value=StringTypeEnum
+|   {BooleanType} value=BoolTypeEnum
+|   {HashType} value=HashTypeEnum
+|   {KeyType} value=KeyTypeEnum
+|   {PubkeyType} value=PubkeyTypeEnum
+|   {AddressType} value=AddressTypeEnum
+|   {TransactionType} value=TransactionTypeEnum
+|   {SignatureType} value=SignatureTypeEnum
+;
+
+HashableType:
+    {IntType} value=IntTypeEnum
+|   {StringType} value=StringTypeEnum
+|   {BooleanType} value=BoolTypeEnum
+|   {HashType} value=HashTypeEnum;
+
+enum IntTypeEnum: int;
+enum StringTypeEnum: string;
+enum BoolTypeEnum: bool | boolean;
+enum KeyTypeEnum: key;
+enum PubkeyTypeEnum: pubkey;
+enum AddressTypeEnum: address;
+enum SignatureTypeEnum: signature;
+enum TransactionTypeEnum: transaction;
+enum HashTypeEnum: hash;
+enum VoidTypeEnum: void;
+
+Typeable:
+  Parameter
+| Constant
+| Transaction
+| TransactionExpression
+| AbsoluteTime
+| RelativeTime
+| Script
+| Input
+| Output
+| Expression
+| Eval;
+
+Interpretable:
+	Expression
+|   Script
+|	Transaction
+|   TransactionExpression;
+
+Number returns ecore::ELong: INT | INT_HEX;
+
+/*
+ * 2h
+ * 2h 10m
+ * 35d 5h 10m
+ */
+Delay: {Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
+
+terminal MINUTE_DELAY returns ecore::EInt: INT ("m"|"min"|"minute"|"minutes");
+terminal HOUR_DELAY   returns ecore::EInt: INT ("h"|"hour"|"hours");
+terminal DAY_DELAY    returns ecore::EInt: INT ("d"|"day"|"days");
+
+terminal INT_HEX returns ecore::EInt:
+	('0x'|'0X') ('0'..'9'|'a'..'f'|'A'..'F')
+	(('0'..'9'|'a'..'f'|'A'..'F'|'_')* ('0'..'9'|'a'..'f'|'A'..'F') )?;	// java-like hexadecimal number
+
+@Override
+terminal INT returns ecore::EInt:
+	'0'..'9' (('0'..'9'|'_')* '0'..'9')?  ; 	// java-like integer
+
+BTC_DECIMAL returns ecore::EInt:       '.' INT;
+
+terminal HASH_TERM returns ecore::EByteArray:  'hash:'      ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal TXSERIAL returns ecore::EString:      'tx:'        ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal SIGHEX returns ecore::EString:        'sig:'       ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal KEY_WIF returns ecore::EString:       'key:'       ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+terminal PUBKEY returns ecore::EString:        'pubkey:'    ('0'..'9'|'a'..'f'|'A'..'F')+;
+terminal ADDRESS_WIF returns ecore::EString:   'address:'   ('1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'J'|'K'|'L'|'M'|'N'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'|'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z')+;
+
+/*
+ * 2011-12-03T10:15:30+01:00
+ * 2011-12-03T10:15:30
+ * 2011-12-03T10:15
+ * 2011-12-03
+ */
+terminal TIMESTAMP returns ecore::ELong: DATE ("T" TIME OFFSET? )?;
+
+terminal DATE:    YEAR '-' MONTH '-' DAY;
+terminal TIME:    HOUR ':' MINUTE (':' SECOND)?;
+terminal OFFSET:  OFFSET_SIGN OFFSET_HOUR ":" OFFSET_MINUTE;
+
+terminal YEAR:   ('0'..'9')('0'..'9')('0'..'9')('0'..'9');
+terminal MONTH:  ('0'..'9')('0'..'9');
+terminal DAY:    ('0'..'9')('0'..'9');
+terminal HOUR:   ('0'..'9')('0'..'9');
+terminal MINUTE: ('0'..'9')('0'..'9');
+terminal SECOND: ('0'..'9')('0'..'9');
+terminal OFFSET_SIGN: "+"|"-";
+terminal OFFSET_HOUR:   ('0'..'9')('0'..'9');
+terminal OFFSET_MINUTE: ('0'..'9')('0'..'9');
+
+Eval:
+	{Eval} "eval" exps+=Expression ("," exps+=Expression)*
+;

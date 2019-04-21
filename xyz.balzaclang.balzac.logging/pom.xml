@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>xyz.balzaclang.balzac.logging</artifactId>
+  <parent>
+  	<artifactId>xyz.balzaclang.balzac.parent</artifactId>
+  	<groupId>xyz.balzaclang.balzac</groupId>
+  	<version>1.0.0-SNAPSHOT</version>
+        <relativePath>../xyz.balzaclang.balzac.parent</relativePath>
+  </parent>
+  <packaging>eclipse-plugin</packaging>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </resource>
+    </resources>
+  </build>
+</project>

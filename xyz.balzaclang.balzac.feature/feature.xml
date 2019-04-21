@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="xyz.balzaclang.balzac.feature"
+      label="Balzac - Feature"
+      version="1.0.0.qualifier"
+      provider-name="University of Cagliari">
+
+   <plugin
+         id="xyz.balzaclang.balzac"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xyz.balzaclang.balzac.ide"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xyz.balzaclang.balzac.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="xyz.balzaclang.balzac.logging"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+</feature>

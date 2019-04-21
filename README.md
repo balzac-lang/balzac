@@ -40,7 +40,7 @@ gradle -p $HOME/bitcoinj install -x test
 
 ### Install
 ```
-mvn -f it.unica.tcs.bitcointm.parent/ clean install
+mvn -f xyz.balzaclang.balzac.parent/ clean install
 ```
 
 ### Run standalone server
@@ -48,7 +48,7 @@ mvn -f it.unica.tcs.bitcointm.parent/ clean install
 In order to locally run the server (the same available at [http://balzac-lang.xyz](http://balzac-lang.xyz)):
 
 ```
-mvn -f it.unica.tcs.bitcointm.web/ jetty:run
+mvn -f xyz.balzaclang.balzac.web/ jetty:run
 ```
 
 
