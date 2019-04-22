@@ -48,15 +48,10 @@ Workflow {
 			validator = {
 //				composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"
 			}
-            fragment = CodeMiningFragment {
-                generateStub = true
-                generateXtendStub = false
-            }
-            fragment = ui.quickfix.QuickfixProviderFragment2 {
-                generateStub = false
-                generateXtendStub = true
-            }
-
+			fragment = CodeMiningFragment {
+				generateStub = true
+				generateXtendStub = false
+			}
 		}
 	}
 }
