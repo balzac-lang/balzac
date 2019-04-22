@@ -52,6 +52,11 @@ Workflow {
                 generateStub = true
                 generateXtendStub = false
             }
+            fragment = ui.quickfix.QuickfixProviderFragment2 {
+                generateStub = false
+                generateXtendStub = true
+            }
+
 		}
 	}
 }

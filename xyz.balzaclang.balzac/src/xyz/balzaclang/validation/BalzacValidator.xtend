@@ -5,10 +5,30 @@
 package xyz.balzaclang.validation
 
 import com.google.inject.Inject
+import java.util.HashMap
+import java.util.HashSet
+import java.util.Map
+import java.util.Set
+import org.apache.log4j.Logger
+import org.eclipse.emf.common.util.EList
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EStructuralFeature
+import org.eclipse.emf.ecore.util.EcoreUtil
+import org.eclipse.xtext.EcoreUtil2
+import org.eclipse.xtext.naming.IQualifiedNameConverter
+import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.resource.IContainer
+import org.eclipse.xtext.resource.IEObjectDescription
+import org.eclipse.xtext.resource.IResourceDescription
+import org.eclipse.xtext.resource.IResourceDescriptions
+import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
+import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.CheckType
 import xyz.balzaclang.balzac.AbsoluteTime
 import xyz.balzaclang.balzac.AddressLiteral
 import xyz.balzaclang.balzac.Assertion
 import xyz.balzaclang.balzac.BalzacPackage
+import xyz.balzaclang.balzac.Between
 import xyz.balzaclang.balzac.CheckBlock
 import xyz.balzaclang.balzac.CheckBlockDelay
 import xyz.balzaclang.balzac.CheckDate
@@ -49,28 +69,8 @@ import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.BitcoinClientFactory
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
-import java.util.HashMap
-import java.util.HashSet
-import java.util.Map
-import java.util.Set
-import org.apache.log4j.Logger
-import org.eclipse.emf.common.util.EList
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.EStructuralFeature
-import org.eclipse.emf.ecore.util.EcoreUtil
-import org.eclipse.xtext.EcoreUtil2
-import org.eclipse.xtext.naming.IQualifiedNameConverter
-import org.eclipse.xtext.naming.QualifiedName
-import org.eclipse.xtext.resource.IContainer
-import org.eclipse.xtext.resource.IEObjectDescription
-import org.eclipse.xtext.resource.IResourceDescription
-import org.eclipse.xtext.resource.IResourceDescriptions
-import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
-import org.eclipse.xtext.validation.Check
-import org.eclipse.xtext.validation.CheckType
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
-import xyz.balzaclang.balzac.Between
 
 /**
  * This class contains custom validation rules.
@@ -96,8 +96,9 @@ class BalzacValidator extends AbstractBalzacValidator {
             if (references.size==0)
                 warning("Unused variable '"+param.name+"'.",
                     param,
-                    BalzacPackage.Literals.PARAMETER__NAME
-                );
+                    null,
+                    BalzacValidatorCodes.WARNING_UNUSED_PARAM
+                )
         }
     }
 
@@ -109,8 +110,9 @@ class BalzacValidator extends AbstractBalzacValidator {
             if (references.size==0)
                 warning("Unused variable '"+param.name+"'.",
                     param,
-                    BalzacPackage.Literals.PARAMETER__NAME
-                );
+                    null,
+                    BalzacValidatorCodes.WARNING_UNUSED_PARAM
+                )
         }
     }
 
@@ -120,12 +122,12 @@ class BalzacValidator extends AbstractBalzacValidator {
         for(var i=0; i<versig.pubkeys.size-1; i++) {
             for(var j=i+1; j<versig.pubkeys.size; j++) {
 
-                var k1 = versig.pubkeys.get(i)
-                var k2 = versig.pubkeys.get(j)
+                var k1 = versig.pubkeys.get(i).interpretE
+                var k2 = versig.pubkeys.get(j).interpretE
 
-                if (k1==k2) {
-                    warning("Duplicated public key.", versig, BalzacPackage.Literals.VERSIG__PUBKEYS, i);
-                    warning("Duplicated public key.", versig,BalzacPackage.Literals.VERSIG__PUBKEYS, j);
+                if (!k1.failed && !k2.failed && k1.value == k2.value) {
+                    warning("Duplicated public key.", versig, BalzacPackage.Literals.VERSIG__PUBKEYS, i, BalzacValidatorCodes.WARNING_VERSIG_DUPLICATED_PUBKEY, String.valueOf(i))
+                    warning("Duplicated public key.", versig, BalzacPackage.Literals.VERSIG__PUBKEYS, j, BalzacValidatorCodes.WARNING_VERSIG_DUPLICATED_PUBKEY, String.valueOf(j))
                 }
             }
         }
@@ -1317,7 +1319,9 @@ class BalzacValidator extends AbstractBalzacValidator {
                 warning(
                     '''Unnecessary usage of between. Replace with «between.value.nodeToString» == «left»''',
                     between,
-                    null
+                    null,
+                    BalzacValidatorCodes.WARNING_USELESS_BETWEEN,
+                    '''«between.value.nodeToString» == «left»'''
                 )
             }
 

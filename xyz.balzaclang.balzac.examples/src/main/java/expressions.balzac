@@ -5,4 +5,11 @@ const a = 6
 assert between(5, 0, 10) == true
 assert between(5, 10, 100) == false
 
-eval between(a+4, 0, 1)// == true
+const k: pubkey = _
+const k1 = pubkey:0296968ce4bf7d4f4037b34075bec71ab168d4c3f2a5d9548f0ed25bd91f7cc860
+
+transaction t( ) { input = _
+    output = 10 BTC : fun(y:signature) . versig(k, k1; y)
+}
+
+eval a+4 == 3// == true
