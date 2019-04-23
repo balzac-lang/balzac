@@ -11,7 +11,13 @@
     <artifactId>xyz.balzaclang.balzac.web</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <commit>${git.commit.id.abbrev}</commit>
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+    </properties>
+
     <build>
+        <finalName>balzac##${project.version}+${commit}.${maven.build.timestamp}</finalName>
         <sourceDirectory>src</sourceDirectory>
         <resources>
             <resource>
@@ -23,6 +29,24 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyyMMdd-HHmmss</dateFormat><!--  human-readable part of the version number -->
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile><!-- somehow necessary. otherwise the variables are not available in the pom -->
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.eclipse.xtend</groupId>
                 <artifactId>xtend-maven-plugin</artifactId>
