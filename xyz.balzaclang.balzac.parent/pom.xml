@@ -47,6 +47,11 @@
         <plugins>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-versions-plugin</artifactId>
+                <version>${tycho-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
                 <version>${tycho-version}</version>
                 <extensions>true</extensions>
@@ -133,6 +138,11 @@
 
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-versions-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                </plugin>
                 <!-- https://github.com/eclipse/xtext/issues/1231#issuecomment-401833957 -->
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
