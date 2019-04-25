@@ -55,12 +55,10 @@ mvn -f xyz.balzaclang.balzac.web/ jetty:run
 
 ### IDE
 
-The project is currently developed using *Eclipse IDE for Java and DSL Developers* (Photon).
+The project is currently developed using *Eclipse IDE for Java and DSL Developers* (generally the latest version).
 Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclipse-packages/).
 
-Install Xtext 2.14 ([update site](http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/)).
-
-Install Xsemantics 1.14 ([update site](http://download.eclipse.org/xsemantics/milestones/1.14/)).
+Install Xsemantics 1.17 ([update site](http://download.eclipse.org/xsemantics/milestones/1.17/)).
 
 Optional: install Jacoco (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html)).
 
