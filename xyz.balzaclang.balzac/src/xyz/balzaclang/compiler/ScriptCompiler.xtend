@@ -315,7 +315,6 @@ class ScriptCompiler {
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignatureLiteral s, Context ctx) {
         val sb = new ScriptBuilderWithVar().data(BitcoinUtils.decode(s.value))
         if (s.pubkey !== null && !ctx.isP2SH) {
-            println('''Adding public key «s.pubkey.nodeToString»''')
         	sb.append(s.pubkey.compileExpression(ctx))
         }
         sb

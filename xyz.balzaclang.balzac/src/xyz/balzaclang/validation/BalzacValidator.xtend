@@ -376,6 +376,11 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
         }
 
+        if (!isTxDefined && isWithinInput) {
+            // nothing to check here
+            return
+        }
+
         val res = sig.tx.interpretE
 
         if (!res.failed) {
@@ -398,6 +403,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             }
         }
         else {
+            logger.error("RuleFailedException", res.ruleFailedException)
             error('''Error occurred evaluting transaction «sig.tx.nodeToString». Please report the error to the authors.''',
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
@@ -748,11 +754,6 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     def boolean correctlySpendsOutput(Transaction tx, Rho rho, EObject source) {
 
-
-        var txStr = tx.nodeToString
-        txStr = txStr.substring(0, txStr.indexOf("{")).trim
-
-        logger.debug("witness check: interpreting "+txStr+" with rho="+rho)
         var res = tx.interpret(rho)
 
         if (!res.failed) {
@@ -785,9 +786,6 @@ class BalzacValidator extends AbstractBalzacValidator {
                     )
                 }
             }
-        }
-        else {
-            logger.debug("witness check: unable to interpret tx "+txStr+" with rho="+rho+" (skip)")
         }
 
         return true

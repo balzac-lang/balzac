@@ -6,6 +6,8 @@ package xyz.balzaclang.utils;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import xyz.balzaclang.balzac.BalzacPackage;
 import xyz.balzaclang.balzac.Constant;
@@ -16,8 +18,17 @@ import xyz.balzaclang.lib.model.SignatureModifier;
 
 public class ASTExtensions {
 
+    private static final Logger logger = LoggerFactory.getLogger(ASTExtensions.class);
+
     public static String nodeToString(EObject eobj) {
-        return NodeModelUtils.getTokenText(NodeModelUtils.getNode(eobj));
+        try {
+            return NodeModelUtils.getTokenText(NodeModelUtils.getNode(eobj));
+        }
+        catch (Exception e) {
+            String errorMsg = e.getClass().getSimpleName()+(e.getMessage() != null? ": "+e.getMessage(): "");
+            logger.error("Error retrieving the node text for eobject {}: {}", eobj, errorMsg);
+            return "<unable to retrieve the node string>";
+        }
     }
 
     public static SignatureModifier toSignatureModifier(Modifier mod) {
