@@ -15,6 +15,11 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <lib.version>1.0.0-SNAPSHOT</lib.version>
+        <!-- Define overridable properties for tycho-surefire-plugin -->
+        <platformSystemProperties></platformSystemProperties>
+        <moduleProperties></moduleProperties>
+        <systemProperties></systemProperties>
+        <tycho.testArgLine></tycho.testArgLine>
     </properties>
 
     <modules>
@@ -25,10 +30,10 @@
         <module>../xyz.balzaclang.balzac.target</module>
         <module>../xyz.balzaclang.balzac.feature</module>
         <module>../xyz.balzaclang.balzac.repository</module>
-        <!-- <module>../xyz.balzaclang.balzac.tests</module> -->
-        <!-- <module>../xyz.balzaclang.balzac.ui.tests</module> -->
         <module>../xyz.balzaclang.balzac.lib</module>
         <module>../xyz.balzaclang.balzac.logging</module>
+<!--         <module>../xyz.balzaclang.balzac.tests</module> -->
+<!--         <module>../xyz.balzaclang.balzac.ui.tests</module> -->
     </modules>
 
     <dependencyManagement>
@@ -48,7 +53,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-versions-plugin</artifactId>
-                <version>${tycho-version}</version>
             </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
