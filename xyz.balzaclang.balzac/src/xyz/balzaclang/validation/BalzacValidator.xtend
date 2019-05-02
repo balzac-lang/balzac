@@ -71,6 +71,7 @@ import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
+import xyz.balzaclang.lib.ECKeyStore
 
 /**
  * This class contains custom validation rules.
@@ -543,77 +544,92 @@ class BalzacValidator extends AbstractBalzacValidator {
     }
 
     def private void checkTx(Transaction tx, Rho rho, EObject source) {
-        if (tx.isCoinbase)
-            return;
 
         var hasError = false;
 
         /*
          * Verify that inputs are valid
          */
-        val mapInputsTx = new HashMap<Input, ITransactionBuilder>
-        for (input: tx.inputs) {
+        if (!tx.isCoinbase) {
+
+            val mapInputsTx = new HashMap<Input, ITransactionBuilder>
+            for (input: tx.inputs) {
+                /*
+                 * get the transaction input
+                 */
+                val txInput = input.txRef
+
+                if (txInput.txVariables.empty) {
+
+                    val res = input.txRef.interpretE
+
+                    if (res.failed) {
+                        res.ruleFailedException.printStackTrace
+                        error("Error evaluating the transaction input, see error log for details.",
+                            if (source == tx) input else source,
+                            if (source == tx) BalzacPackage.Literals.INPUT__TX_REF
+                        );
+                        hasError = hasError || true
+                    }
+                    else {
+                        val txB = res.first as ITransactionBuilder
+                        mapInputsTx.put(input, txB)
+                        var valid =
+                            input.isPlaceholder || (
+                                input.checkInputIndex(txB) &&
+                                input.checkInputExpressions(txB)
+                            )
+
+                        hasError = hasError || !valid
+                    }
+                }
+            }
+
+            if(hasError) return;  // interrupt the check
+
             /*
-             * get the transaction input
+             * pairwise verify that inputs are unique
              */
-            val txInput = input.txRef
+            for (var i=0; i<tx.inputs.size-1; i++) {
+                for (var j=i+1; j<tx.inputs.size; j++) {
 
-            if (txInput.txVariables.empty) {
+                    var inputA = tx.inputs.get(i)
+                    var inputB = tx.inputs.get(j)
 
-                val res = input.txRef.interpretE
+                    var areValid = checkInputsAreUnique(inputA, inputB, mapInputsTx)
 
-                if (res.failed) {
-                    res.ruleFailedException.printStackTrace
-                    error("Error evaluating the transaction input, see error log for details.",
-                        if (source == tx) input else source,
-                        if (source == tx) BalzacPackage.Literals.INPUT__TX_REF
-                    );
-                    hasError = hasError || true
-                }
-                else {
-                    val txB = res.first as ITransactionBuilder
-                    mapInputsTx.put(input, txB)
-                    var valid =
-                        input.isPlaceholder || (
-                            input.checkInputIndex(txB) &&
-                            input.checkInputExpressions(txB)
-                        )
-
-                    hasError = hasError || !valid
+                    hasError = hasError || !areValid
                 }
             }
+
+            if(hasError) return;  // interrupt the check
+
+            /*
+             * Verify that the fees are positive
+             */
+            hasError = !checkFee(tx, rho, mapInputsTx, source)
+
+            if(hasError) return;  // interrupt the check
         }
 
-        if(hasError) return;  // interrupt the check
+        val res = tx.interpret(rho)
 
-        /*
-         * pairwise verify that inputs are unique
-         */
-        for (var i=0; i<tx.inputs.size-1; i++) {
-            for (var j=i+1; j<tx.inputs.size; j++) {
+        if (res.failed || !(res.value instanceof TransactionBuilder))
+            return
 
-                var inputA = tx.inputs.get(i)
-                var inputB = tx.inputs.get(j)
-
-                var areValid = checkInputsAreUnique(inputA, inputB, mapInputsTx)
-
-                hasError = hasError || !areValid
-            }
-        }
-
-        if(hasError) return;  // interrupt the check
-
-        /*
-         * Verify that the fees are positive
-         */
-        hasError = !checkFee(tx, rho, mapInputsTx, source)
-
-        if(hasError) return;  // interrupt the check
+        val txBuilder = res.value as TransactionBuilder
 
         /*
          * Verify that the input correctly spends the output
          */
-        hasError = correctlySpendsOutput(tx, rho, source)
+        hasError = !correctlySpendsOutput(txBuilder, tx.ECKeyStore, source, source === tx)
+
+        if(hasError) return;  // interrupt the check
+
+        /*
+         * Verify that the output scripts does not exceeds 520 bytes
+         */
+        hasError = !checkOutputScriptSize(txBuilder, source, source === tx)
     }
 
 
@@ -650,7 +666,6 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
         return true
     }
-
 
     def boolean failIfRedeemScriptIsMissing(Input input) {
         if (input.redeemScript===null) {
@@ -752,39 +767,52 @@ class BalzacValidator extends AbstractBalzacValidator {
         return true;
     }
 
-    def boolean correctlySpendsOutput(Transaction tx, Rho rho, EObject source) {
+    def boolean correctlySpendsOutput(TransactionBuilder txBuilder, ECKeyStore keystore, EObject source, boolean sourceIsTx) {
 
-        var res = tx.interpret(rho)
+        val validationResult = Validator.checkWitnessesCorrecltySpendsOutputs(txBuilder, keystore)
 
-        if (!res.failed) {
-            var txBuilder = res.first as ITransactionBuilder
+        if (validationResult.error) {
+            if (validationResult instanceof InputValidationError) {
+                warning('''
+                    Input «validationResult.index» does not redeem the specified output script.
+                    Reason: «validationResult.message»
 
-            val validationResult = Validator.checkWitnessesCorrecltySpendsOutputs(txBuilder, tx.ECKeyStore)
+                    INPUT:   «validationResult.inputScript»
+                    OUTPUT:  «validationResult.outputScript»
+                    «IF validationResult.reedemScript !== null»
+                    REDEEM SCRIPT:  «validationResult.reedemScript»
+                    «ENDIF»''',
+                    source,
+                    if (sourceIsTx) BalzacPackage.Literals.TRANSACTION__INPUTS,
+                    validationResult.index
+                )
+            }
+            else {
+                warning('''
+                    Something went wrong verifying the input witnesses.
+                    «validationResult.message»''',
+                    source,
+                    BalzacPackage.Literals.TRANSACTION__INPUTS
+                )
+            }
+        }
+
+        return true
+    }
+
+    def boolean checkOutputScriptSize(TransactionBuilder txBuilder, EObject source, boolean sourceIsTx) {
+
+        for (var i = 0 ; i < txBuilder.outputs.size; i++) {
+            val output = txBuilder.outputs.get(i)
+
+            val validationResult = Validator.checkOutputScriptSize(output.script)
 
             if (validationResult.error) {
-                if (validationResult instanceof InputValidationError) {
-                    warning('''
-                        Input «validationResult.index» does not redeem the specified output script.
-                        Reason: «validationResult.message»
-
-                        INPUT:   «validationResult.inputScript»
-                        OUTPUT:  «validationResult.outputScript»
-                        «IF validationResult.reedemScript !== null»
-                        REDEEM SCRIPT:  «validationResult.reedemScript»
-                        «ENDIF»''',
-                        source,
-                        if (source === tx) BalzacPackage.Literals.TRANSACTION__INPUTS,
-                        validationResult.index
-                    )
-                }
-                else {
-                    warning('''
-                        Something went wrong verifying the input witnesses.
-                        «validationResult.message»''',
-                        tx,
-                        BalzacPackage.Literals.TRANSACTION__INPUTS
-                    )
-                }
+                warning('''The output script at index «i» exceeds the size limit of 520 bytes. The transaction will be refused by the network.''',
+                    source,
+                    if (sourceIsTx) BalzacPackage.Literals.TRANSACTION__OUTPUTS,
+                    i
+                )
             }
         }
 
