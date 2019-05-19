@@ -463,6 +463,8 @@ class ScriptCompiler {
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(Size stmt, Context ctx) {
         var sb = stmt.value.compileExpression(ctx)
         sb.op(OP_SIZE)
+        sb.op(OP_SWAP)
+        sb.op(OP_DROP)
     }
 
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(BooleanNegation stmt, Context ctx) {
