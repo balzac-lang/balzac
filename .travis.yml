@@ -4,11 +4,15 @@ cache:
   directories:
   - $HOME/.m2
 
+env:
+  - GRADLE_VERSION=4.4.1
+
 install:
   - sudo apt-get -qq update
   - sudo apt-get install -y protobuf-compiler
 
 before_script:
+  - gradle wrapper --gradle-version=$GRADLE_VERSION
   - ./scripts/install-deps.sh
 
 script:
