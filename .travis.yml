@@ -43,4 +43,3 @@ deploy:
     jdk: openjdk8
     repo: balzac-lang/balzac
   skip-cleanup: true
-  draft: true
