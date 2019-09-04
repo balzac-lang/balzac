@@ -34,14 +34,14 @@ notifications:
     on_failure: always
 
 before_deploy:
-   # Set up git user name and tag this commit
-  - git config --local user.name "Nicola Atzei"
-  - git config --local user.email "atzeinicola@gmail.com"
-  - export TRAVIS_TAG=${TRAVIS_TAG:-draft-$(git log --format=%h -1)}
-  - git tag $TRAVIS_TAG
+- git config --local user.name "Nicola Atzei"
+- git config --local user.email "atzeinicola@gmail.com"
+- export TRAVIS_TAG=${TRAVIS_TAG:-draft-$(git log --format=%h -1)}
+- git tag $TRAVIS_TAG
 
 deploy:
   provider: releases
+  prerelease: true
   api_key:
     secure: kgYsvSIgfx8il30hP2cfUxVElNnjQMYzoxvfedWbxowdLjK5iMeaJV65weiYJzVDRsYH3ECwoV5eRP2HnlG1F8V07ne8Ke0HVA8WNQaQL5SdSpPfwTTKeRiHVF7a1IDEQt8hfpA8KKpLKz7zCLLZyFSNM4aHaRdYVAWomhLX6gccw9lQqd2O4jYA6nb4r9R46wuJb3d6NRc8zt/SpYm6vrDZLXspSGoN9C+TKHeCCcQ3h20BaMGCQV5k7vdLgAt4FpkN8TWCUHQCwAY1bMaFeszuasFCmJum7FieHF3cl8S+5C7FgaQJOhrMINEJLFL46Cv7cgVY8gJZbnvQ4T1E+e4nospqm14jzhkfzr/m6yBSNSVl5stENRMHEDI+zWtO9OtUpg1f3OVYtq0X+yAwS+HQkxg5dg9KsAuc3yEbjbBmPV9dBaNpfNORFNdypH5BkOKrsYCOoxM9WTOZmxTtcj2obW364xb9I2vE+hd5tZv5UHTTzzDcNPNa/oUPHlRwfnevXVGL8ITghgq+5fTcRdOVI1q/pAl3mmrzY4o2W7SYIey+CbcCHek/M4fq58sFrimTFK3izbCXD1od7QYmHJuubTiuRmw1UahiClZ8BFoyRFiiJfzhIO42G1EpXnWiYFG4FcAC/tVzHDqbOfJ/JK9i/nfdKPrD5ONmE0+uLYA=
   file_glob: true
