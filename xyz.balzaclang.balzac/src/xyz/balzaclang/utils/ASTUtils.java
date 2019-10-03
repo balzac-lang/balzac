@@ -267,13 +267,13 @@ public class ASTUtils {
     }
 
     public long getDelayValue(long seconds) {
-        return convertSeconds(seconds);
+        return seconds / 512;
     }
 
-    private long convertSeconds(long secs) {
-        return secs / 512;
+    public boolean isDelayTruncated(long seconds) {
+        return seconds % 512 > 0;
     }
-
+    
     public long setRelativeTimelockFlag(long i) {
         // true if the 22th bit is UNSET
         long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;

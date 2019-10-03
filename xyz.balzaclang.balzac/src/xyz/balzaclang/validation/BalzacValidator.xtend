@@ -1008,15 +1008,28 @@ class BalzacValidator extends AbstractBalzacValidator {
             )
         }
 
-        /*
-         * tlock.value must fit in 16-bit
-         */
-        if (!isAbsolute && !value.delayValue.fitIn16bits) {
-            error(
-                '''Relative timelocks must fit within unsigned 16-bits. «IF isBlock»Block«ELSE»Delay«ENDIF» value is «value», max allowed is «0xFFFF»''',
-                obj,
-                feature
-            )
+        if (!isAbsolute) {
+            if (!isBlock && !value.delayValue.fitIn16bits) {
+                error(
+                    '''Relative timelocks must fit within unsigned 16-bits. Delay value is «value» seconds, max allowed is «0xFFFF*512»''',
+                    obj,
+                    feature
+                )
+            }
+            if (!isBlock && value.isDelayTruncated) {
+                warning(
+                    '''Delay value of «value» seconds is truncated to «value.delayValue*512» seconds''',
+                    obj,
+                    feature
+                )
+            }
+            if (isBlock && !value.fitIn16bits) {
+                error(
+                    '''Relative timelocks must fit within unsigned 16-bits. Block value is «value», max allowed is «0xFFFF»''',
+                    obj,
+                    feature
+                )
+            }
         }
     }
 
