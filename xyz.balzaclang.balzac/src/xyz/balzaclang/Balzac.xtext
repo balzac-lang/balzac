@@ -303,13 +303,6 @@ Interpretable:
 
 Number returns ecore::ELong: INT | INT_HEX;
 
-/*
- * 2h
- * 2h 10m
- * 35d 5h 10m
- */
-Delay: {Delay} (minutes=MINUTE_DELAY? & hours=HOUR_DELAY? & days=DAY_DELAY?);
-
 terminal MINUTE_DELAY returns ecore::EInt: INT ("m"|"min"|"minute"|"minutes");
 terminal HOUR_DELAY   returns ecore::EInt: INT ("h"|"hour"|"hours");
 terminal DAY_DELAY    returns ecore::EInt: INT ("d"|"day"|"days");

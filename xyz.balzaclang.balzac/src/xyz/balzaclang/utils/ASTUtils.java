@@ -26,7 +26,6 @@ import xyz.balzaclang.balzac.AddressLiteral;
 import xyz.balzaclang.balzac.BalzacFactory;
 import xyz.balzaclang.balzac.BooleanLiteral;
 import xyz.balzaclang.balzac.Constant;
-import xyz.balzaclang.balzac.Delay;
 import xyz.balzaclang.balzac.Expression;
 import xyz.balzaclang.balzac.HashLiteral;
 import xyz.balzaclang.balzac.Interpretable;
@@ -271,28 +270,8 @@ public class ASTUtils {
         return convertSeconds(seconds);
     }
 
-    public long getDelayValue(Delay delay) {
-        long result = 0;
-        result += convertMinutes(delay.getMinutes());
-        result += convertHours(delay.getHours());
-        result += convertDays(delay.getDays());
-        return result;
-    }
-
     private long convertSeconds(long secs) {
         return secs / 512;
-    }
-
-    private long convertMinutes(long min) {
-        return convertSeconds(min*60);
-    }
-
-    private long convertHours(long hours) {
-        return convertMinutes(hours*60);
-    }
-
-    private long convertDays(long days) {
-        return convertHours(days*24);
     }
 
     public long setRelativeTimelockFlag(long i) {
