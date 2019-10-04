@@ -16,6 +16,9 @@ A domain-specific language to write Bitcoin transactions, based on the paper
 - online: [https://blockchain.unica.it/balzac/docs](https://blockchain.unica.it/balzac/docs)
 - repository: [https://github.com/balzac-lang/balzac-doc](https://github.com/balzac-lang/balzac-doc)
 
+
+
+
 ## Setup
 
 Execute the script `install-deps.sh` or alternatively follow these steps:
@@ -38,27 +41,47 @@ gradle -p $HOME/bitcoinj install -x test
 ```
 [Compare versions](https://github.com/bitcoinj/bitcoinj/compare/master...natzei:lib)
 
-### Install
+## Install
 ```
-mvn -f xyz.balzaclang.balzac.parent/ clean install
+mvn -f xyz.balzaclang.balzac.parent/ -U clean install
 ```
 
-### Run standalone server
+## Run Balzac
 
-In order to locally run the server (the same available at [http://balzac-lang.xyz](http://balzac-lang.xyz)):
+In order to run Balzac locally you can
+
+- build on your machine and run using Maven + Jetty
+- build on your machine and load the war (saved into `xyz.balzaclang.balzac.web/target/`) inside any web container (e.g. Tomcat)
+- build on your machine and run in Docker (see `docker/Dockerfile-slim` to create the image)
+- build and run in Docker (see `docker/Dockerfile-build` to create the image)
+
+### Maven + Jetty
 
 ```
 mvn -f xyz.balzaclang.balzac.web/ jetty:run
 ```
 
+### Build with Maven, run with Docker
+
+```
+docker build -f docker/Dockerfile-slim -t balzac:latest .
+docker run -p 8080:8080 balzac:latest
+```
+
+### Build and run with Docker
+
+```
+docker build -f docker/Dockerfile-build -t balzac:latest .
+docker run -p 8080:8080 balzac:latest
+```
 
 
-### IDE
+## Development
 
 The project is currently developed using *Eclipse IDE for Java and DSL Developers* (generally the latest version).
 Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclipse-packages/).
 
-Install Xsemantics 1.17 ([update site](http://download.eclipse.org/xsemantics/milestones/1.17/)).
-
-Optional: install Jacoco (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html)).
+Dependencies
+- Xsemantics 1.17 ([update site](http://download.eclipse.org/xsemantics/milestones/1.17/))
+- Jacoco (optional) (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html))
 
