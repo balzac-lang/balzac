@@ -2,8 +2,8 @@ const kA = key:cSFqKAaCUGHZoGDrcreo3saZpMv9NvcVmRZVbVddbodEuzWNCDNt
 const kB = key:cSyt51FL53tLuG9TGSLxtTapDWquwT6XN6NSbqh6PdquYXCmscXN
 
 transaction T_deposit {
-	input = _
-	output = 1BTC: fun(x). versig(kA; x)
+    input = _
+    output = 1BTC: fun(x). versig(kA; x)
 }
 
 //assert T.txid == hash:df2ad5bdc765e7c0be1a6964f67c71d9be11e635cfeadc6920ff0973433dc464 : "Found: "+T.txid

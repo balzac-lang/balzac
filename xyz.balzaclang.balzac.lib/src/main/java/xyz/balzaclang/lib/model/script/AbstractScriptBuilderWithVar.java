@@ -233,7 +233,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 checkState(txSig.isCanonical());
                 sb.data(txSig.encodeToBitcoin());
                 if (isP2PKH) {
-                	sb.data(key.getPubKey());
+                    sb.data(key.getPubKey());
                 }
             }
             else {

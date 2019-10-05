@@ -1,28 +1,28 @@
 
 #result {
-	height: 250px;
-	font-size: small;
+    height: 250px;
+    font-size: small;
 }
 
 #xtext-editor {
-	height: 400px
+    height: 400px
 }
 
 .resizable {
-	resize: vertical;
-	overflow: auto
+    resize: vertical;
+    overflow: auto
 }
 
 .btn {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 .btn.focus, .btn:focus, .btn.active, .btn:active {
-	box-shadow: inherit !important;
+    box-shadow: inherit !important;
 }
 
 #sidebar-close {
-	background-color: transparent;
+    background-color: transparent;
 }
 
 #wrapper {
@@ -123,17 +123,17 @@
 }
 
 #sidebar-content {
-	width: 100%;
+    width: 100%;
 }
 
 /* FIX */
 .toggle-handle {
-	background-color: #fff;
+    background-color: #fff;
 }
 
 /* FIX */
 .toggle-off {
-	left: auto !important;
+    left: auto !important;
 }
 
 #menu-toggle {
@@ -147,7 +147,7 @@
 }
 
 .small-info {
-	font-size: 1em
+    font-size: 1em
 }
 
 .tooltip > .tooltip-inner {
@@ -171,15 +171,15 @@
 
 
 .loader:after {
-	border-width: 0.15px;
+    border-width: 0.15px;
 }
 
 /*
  * Highlight the output area
  */
 .highlight-result {
-	border-color: #007bff !important;
-	box-shadow: 0 0 10px -5px #007bff;
+    border-color: #007bff !important;
+    box-shadow: 0 0 10px -5px #007bff;
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;

@@ -67,47 +67,47 @@ public class ASTUtils {
     private static final String cacheECKeyStoreID = "eckeystore";
 
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
-    	Resource resource = obj.eResource();
-    	logger.debug("Get the ECKeyStore for resource "+resource);
+        Resource resource = obj.eResource();
+        logger.debug("Get the ECKeyStore for resource "+resource);
 
-    	try {
-        	ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
+        try {
+            ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
 
-        		@Override
-        		public ECKeyStore get() {
-        		    logger.debug("Generating new ECKeyStore for resource "+resource);
+                @Override
+                public ECKeyStore get() {
+                    logger.debug("Generating new ECKeyStore for resource "+resource);
                     ECKeyStore kstore;
-        			try {
-        				kstore = new ECKeyStore();
-        				EObject root = EcoreUtil2.getRootContainer(obj);
-        				List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
-        				keys.add(getPlaceholderPrivateKey(obj));
-        				for (KeyLiteral k : keys) {
-        					String uniqueID = kstore.addKey(k.getValue());
-        					logger.info("keystore: added key "+uniqueID);
-        				}
-        				return kstore;
-        			} catch (KeyStoreException e) {
-        				logger.error("Error when creating the ECKeyStore for resource "+resource);
-        				return null;
-        			}
-        		}
-        	});
-        	return value;
-    	}
-    	catch (RuntimeException e) {
-    	    if (e.getCause() instanceof KeyStoreException) {
-    	        throw (KeyStoreException) e.getCause();
-    	    }
-    	    else throw e;
-    	}
+                    try {
+                        kstore = new ECKeyStore();
+                        EObject root = EcoreUtil2.getRootContainer(obj);
+                        List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
+                        keys.add(getPlaceholderPrivateKey(obj));
+                        for (KeyLiteral k : keys) {
+                            String uniqueID = kstore.addKey(k.getValue());
+                            logger.info("keystore: added key "+uniqueID);
+                        }
+                        return kstore;
+                    } catch (KeyStoreException e) {
+                        logger.error("Error when creating the ECKeyStore for resource "+resource);
+                        return null;
+                    }
+                }
+            });
+            return value;
+        }
+        catch (RuntimeException e) {
+            if (e.getCause() instanceof KeyStoreException) {
+                throw (KeyStoreException) e.getCause();
+            }
+            else throw e;
+        }
     }
 
     private KeyLiteral getPlaceholderPrivateKey(EObject obj) {
-    	PrivateKey privateKey = PlaceholderUtils.KEY(networkParams(obj));
-    	KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();
-    	key.setValue(privateKey.getWif());
-    	return key;
+        PrivateKey privateKey = PlaceholderUtils.KEY(networkParams(obj));
+        KeyLiteral key = BalzacFactory.eINSTANCE.createKeyLiteral();
+        key.setValue(privateKey.getWif());
+        return key;
     }
 
     public Set<TransactionParameter> getTxVariables(EObject exp) {
@@ -184,13 +184,13 @@ public class ASTUtils {
             return res;
         }
         else if (value instanceof Signature) {
-        	Signature sig = (Signature) value;
+            Signature sig = (Signature) value;
             SignatureLiteral res = BalzacFactory.eINSTANCE.createSignatureLiteral();
             res.setValue(BitcoinUtils.encode(sig.getSignature()));
             if (sig.getPubkey().isPresent()) {
-            	PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
-            	pubkey.setValue(sig.getPubkey().get().getBytesAsString());
-            	res.setPubkey(pubkey);
+                PubKeyLiteral pubkey = BalzacFactory.eINSTANCE.createPubKeyLiteral();
+                pubkey.setValue(sig.getPubkey().get().getBytesAsString());
+                res.setPubkey(pubkey);
             }
             return res;
         }

@@ -3,8 +3,8 @@ package balzac.constants
 network mainnet
 
 const a:int  = 12+4*2               // integer 64-bit
-const b:bool   = true && false    	// boolean
-const s:string = "Hello world"     	// string
+const b:bool   = true && false        // boolean
+const s:string = "Hello world"         // string
 
 const h1:hash   = sha256(42)
 const h2:hash   = ripemd160("secret")
@@ -32,22 +32,22 @@ const MAX_INT = 2147483647
 const MIN_INT = -2147483647 -1
 
 eval
-	a,
-	b,
-	s,
-	h1,
-	h2,
-	h160,
-	h256,
-	h3,
-	h1_bis,
-	h2_bis,
-	h160_bis,
-	h256_bis,
-	h3_bis,
-	kA,
-	k,
-	k_address,
-	k_pubkey,
-	T_serial,
-	deadline
+    a,
+    b,
+    s,
+    h1,
+    h2,
+    h160,
+    h256,
+    h3,
+    h1_bis,
+    h2_bis,
+    h160_bis,
+    h256_bis,
+    h3_bis,
+    kA,
+    k,
+    k_address,
+    k_pubkey,
+    T_serial,
+    deadline

@@ -11,37 +11,37 @@ const deadline = 2018-06-11T15:00:00+02:00
 const aDay = 24*60*60
 
 transaction coinbase {
-	input = _
-	output = 10 BTC: fun(s) . versig(kA; s)
+    input = _
+    output = 10 BTC: fun(s) . versig(kA; s)
 }
 
 /*
  * transaction with absolute constraints within output scripts
  */
 transaction T_cons {
-	input = coinbase: sig(kA)
-	output = [
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlock blockN : versig(kA,kB,kL; sig1,sig2);
+    input = coinbase: sig(kA)
+    output = [
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlock blockN : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkDate deadline : versig(kA,kB,kL; sig1,sig2)
-	]
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkDate deadline : versig(kA,kB,kL; sig1,sig2)
+    ]
 }
 
 /*
  * T_1 redeems at any time
  */
 transaction T_1 {
-	input = [
-		T_cons: sig(kA) sig(kB);
-		T_cons@1: sig(kA) sig(kB);
-	]
-	output = 0: "test"
+    input = [
+        T_cons: sig(kA) sig(kB);
+        T_cons@1: sig(kA) sig(kB);
+    ]
+    output = 0: "test"
 }
 
 
@@ -49,93 +49,93 @@ transaction T_1 {
  * T_2 does not satisfy absLock constraints
  */
 transaction T_2_block {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	absLock = block blockN - 5
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    absLock = block blockN - 5
 }
 
 transaction T_2_date {
-	input = T_cons@1: sig(kA) sig(kL)
-	output = 0: "test"
-	absLock = date deadline - aDay
+    input = T_cons@1: sig(kA) sig(kL)
+    output = 0: "test"
+    absLock = date deadline - aDay
 }
 
 transaction T_2_mismatch {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	absLock = date deadline - aDay
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    absLock = date deadline - aDay
 }
 
 /*
  * T_3 T_4 satisfy absLock constraints.
  */
 transaction T_3_block {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	absLock = block blockN + 5
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    absLock = block blockN + 5
 }
 
 transaction T_3_date {
-	input = T_cons@1: sig(kA) sig(kL)
-	output = 0: "test"
-	absLock = date deadline + aDay
+    input = T_cons@1: sig(kA) sig(kL)
+    output = 0: "test"
+    absLock = date deadline + aDay
 }
 
 transaction T_4_block {
-	input = T_cons: sig(kB) sig(kL)
-	output = 0: "test"
-	absLock = block blockN + 5
+    input = T_cons: sig(kB) sig(kL)
+    output = 0: "test"
+    absLock = block blockN + 5
 }
 
 transaction T_4_date {
-	input = T_cons@1: sig(kB) sig(kL)
-	output = 0: "test"
-	absLock = date deadline + aDay
+    input = T_cons@1: sig(kB) sig(kL)
+    output = 0: "test"
+    absLock = date deadline + aDay
 }
 
 /*
  * transaction with relative constraints (same type) within output scripts
  */
 transaction T_cons2 {
-	input = coinbase: sig(kA)
-	output = [
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlock blockN : versig(kA,kB,kL; sig1,sig2);
+    input = coinbase: sig(kA)
+    output = [
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlock blockN : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlock blockN + 10 : versig(kA,kB,kL; sig1,sig2);
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlock blockN + 10 : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC: fun(s) . versig(kA; s)
-	]
+        1 BTC: fun(s) . versig(kA; s)
+    ]
 }
 
 transaction T_5 {
-	input = [
-		T_cons2: sig(kA) sig(kL);
-		T_cons2@1: sig(kA) sig(kL);
-		T_cons2@2: sig(kA)
-	]
-	output = 0: "test"
-	absLock = block blockN + 20 // absLock must satisfy all inputs
+    input = [
+        T_cons2: sig(kA) sig(kL);
+        T_cons2@1: sig(kA) sig(kL);
+        T_cons2@2: sig(kA)
+    ]
+    output = 0: "test"
+    absLock = block blockN + 20 // absLock must satisfy all inputs
 }
 
 eval
-	T_cons,
-	T_1,
+    T_cons,
+    T_1,
 
-	T_2_block,
-	T_2_date,
-	T_2_mismatch,
+    T_2_block,
+    T_2_date,
+    T_2_mismatch,
 
-	T_3_block,
-	T_3_date,
+    T_3_block,
+    T_3_date,
 
-	T_4_block,
-	T_4_date,
+    T_4_block,
+    T_4_date,
 
-	T_cons2,
-	T_5
+    T_cons2,
+    T_5

@@ -450,35 +450,35 @@ public class TrustedNodesPreferences extends PreferencePage implements IWorkbenc
     }
 
     private static BitcoinClient getMainnetBitcoinClient(IPreferenceStore store, ISecurePreferences secureStore)  throws StorageException {
-    	String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
-    	int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
-    	String mainnetProtocol = store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS) ? "https" : "http";
-    	String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
-    	String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
-    	int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
-    	String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
-    			.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
+        String mainnetHost = store.getString(PreferenceConstants.P_MAINNET_HOST);
+        int mainnetPort = store.getInt(PreferenceConstants.P_MAINNET_PORT);
+        String mainnetProtocol = store.getBoolean(PreferenceConstants.P_MAINNET_HTTPS) ? "https" : "http";
+        String mainnetUrl = store.getString(PreferenceConstants.P_MAINNET_URL);
+        String mainnetUsername = store.getString(PreferenceConstants.P_MAINNET_USERNAME);
+        int mainnetTimeout = store.getInt(PreferenceConstants.P_MAINNET_TIMEOUT);
+        String mainnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__MAINNET_NODE)
+                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__MAINNET_PASSWORD, "");
 
-    	BitcoinClient mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
-    			mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClient mainnetClient = new RPCBitcoinClient(mainnetHost, mainnetPort, mainnetProtocol, mainnetUrl,
+                mainnetUsername, mainnetPassword, mainnetTimeout, TimeUnit.MILLISECONDS);
 
-    	return mainnetClient;
+        return mainnetClient;
     }
 
     private static BitcoinClient getTestnetBitcoinClient(IPreferenceStore store, ISecurePreferences secureStore)  throws StorageException {
-    	String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
-    	int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
-    	String testnetProtocol = store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS) ? "https" : "http";
-    	String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
-    	String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
-    	int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
-    	String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
-    			.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
+        String testnetHost = store.getString(PreferenceConstants.P_TESTNET_HOST);
+        int testnetPort = store.getInt(PreferenceConstants.P_TESTNET_PORT);
+        String testnetProtocol = store.getBoolean(PreferenceConstants.P_TESTNET_HTTPS) ? "https" : "http";
+        String testnetUrl = store.getString(PreferenceConstants.P_TESTNET_URL);
+        String testnetUsername = store.getString(PreferenceConstants.P_TESTNET_USERNAME);
+        int testnetTimeout = store.getInt(PreferenceConstants.P_TESTNET_TIMEOUT);
+        String testnetPassword = secureStore.node(SecureStorageUtils.SECURE_STORAGE__NODE__BITCOIN__TESTNET_NODE)
+                .get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__TESTNET_PASSWORD, "");
 
-    	BitcoinClient testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
-    			testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
+        BitcoinClient testnetClient = new RPCBitcoinClient(testnetHost, testnetPort, testnetProtocol, testnetUrl,
+                testnetUsername, testnetPassword, testnetTimeout, TimeUnit.MILLISECONDS);
 
-    	return testnetClient;
+        return testnetClient;
     }
 
     private boolean isTestnetPasswordSaved() {

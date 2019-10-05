@@ -28,17 +28,17 @@ class PublicKeyImpl implements PublicKey {
 
     @Override
     public Address toAddress(NetworkType params) {
-    	return Address.fromPubkey(pubkey, params);
+        return Address.fromPubkey(pubkey, params);
     }
 
     @Override
     public Address toTestnetAddress() {
-    	return toAddress(NetworkType.TESTNET);
+        return toAddress(NetworkType.TESTNET);
     }
 
     @Override
     public Address toMainnetAddress() {
-    	return toAddress(NetworkType.MAINNET);
+        return toAddress(NetworkType.MAINNET);
     }
 
     @Override

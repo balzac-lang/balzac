@@ -407,7 +407,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                 outScript = new byte[]{};
             }
             else {
-            	// set outScript
+                // set outScript
                 if (ScriptPattern.isP2SH(txInput.getOutpoint().getConnectedOutput().getScriptPubKey())) {
                     checkState(inputScript.isP2SH(), "why not?");
                     outScript = inputScript.getRedeemScript().build().getProgram();

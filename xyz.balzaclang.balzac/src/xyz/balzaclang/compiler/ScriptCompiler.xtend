@@ -111,8 +111,8 @@ class ScriptCompiler {
              * P2PKH
              */
             if (input.exps.size == 1) {
-	            var sigE = input.exps.get(0)
-            	return sigE.compileInputExpression(rho,false)
+                var sigE = input.exps.get(0)
+                return sigE.compileInputExpression(rho,false)
             }
             else {
                 val sigI = input.exps.get(0).interpret(rho)
@@ -315,7 +315,7 @@ class ScriptCompiler {
     def private dispatch ScriptBuilderWithVar compileExpressionInternal(SignatureLiteral s, Context ctx) {
         val sb = new ScriptBuilderWithVar().data(BitcoinUtils.decode(s.value))
         if (s.pubkey !== null && !ctx.isP2SH) {
-        	sb.append(s.pubkey.compileExpression(ctx))
+            sb.append(s.pubkey.compileExpression(ctx))
         }
         sb
     }

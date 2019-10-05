@@ -56,12 +56,12 @@ public class BitcoinUtils {
             return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
 
         else if (obj instanceof Signature) {
-        	Signature sig = (Signature) obj;
-        	ScriptBuilder sb = new ScriptBuilder();
-        	sb.data(sig.getSignature());
-        	if (sig.getPubkey().isPresent())
-        		sb.data(sig.getPubkey().get().getBytes());
-        	return sb.build();
+            Signature sig = (Signature) obj;
+            ScriptBuilder sb = new ScriptBuilder();
+            sb.data(sig.getSignature());
+            if (sig.getPubkey().isPresent())
+                sb.data(sig.getPubkey().get().getBytes());
+            return sb.build();
         }
 
         throw new IllegalArgumentException();

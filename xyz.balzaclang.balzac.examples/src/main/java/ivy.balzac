@@ -7,11 +7,11 @@ package ivy
  *     unlock val
  *   }
  * }
- * PUSH(publicKey) CHECKSIG	(P2PKH)
+ * PUSH(publicKey) CHECKSIG    (P2PKH)
  */
 transaction LockWithPublicKey(publicKey, val) {
-	input = _
-	output = val : fun(x) . versig(publicKey; x)	// compiles P2PKH
+    input = _
+    output = val : fun(x) . versig(publicKey; x)    // compiles P2PKH
 }
 
 /*
@@ -29,8 +29,8 @@ transaction LockWithPublicKey(publicKey, val) {
  * ... CHECKMULTISIG
  */
 transaction LockWithMultisig(publicKey1, publicKey2, publicKey3, val) {
-	input = _
-	output = val : fun(x, y) . versig(publicKey1, publicKey2, publicKey3; x, y)	// compiles P2SH
+    input = _
+    output = val : fun(x, y) . versig(publicKey1, publicKey2, publicKey3; x, y)    // compiles P2SH
 }
 
 /*
@@ -41,11 +41,11 @@ transaction LockWithMultisig(publicKey1, publicKey2, publicKey3, val) {
  *     unlock val
  *   }
  * }
- * DUP SHA256 PUSH(pubKeyHash) EQUALVERIFY CHECKSIG	(P2PKH)
+ * DUP SHA256 PUSH(pubKeyHash) EQUALVERIFY CHECKSIG    (P2PKH)
  */
-transaction LockWithPublicKeyHash(publicKey, val) {	// same of LockWithPublicKey
-	input = _
-	output = val : fun(x) . versig(publicKey; x)	// compiles P2PKH
+transaction LockWithPublicKeyHash(publicKey, val) {    // same of LockWithPublicKey
+    input = _
+    output = val : fun(x) . versig(publicKey; x)    // compiles P2PKH
 }
 
 /*
@@ -57,9 +57,9 @@ transaction LockWithPublicKeyHash(publicKey, val) {	// same of LockWithPublicKey
  * }
  * SHA256 PUSH(hash) EQUAL (non standard!)
  */
-transaction RevealPreimage(h, val) {	// same of LockWithPublicKey
-	input = _
-	output = val : fun(x:string) . h == sha256(x)	// compiles P2SH
+transaction RevealPreimage(h, val) {    // same of LockWithPublicKey
+    input = _
+    output = val : fun(x:string) . h == sha256(x)    // compiles P2SH
 }
 
 /*
@@ -74,8 +74,8 @@ transaction RevealPreimage(h, val) {	// same of LockWithPublicKey
  * 2DUP EQUAL NOT VERIFY SHA1 SWAP SHA1 EQUAL (non standard!)
  */
 transaction RevealCollision(val) {
-	input = _
-	output = val : fun(x:string, y:string) . x!=y && sha1(x) == sha1(y)	// compiles P2SH
+    input = _
+    output = val : fun(x:string, y:string) . x!=y && sha1(x) == sha1(y)    // compiles P2SH
 }
 
 /*
@@ -89,8 +89,8 @@ transaction RevealCollision(val) {
  * DUP SHA256 EQUAL (non standard!)
  */
 transaction RevealFixedPoint(val) {
-	input = _
-	output = val : fun(h: hash) . sha256(h) == h	// compiles P2SH
+    input = _
+    output = val : fun(h: hash) . sha256(h) == h    // compiles P2SH
 }
 
 /*
@@ -104,11 +104,11 @@ transaction RevealFixedPoint(val) {
  * PUSH(time) CHECKLOCKTIMEVERIFY DROP PUSH(publicKey) CHECKSIG
  */
 transaction LockUntil(publicKey, time, val) {
-	input = _
-	output = [
-		val : fun(x) . checkDate time : versig(publicKey; x);	// compiles P2SH
-		val : fun(x) . checkBlock time : versig(publicKey; x)	// compiles P2SH
-	]
+    input = _
+    output = [
+        val : fun(x) . checkDate time : versig(publicKey; x);    // compiles P2SH
+        val : fun(x) . checkBlock time : versig(publicKey; x)    // compiles P2SH
+    ]
 }
 
 /*
@@ -122,11 +122,11 @@ transaction LockUntil(publicKey, time, val) {
  * PUSH(publicKey) CHECKSIGVERIFY PUSH(delay) CHECKSEQUENCEVERIFY DROP 1
  */
 transaction LockDelay(publicKey, delay, val) {
-	input = _
-	output = [
-		val : fun(x) . checkBlockDelay delay : versig(publicKey; x);	// compiles P2SH
-		val : fun(x) . checkTimeDelay delay : versig(publicKey; x)	// compiles P2SH
-	]
+    input = _
+    output = [
+        val : fun(x) . checkBlockDelay delay : versig(publicKey; x);    // compiles P2SH
+        val : fun(x) . checkTimeDelay delay : versig(publicKey; x)    // compiles P2SH
+    ]
 }
 
 /*
@@ -150,10 +150,10 @@ transaction LockDelay(publicKey, delay, val) {
  * PUSH(sender) SWAP IF PUSH(timeout) CHECKLOCKTIMEVERIFY DROP ELSE CHECKSIGVERIFY PUSH(recipient) ENDIF CHECKSIG
  */
 transaction TransferWithTimeout(sender, recipient, timeout, val) {
-	input = _
-	output = val : fun(senderSig,recipientSig) . 						// compiles P2SH
-		versig(sender, recipient; senderSig, recipientSig)
-		|| checkBlockDelay timeout : versig(sender; senderSig)
+    input = _
+    output = val : fun(senderSig,recipientSig) .                         // compiles P2SH
+        versig(sender, recipient; senderSig, recipientSig)
+        || checkBlockDelay timeout : versig(sender; senderSig)
 }
 
 /*
@@ -180,10 +180,10 @@ transaction TransferWithTimeout(sender, recipient, timeout, val) {
  * PUSH(sender) SWAP IF CHECKSIGVERIFY PUSH(delay) CHECKSEQUENCEVERIFY DROP 1 ELSE 0 2SWAP 2 PUSH(escrow) PUSH(recipient) 6 ROLL 3 CHECKMULTISIG ENDIF
  */
  transaction EscrowWithDelay(sender, recipient, escrow, val) {
-	input = _
-	output = val : fun(x,y) . 						// compiles P2SH
-		versig(sender, recipient, escrow; x, y)
-		|| checkTimeDelay 2d : versig(sender; x)
+    input = _
+    output = val : fun(x,y) .                         // compiles P2SH
+        versig(sender, recipient, escrow; x, y)
+        || checkTimeDelay 2d : versig(sender; x)
 }
 
 /*
@@ -206,10 +206,10 @@ transaction TransferWithTimeout(sender, recipient, timeout, val) {
  * IF PUSH(delay) CHECKSEQUENCEVERIFY DROP PUSH(hotKey) ELSE PUSH(coldKey) ENDIF CHECKSIG
  */
  transaction VaultSpend(hotKey, coldKey, val) {
-	input = _
-	output = val : fun(x) . 						// compiles P2SH
-		versig(coldKey; x)
-		|| checkTimeDelay 2d : versig(hotKey; x)
+    input = _
+    output = val : fun(x) .                         // compiles P2SH
+        versig(coldKey; x)
+        || checkTimeDelay 2d : versig(hotKey; x)
 }
 
 // public keys

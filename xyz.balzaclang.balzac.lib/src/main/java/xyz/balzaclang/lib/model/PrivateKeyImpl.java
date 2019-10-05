@@ -46,7 +46,7 @@ class PrivateKeyImpl implements PrivateKey {
 
     @Override
     public Address toAddress() {
-    	return address;
+        return address;
     }
 
     @Override

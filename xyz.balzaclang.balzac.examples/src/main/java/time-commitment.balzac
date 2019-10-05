@@ -20,10 +20,10 @@ participant Alice {
     const h = sha256(secret)    // hash of the secret
 
     transaction T_commit {
-	    input = A_funds: sig(kA)
-	    output = this.input.value - fee:
-	        fun(x,s:string) . sha256(s) == h && versig(kApub;x)
-	            || checkDate deadline : versig(kBpub;x)
+        input = A_funds: sig(kA)
+        output = this.input.value - fee:
+            fun(x,s:string) . sha256(s) == h && versig(kApub;x)
+                || checkDate deadline : versig(kBpub;x)
     }
 
     transaction T_reveal {

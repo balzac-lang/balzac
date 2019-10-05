@@ -69,8 +69,8 @@ class KeyStoreGenerator extends AbstractGenerator {
 
             for (k : keys) {
                 val key = DumpedPrivateKey.fromBase58(k.networkParams.toNetworkParameters, k.value).key
-            	val alias = ecks.addKey(key)
-            	logger.info('''adding key with alias «alias»''')
+                val alias = ecks.addKey(key)
+                logger.info('''adding key with alias «alias»''')
             }
 
             val tmpFile = File.createTempFile("kstore", ".p12")
@@ -78,8 +78,8 @@ class KeyStoreGenerator extends AbstractGenerator {
             return tmpFile.absolutePath
         }
         catch(KeyStoreException e) {
-        	e.printStackTrace
-        	throw new KeyStoreGenerationException('''Something went wrong generating the keystore: «e.message». Please report the error to the authors.''', e)
+            e.printStackTrace
+            throw new KeyStoreGenerationException('''Something went wrong generating the keystore: «e.message». Please report the error to the authors.''', e)
         }
     }
 
@@ -91,14 +91,14 @@ class KeyStoreGenerator extends AbstractGenerator {
      */
     def private getKsPassword() {
         // System properties
-    	var pass = System.properties.getProperty(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
+        var pass = System.properties.getProperty(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
 
-    	if (pass !== null) {
-    		logger.info("Reading password from system property "+SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
-    	    return pass.toCharArray
-    	}
+        if (pass !== null) {
+            logger.info("Reading password from system property "+SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD)
+            return pass.toCharArray
+        }
 
-    	// Eclipse secure storage
+        // Eclipse secure storage
         if (secureStorage !== null) {
             val node = secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__KEYSTORE)
             pass = node.get(SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, null)

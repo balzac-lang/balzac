@@ -23,22 +23,22 @@ const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 const kC = key:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 transaction TA {
-	input = _
-	output = 1BTC: fun(x). versig(kA; x)
+    input = _
+    output = 1BTC: fun(x). versig(kA; x)
 }
 
 transaction T {
-	input = TA: sig(kA)
-	output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
+    input = TA: sig(kA)
+    output = 1BTC - 15: fun(sigA, sigB). versig(kA, kB; sigA, sigB)
 }
 
 // finalize A
 transaction TA_finalize {
-	input = T: sig(kA) sig(kB)
-	output = 1BTC - 16: fun(x). versig(kA; x)
+    input = T: sig(kA) sig(kB)
+    output = 1BTC - 16: fun(x). versig(kA; x)
 }
 // or B
 transaction TB_finalize {
-	input = T: sig(kA) sig(kB)
-	output = 1BTC - 16: fun(x). versig(kB; x)
+    input = T: sig(kA) sig(kB)
+    output = 1BTC - 16: fun(x). versig(kB; x)
 }

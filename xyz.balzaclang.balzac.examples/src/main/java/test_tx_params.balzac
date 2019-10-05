@@ -2,39 +2,39 @@ package balzac.test_tx_params
 
 
 //transaction T(a:int, b: int) {
-//	input = _
-//	output = 0.5 BTC : fun(x:int) . x==a+b
+//    input = _
+//    output = 0.5 BTC : fun(x:int) . x==a+b
 //}
 //
 //transaction T2 (c:int, d: int, e: int) {
-//	input = T(c,d): e
-//	output = 0.5 BTC : fun(a:int) . a==42
+//    input = T(c,d): e
+//    output = 0.5 BTC : fun(a:int) . a==42
 //}
 //
 //transaction T3 {
-//	input = [
-//		T(3,4): 7;
-//		T2(10,5,15): 42;
-//	]
-//	output = 0.5 BTC : fun(a:int) . a==42
+//    input = [
+//        T(3,4): 7;
+//        T2(10,5,15): 42;
+//    ]
+//    output = 0.5 BTC : fun(a:int) . a==42
 //}
 
 /*
  * transaction as parameter
  */
 transaction inTx {
-	input = _
-	output = 0.5 BTC : fun(a:int) . a==44
+    input = _
+    output = 0.5 BTC : fun(a:int) . a==44
 }
 
 transaction A {
-	input = inTx: 42
-	output = 0.5 BTC : fun(a:int) . a==42
+    input = inTx: 42
+    output = 0.5 BTC : fun(a:int) . a==42
 }
 
 transaction A_bis(inTxP:transaction) {
-	input = inTxP: 44
-	output = 0.5 BTC : fun(a:int) . a==42
+    input = inTxP: 44
+    output = 0.5 BTC : fun(a:int) . a==42
 }
 
 /*
@@ -42,8 +42,8 @@ transaction A_bis(inTxP:transaction) {
  */
 
 eval
-//	T(3,4)
-//	T2(10,5,15)
-//	T3
-	A,
-	A_bis(inTx)
+//    T(3,4)
+//    T2(10,5,15)
+//    T3
+    A,
+    A_bis(inTx)

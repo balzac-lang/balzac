@@ -13,8 +13,8 @@ import xyz.balzaclang.BalzacStandaloneSetup
  */
 class BalzacIdeSetup extends BalzacStandaloneSetup {
 
-	override createInjector() {
-		Guice.createInjector(Modules2.mixin(new BalzacRuntimeModule, new BalzacIdeModule))
-	}
+    override createInjector() {
+        Guice.createInjector(Modules2.mixin(new BalzacRuntimeModule, new BalzacIdeModule))
+    }
 
 }

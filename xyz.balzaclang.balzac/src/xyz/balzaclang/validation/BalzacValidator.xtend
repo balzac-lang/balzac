@@ -395,12 +395,12 @@ class BalzacValidator extends AbstractBalzacValidator {
                 )
             }
             if (sig.modifier == Modifier.AISO || sig.modifier == Modifier.SISO) {
-            	if (sig.inputIdx >= outputSize) {
-	                error('''Invalid input «sig.inputIdx». Since you are signing a single output, the index must be «IF outputSize == 1»0 (it can be omitted).«ELSE» within [0,«outputSize-1»].«ENDIF»''',
-	                    sig,
-	                    BalzacPackage.Literals.SIGNATURE__INPUT_IDX
-	                )
-	            }
+                if (sig.inputIdx >= outputSize) {
+                    error('''Invalid input «sig.inputIdx». Since you are signing a single output, the index must be «IF outputSize == 1»0 (it can be omitted).«ELSE» within [0,«outputSize-1»].«ENDIF»''',
+                        sig,
+                        BalzacPackage.Literals.SIGNATURE__INPUT_IDX
+                    )
+                }
             }
         }
         else {
@@ -422,7 +422,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 BalzacPackage.Literals.KEY_LITERAL__VALUE
             )
         }
-  	}
+      }
 
     @Check
     def void checkAddressDeclaration(AddressLiteral k) {
@@ -896,7 +896,7 @@ class BalzacValidator extends AbstractBalzacValidator {
 
                 if (tx1==tx2)
                     error(
-                    	"Duplicated relative timelock",
+                        "Duplicated relative timelock",
                         tlock,
                         null
                     );

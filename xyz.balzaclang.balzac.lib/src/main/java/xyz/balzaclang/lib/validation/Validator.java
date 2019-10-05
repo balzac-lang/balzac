@@ -27,18 +27,18 @@ import xyz.balzaclang.lib.validation.ValidationResult.InputValidationError;
 
 public class Validator {
 
-	public static ValidationResult checkOutputScriptSize(OutputScript script) {
-		if (!script.isReady()) {
-			return ValidationResult.ok("The output script is not ready");
-		}
-		int scriptSize = script.build().getProgram().length;
-		if (scriptSize > 520) {
-			return ValidationResult.error("The output scripts is greater than 520 bytes");
-		}
-		else {
-			return ValidationResult.ok("The output scripts less than 520 bytes");
-		}
-	}
+    public static ValidationResult checkOutputScriptSize(OutputScript script) {
+        if (!script.isReady()) {
+            return ValidationResult.ok("The output script is not ready");
+        }
+        int scriptSize = script.build().getProgram().length;
+        if (scriptSize > 520) {
+            return ValidationResult.error("The output scripts is greater than 520 bytes");
+        }
+        else {
+            return ValidationResult.ok("The output scripts less than 520 bytes");
+        }
+    }
 
     public static ValidationResult checkWitnessesCorrecltySpendsOutputs(ITransactionBuilder txBuilder, ECKeyStore keyStore) {
         // preconditions

@@ -39,29 +39,29 @@ public class PlaceholderUtilsTest {
 
     @Test
     public void publicKeyIsDerivedFromPrivateOneMainnet() {
-    	_publicKeyIsDerivedFromPrivateOne(NetworkType.MAINNET);
+        _publicKeyIsDerivedFromPrivateOne(NetworkType.MAINNET);
     }
 
     @Test
     public void publicKeyIsDerivedFromPrivateOneTestnet() {
-    	_publicKeyIsDerivedFromPrivateOne(NetworkType.TESTNET);
+        _publicKeyIsDerivedFromPrivateOne(NetworkType.TESTNET);
     }
 
     private void _publicKeyIsDerivedFromPrivateOne(NetworkType params) {
-    	assertEquals(
-    			PlaceholderUtils.KEY(params).toPublicKey(),
-    			PlaceholderUtils.PUBKEY(params)
-    			);
+        assertEquals(
+                PlaceholderUtils.KEY(params).toPublicKey(),
+                PlaceholderUtils.PUBKEY(params)
+                );
     }
 
     @Test
     public void addressIsDerivedFromPrivateKeyMainnet() {
-    	_addressIsDerivedFromPrivateKey(NetworkType.MAINNET);
+        _addressIsDerivedFromPrivateKey(NetworkType.MAINNET);
     }
 
     @Test
     public void addressIsDerivedFromPrivateKeyTestnet() {
-    	_addressIsDerivedFromPrivateKey(NetworkType.TESTNET);
+        _addressIsDerivedFromPrivateKey(NetworkType.TESTNET);
     }
 
     private void _addressIsDerivedFromPrivateKey(NetworkType params) {
@@ -73,32 +73,32 @@ public class PlaceholderUtilsTest {
 
     @Test
     public void placeholderTransactionMainnet() {
-    	_placeholderTransaction(NetworkType.MAINNET);
+        _placeholderTransaction(NetworkType.MAINNET);
     }
 
     @Test
     public void placeholderTransactionTestnet() {
-    	_placeholderTransaction(NetworkType.TESTNET);
+        _placeholderTransaction(NetworkType.TESTNET);
     }
 
     private void _placeholderTransaction(NetworkType params) {
-    	ITransactionBuilder tx = PlaceholderUtils.TX(params);
-    	// is coinbase
-    	assertTrue(tx.isCoinbase());
+        ITransactionBuilder tx = PlaceholderUtils.TX(params);
+        // is coinbase
+        assertTrue(tx.isCoinbase());
 
-    	// have 10 outputs
-    	assertEquals(10, tx.getOutputs().size());
+        // have 10 outputs
+        assertEquals(10, tx.getOutputs().size());
 
-    	// each one
-    	for (Output output : tx.getOutputs()) {
-    		// is P2PKH
-    		assertTrue(output.getScript().isP2PKH());
-    		// worth 50 BTC
-    		assertEquals(50_0000_0000L, output.getValue());
-    		// address is from placeholder
-    		assertArrayEquals(
-    				PlaceholderUtils.ADDRESS(params).getBytes(),
-    				ScriptPattern.extractHashFromP2PKH(output.getScript().getOutputScript()));
-    	}
+        // each one
+        for (Output output : tx.getOutputs()) {
+            // is P2PKH
+            assertTrue(output.getScript().isP2PKH());
+            // worth 50 BTC
+            assertEquals(50_0000_0000L, output.getValue());
+            // address is from placeholder
+            assertArrayEquals(
+                    PlaceholderUtils.ADDRESS(params).getBytes(),
+                    ScriptPattern.extractHashFromP2PKH(output.getScript().getOutputScript()));
+        }
     }
 }

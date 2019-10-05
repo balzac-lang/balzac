@@ -40,10 +40,10 @@ public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
     @Inject private BalzacStringRepresentation strRep;
 
     @Override
-	protected void createCodeMinings(IDocument document, XtextResource resource, CancelIndicator indicator,
-		IAcceptor<? super ICodeMining> acceptor) throws BadLocationException {
+    protected void createCodeMinings(IDocument document, XtextResource resource, CancelIndicator indicator,
+        IAcceptor<? super ICodeMining> acceptor) throws BadLocationException {
 
-	    // get all operations to open document
+        // get all operations to open document
         List<Constant> allConstants = EcoreUtil2.eAllOfType(resource.getContents().get(0), Constant.class);
 
         Keyword colon = grammar.getConstantAccess().getColonKeyword_2_0();
@@ -70,10 +70,10 @@ public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
             }
         }
 
-	    // TODO: implement me
-		// use acceptor.accept(super.createNewLineHeaderCodeMining(...)) to add a new code mining to the final list
+        // TODO: implement me
+        // use acceptor.accept(super.createNewLineHeaderCodeMining(...)) to add a new code mining to the final list
 
-		// example:
-		// acceptor.accept(createNewLineHeaderCodeMining(1, document, "Header annotation"));
-	}
+        // example:
+        // acceptor.accept(createNewLineHeaderCodeMining(1, document, "Header annotation"));
+    }
 }

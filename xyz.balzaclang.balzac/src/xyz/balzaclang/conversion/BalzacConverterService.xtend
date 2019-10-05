@@ -107,7 +107,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                 }
                 catch (Exception e) {
                     throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid private key. Details: "+e.message, node, null);
-            	}
+                }
             }
         }
     }

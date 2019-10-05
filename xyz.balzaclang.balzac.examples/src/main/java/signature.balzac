@@ -50,15 +50,15 @@ transaction T_sameOutput {
 const kA = key:cRfPMbgvC4NNd3FZZeoQB2GmZJ2tJAPeNwJh9Bs27S2Csak72j46
 
 transaction TcycleCoinbase {
-	input = _
-	output = 10 BTC : fun(x) . versig(kA; x)
+    input = _
+    output = 10 BTC : fun(x) . versig(kA; x)
 }
 
 //const sigTcycle = sig(kA) of Tcycle
 //
 //transaction Tcycle {
-//	input = TcycleCoinbase: sigTcycle
-//	output = 2 BTC: fun(x) . x == 1001
+//    input = TcycleCoinbase: sigTcycle
+//    output = 2 BTC: fun(x) . x == 1001
 //}
 
 eval

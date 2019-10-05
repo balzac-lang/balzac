@@ -17,14 +17,14 @@ const kB = key:cQtkW1zgFCckRYvJ2Nm8rryV825GyDJ51qoJCw72rhHG4YmGfYgZ
 const kC = key:cRLgSnk3t7DhitfxkS21dWrBEiF8mFm2fSwEskLhk9shV4Jkuz66
 
 transaction T {
-	input = _
-	output = 10BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
+    input = _
+    output = 10BTC: fun(sig1, sig2). versig(kA, kB, kC; sig1, sig2)
 }
 
 transaction TA {
-	input = T: sig(kA) sig(kC)
-	output = [
-		4BTC-15: fun(x). versig(kA; x);
-		6BTC-15: fun(y). versig(kB; y)
-	]
+    input = T: sig(kA) sig(kC)
+    output = [
+        4BTC-15: fun(x). versig(kA; x);
+        6BTC-15: fun(y). versig(kB; y)
+    ]
 }

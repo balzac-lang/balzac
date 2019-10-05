@@ -21,7 +21,7 @@ public interface PublicKey {
     public Address toMainnetAddress();
 
     public static PublicKey fromBytes(byte[] pubkey) {
-    	return new PublicKeyImpl(pubkey);
+        return new PublicKeyImpl(pubkey);
     }
 
     public static PublicKey fromString(String str) {
@@ -33,10 +33,10 @@ public interface PublicKey {
     }
 
     public static PublicKey from(PublicKey key) {
-    	return fromBytes(key.getBytes());
+        return fromBytes(key.getBytes());
     }
 
     public static PublicKey from(PrivateKey key) {
-    	return from(key.toPublicKey());
+        return from(key.toPublicKey());
     }
 }

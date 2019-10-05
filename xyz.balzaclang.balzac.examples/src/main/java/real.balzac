@@ -8,37 +8,37 @@ const utxo2 = tx:010000000196892738fda7a089e6ca647ebf5bd7c37944cd76d56abe27adc86
 
 const addr = address:msm6jwXddCUP64XMmntsrkgqcGDXWehJ3t
 
-const k = key:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC	// 1.95 BTC
+const k = key:cVTzBErGMUWDZQ8Jf97AiVPmVPtBMKA9MACu36UoHqby11iDF8WC    // 1.95 BTC
 const k1 = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
 @isNotMined
-transaction T {	// id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468
-	input = [
-		utxo1: sig(k);
-		utxo2: sig(k)
-	]
-	output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma)
+transaction T {    // id: ee40379cdf5439983d7603a88cafdd6de1c20d3b164850ab1055ed276ed95468
+    input = [
+        utxo1: sig(k);
+        utxo2: sig(k)
+    ]
+    output = 1.95BTC - 0.001BTC: fun(sigma) . versig(k; sigma)
 
 }
 
 transaction T1 { // id: 3168215d8c988d910fe48d7707e074d95c45d19c8138d0bbe7b05c91446a638a
-	input = T : sig(k)
-	output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(k; sigma) && hash160(secret)==hash:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
+    input = T : sig(k)
+    output = 1.95BTC - 0.002BTC: fun(sigma, secret:string) . versig(k; sigma) && hash160(secret)==hash:43dacdc2e924bf0429e3b5f904659ed9fd00e71e
 }
 
 transaction T2 { // id: 17a2d3aeea1d742c9e42629bbf9ca04c0a19061497142f1f8b390ea43b1d5845
-	input = T1 : sig(k) "bart"
-	output = [
-		1.95BTC - 0.003BTC: fun(sigma) . versig(k; sigma);
-		0 : "it works!"
-	]
+    input = T1 : sig(k) "bart"
+    output = [
+        1.95BTC - 0.003BTC: fun(sigma) . versig(k; sigma);
+        0 : "it works!"
+    ]
 }
 
 @isNotMined
 transaction T3 {
-	input = T1 : sig(k) "bart"
-	output = [
-		1.95BTC - 0.003BTC: fun(sigma) . versig(k; sigma);
-		0 : "it works!"
-	]
+    input = T1 : sig(k) "bart"
+    output = [
+        1.95BTC - 0.003BTC: fun(sigma) . versig(k; sigma);
+        0 : "it works!"
+    ]
 }

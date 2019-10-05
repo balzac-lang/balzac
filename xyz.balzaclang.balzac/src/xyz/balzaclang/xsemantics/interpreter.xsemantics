@@ -206,12 +206,12 @@ axiom InterpretHashLiteral
 rule InterpretSignatureLiteral
     G |- SignatureLiteral s |> Rho rho ~> xyz.balzaclang.lib.model.Signature sig
 from {
-	sig = new xyz.balzaclang.lib.model.Signature(BitcoinUtils.decode(s.value), null)
+    sig = new xyz.balzaclang.lib.model.Signature(BitcoinUtils.decode(s.value), null)
 
-	if (s.pubkey !== null) {
-		G |- s.pubkey |> rho ~> var PublicKey key
-		sig.pubkey = key
-	}
+    if (s.pubkey !== null) {
+        G |- s.pubkey |> rho ~> var PublicKey key
+        sig.pubkey = key
+    }
 }
 
 axiom InterpretDateLiteral
@@ -676,16 +676,16 @@ rule InterpretToAddress
 from {
     G |- stmt.exp |> rho ~> var Object res
     if (res instanceof Address) {
-    	result = res
+        result = res
     }
     else if (res instanceof PublicKey) {
-    	result = res.toAddress(stmt.networkParams)
+        result = res.toAddress(stmt.networkParams)
     }
     else if (res instanceof PrivateKey) {
-    	result = res.toAddress
+        result = res.toAddress
     }
     else {
-    	fail
+        fail
             error "Unexpected result of type " + res.class
             source stmt
     }

@@ -11,37 +11,37 @@ const deadline = 2018-06-11T15:00:00+02:00
 const aDay = 24*60*60
 
 transaction coinbase {
-	input = _
-	output = 10 BTC: fun(s) . versig(kA; s)
+    input = _
+    output = 10 BTC: fun(s) . versig(kA; s)
 }
 
 /*
  * transaction with relative constraints within output scripts
  */
 transaction T_cons {
-	input = coinbase: sig(kA)
-	output = [
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
+    input = coinbase: sig(kA)
+    output = [
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkTimeDelay 45min: versig(kA,kB,kL; sig1,sig2)
-	]
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkTimeDelay 45min: versig(kA,kB,kL; sig1,sig2)
+    ]
 }
 
 /*
  * T_1 redeems at any time
  */
 transaction T_1 {
-	input = [
-		T_cons: sig(kA) sig(kB);
-		T_cons@1: sig(kA) sig(kB);
-	]
-	output = 0: "test"
+    input = [
+        T_cons: sig(kA) sig(kB);
+        T_cons@1: sig(kA) sig(kB);
+    ]
+    output = 0: "test"
 }
 
 
@@ -49,48 +49,48 @@ transaction T_1 {
  * T_2 does not satisfy timelock constraints
  */
 transaction T_2_block {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	relLock = 4 block from T_cons
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    relLock = 4 block from T_cons
 }
 
 transaction T_2_delay {
-	input = T_cons@1: sig(kA) sig(kL)
-	output = 0: "test"
-	relLock = 10m from T_cons
+    input = T_cons@1: sig(kA) sig(kL)
+    output = 0: "test"
+    relLock = 10m from T_cons
 }
 
 transaction T_2_mismatch {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	relLock = 3h from T_cons
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    relLock = 3h from T_cons
 }
 
 /*
  * T_3 T_4 satisfy timelock constraints.
  */
 transaction T_3_block {
-	input = T_cons: sig(kA) sig(kL)
-	output = 0: "test"
-	relLock = 6 block from T_cons
+    input = T_cons: sig(kA) sig(kL)
+    output = 0: "test"
+    relLock = 6 block from T_cons
 }
 
 transaction T_3_delay {
-	input = T_cons@1: sig(kA) sig(kL)
-	output = 0: "test"
-	relLock = 1h from T_cons
+    input = T_cons@1: sig(kA) sig(kL)
+    output = 0: "test"
+    relLock = 1h from T_cons
 }
 
 transaction T_4_block {
-	input = T_cons: sig(kB) sig(kL)
-	output = 0: "test"
-	relLock = 6 block from T_cons
+    input = T_cons: sig(kB) sig(kL)
+    output = 0: "test"
+    relLock = 6 block from T_cons
 }
 
 transaction T_4_delay {
-	input = T_cons@1: sig(kB) sig(kL)
-	output = 0: "test"
-	relLock = 1h from T_cons
+    input = T_cons@1: sig(kB) sig(kL)
+    output = 0: "test"
+    relLock = 1h from T_cons
 }
 
 
@@ -98,44 +98,44 @@ transaction T_4_delay {
  * transaction with relative constraints (same type) within output scripts
  */
 transaction T_cons2 {
-	input = coinbase: sig(kA)
-	output = [
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
+    input = coinbase: sig(kA)
+    output = [
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlockDelay 5 : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC:
-		fun(sig1, sig2) .
-			versig(kA,kB; sig1,sig2)
-			|| checkBlockDelay 10 : versig(kA,kB,kL; sig1,sig2);
+        1 BTC:
+        fun(sig1, sig2) .
+            versig(kA,kB; sig1,sig2)
+            || checkBlockDelay 10 : versig(kA,kB,kL; sig1,sig2);
 
-		1 BTC: fun(s) . versig(kA; s)
-	]
+        1 BTC: fun(s) . versig(kA; s)
+    ]
 }
 
 transaction T_5 {
-	input = [
-		T_cons2: sig(kA) sig(kL);
-		T_cons2@1: sig(kA) sig(kL);
-		T_cons2@2: sig(kA)
-	]
-	output = 0: "test"
-	relLock = 10 block from T_cons2	// timelock must satisfy all inputs
+    input = [
+        T_cons2: sig(kA) sig(kL);
+        T_cons2@1: sig(kA) sig(kL);
+        T_cons2@2: sig(kA)
+    ]
+    output = 0: "test"
+    relLock = 10 block from T_cons2    // timelock must satisfy all inputs
 }
 
 eval
-	T_cons,
-	T_1,
+    T_cons,
+    T_1,
 
-	T_2_block,
-	T_2_delay,
-	T_2_mismatch,
+    T_2_block,
+    T_2_delay,
+    T_2_mismatch,
 
-	T_3_block,
-	T_3_delay,
-	T_4_block,
-	T_4_delay,
+    T_3_block,
+    T_3_delay,
+    T_4_block,
+    T_4_delay,
 
-	T_cons2,
-	T_5
+    T_cons2,
+    T_5
