@@ -273,7 +273,7 @@ public class ASTUtils {
     public boolean isDelayTruncated(long seconds) {
         return seconds % 512 > 0;
     }
-    
+
     public long setRelativeTimelockFlag(long i) {
         // true if the 22th bit is UNSET
         long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;

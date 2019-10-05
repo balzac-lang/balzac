@@ -19,7 +19,7 @@ define(["ace/lib/oop", "ace/mode/text", "ace/mode/text_highlight_rules"], functi
 		};
 	};
 	oop.inherits(HighlightRules, mTextHighlightRules.TextHighlightRules);
-	
+
 	var Mode = function() {
 		this.HighlightRules = HighlightRules;
 	};
@@ -28,7 +28,7 @@ define(["ace/lib/oop", "ace/mode/text", "ace/mode/text_highlight_rules"], functi
 	Mode.prototype.getCompletions = function(state, session, pos, prefix) {
 		return [];
 	}
-	
+
 	return {
 		Mode: Mode
 	};

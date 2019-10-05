@@ -49,7 +49,7 @@ class WebUtilsServlet extends HttpServlet {
         val String hash256
         val String hash160
     }
-    
+
     override protected doPost(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
         if (req.requestURI.startsWith("/api/keys")) {
             val key = PrivateKey.fresh(NetworkType.TESTNET)
@@ -68,36 +68,36 @@ class WebUtilsServlet extends HttpServlet {
             response.contentType = 'application/json'
             response.status = HttpServletResponse.SC_OK
 
-            try { 
+            try {
                 val hashRequest = gson.fromJson(req.reader, HashRequest)
-              
+
                 if (hashRequest === null) {
                     response.status = HttpServletResponse.SC_BAD_REQUEST
                     IOUtils.write("Missing request body\n", response.writer)
                     return
                 }
-              
+
                 val valueToHash = hashRequest.value
                 val hashAsString = hashRequest.hashAsString
 
                 // Parameter check
                 if (valueToHash === null) {
                     response.status = HttpServletResponse.SC_BAD_REQUEST
-                    IOUtils.write("Missing field 'value'\n", response.writer)                    
+                    IOUtils.write("Missing field 'value'\n", response.writer)
                     return
                 }
-              
+
                 if (hashAsString) {
                     gson.toJson(hash(valueToHash), response.writer)
                     return
                 }
-              
+
                 try {
                     /*
                      * Try to interpret value as Integer
                      */
                     gson.toJson(hash(Long.parseLong(valueToHash)), response.writer)
-                    return                    
+                    return
                 }
                 catch (NumberFormatException e) {
                     /*
@@ -107,28 +107,28 @@ class WebUtilsServlet extends HttpServlet {
                         gson.toJson(hash(true), response.writer)
                         return
                     }
-    
+
                     if (valueToHash.toLowerCase == "false") {
                         gson.toJson(hash(false), response.writer)
                         return
                     }
-    
+
                     /*
                      * Finally treat it as a String
                      */
                     gson.toJson(hash(valueToHash), response.writer)
                     return
                 }
-                
+
             }
             catch (JsonParseException e) {
                 response.status = HttpServletResponse.SC_BAD_REQUEST
-                IOUtils.write("Unable to parse the JSON body\n", response.writer)                    
+                IOUtils.write("Unable to parse the JSON body\n", response.writer)
                 return
             }
             catch (RuntimeException e) {
                 response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-                IOUtils.write("An internal server error occurred. Please report to the authors.\n", response.writer)                    
+                IOUtils.write("An internal server error occurred. Please report to the authors.\n", response.writer)
                 return
             }
         }

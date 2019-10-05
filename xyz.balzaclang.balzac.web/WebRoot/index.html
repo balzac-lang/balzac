@@ -148,7 +148,7 @@
                                     method: "POST",
                                     contentType: "application/json",
                                     url : "api/hash",
-                                    data : JSON.stringify({ 
+                                    data : JSON.stringify({
                                         "value": value,
                                         "hashAsString": hashAsString
                                     }),
@@ -163,13 +163,13 @@
                                 });
                             }, 300);
                         });
-                        
+
                         $.ajax({
                             url : "/version",
                             data : null,
                             cache : false,
                             success : function(data) {
-                                let info = 
+                                let info =
                                     "Version: " + data.version + "<br>" +
                                     "Commit: " + data.commit + "<br>" +
                                     "Build: " + data.build + "<br>" +
@@ -336,7 +336,7 @@
                                 data-offstyle="info"
                                 data-size="small"
                                 >
-                                <a class="fa-icon small-info align-middle" href="#" id="key-tooltip"><i class="fa fa-info-circle"></i></a>                            
+                                <a class="fa-icon small-info align-middle" href="#" id="key-tooltip"><i class="fa fa-info-circle"></i></a>
                         </div>
 
                         <div class="text-center" class="btn btn-info btn-block mb-5">
@@ -356,7 +356,7 @@
 
                         <div class="col-12 text-right mb-3 pr-0 pl-0">
                             <input id="hash-as-string" checked type="checkbox"
-                                
+
                                 data-toggle="toggle"
                                 data-on="String"
                                 data-off="Infer type"
@@ -366,7 +366,7 @@
                                 >
                                <a class="fa-icon small-info align-middle" href="#" id="hash-tooltip"><i class="fa fa-info-circle"></i></a>
                         </div>
-                        
+
 
                         <div class="input-group mb-2">
                             <div class="input-group-prepend">
@@ -441,11 +441,11 @@
                         </div>
 
                     </div>
-                    
+
                     <!-- Delete local storage -->
                     <div class="mt-auto mb-2 text-right">
                         <a class="fa-icon" href="#">
-                            <i class="fa fa-trash-alt" title="Delete local storage" data-toggle="tooltip" data-placement="right"></i>                    
+                            <i class="fa fa-trash-alt" title="Delete local storage" data-toggle="tooltip" data-placement="right"></i>
                         </a>
 <!--                         <div class="text-center" class="btn btn-info btn-block mb-5"> -->
 <!--                             <div id="clearLocalStorage" type="button" class="btn btn-info btn-block ld-ext-right">Delete local storage -->
@@ -453,7 +453,7 @@
 <!--                             </div> -->
 <!--                         </div> -->
                     </div>
-                </div> 
+                </div>
             </div>
         </div>
         <!-- /#sidebar-wrapper -->
@@ -468,7 +468,7 @@
                 <div class="card">
                     <div class="card-header text-center">
                         <h3 class="card-title">Balzac Online Editor</h3>
-                        
+
                         <p class="small mb-0">
                             USE ON THE MAINNET AT YOUR OWN RISK
                         </p>
