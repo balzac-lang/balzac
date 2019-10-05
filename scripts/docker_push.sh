@@ -2,4 +2,4 @@
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-docker push balzaclang/balzac-lang:latest
+docker push balzaclang/balzac:latest

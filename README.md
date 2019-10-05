@@ -54,6 +54,7 @@ In order to run Balzac locally you can
 - build on your machine and load the war (saved into `xyz.balzaclang.balzac.web/target/`) inside any web container (e.g. Tomcat)
 - build on your machine and run in Docker (see `docker/Dockerfile-slim` to create the image)
 - build and run in Docker (see `docker/Dockerfile-build` to create the image)
+- download from DockerHub and run in Docker
 
 ### Maven + Jetty
 
@@ -72,6 +73,15 @@ docker run -p 8080:8080 balzac:latest
 
 ```
 docker build -f docker/Dockerfile-build -t balzac:latest .
+docker run -p 8080:8080 balzac:latest
+```
+
+### Prebuild image
+
+DockerHub: [balzaclang/balzac](https://hub.docker.com/r/balzaclang/balzac)
+
+```
+docker pull balzaclang/balzac:latest
 docker run -p 8080:8080 balzac:latest
 ```
 
