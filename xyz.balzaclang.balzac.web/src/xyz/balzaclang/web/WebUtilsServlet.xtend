@@ -51,7 +51,7 @@ class WebUtilsServlet extends HttpServlet {
     }
 
     override protected doPost(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
-        if (req.requestURI.startsWith("/api/keys")) {
+        if (req.requestURI.contains("/api/keys")) {
             val key = PrivateKey.fresh(NetworkType.TESTNET)
             val privkeyTestnet = key.wif
             val privkeyMainnet = PrivateKey.copy(key, NetworkType.MAINNET).wif
