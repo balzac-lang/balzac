@@ -82,7 +82,7 @@ DockerHub: [balzaclang/balzac](https://hub.docker.com/r/balzaclang/balzac)
 
 ```
 docker pull balzaclang/balzac:latest
-docker run -p 8080:8080 balzac:latest
+docker run -p 8080:8080 balzaclang/balzac:latest
 ```
 
 
