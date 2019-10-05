@@ -4,20 +4,22 @@
 package xyz.balzaclang.web
 
 import com.google.gson.Gson
-import xyz.balzaclang.lib.model.Address
-import xyz.balzaclang.lib.model.Hash
-import xyz.balzaclang.lib.model.Hash.HashAlgorithm
-import xyz.balzaclang.lib.model.NetworkType
-import xyz.balzaclang.lib.model.PrivateKey
+import com.google.gson.JsonParseException
 import java.io.IOException
 import javax.servlet.ServletException
 import javax.servlet.annotation.WebServlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.apache.commons.io.IOUtils
 import org.eclipse.xtend.lib.annotations.Accessors
+import xyz.balzaclang.lib.model.Address
+import xyz.balzaclang.lib.model.Hash
+import xyz.balzaclang.lib.model.Hash.HashAlgorithm
+import xyz.balzaclang.lib.model.NetworkType
+import xyz.balzaclang.lib.model.PrivateKey
 
-@WebServlet(name = 'WebUtils', urlPatterns = '/utils/*')
+@WebServlet(name = 'WebUtils', urlPatterns = '/api/*')
 class WebUtilsServlet extends HttpServlet {
 
     val gson = new Gson
@@ -32,6 +34,12 @@ class WebUtilsServlet extends HttpServlet {
     }
 
     @Accessors
+    private static class HashRequest {
+        val String value
+        val boolean hashAsString
+    }
+
+    @Accessors
     private static class HashResult {
         val String value
         val String type
@@ -41,9 +49,9 @@ class WebUtilsServlet extends HttpServlet {
         val String hash256
         val String hash160
     }
-
-    override protected doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
-        if (req.requestURI.contains("/utils/new-key")) {
+    
+    override protected doPost(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
+        if (req.requestURI.startsWith("/api/keys")) {
             val key = PrivateKey.fresh(NetworkType.TESTNET)
             val privkeyTestnet = key.wif
             val privkeyMainnet = PrivateKey.copy(key, NetworkType.MAINNET).wif
@@ -56,48 +64,71 @@ class WebUtilsServlet extends HttpServlet {
             gson.toJson(result, response.writer)
             return
         }
-        else if (req.requestURI.contains("/utils/hash")) {
+        else if (req.requestURI.contains("/api/hash") && "application/json".equalsIgnoreCase(req.contentType)) {
             response.contentType = 'application/json'
             response.status = HttpServletResponse.SC_OK
 
-            val value = req.getParameter("of")
+            try { 
+                val hashRequest = gson.fromJson(req.reader, HashRequest)
+              
+                if (hashRequest === null) {
+                    response.status = HttpServletResponse.SC_BAD_REQUEST
+                    IOUtils.write("Missing request body\n", response.writer)
+                    return
+                }
+              
+                val valueToHash = hashRequest.value
+                val hashAsString = hashRequest.hashAsString
 
-            // Parameter check
-            if (value === null) {
+                // Parameter check
+                if (valueToHash === null) {
+                    response.status = HttpServletResponse.SC_BAD_REQUEST
+                    IOUtils.write("Missing field 'value'\n", response.writer)                    
+                    return
+                }
+              
+                if (hashAsString) {
+                    gson.toJson(hash(valueToHash), response.writer)
+                    return
+                }
+              
+                try {
+                    /*
+                     * Try to interpret value as Integer
+                     */
+                    gson.toJson(hash(Long.parseLong(valueToHash)), response.writer)
+                    return                    
+                }
+                catch (NumberFormatException e) {
+                    /*
+                     * Try to interpret true/false
+                     */
+                    if (valueToHash.toLowerCase == "true") {
+                        gson.toJson(hash(true), response.writer)
+                        return
+                    }
+    
+                    if (valueToHash.toLowerCase == "false") {
+                        gson.toJson(hash(false), response.writer)
+                        return
+                    }
+    
+                    /*
+                     * Finally treat it as a String
+                     */
+                    gson.toJson(hash(valueToHash), response.writer)
+                    return
+                }
+                
+            }
+            catch (JsonParseException e) {
                 response.status = HttpServletResponse.SC_BAD_REQUEST
+                IOUtils.write("Unable to parse the JSON body\n", response.writer)                    
                 return
             }
-
-            try {
-                /*
-                 * Try to interpret value as Integer
-                 */
-                gson.toJson(hash(Integer.parseInt(value)), response.writer)
-                return
-            }
-            catch (NumberFormatException e) {
-                /*
-                 * Try to interpret true/false
-                 */
-                if (value.toLowerCase == "true") {
-                    gson.toJson(hash(true), response.writer)
-                    return
-                }
-
-                if (value.toLowerCase == "false") {
-                    gson.toJson(hash(false), response.writer)
-                    return
-                }
-
-                /*
-                 * Finally treat them as String
-                 */
-                val strValue =
-                    if (!value.isEmpty && value.charAt(0) == Character.valueOf('"') && value.charAt(value.length - 1) == Character.valueOf('"'))
-                    value.substring(1, value.length-1).replace("\\\"", "\"")
-                    else value
-
-                gson.toJson(hash(strValue), response.writer)
+            catch (RuntimeException e) {
+                response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+                IOUtils.write("An internal server error occurred. Please report to the authors.\n", response.writer)                    
                 return
             }
         }

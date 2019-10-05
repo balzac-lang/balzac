@@ -123,14 +123,15 @@
 		                    $("#newkey-button").addClass("running")
 		                    setTimeout(function() {
 		                        $.ajax({
-		                            url : "utils/new-key",
+		                        	method: "POST",
+		                            url : "api/keys",
 		                            data : null,
 		                            success : function(data) {
 		                                populateKeys(data)
 		                                $("#newkey-button").removeClass("running")
 		                            },
 		                            error : function(e) {
-		                                console.log("error invoking /utils/new-key")
+		                                console.log("error invoking POST /api/keys")
 		                            }
 		                        });
 		                    }, 300);
@@ -140,17 +141,21 @@
 		                    e.preventDefault();
 		                    $("#compute-hash-button").addClass("running")
 		                    setTimeout(function() {
-			                    const value = $("#value-to-hash").val()
+			                    const value = $("#value-to-hash").val().replace('"', '\"')
 
 			                    $.ajax({
-			                        url : "utils/hash",
-			                        data : {"of": value},
+			                    	method: "POST",
+			                    	contentType: "application/json",
+			                        url : "api/hash",
+			                        data : JSON.stringify({ 
+			                        	"value": value 
+		                        	}),
 			                        success : function(data) {
 		                                populateHashes(data)
 		                                $("#compute-hash-button").removeClass("running")
 		                            },
 			                        error : function(e) {
-			                            console.log("error invoking /utils/hash")
+			                            console.log("error invoking POST /api/hash")
 			                            console.log(e)
 			                        }
 			                    });
