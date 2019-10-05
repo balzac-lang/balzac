@@ -140,11 +140,35 @@
         background-color: transparent;
 }
 
-.header-icon {
+.fa-icon {
     font-size: 1.5em;
-    color: #6c757d;
-    padding: 0 10px
+    color: #818A92;
+    padding: 10px 10px
 }
+
+.small-info {
+	font-size: 1em
+}
+
+.tooltip > .tooltip-inner {
+    color: inherit;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,.100);
+}
+.tooltip.bs-tooltip-right .arrow:before {
+    border-right-color: rgba(0,0,0,.250) !important;
+}
+.tooltip.bs-tooltip-left .arrow:before {
+    border-left-color: rgba(0,0,0,.250) !important;
+}
+.tooltip.bs-tooltip-bottom .arrow:before {
+    border-bottom-color: rgba(0,0,0,.250) !important;
+}
+.tooltip.bs-tooltip-top .arrow:before {
+    border-top-color: rgba(0,0,0,.250) !important;
+}
+
 
 .loader:after {
 	border-width: 0.15px;

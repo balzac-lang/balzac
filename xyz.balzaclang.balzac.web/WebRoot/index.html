@@ -97,74 +97,108 @@
             require(["bootstrap"], function() {
                 require(["bootstrap-toggle"], function() {
 
-		            $(document).ready(function () {
+                    $(document).ready(function () {
 
-		            	$("#menu-toggle").click(function(e) {
-		                    e.preventDefault();
-		                    $("#wrapper").toggleClass("toggled");
-		                });
+                        $("#menu-toggle").click(function(e) {
+                            e.preventDefault();
+                            $("#wrapper").toggleClass("toggled");
+                        });
 
-		            	$("#clearLocalStorage").click(function(e) {
-		                    e.preventDefault();
+                        $("#clearLocalStorage").click(function(e) {
+                            e.preventDefault();
                             $("#clearLocalStorage").addClass("running")
                             setTimeout(function() {
                                 localStorage.removeItem("file-content");
                                    $("#clearLocalStorage").removeClass("running")
                             }, 300);
-		                });
+                        });
 
-		                $("#sidebar-close").click(function(e) {
-		                    e.preventDefault();
-		                    $("#wrapper").toggleClass("toggled");
-		                });
+                        $("#sidebar-close").click(function(e) {
+                            e.preventDefault();
+                            $("#wrapper").toggleClass("toggled");
+                        });
 
-		                $("#newkey-button").click(function(e) {
-	                        e.preventDefault();
-		                    $("#newkey-button").addClass("running")
-		                    setTimeout(function() {
-		                        $.ajax({
-		                        	method: "POST",
-		                            url : "api/keys",
-		                            data : null,
-		                            success : function(data) {
-		                                populateKeys(data)
-		                                $("#newkey-button").removeClass("running")
-		                            },
-		                            error : function(e) {
-		                                console.log("error invoking POST /api/keys")
-		                            }
-		                        });
-		                    }, 300);
-		                });
+                        $("#newkey-button").click(function(e) {
+                            e.preventDefault();
+                            $("#newkey-button").addClass("running")
+                            setTimeout(function() {
+                                $.ajax({
+                                    method: "POST",
+                                    url : "api/keys",
+                                    data : null,
+                                    success : function(data) {
+                                        populateKeys(data)
+                                        $("#newkey-button").removeClass("running")
+                                    },
+                                    error : function(e) {
+                                        console.log("error invoking POST /api/keys")
+                                    }
+                                });
+                            }, 300);
+                        });
 
-		                $("#compute-hash-button").click(function(e) {
-		                    e.preventDefault();
-		                    $("#compute-hash-button").addClass("running")
-		                    setTimeout(function() {
-			                    const value = $("#value-to-hash").val().replace('"', '\"')
+                        $("#compute-hash-button").click(function(e) {
+                            e.preventDefault();
+                            $("#compute-hash-button").addClass("running")
+                            setTimeout(function() {
+                                const value = $("#value-to-hash").val().replace('"', '\"')
+                                const hashAsString = $("#hash-as-string").prop("checked")
 
-			                    $.ajax({
-			                    	method: "POST",
-			                    	contentType: "application/json",
-			                        url : "api/hash",
-			                        data : JSON.stringify({ 
-			                        	"value": value 
-		                        	}),
-			                        success : function(data) {
-		                                populateHashes(data)
-		                                $("#compute-hash-button").removeClass("running")
-		                            },
-			                        error : function(e) {
-			                            console.log("error invoking POST /api/hash")
-			                            console.log(e)
-			                        }
-			                    });
-		                    }, 300);
-		                });
+                                $.ajax({
+                                    method: "POST",
+                                    contentType: "application/json",
+                                    url : "api/hash",
+                                    data : JSON.stringify({ 
+                                        "value": value,
+                                        "hashAsString": hashAsString
+                                    }),
+                                    success : function(data) {
+                                        populateHashes(data)
+                                        $("#compute-hash-button").removeClass("running")
+                                    },
+                                    error : function(e) {
+                                        console.log("error invoking POST /api/hash")
+                                        console.log(e)
+                                    }
+                                });
+                            }, 300);
+                        });
+                        
+                        $.ajax({
+                            url : "/version",
+                            data : null,
+                            cache : false,
+                            success : function(data) {
+                                let info = 
+                                    "Version: " + data.version + "<br>" +
+                                    "Commit: " + data.commit + "<br>" +
+                                    "Build: " + data.build + "<br>" +
+                                    "Deployed at: " + data.deployedAt + "<br>"
 
-		                $('[data-toggle="tooltip"]').tooltip(); 
+                                $("#info-tooltip").attr("title", info);
+                                $("#info-tooltip").attr("data-html","true");
+                                $("#info-tooltip").attr("data-placement","right");
 
-		            });
+                                $('[data-toggle="tooltip"]').tooltip();
+                                $("#info-tooltip").tooltip();
+                            },
+                            dataType : "json"
+                        });
+
+                        let keyTooltipTitle = "Private keys are computed server-side and are not logged."
+                        $("#key-tooltip").attr("title", keyTooltipTitle);
+                        $("#key-tooltip").attr("data-html","true");
+                        $("#key-tooltip").attr("data-placement","right");
+                        $("#key-tooltip").tooltip();
+
+                        let hashTooltipTitle = "Let Balzac infer the type of the input: it tries to evaluate the input as Long, Boolean or String in this order."
+                        $("#hash-tooltip").attr("title", hashTooltipTitle);
+                        $("#hash-tooltip").attr("data-html","true");
+                        $("#hash-tooltip").attr("data-placement","right");
+                        $("#hash-tooltip").tooltip();
+
+                        $("[title]").tooltip();
+                    });
             });});});
 
         function populateKeys(data) {
@@ -240,69 +274,70 @@
 
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <div id="sidebar-content" class="container">
+            <div id="sidebar-content" class="container pl-2 pr-2">
 
-                <div class="row">
+                <div class="d-flex align-items-end flex-column" style="height: 100%;">
+
+                    <div class="text-right mb-4 pt-2">
+                        <button id="sidebar-close" type="button" class="btn btn-default">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
 
                     <!-- Generate new key -->
-	                <div class="col-12 mb-5">
-		                <div class="text-right mb-4 pt-2">
-		                    <button id="sidebar-close" type="button" class="btn btn-default">
-		                        <i class="fa fa-times"></i>
-		                    </button>
-		                </div>
+                    <div class="mb-5">
 
-		                <div class="input-group mb-2">
-		                    <div class="input-group-prepend">
-		                        <span class="input-group-text">Private key (wif)</span>
-		                    </div>
-		                    <input type="text" id="privkey" class="form-control"
-		                        aria-label="Private key in WIF format"
-		                        aria-describedby="privkey" autocomplete="off" readonly>
-		                    <div class="input-group-append">
-		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
-		                            <i class="fa fa-clone"></i>
-		                        </button>
-		                    </div>
-		                </div>
-		                <div class="input-group mb-2">
-		                    <div class="input-group-prepend">
-		                        <span class="input-group-text">Public key (hex)</span>
-		                    </div>
-		                    <input type="text" id="pubkey" class="form-control"
-		                        aria-label="Public key in hexadecimal format"
-		                        aria-describedby="pubkey" autocomplete="off" readonly>
-		                    <div class="input-group-append">
-		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
-		                            <i class="fa fa-clone"></i>
-		                        </button>
-		                    </div>
-		                </div>
-		                <div class="input-group mb-2">
-		                    <div class="input-group-prepend">
-		                        <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-		                    </div>
-		                    <input type="text" id="addr" class="form-control"
-		                        aria-label="Public address in WIF format"
-		                        aria-describedby="addr" autocomplete="off" readonly>
-		                    <div class="input-group-append">
-		                        <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
-		                            <i class="fa fa-clone"></i>
-		                        </button>
-		                    </div>
-		                </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Private key (wif)</span>
+                            </div>
+                            <input type="text" id="privkey" class="form-control"
+                                aria-label="Private key in WIF format"
+                                aria-describedby="privkey" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Public key (hex)</span>
+                            </div>
+                            <input type="text" id="pubkey" class="form-control"
+                                aria-label="Public key in hexadecimal format"
+                                aria-describedby="pubkey" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                            </div>
+                            <input type="text" id="addr" class="form-control"
+                                aria-label="Public address in WIF format"
+                                aria-describedby="addr" autocomplete="off" readonly>
+                            <div class="input-group-append">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
+                                    <i class="fa fa-clone"></i>
+                                </button>
+                            </div>
+                        </div>
 
-		                <div class="text-right">
-		                    <input id="isTestnet" checked type="checkbox"
-		                        data-style="mb-3"
-		                        data-toggle="toggle"
-		                        data-on="Testnet"
-		                        data-off="Mainnet"
-		                        data-onstyle="info"
-		                        data-offstyle="info"
-		                        data-size="small"
-		                        >
-		                </div>
+                        <div class="col-12 text-right mb-3 pr-0 pl-0">
+                            <input id="isTestnet" checked type="checkbox"
+                                data-toggle="toggle"
+                                data-on="Testnet"
+                                data-off="Mainnet"
+                                data-onstyle="info"
+                                data-offstyle="info"
+                                data-size="small"
+                                >
+                                <a class="fa-icon small-info align-middle" href="#" id="key-tooltip"><i class="fa fa-info-circle"></i></a>                            
+                        </div>
 
                         <div class="text-center" class="btn btn-info btn-block mb-5">
                             <div id="newkey-button" type="button" class="btn btn-info btn-block ld-ext-right">Generate new key
@@ -312,11 +347,26 @@
                     </div>
 
                     <!-- Hash -->
-                    <div class="col-12 mb-5 mt-5">
+                    <div class="mb-5 mt-5">
 
                         <input type="text" id="value-to-hash" class="form-control mb-3"
                                 aria-label="Value to Hash"
                                 aria-describedby="value-to-hash" autocomplete="off" placeholder="Enter a value to hash">
+
+
+                        <div class="col-12 text-right mb-3 pr-0 pl-0">
+                            <input id="hash-as-string" checked type="checkbox"
+                                
+                                data-toggle="toggle"
+                                data-on="String"
+                                data-off="Infer type"
+                                data-onstyle="info"
+                                data-offstyle="info"
+                                data-size="small"
+                                >
+                               <a class="fa-icon small-info align-middle" href="#" id="hash-tooltip"><i class="fa fa-info-circle"></i></a>
+                        </div>
+                        
 
                         <div class="input-group mb-2">
                             <div class="input-group-prepend">
@@ -391,16 +441,19 @@
                         </div>
 
                     </div>
+                    
                     <!-- Delete local storage -->
-                    <div class="col-12 mb-5 mt-5">
-	                    <div class="text-center" class="btn btn-info btn-block mb-5">
-	                        <div id="clearLocalStorage" type="button" class="btn btn-info btn-block ld-ext-right">Delete local storage
-	                            <div class="loader ld ld-ring ld-spin"></div>
-	                        </div>
-	                    </div>
+                    <div class="mt-auto mb-2 text-right">
+                        <a class="fa-icon" href="#">
+                            <i class="fa fa-trash-alt" title="Delete local storage" data-toggle="tooltip" data-placement="right"></i>                    
+                        </a>
+<!--                         <div class="text-center" class="btn btn-info btn-block mb-5"> -->
+<!--                             <div id="clearLocalStorage" type="button" class="btn btn-info btn-block ld-ext-right">Delete local storage -->
+<!--                                 <div class="loader ld ld-ring ld-spin"></div> -->
+<!--                             </div> -->
+<!--                         </div> -->
                     </div>
-                </div>
-
+                </div> 
             </div>
         </div>
         <!-- /#sidebar-wrapper -->
@@ -415,12 +468,14 @@
                 <div class="card">
                     <div class="card-header text-center">
                         <h3 class="card-title">Balzac Online Editor</h3>
-                        <p class="small mb-0">beta version - USE ON THE MAINNET AT YOUR OWN RISK</p>
-
+                        
+                        <p class="small mb-0">
+                            USE ON THE MAINNET AT YOUR OWN RISK
+                        </p>
                         <div class="mt-3">
-	                        <a class="header-icon" href="http://github.com/balzac-lang/balzac" target="_blank" title="Github repository"><i class="fab fa-github"></i></a>
-	                        <a class="header-icon" href="http://blockchain.unica.it/balzac/docs" target="_blank" title="Documentation"><i class="fas fa-book"></i></a>	                        
-                            <a href="#" class="header-icon" data-toggle="tooltip" data-placemenet="auto" title="Hooray!"><i class="fa fa-info-circle"></i></a>
+                            <a class="fa-icon" href="http://github.com/balzac-lang/balzac" target="_blank" title="Github repository"><i class="fab fa-github"></i></a>
+                            <a class="fa-icon" href="http://blockchain.unica.it/balzac/docs" target="_blank" title="Documentation"><i class="fas fa-book"></i></a>
+                            <a class="fa-icon" href="#" id="info-tooltip"><i class="fa fa-info-circle"></i></a>
                         </div>
                     </div>
                     <div class="card-body">
