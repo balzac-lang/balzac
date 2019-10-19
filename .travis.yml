@@ -31,6 +31,8 @@ script:
 after_success:
 - mvn -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
 - docker build -f docker/Dockerfile-slim -t balzaclang/balzac:latest .
+- docker build -f docker/Dockerfile-slim.arm32v7 -t balzaclang/balzac-arm32v7:latest .
+- docker build -f docker/Dockerfile-slim.arm64v8 -t balzaclang/balzac-arm64v8:latest .
 
 notifications:
   email:
