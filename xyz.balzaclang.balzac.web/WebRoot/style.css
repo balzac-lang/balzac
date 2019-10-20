@@ -193,3 +193,7 @@
     background-color: #f4f4f4;
 }
 
+.grayout {
+    color: gray;
+    font-size: 70%;
+}

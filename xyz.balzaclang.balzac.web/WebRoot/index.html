@@ -166,18 +166,10 @@
                             data : null,
                             cache : false,
                             success : function(data) {
-                                let info =
-                                    "Version: " + data.version + "<br>" +
-                                    "Commit: " + data.commit + "<br>" +
-                                    "Build: " + data.build + "<br>" +
-                                    "Deployed at: " + data.deployedAt + "<br>"
-
-                                $("#info-tooltip").attr("title", info);
-                                $("#info-tooltip").attr("data-html","true");
-                                $("#info-tooltip").attr("data-placement","right");
-
-                                $('[data-toggle="tooltip"]').tooltip();
-                                $("#info-tooltip").tooltip();
+                                $("#version").html("Version: "+data.version)
+                                $("#commit").html("Commit: "+data.commit)
+                                $("#build-time").html("Built at: "+data.build)
+                                $("#deploy-time").html("Deployed at: "+data.deployedAt)
                             },
                             dataType : "json"
                         });
@@ -467,7 +459,6 @@
                         <div class="mt-3">
                             <a class="fa-icon" href="http://github.com/balzac-lang/balzac" target="_blank" title="Github repository"><i class="fab fa-github"></i></a>
                             <a class="fa-icon" href="http://docs.balzac-lang.xyz" target="_blank" title="Documentation"><i class="fas fa-book"></i></a>
-                            <a class="fa-icon" href="#" id="info-tooltip"><i class="fa fa-info-circle"></i></a>
                         </div>
                     </div>
                     <div class="card-body">
@@ -508,6 +499,26 @@
                 <div class="row text-center small mt-1">
                     <div class="col">
                     <a href="http://blockchain.unica.it" target="_blank">Blockchain@Unica</a>, <a href="http://unica.it" target="_blank">University of Cagliari</a>
+                    </div>
+                </div>
+                <div class="row text-center small mt-2 grayout">
+                    <div class="col">
+                        <span id="version">Version: unknown</span>
+                    </div>
+                </div>
+                <div class="row text-center small mt-0 grayout">
+                    <div class="col">
+                        <span id="commit">Commit: unknown</span>
+                    </div>
+                </div>
+                <div class="row text-center small mt-0 grayout">
+                    <div class="col">
+                        <span id="build-time">Built at: unknown</span>
+                    </div>
+                </div>
+                <div class="row text-center small mt-0 grayout">
+                    <div class="col">
+                        <span id="deploy-time">Deployed at: unknown</span>
                     </div>
                 </div>
             </div>
