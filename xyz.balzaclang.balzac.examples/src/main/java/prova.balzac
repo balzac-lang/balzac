@@ -1,6 +1,6 @@
 package balzac.prova
 
-network mainnet
+network testnet
 
 
 transaction T_with_long_ouputs {
@@ -30,3 +30,57 @@ transaction T_one {
     input = T_with_long_ouputs@1: hash:46dc232e73a2a7bc7e08d0ee031a33d07d184bd1bd5049ecbe364a161fad62d4
     output = 10 BTC : fun(x) . x == 0
 }
+
+// Alice's private key
+const kA = key:cUSH4x3Uq9uMgeZGdpTFvr5gVGYcAg4vrTNe9QvWsU8Dq3deym6Z
+// Alice's public key
+const kApub = pubkey:033806fe039c8d149c8e68f4665b4a479acab773b20bddf7df0df59ba4f0567341
+
+// Bob's private key
+const kB = key:cUwtWVskxp5T31DxrQukxSxQ1Hj7VB53FrE52THe32bF4GN5QvtL
+// Bob's public key
+const kBpub = kB.toPubkey
+
+// Carl's private key
+const kC = key:cVhDA3Yxkeacnci8WUokAfQT6Nv4tGpmy1GzSYtJdYqDDwZipPPB
+// Carl's public key
+const kCpub = kC.toPubkey
+
+transaction T_ABC{
+    input = _
+    output = 100000: fun(x, y, z) . versig(kApub, kBpub, kCpub; x, y, z)
+}
+
+transaction T_ABC_redeem{
+    input = T_ABC: _ _ _
+    output = 100000: fun(x). versig(kApub; x)
+}
+
+transaction T_ABC_redeem2{
+    input = T_ABC: sig(kA) sig(kB) sig(kC)
+    output = 100000: fun(x). versig(kApub; x)
+}
+
+
+transaction T_template (sA:signature, sB:signature, sC:signature){
+    input = T_ABC: sA sB sC
+    output = 100000: fun(x). versig(kApub; x)
+}
+
+const sigA = sig(kA) of T_template(_,_,_)
+const sigB = sig(kB) of T_template(_,_,_)
+const sigC = sig(kC) of T_template(_,_,_)
+
+
+//assert T_template(_,_,_) == T_ABC_redeem
+//assert T_template(sigA,sigB,sigC).txid == T_ABC_redeem2.txid
+assert T_template(sigA,sigB,sigC) == T_ABC_redeem2
+
+transaction prova {
+    input = T_template(sigA,_,_) : sig(kA)
+    output = 100000 : fun(x) . x == true
+}
+
+
+
+eval T_ABC, sigA, sigB, sigC, T_template(sigA,sigC,sigC), (T_template(sigA,sigB,sigC) == T_ABC_redeem2)

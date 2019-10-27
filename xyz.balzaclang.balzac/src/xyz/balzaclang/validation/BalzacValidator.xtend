@@ -519,15 +519,23 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check(CheckType.NORMAL)
     def void checkTxReference(Reference ref) {
+        // check only transactions
         if (!(ref.ref instanceof Transaction)) {
             return
         }
 
+        // check only parametric transactions
         if (ref.actualParams.empty) {
             return
         }
 
+        // do not check transactions that have placeholders as actual parameters
         if (ref.actualParams.exists[e|e instanceof Placeholder]) {
+            val isNotInsideASignature = EcoreUtil2.getContainerOfType(ref, Signature) === null
+            val isNotInsideAnAssertion = EcoreUtil2.getContainerOfType(ref, Assertion) === null
+            if (isNotInsideASignature && isNotInsideAnAssertion) {
+                warning("The actual parameters of the transaction contains placeholders.", ref, null)
+            }
             return
         }
 
