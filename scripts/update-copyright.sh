@@ -1,5 +1,5 @@
 
-REPO_FILES=`git ls-files | grep -E ".*\.java|.*\.xtext|.*\.xsemantics"`
+REPO_FILES=`git ls-files | grep -E ".*\.xtend|.*\.java|.*\.xtext|.*\.xsemantics"`
 
 
 for FILE in $REPO_FILES ; do
@@ -24,18 +24,19 @@ COPYRIGHT_NOTES=$(cat <<-END
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 END
 )
-
-    echo -e "${COPYRIGHT_NOTES}"
 
     if [[ $(cat $FILE | grep "Copyright") == "" ]]; then
         # File has no copyright string
         echo -e "\tAdding new copyright string"
-        echo -e "${COPYRIGHT_NOTES}\n$(cat $FILE)" > $FILE
+        cat <(echo -e "${COPYRIGHT_NOTES}") $FILE | sponge $FILE
     else
         echo -e "\tUpdating existing copyright string"
-        #echo -e "${COPYRIGHT_NOTES}\n$(cat $FILE | awk '{ if ( NR > 3  ) { print } }')" > $FILE
+        #cat $FILE | awk '{ if ( NR > 3  ) { print } }' | sponge $FILE
+        #cat <(echo -e "${COPYRIGHT_NOTES}") $FILE | sponge $FILE
         OLD_COPYRIGHT_STRING="Copyright [0-9]{4} Nicola Atzei"
         NEW_COPYRIGHT_STRING="Copyright $MODIFICATION_YEAR Nicola Atzei"
         sed -i -r "s/$OLD_COPYRIGHT_STRING/$NEW_COPYRIGHT_STRING/g" $FILE
