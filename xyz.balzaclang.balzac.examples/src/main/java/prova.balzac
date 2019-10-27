@@ -74,7 +74,7 @@ const sigC = sig(kC) of T_template(_,_,_)
 
 //assert T_template(_,_,_) == T_ABC_redeem
 //assert T_template(sigA,sigB,sigC).txid == T_ABC_redeem2.txid
-assert T_template(sigA,sigB,sigC) == T_ABC_redeem2
+//assert T_template(sigA,sigB,sigC) == T_ABC_redeem2
 
 transaction prova {
     input = T_template(sigA,_,_) : sig(kA)
@@ -83,4 +83,4 @@ transaction prova {
 
 
 
-eval T_ABC, sigA, sigB, sigC, T_template(sigA,sigC,sigC), (T_template(sigA,sigB,sigC) == T_ABC_redeem2)
+eval T_ABC, sigA, sigB, sigC, T_template(sigA,_,sigC), (T_template(sigA,sigB,sigC) == T_ABC_redeem2)
