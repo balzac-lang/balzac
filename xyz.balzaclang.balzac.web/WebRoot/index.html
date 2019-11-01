@@ -219,16 +219,27 @@
         	$('[class^="xtext-annotation"]').off('click');
             $('[class^="xtext-annotation"]').on('click', function(evt){
                 const message = evt.target.title
-                const elem = document.createElement("textarea");
-                document.body.appendChild(elem);
-                elem.value = message;
-                elem.select();
-                elem.setSelectionRange(0, 99999)
+                const copyText = document.createElement("textarea");
+                document.body.appendChild(copyText);
+                copyText.value = message;
+                copyText.select();
+                copyText.setSelectionRange(0, 99999)
                 document.execCommand("copy");
-                document.body.removeChild(elem);
+                document.body.removeChild(copyText);
+
+                $(evt.target).parent().tooltip("enable");
+                $(evt.target).parent().tooltip("show");
+                setTimeout(function(){
+                    $(evt.target).parent().tooltip("disable");
+                    $(evt.target).parent().tooltip("hide");
+                }, 1000)
             })
+            
+            $('[class^="xtext-annotation"]').parent().attr("title", "Copied");
+            $('[class^="xtext-annotation"]').parent().tooltip('disable');
+            $('[class^="xtext-annotation"]').parent().css('cursor', 'pointer')
         }
-        
+
         function populateKeys(data) {
             const isTestnet = $("#isTestnet").prop("checked")
 
@@ -249,10 +260,26 @@
             $("#hash256").prop("value", data.hash256)
         }
 
-        function copyToClipboard(id) {
+        function copyToClipboard(elm, id) {
             var copyText = document.getElementById(id);
             copyText.select();
             document.execCommand("copy");
+            copyText.blur();
+            showCopiedTooltip($(elm));
+        }
+
+        function showCopiedTooltip(elm) {
+            elm.attr("title", "Copied");
+            elm.attr("data-placement","auto");
+            elm.tooltip("show");
+            // hide after 1 sec
+            setTimeout(function(){
+                elm.tooltip("hide");
+            }, 1000);
+            // dispose the tooltip when hide is completed
+            elm.on('hidden.bs.tooltip', function () {
+            	elm.tooltip("dispose");
+            });
         }
 
         function loadExample(url) {
@@ -323,7 +350,7 @@
                                 aria-label="Private key in WIF format"
                                 aria-describedby="privkey" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('privkey')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'privkey')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -336,7 +363,7 @@
                                 aria-label="Public key in hexadecimal format"
                                 aria-describedby="pubkey" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('pubkey')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'pubkey')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -349,7 +376,7 @@
                                 aria-label="Public address in WIF format"
                                 aria-describedby="addr" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('addr')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'addr')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -404,7 +431,7 @@
                                 aria-label="Sha1 hash"
                                 aria-describedby="sha1" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha1')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'sha1')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -417,7 +444,7 @@
                                 aria-label="Sha256 hash"
                                 aria-describedby="sha256" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('sha256')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'sha256')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -430,7 +457,7 @@
                                 aria-label="Ripemd160 hash"
                                 aria-describedby="ripemd160" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('ripemd160')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'ripemd160')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -443,7 +470,7 @@
                                 aria-label="Hash256 hash"
                                 aria-describedby="hash256" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash256')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'hash256')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
@@ -456,7 +483,7 @@
                                 aria-label="Hash160 hash"
                                 aria-describedby="hash160" autocomplete="off" readonly>
                             <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard('hash160')">
+                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'hash160')">
                                     <i class="fa fa-clone"></i>
                                 </button>
                             </div>
