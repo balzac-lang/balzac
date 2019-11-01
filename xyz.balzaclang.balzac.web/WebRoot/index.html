@@ -6,7 +6,9 @@
 
     <title>Balzac (Bitcoin Abstract Language, analyZer and Compiler) - Web Editor (beta)</title>
 
-    <link rel="stylesheet" type="text/css" href="xtext/2.17.1/xtext-ace.css"/>
+    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.49.0/lib/codemirror.css" />
+    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.49.0/addon/hint/show-hint.css" />
+    <link rel="stylesheet" type="text/css" href="xtext/2.17.1/xtext-codemirror.css"/>
 
     <!-- Loading buttons -->
     <link rel="stylesheet" type="text/css" href="loading-btn/loading.css"/>
@@ -32,164 +34,201 @@
         require.config({
             baseUrl: baseUrl,
             paths: {
+                "balzac-mode": "xtext-resources/generated/mode-balzac",
                 "jquery": "webjars/jquery/3.4.1/jquery.min",
-                "ace": "webjars/ace/1.3.3/src/ace",
-                "ace/ext/language_tools": "webjars/ace/1.3.3/src/ext-language_tools",
-                "xtext/xtext-ace": "xtext/2.17.1/xtext-ace",
+                "xtext/xtext-codemirror": "xtext/2.17.1/xtext-codemirror",
                 "bootstrap": "webjars/bootstrap/4.3.1/js/bootstrap.bundle.min",
                 "bootstrap-toggle": "webjars/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min"
+            },
+            packages: [{
+                name: "codemirror",
+                location: "webjars/codemirror/5.49.0",
+                main: "lib/codemirror"
+            }],
+            shim: {
+                "xtext/xtext-codemirror" : ["balzac-mode"],
+                "bootstrap-toggle" : ["bootstrap"]
             }
         });
-        require(["ace"], function() {
-            require(["xtext/xtext-ace"], function(xtext) {
+        require(["balzac-mode", "xtext/xtext-codemirror"], function(mode, xtext) {
 
-                var editor = xtext.createEditor({
-                    baseUrl: baseUrl,
-                    syntaxDefinition: "xtext-resources/generated/mode-balzac"
-                });
+            window.editor = xtext.createEditor({
+                baseUrl: baseUrl,
+                syntaxDefinition: "xtext-resources/generated/mode-balzac"
+            });
 
-                var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
+            editor.setOption("lineNumbers", "true")
+            
+            var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
 
+            if (typeof(Storage) !== "undefined") {
+                // Code for localStorage/sessionStorage.
+                if (localStorage.getItem("file-content") != null) {
+                    text = localStorage.getItem("file-content");
+                }
+            } else {
+                // Sorry! No Web Storage support..
+            }
+
+            editor.setValue(text);
+
+            editor.on("change", function(e) {
                 if (typeof(Storage) !== "undefined") {
                     // Code for localStorage/sessionStorage.
-                    if (localStorage.getItem("file-content") != null) {
-                        text = localStorage.getItem("file-content");
-                    }
+                    localStorage.setItem("file-content", editor.getValue());
                 } else {
                     // Sorry! No Web Storage support..
                 }
+            })
 
-                editor.setValue(text);
-//                 editor.setTheme("ace/theme/monokai");
-                editor.setAutoScrollEditorIntoView(true);
-                editor.setOptions({
-                  //fontFamily: "tahoma",
-                  fontSize: "11pt"
-                });
-
-                editor.on("change", function(e) {
-                    if (typeof(Storage) !== "undefined") {
-                        // Code for localStorage/sessionStorage.
-                        localStorage.setItem("file-content", editor.getValue());
-                    } else {
-                        // Sorry! No Web Storage support..
-                    }
-                })
-
-                $("#compile").click(function() {
-                    $("#compile").addClass("running")
-                    setTimeout(function() {
-                        editor.xtextServices.generate()
-                            .done(function(result){
-                                $("#result").html(result)
-                                $("#result").addClass("highlight-result")
-                                $("#compile").removeClass("running")
-                                setTimeout(function(){
-                                    $("#result").removeClass("highlight-result")
-                                },1000)
-                            });
-                    }, 300)
-                });
+            $("#compile").click(function() {
+                $("#compile").addClass("running")
+                setTimeout(function() {
+                    editor.xtextServices.generate()
+                        .done(function(result){
+                            $("#result").html(result)
+                            $("#result").addClass("highlight-result")
+                            $("#compile").removeClass("running")
+                            setTimeout(function(){
+                                $("#result").removeClass("highlight-result")
+                            },1000)
+                        });
+                }, 300)
             });
         });
 
-        require(["jquery"], function() {
-            require(["bootstrap"], function() {
-                require(["bootstrap-toggle"], function() {
+        require(["jquery", "bootstrap", "bootstrap-toggle"], function() {
 
-                    $(document).ready(function () {
+            $(document).ready(function () {
 
-                        $("#menu-toggle").click(function(e) {
-                            e.preventDefault();
-                            $("#wrapper").toggleClass("toggled");
+                $("#menu-toggle").click(function(e) {
+                    e.preventDefault();
+                    $("#wrapper").toggleClass("toggled");
+                });
+
+                $("#clearLocalStorage").click(function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem("file-content");
+                    location.reload();
+                });
+
+                $("#sidebar-close").click(function(e) {
+                    e.preventDefault();
+                    $("#wrapper").toggleClass("toggled");
+                });
+
+                $("#newkey-button").click(function(e) {
+                    e.preventDefault();
+                    $("#newkey-button").addClass("running")
+                    setTimeout(function() {
+                        $.ajax({
+                            method: "POST",
+                            url : "api/keys",
+                            data : null,
+                            success : function(data) {
+                                populateKeys(data)
+                                $("#newkey-button").removeClass("running")
+                            },
+                            error : function(e) {
+                                console.log("error invoking POST /api/keys")
+                            }
                         });
+                    }, 300);
+                });
 
-                        $("#clearLocalStorage").click(function(e) {
-                            e.preventDefault();
-                            localStorage.removeItem("file-content");
-                            location.reload();
-                        });
-
-                        $("#sidebar-close").click(function(e) {
-                            e.preventDefault();
-                            $("#wrapper").toggleClass("toggled");
-                        });
-
-                        $("#newkey-button").click(function(e) {
-                            e.preventDefault();
-                            $("#newkey-button").addClass("running")
-                            setTimeout(function() {
-                                $.ajax({
-                                    method: "POST",
-                                    url : "api/keys",
-                                    data : null,
-                                    success : function(data) {
-                                        populateKeys(data)
-                                        $("#newkey-button").removeClass("running")
-                                    },
-                                    error : function(e) {
-                                        console.log("error invoking POST /api/keys")
-                                    }
-                                });
-                            }, 300);
-                        });
-
-                        $("#compute-hash-button").click(function(e) {
-                            e.preventDefault();
-                            $("#compute-hash-button").addClass("running")
-                            setTimeout(function() {
-                                const value = $("#value-to-hash").val().replace('"', '\"')
-                                const hashAsString = $("#hash-as-string").prop("checked")
-
-                                $.ajax({
-                                    method: "POST",
-                                    contentType: "application/json",
-                                    url : "api/hash",
-                                    data : JSON.stringify({
-                                        "value": value,
-                                        "hashAsString": hashAsString
-                                    }),
-                                    success : function(data) {
-                                        populateHashes(data)
-                                        $("#compute-hash-button").removeClass("running")
-                                    },
-                                    error : function(e) {
-                                        console.log("error invoking POST /api/hash")
-                                        console.log(e)
-                                    }
-                                });
-                            }, 300);
-                        });
+                $("#compute-hash-button").click(function(e) {
+                    e.preventDefault();
+                    $("#compute-hash-button").addClass("running")
+                    setTimeout(function() {
+                        const value = $("#value-to-hash").val().replace('"', '\"')
+                        const hashAsString = $("#hash-as-string").prop("checked")
 
                         $.ajax({
-                            url : "version",
-                            data : null,
-                            cache : false,
+                            method: "POST",
+                            contentType: "application/json",
+                            url : "api/hash",
+                            data : JSON.stringify({
+                                "value": value,
+                                "hashAsString": hashAsString
+                            }),
                             success : function(data) {
-                                $("#version").html("Version: "+data.version)
-                                $("#commit").html("Commit: "+data.commit)
-                                $("#build-time").html("Built at: "+data.build)
-                                $("#deploy-time").html("Deployed at: "+data.deployedAt)
+                                populateHashes(data)
+                                $("#compute-hash-button").removeClass("running")
                             },
-                            dataType : "json"
+                            error : function(e) {
+                                console.log("error invoking POST /api/hash")
+                                console.log(e)
+                            }
                         });
+                    }, 300);
+                });
 
-                        let keyTooltipTitle = "Private keys are computed server-side and are not logged."
-                        $("#key-tooltip").attr("title", keyTooltipTitle);
-                        $("#key-tooltip").attr("data-html","true");
-                        $("#key-tooltip").attr("data-placement","right");
-                        $("#key-tooltip").tooltip();
+                $.ajax({
+                    url : "version",
+                    data : null,
+                    cache : false,
+                    success : function(data) {
+                        $("#version").html("Version: "+data.version)
+                        $("#commit").html("Commit: "+data.commit)
+                        $("#build-time").html("Built at: "+data.build)
+                        $("#deploy-time").html("Deployed at: "+data.deployedAt)
+                    },
+                    dataType : "json"
+                });
 
-                        let hashTooltipTitle = "Let Balzac infer the type of the input: it tries to evaluate the input as Long, Boolean or String in this order."
-                        $("#hash-tooltip").attr("title", hashTooltipTitle);
-                        $("#hash-tooltip").attr("data-html","true");
-                        $("#hash-tooltip").attr("data-placement","right");
-                        $("#hash-tooltip").tooltip();
+                const keyTooltipTitle = "Private keys are computed server-side and are not logged."
+                $("#key-tooltip").attr("title", keyTooltipTitle);
+                $("#key-tooltip").attr("data-html","true");
+                $("#key-tooltip").attr("data-placement","right");
+                $("#key-tooltip").tooltip();
 
-                        $("[title]").tooltip();
-                    });
-            });});});
+                const hashTooltipTitle = "Let Balzac infer the type of the input: it tries to evaluate the input as Long, Boolean or String in this order."
+                $("#hash-tooltip").attr("title", hashTooltipTitle);
+                $("#hash-tooltip").attr("data-html","true");
+                $("#hash-tooltip").attr("data-placement","right");
+                $("#hash-tooltip").tooltip();
 
+                $("[title]").tooltip();
+                
+                // set copy on click for warnings/errors
+                // Select the node that will be observed for mutations
+                const targetNode = document.getElementById('xtext-editor');
+                
+                // Options for the observer (which mutations to observe)
+                const config = { 
+                        attributes: false,
+                        childList: true,
+                        subtree: true,
+                        characterData: false
+                };
+                
+                // Callback function to execute when mutations are observed
+                const callback = function(mutationsList, observer) {
+                    setCopyOnClick();
+                };
+                
+                // Create an observer instance linked to the callback function
+                const observer = new MutationObserver(callback);
+
+                // Start observing the target node for configured mutations
+                observer.observe(targetNode, config);
+            });
+        });
+        
+        function setCopyOnClick() {
+        	$('[class^="xtext-annotation"]').off('click');
+            $('[class^="xtext-annotation"]').on('click', function(evt){
+                const message = evt.target.title
+                const elem = document.createElement("textarea");
+                document.body.appendChild(elem);
+                elem.value = message;
+                elem.select();
+                elem.setSelectionRange(0, 99999)
+                document.execCommand("copy");
+                document.body.removeChild(elem);
+            })
+        }
+        
         function populateKeys(data) {
             const isTestnet = $("#isTestnet").prop("checked")
 
@@ -223,7 +262,6 @@
                 data : null,
                 cache : false,
                 success : function(data) {
-                    var editor = ace.edit("xtext-editor");
                     editor.setValue(data);
                 },
                 dataType : "text"
@@ -479,7 +517,9 @@
                             </div>
                         </div>
                         <div class="border border-dark mb-3" >
-                            <div id="xtext-editor" class="" data-editor-xtext-lang="balzac"></div>
+                            <div id="xtext-editor" 
+                                data-editor-xtext-lang="balzac"
+                            ></div>
                         </div>
                         <div class="text-center">
                             <div id="compile" type="button" class="btn btn-primary ld-ext-right">Evaluate
