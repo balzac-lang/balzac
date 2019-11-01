@@ -218,6 +218,7 @@
 
         function loadExample(url) {
             $.ajax({
+                mimeType: 'text/plain; charset=x-user-defined',
                 url : url,
                 data : null,
                 cache : false,
