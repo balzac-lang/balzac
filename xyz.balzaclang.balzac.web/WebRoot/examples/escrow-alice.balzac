@@ -9,7 +9,7 @@ const kApub = pubkey:03ff41f23b70b1c83b01914eb223d7a97a6c2b24e9a9ef2762bf25ed1c1
 const kA = key:cSthBXr8YQAexpKeh22LB9PdextVE1UJeahmyns5LzcmMDSy59L4
 
 // Bob's public key
-const kBpub = pubkey:03a5aded4cfa04cb4b49d4b19fe8fac0b58802983018cdd895a28b643e7510c1fb
+const kBpub = pubkey:02a575580456e1a979cd0f563fe99b1cf6ea0368f3c8f943070ae26f04c90575fe
 
 //
 // 1) Alice's funds
@@ -46,7 +46,7 @@ const sigA_to_Bob = sig(kA) of T1(_,_,kBpub)
 // 3.2) Alice receives Bob's signature and spends T
 //
 
-const sigB = sig:30450221008dc5731220ff24f4c31af290db94cffee3ef401b19b2e0ab83ea61cc8e19da0f02205be817550ef1bf2109159ea7667e3bc7f52a2e29e0c92f2c2749552f64e1d59701
+const sigB = sig:30450221009baced12e4af1d2b94f6dadfe9cae8d986ad91017f52cf50c8d94d12f4e5f6b3022069c5dcd12e928d71d3c8393ebf695d4211e24d1a37225984332f0b7af8148aa201
 const sigA = sig(kA) of T1(_,_,kApub)
 
 eval T1(sigA, sigB, kApub)
