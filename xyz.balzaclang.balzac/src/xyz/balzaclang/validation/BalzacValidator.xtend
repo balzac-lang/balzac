@@ -49,12 +49,10 @@ import xyz.balzaclang.balzac.Div
 import xyz.balzaclang.balzac.Expression
 import xyz.balzaclang.balzac.Import
 import xyz.balzaclang.balzac.Input
-import xyz.balzaclang.balzac.IsMinedCheck
 import xyz.balzaclang.balzac.KeyLiteral
 import xyz.balzaclang.balzac.Minus
 import xyz.balzaclang.balzac.Model
 import xyz.balzaclang.balzac.Modifier
-import xyz.balzaclang.balzac.Output
 import xyz.balzaclang.balzac.PackageDeclaration
 import xyz.balzaclang.balzac.Participant
 import xyz.balzaclang.balzac.Placeholder
@@ -71,19 +69,17 @@ import xyz.balzaclang.balzac.TransactionHexLiteral
 import xyz.balzaclang.balzac.TransactionInputOperation
 import xyz.balzaclang.balzac.TransactionOutputOperation
 import xyz.balzaclang.balzac.Versig
-import xyz.balzaclang.lib.client.BitcoinClientException
+import xyz.balzaclang.lib.ECKeyStore
 import xyz.balzaclang.lib.model.ITransactionBuilder
 import xyz.balzaclang.lib.model.SerialTransactionBuilder
 import xyz.balzaclang.lib.model.TransactionBuilder
 import xyz.balzaclang.lib.validation.ValidationResult.InputValidationError
 import xyz.balzaclang.lib.validation.Validator
 import xyz.balzaclang.utils.ASTUtils
-import xyz.balzaclang.utils.BitcoinClientFactory
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
-import xyz.balzaclang.lib.ECKeyStore
 
 /**
  * This class contains custom validation rules.
@@ -99,7 +95,6 @@ class BalzacValidator extends AbstractBalzacValidator {
     @Inject extension ASTUtils
     @Inject ResourceDescriptionsProvider resourceDescriptionsProvider;
     @Inject IContainer.Manager containerManager;
-    @Inject BitcoinClientFactory clientFactory;
 
     @Check
     def void checkUnusedParameters__Script(Script script){
@@ -352,7 +347,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
     }
 
-    @Check
+    @Check(NORMAL)
     def void checkSigTransaction(Signature sig) {
         val isTxDefined = sig.isHasTx
         val isWithinInput = EcoreUtil2.getContainerOfType(sig, Input) !== null
@@ -394,6 +389,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
         }
 
+        logger.debug("[checkSigTransaction] interpreting transaction " + sig.tx.nodeToString)
         val res = sig.tx.interpretE
 
         if (!res.failed) {
@@ -416,7 +412,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             }
         }
         else {
-            logger.error("RuleFailedException", res.ruleFailedException)
+            logger.error('''Failed to evaluate '«sig.tx.nodeToString»' [error]''', res.ruleFailedException)
             error('''Error occurred evaluting transaction «sig.tx.nodeToString». Please report the error to the authors.''',
                 sig,
                 BalzacPackage.Literals.SIGNATURE__TX
@@ -526,7 +522,12 @@ class BalzacValidator extends AbstractBalzacValidator {
 
     @Check(CheckType.NORMAL)
     def void checkUserDefinedTx(Transaction tx) {
-        tx.checkTx(new Rho(tx.networkParams), tx)
+        // check only transactions without parameters
+        if (!tx.params.empty) {
+            return
+        }
+
+        tx.checkTx(new Rho(tx.networkParams), tx, true)
     }
 
     @Check(CheckType.NORMAL)
@@ -548,18 +549,24 @@ class BalzacValidator extends AbstractBalzacValidator {
         }
 
         val tx = ref.ref as Transaction
+        logger.debug('''Checking transaction reference '«ref.nodeToString»' ''')
         val values = ref.actualParams
         val rho = new Rho(tx.networkParams)
         for(var i=0; i<tx.params.size; i++) {
             val fp = tx.params.get(i)
-            val value = values.get(i).interpretE
+            val ap = values.get(i)
+            val value = ap.interpretE
             if (!value.failed)
                 rho.put(fp, value.first)
+            else
+                logger.warn('''Failed to evaluate '«ap.nodeToString»' [warn]''')
         }
-        tx.checkTx(rho, ref)
+        tx.checkTx(rho, ref, false)
     }
 
-    def private void checkTx(Transaction tx, Rho rho, EObject source) {
+    def private boolean checkTx(Transaction tx, Rho rho, EObject source, boolean sourceIsTx) {
+
+        logger.debug("checkTx: " + tx.nodeToString + " " + rho)
 
         var hasError = false;
 
@@ -577,10 +584,11 @@ class BalzacValidator extends AbstractBalzacValidator {
 
                 if (txInput.txVariables.empty) {
 
-                    val res = input.txRef.interpretE
+                    logger.debug("[input.txRef]: " + input.txRef.nodeToString + " " + rho)
+                    val res = input.txRef.interpret(rho)
 
                     if (res.failed) {
-                        res.ruleFailedException.printStackTrace
+                        logger.warn('''Failed to evaluate '«input.txRef.nodeToString»' [warn]''', res.ruleFailedException)
                         error("Error evaluating the transaction input, see error log for details.",
                             if (source == tx) input else source,
                             if (source == tx) BalzacPackage.Literals.INPUT__TX_REF
@@ -601,7 +609,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                 }
             }
 
-            if(hasError) return;  // interrupt the check
+            if(hasError) return false;  // interrupt the check
 
             /*
              * pairwise verify that inputs are unique
@@ -618,36 +626,45 @@ class BalzacValidator extends AbstractBalzacValidator {
                 }
             }
 
-            if(hasError) return;  // interrupt the check
+            if(hasError) return false;  // interrupt the check
 
             /*
              * Verify that the fees are positive
              */
-            hasError = !checkFee(tx, rho, mapInputsTx, source)
+            hasError = !checkFee(tx, rho, mapInputsTx, source, sourceIsTx)
 
-            if(hasError) return;  // interrupt the check
+            if(hasError) return false;  // interrupt the check
         }
 
+        logger.debug("[tx]: " + tx.nodeToString + " " + rho)
         val res = tx.interpret(rho)
 
         if (res.failed || !(res.value instanceof TransactionBuilder))
-            return
+            return false;
 
         val txBuilder = res.value as TransactionBuilder
 
         /*
          * Verify that the input correctly spends the output
          */
-        hasError = !correctlySpendsOutput(txBuilder, tx.ECKeyStore, source, source === tx)
+        hasError = !correctlySpendsOutput(txBuilder, tx.ECKeyStore, source, sourceIsTx)
 
-        if(hasError) return;  // interrupt the check
+        if(hasError) return false;  // interrupt the check
 
         /*
          * Verify that the output scripts does not exceeds 520 bytes
          */
-        hasError = !checkOutputScriptSize(txBuilder, source, source === tx)
-    }
+        hasError = !checkOutputScriptSize(txBuilder, source, sourceIsTx)
 
+        if(hasError) return false;  // interrupt the check
+
+        /*
+         * Verify that the output values are positive
+         */
+        hasError = !checkPositiveOutputValue(txBuilder, source, sourceIsTx)
+        
+        return hasError
+    }
 
     def boolean checkInputIndex(Input input, ITransactionBuilder inputTx) {
 
@@ -734,7 +751,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (!txA.ready || !txB.ready)
             return true
 
-        if (txA.toTransaction(inputA.ECKeyStore)==txB.toTransaction(inputB.ECKeyStore) && inputA.outpoint==inputB.outpoint
+        if (txA.toTransaction(inputA.ECKeyStore) == txB.toTransaction(inputB.ECKeyStore) && inputA.outpoint==inputB.outpoint
         ) {
             error(
                 "Double spending. You cannot redeem the output twice.",
@@ -752,7 +769,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         return true
     }
 
-    def boolean checkFee(Transaction tx, Rho rho, Map<Input, ITransactionBuilder> mapInputsTx, EObject source) {
+    def boolean checkFee(Transaction tx, Rho rho, Map<Input, ITransactionBuilder> mapInputsTx, EObject source, boolean sourceIsTx) {
 
         if (tx.isCoinbase)
             return true;
@@ -775,7 +792,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (amount<0) {
             error("The transaction spends more than expected.",
                 source,
-                if (source == tx) BalzacPackage.Literals.TRANSACTION__NAME
+                if (sourceIsTx) BalzacPackage.Literals.TRANSACTION__NAME
             );
             return false;
         }
@@ -835,26 +852,33 @@ class BalzacValidator extends AbstractBalzacValidator {
         return true
     }
 
-    @Check
-    def void checkPositiveOutValue(Output output) {
+    def boolean checkPositiveOutputValue(TransactionBuilder txBuilder, EObject source, boolean sourceIsTx) {
 
-        var value = output.value.interpretE.first as Long
-        var script = output.script as Script
+        for (var i = 0 ; i < txBuilder.outputs.size; i++) {
+            val output = txBuilder.outputs.get(i)
+            val value = output.value
 
-        if (script.isOpReturn(new Rho(output.networkParams)) && value>0) {
-            error("OP_RETURN output scripts must have 0 value.",
-                output,
-                BalzacPackage.Literals.OUTPUT__VALUE
-            );
+            if (output.script.isOP_RETURN && value > 0) {
+                error("OP_RETURN output scripts must have 0 value.",
+                    source,
+                    if (sourceIsTx) BalzacPackage.Literals.OUTPUT__VALUE,
+                    i
+                );
+                return false;
+            }
+
+            if (!output.script.isOP_RETURN && value < 546) {
+                // https://github.com/bitcoin/bitcoin/commit/6a4c196dd64da2fd33dc7ae77a8cdd3e4cf0eff1
+                error("Output (except OP_RETURN scripts) must spend at least 546 satoshis.",
+                    source,
+                    if (sourceIsTx) BalzacPackage.Literals.OUTPUT__VALUE,
+                    i
+                );
+                return false;
+            }
         }
 
-        // https://github.com/bitcoin/bitcoin/commit/6a4c196dd64da2fd33dc7ae77a8cdd3e4cf0eff1
-        if (!script.isOpReturn(new Rho(output.networkParams)) && value<546) {
-            error("Output (except OP_RETURN scripts) must spend at least 546 satoshis.",
-                output,
-                BalzacPackage.Literals.OUTPUT__VALUE
-            );
-        }
+        return true
     }
 
     @Check
@@ -907,10 +931,21 @@ class BalzacValidator extends AbstractBalzacValidator {
         for (other: tx.relLocks){
 
             if (tlock!=other && tlock.class==other.class) {
-                val tx1 = tlock.tx.interpretE.first
-                val tx2 = other.tx.interpretE.first
+                logger.debug("checkUniqueRelativeTimelock")
+                val tx1 = tlock.tx.interpretE
+                val tx2 = other.tx.interpretE
 
-                if (tx1==tx2)
+                if (tx1.failed) {
+                    logger.debug('''Failed to evaluate '«tlock.tx.nodeToString»' [skip]''')
+                    return;
+                }
+
+                if (tx2.failed) {
+                    logger.debug('''Failed to evaluate '«other.tx.nodeToString»' [skip]''')
+                    return;
+                }
+
+                if ( ITransactionBuilder.equals(tx1.first as ITransactionBuilder, tx2.first as ITransactionBuilder, tlock.ECKeyStore) )
                     error(
                         "Duplicated relative timelock",
                         tlock,
@@ -924,12 +959,25 @@ class BalzacValidator extends AbstractBalzacValidator {
     def void checkRelativeTimelockFromTxIsInput(RelativeTime tlock) {
 
         if (tlock.tx !== null) {
-            val tx = tlock.tx.interpretE.first
+            logger.debug("checkRelativeTimelockFromTxIsInput")
+            val tx = tlock.tx.interpretE
+
+            if (tx.failed) {
+                logger.debug('''Failed to evaluate '«tlock.tx.nodeToString»' [skip]''')
+                return;
+            }
+
             val containingTx = EcoreUtil2.getContainerOfType(tlock, Transaction);
 
             for (in : containingTx.inputs) {
-                val inTx = in.txRef.interpretE.first
-                if (tx==inTx) {
+                val inTx = in.txRef.interpretE
+
+                if (inTx.failed) {
+                    logger.debug('''Failed to evaluate '«in.txRef.nodeToString»' [skip]''')
+                    return;
+                }
+
+                if ( ITransactionBuilder.equals(tx.first as ITransactionBuilder, inTx.first as ITransactionBuilder, tlock.ECKeyStore) ) {
                     return
                 }
             }
@@ -993,8 +1041,10 @@ class BalzacValidator extends AbstractBalzacValidator {
     def private checkTimeExpression(Expression exp, boolean isAbsolute, boolean isBlock, EObject obj, EStructuralFeature feature) {
         val res = exp.interpretE
 
-        if (res.failed)
+        if (res.failed) {
+            logger.debug('''Failed to evaluate '«exp.nodeToString»' [skip]''')
             return;
+        }
 
         val value = res.first as Long
 
@@ -1045,93 +1095,6 @@ class BalzacValidator extends AbstractBalzacValidator {
                     obj,
                     feature
                 )
-            }
-        }
-    }
-
-    @Check
-    def boolean checkTransactionChecksOndemand(Transaction tx) {
-        var hasError = false
-        for (var i=0; i<tx.checks.size-1; i++) {
-            for (var j=i; i<tx.checks.size; j++) {
-                val one = tx.checks.get(i)
-                val other = tx.checks.get(j)
-
-                if (one.class == other.class) {
-                    error(
-                        "Duplicated annotation",
-                        tx,
-                        BalzacPackage.Literals.TRANSACTION__CHECKS,
-                        i
-                    );
-                    error(
-                        "Duplicated annotation",
-                        tx,
-                        BalzacPackage.Literals.TRANSACTION__CHECKS,
-                        j
-                    );
-                    hasError = true;
-                }
-            }
-        }
-
-        return !hasError;
-    }
-
-    @Check(CheckType.NORMAL)
-    def void checkTransactionOndemand(IsMinedCheck check) {
-
-        val tx = EcoreUtil2.getContainerOfType(check, Transaction)
-
-        if (!checkTransactionChecksOndemand(tx)) {
-            return
-        }
-
-        val checkIdx = tx.checks.indexOf(check)
-        val res = tx.interpretE
-
-        if (res.failed) {
-            warning(
-                '''Cannot check if «tx.name» is mined. Cannot interpret the transaction.''',
-                tx,
-                BalzacPackage.Literals.TRANSACTION__CHECKS,
-                checkIdx
-            );
-        }
-        else {
-            val txBuilder = res.first as ITransactionBuilder
-            val txid = txBuilder.toTransaction(tx.ECKeyStore).txId.toString
-
-            try {
-                val client = clientFactory.getBitcoinClient(tx.networkParams)
-                val mined = client.isMined(txid)
-
-                if (check.isMined && !mined) {
-                    warning(
-                        "Transaction is not mined",
-                        tx,
-                        BalzacPackage.Literals.TRANSACTION__CHECKS,
-                        checkIdx
-                    );
-                }
-
-                if (!check.isMined && mined) {
-                    warning(
-                        "Transaction is already mined",
-                        tx,
-                        BalzacPackage.Literals.TRANSACTION__CHECKS,
-                        checkIdx
-                    );
-                }
-
-            }
-            catch(BitcoinClientException e) {
-                warning(
-                    "Cannot check if the transaction is mined due to network problems: "+e.message,
-                    tx,
-                    BalzacPackage.Literals.TRANSACTION__CHECKS,
-                    checkIdx
-                );
             }
         }
     }
@@ -1344,6 +1307,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             }
         }
         else {
+            logger.debug('''Failed to evaluate '«assertion.exp.nodeToString»' [warn]''')
             warning(
                     "Cannot evaluate expression "+assertion.exp.nodeToString,
                     assertion.exp,

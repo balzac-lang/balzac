@@ -47,7 +47,10 @@ class TransactionCompiler {
         val prime = 31;
         key = prime * key + tx.hashCode
         key = prime * key + rho.hashCode
-        return cache.get(key, tx.eResource, [ internalCompileTransaction(tx,rho) ])
+        return cache.get(key, tx.eResource, [
+            logger.debug('''Cache hit. Generating...''')
+            internalCompileTransaction(tx,rho)
+        ])
     }
 
     def private ITransactionBuilder internalCompileTransaction(Transaction tx, Rho rho) {
