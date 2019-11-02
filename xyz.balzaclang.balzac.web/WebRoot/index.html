@@ -34,7 +34,7 @@
         require.config({
             baseUrl: baseUrl,
             paths: {
-                "balzac-mode": "xtext-resources/generated/mode-balzac",
+                "xtext/balzac": "xtext-resources/generated/mode-balzac",
                 "jquery": "webjars/jquery/3.4.1/jquery.min",
                 "xtext/xtext-codemirror": "xtext/2.17.1/xtext-codemirror",
                 "bootstrap": "webjars/bootstrap/4.3.1/js/bootstrap.bundle.min",
@@ -46,60 +46,61 @@
                 main: "lib/codemirror"
             }],
             shim: {
-                "xtext/xtext-codemirror" : ["balzac-mode"],
-                "bootstrap-toggle" : ["bootstrap"]
+                "bootstrap-toggle" : ["bootstrap", "jquery"]
             }
         });
-        require(["balzac-mode", "xtext/xtext-codemirror"], function(mode, xtext) {
 
-            window.editor = xtext.createEditor({
-                baseUrl: baseUrl,
-                syntaxDefinition: "xtext-resources/generated/mode-balzac"
-            });
+        require(["xtext/balzac", "xtext/xtext-codemirror", "jquery", "bootstrap", "bootstrap-toggle"], function(mode, xtext) {
 
-            editor.setOption("lineNumbers", "true")
-            
-            var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
+            $(document).ready(function () {
 
-            if (typeof(Storage) !== "undefined") {
-                // Code for localStorage/sessionStorage.
-                if (localStorage.getItem("file-content") != null) {
-                    text = localStorage.getItem("file-content");
-                }
-            } else {
-                // Sorry! No Web Storage support..
-            }
+                // initialize the editor
+                window.editor = xtext.createEditor({
+                    baseUrl: baseUrl,
+                    syntaxDefinition: "xtext-resources/generated/mode-balzac"
+                });
 
-            editor.setValue(text);
+                editor.setOption("lineNumbers", "true")
 
-            editor.on("change", function(e) {
+                // default example
+                var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
+
                 if (typeof(Storage) !== "undefined") {
                     // Code for localStorage/sessionStorage.
-                    localStorage.setItem("file-content", editor.getValue());
+                    if (localStorage.getItem("file-content") != null) {
+                        text = localStorage.getItem("file-content");
+                    }
                 } else {
                     // Sorry! No Web Storage support..
                 }
-            })
 
-            $("#compile").click(function() {
-                $("#compile").addClass("running")
-                setTimeout(function() {
-                    editor.xtextServices.generate()
-                        .done(function(result){
-                            $("#result").html(result)
-                            $("#result").addClass("highlight-result")
-                            $("#compile").removeClass("running")
-                            setTimeout(function(){
-                                $("#result").removeClass("highlight-result")
-                            },1000)
-                        });
-                }, 300)
-            });
-        });
+                // set the editor text
+                editor.setValue(text);
 
-        require(["jquery", "bootstrap", "bootstrap-toggle"], function() {
+                // on change, store the text locally
+                editor.on("change", function(e) {
+                    if (typeof(Storage) !== "undefined") {
+                        // Code for localStorage/sessionStorage.
+                        localStorage.setItem("file-content", editor.getValue());
+                    } else {
+                        // Sorry! No Web Storage support..
+                    }
+                })
 
-            $(document).ready(function () {
+                $("#compile").click(function() {
+                    $("#compile").addClass("running")
+                    setTimeout(function() {
+                        editor.xtextServices.generate()
+                            .done(function(result){
+                                $("#result").html(result)
+                                $("#result").addClass("highlight-result")
+                                $("#compile").removeClass("running")
+                                setTimeout(function(){
+                                    $("#result").removeClass("highlight-result")
+                                },1000)
+                            });
+                    }, 300)
+                });
 
                 $("#menu-toggle").click(function(e) {
                     e.preventDefault();
@@ -163,6 +164,7 @@
                     }, 300);
                 });
 
+                // retrive and set build/version info
                 $.ajax({
                     url : "version",
                     data : null,
@@ -189,24 +191,25 @@
                 $("#hash-tooltip").tooltip();
 
                 $("[title]").tooltip();
-                
+
                 // set copy on click for warnings/errors
+
                 // Select the node that will be observed for mutations
                 const targetNode = document.getElementById('xtext-editor');
-                
+
                 // Options for the observer (which mutations to observe)
-                const config = { 
+                const config = {
                         attributes: false,
                         childList: true,
                         subtree: true,
                         characterData: false
                 };
-                
+
                 // Callback function to execute when mutations are observed
                 const callback = function(mutationsList, observer) {
                     setCopyOnClick();
                 };
-                
+
                 // Create an observer instance linked to the callback function
                 const observer = new MutationObserver(callback);
 
@@ -214,9 +217,9 @@
                 observer.observe(targetNode, config);
             });
         });
-        
+
         function setCopyOnClick() {
-        	$('[class^="xtext-annotation"]').off('click');
+            $('[class^="xtext-annotation"]').off('click');
             $('[class^="xtext-annotation"]').on('click', function(evt){
                 const message = evt.target.title
                 const copyText = document.createElement("textarea");
@@ -234,7 +237,7 @@
                     $(evt.target).parent().tooltip("hide");
                 }, 1000)
             })
-            
+
             $('[class^="xtext-annotation"]').parent().attr("title", "Copied");
             $('[class^="xtext-annotation"]').parent().tooltip('disable');
             $('[class^="xtext-annotation"]').parent().css('cursor', 'pointer')
@@ -278,7 +281,7 @@
             }, 1000);
             // dispose the tooltip when hide is completed
             elm.on('hidden.bs.tooltip', function () {
-            	elm.tooltip("dispose");
+                elm.tooltip("dispose");
             });
         }
 
@@ -544,7 +547,7 @@
                             </div>
                         </div>
                         <div class="border border-dark mb-3" >
-                            <div id="xtext-editor" 
+                            <div id="xtext-editor"
                                 data-editor-xtext-lang="balzac"
                             ></div>
                         </div>
