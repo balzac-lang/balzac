@@ -323,17 +323,6 @@ public class TransactionBuilder implements ITransactionBuilder {
                     .allMatch(ITransactionBuilder::isReady);
     }
 
-    /**
-     * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
-     * unbound free variables.
-     * @return a bitcoinj transaction.
-     */
-    @Override
-    public Transaction toTransaction() {
-        // TODO: check there are not signatures to compute
-        return toTransaction(null);
-    }
-
     @Override
     public Transaction toTransaction(ECKeyStore keystore) {
         checkState(this.isReady(), "the transaction and all its ancestors are not ready");

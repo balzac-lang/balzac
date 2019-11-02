@@ -56,13 +56,8 @@ public class SerialTransactionBuilder implements ITransactionBuilder {
     }
 
     @Override
-    public Transaction toTransaction() {
-        return getTx();
-    }
-
-    @Override
     public Transaction toTransaction(ECKeyStore kstore) {
-        return toTransaction();
+        return getTx();
     }
 
     @Override

@@ -1,25 +1,45 @@
-const k = key:cUrNnjUauKYmbqvBvt1J1aB5WwgVmUZS18J7FkfEZqqFtXMiDbho
-const pub = k.toPubkey
+// Alice's private key
+const kA = key:cUSH4x3Uq9uMgeZGdpTFvr5gVGYcAg4vrTNe9QvWsU8Dq3deym6Z
+// Alice's public key
+const kApub = pubkey:033806fe039c8d149c8e68f4665b4a479acab773b20bddf7df0df59ba4f0567341
+// Alice's address
+const addrA = address:my6NmTELHBMVUsAWb34iRoGYDQpcYJvVZV
 
-transaction T {
-    input = _    // no input
-    output = 50 BTC: fun(a:int,x,y:int,z:bool) .
-        y == 0 && x == 0 || z //&& (x != 0 || y != 0)
+// Bob's private key
+const kB = key:cUwtWVskxp5T31DxrQukxSxQ1Hj7VB53FrE52THe32bF4GN5QvtL
+// Bob's public key
+const kBpub = kB.toPubkey
+
+// Carl's private key
+const kC = key:cVhDA3Yxkeacnci8WUokAfQT6Nv4tGpmy1GzSYtJdYqDDwZipPPB
+// Carl's public key
+const kCpub = kB.toPubkey
+
+// tx redeemable with Alice's private key
+transaction A_funds {
+    input = _
+    output = 1 BTC: fun(x). versig(kApub; x)
 }
 
-transaction T1 {
-    input = T: 35 0 0 false
-    output = 50 BTC: fun(x). x != 0
+transaction T(funds: transaction, s: signature) {
+        input = funds : s                        // unspecified witness
+        output = 1 BTC: fun(x). versig(kApub; x) // any condition
 }
 
-transaction T2 {
-    input = T: 35 42 0 true
-    output = 50 BTC: fun(x). x != 0
+transaction TA {
+        input = A_funds : sig(kA)                   // Alice's signature of T
+        output = 1 BTC: fun(x). versig(kApub; x) // any condition
 }
 
-transaction T3 {
-    input = T: 35 0 42 true
-    output = 50 BTC: fun(x). x != 0
+transaction TB(funds: transaction) {
+        input = funds : sig(kA)                        // unspecified witness
+        output = 1 BTC: fun(x). versig(kApub; x) // any condition
 }
 
-eval T
+// Alice's signature of T
+const sigA = sig(kA) of T(A_funds,_)
+
+assert T(A_funds,sigA) == TA
+assert T(A_funds,sigA) == TB(A_funds)
+
+eval T(A_funds,sigA), TA, TB(A_funds)

@@ -438,7 +438,7 @@ from {
         G |- comparison.left |> rho ~> var ITransactionBuilder leftResult
         G |- comparison.right |> rho ~> var ITransactionBuilder rightResult
 
-        var areEqual = ITransactionBuilder.equals(leftResult,rightResult)
+        var areEqual = ITransactionBuilder.equals(leftResult,rightResult,comparison.ECKeyStore)
 
         result = switch(comparison.op) {
             case "==": areEqual

@@ -541,7 +541,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
         }
 
-        // do not check transactions that have placeholders as actual parameters        
+        // do not check transactions that have placeholders as actual parameters
         val isInsideASignature = EcoreUtil2.getContainerOfType(ref, Signature) !== null
         if (ref.actualParams.exists[e|e instanceof Placeholder] && isInsideASignature) {
             return

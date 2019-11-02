@@ -16,7 +16,6 @@
 
 package xyz.balzaclang.lib.model;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
@@ -35,13 +34,6 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
      * @return true if this transaction builder is ready to be converted, false otherwise.
      */
     public abstract boolean isReady();
-
-    /**
-     * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
-     * unbound free variables.
-     * @return a bitcoinj transaction.
-     */
-    public abstract Transaction toTransaction();
 
     /**
      * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
@@ -99,38 +91,23 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
         return new SerialTransactionBuilder(params, bytes);
     }
 
-    public static boolean equals(TransactionBuilder a, SerialTransactionBuilder b) {
-        return a.isReady() && a.toTransaction().equals(b.toTransaction());
-    }
-
-    public static boolean equals(SerialTransactionBuilder a, TransactionBuilder b) {
-        return equals(b, a);
-    }
-
-    public static boolean equals(ITransactionBuilder a, Transaction tx) {
-        return equals(a, fromSerializedTransaction(tx));
-    }
-
-    public static boolean equals(Transaction tx, ITransactionBuilder b) {
-        return equals(b, fromSerializedTransaction(tx));
-    }
-
-    public static boolean equals(ITransactionBuilder a, ITransactionBuilder b) {
+    public static boolean equals(ITransactionBuilder a, ITransactionBuilder b, ECKeyStore kstore) {
         checkNotNull(a);
         checkNotNull(b);
-        checkArgument(a instanceof TransactionBuilder || a instanceof SerialTransactionBuilder);
-        checkArgument(b instanceof TransactionBuilder || b instanceof SerialTransactionBuilder);
-        if (a.getClass().equals(b.getClass())) {
+        if (a instanceof TransactionBuilder && b instanceof TransactionBuilder) {
+            if (a.isReady() && b.isReady())
+                return a.toTransaction(kstore).equals(b.toTransaction(kstore));
             return a.equals(b);
         }
-        else {
-            if (a instanceof TransactionBuilder && b instanceof SerialTransactionBuilder) {
-                return equals((TransactionBuilder) a, (SerialTransactionBuilder) b);
-            }
-            if (a instanceof TransactionBuilder && b instanceof SerialTransactionBuilder) {
-                return equals((SerialTransactionBuilder) a, (TransactionBuilder) b);
-            }
-            throw new IllegalStateException("Not reachable");
+        else if (a instanceof SerialTransactionBuilder && b instanceof SerialTransactionBuilder) {
+            return a.equals(b);
         }
+        else if (a instanceof TransactionBuilder && b instanceof SerialTransactionBuilder) {
+            return a.isReady() && a.toTransaction(kstore).equals(b.toTransaction(kstore));
+        }
+        else if (a instanceof SerialTransactionBuilder && b instanceof TransactionBuilder) {
+            return b.isReady() && b.toTransaction(kstore).equals(a.toTransaction(kstore));
+        }
+        throw new IllegalArgumentException("Not reachable");
     }
 }
