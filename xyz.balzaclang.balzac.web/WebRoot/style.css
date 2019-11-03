@@ -1,4 +1,14 @@
 
+.gutter-right {
+	width: 5px;
+}
+
+.annotations-gutter {
+    width: 18px;
+    background: inherit !important;
+}
+
+
 #result {
     height: 250px;
     font-size: small;
@@ -7,6 +17,7 @@
 #xtext-editor {
     height: 400px;
     font-size: 11pt;
+    line-height: 1.5em;
     resize: vertical;
     overflow-y: auto !important;
 }

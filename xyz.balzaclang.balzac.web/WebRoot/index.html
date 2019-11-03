@@ -61,6 +61,7 @@
                 });
 
                 editor.setOption("lineNumbers", "true")
+                editor.setOption("gutters", ["annotations-gutter", "CodeMirror-linenumbers", "gutter-right"])
 
                 // default example
                 var text = "transaction T {\n    input = _\n    output = 10 BTC: fun(x) . x==42\n}\n\n\ntransaction T1 {\n    input = T : 42\n    output = 10 BTC: fun(x) . x != 0\n}\n\neval T, T1";
@@ -246,6 +247,8 @@
             $('[class^="xtext-annotation"]').parent().attr("title", "Copied");
             $('[class^="xtext-annotation"]').parent().tooltip('disable');
             $('[class^="xtext-annotation"]').parent().css('cursor', 'pointer')
+            $('[class^="xtext-annotation"]').parent().css('top', '5px')
+            $('[class^="xtext-annotation"]').parent().css('left', '6px')
         }
 
         function populateKeys(data) {
