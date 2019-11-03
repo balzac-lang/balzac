@@ -95,7 +95,7 @@ public class ASTUtils {
                         List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
                         keys.add(getPlaceholderPrivateKey(obj));
                         for (KeyLiteral k : keys) {
-                            String uniqueID = kstore.addKey(k.getValue());
+                            String uniqueID = kstore.addKey(PrivateKey.fromBase58(k.getValue()));
                             logger.info("keystore: added key "+uniqueID);
                         }
                         return kstore;

@@ -714,7 +714,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             // free variables are not allowed
             var ok = true
             for (v : EcoreUtil2.getAllContentsOfType(input.redeemScript, Reference)) {
-                if (v.ref.eContainer instanceof org.bitcoinj.core.Transaction) {
+                if (v.ref.eContainer instanceof Transaction) {
                     error(
                         "Cannot reference transaction parameters from the redeem script.",
                         v,
@@ -1057,7 +1057,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
         }
 
-        if (isAbsolute && isBlock && value>=org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+        if (isAbsolute && isBlock && value >= 500_000_000) {
             error(
                 "Block number must be lower than 500_000_000.",
                 obj,
@@ -1066,7 +1066,7 @@ class BalzacValidator extends AbstractBalzacValidator {
             return
         }
 
-        if (isAbsolute && !isBlock && value<org.bitcoinj.core.Transaction.LOCKTIME_THRESHOLD) {
+        if (isAbsolute && !isBlock && value < 500_000_000) {
             error(
                 "Block number must be greater or equal than 500_000_000 (1985-11-05 00:53:20). Found "+value,
                 obj,

@@ -31,6 +31,8 @@ public interface PrivateKey {
 
     public Address toAddress();
 
+    public NetworkType getNetworkType();
+
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif);
         return from(key.getKey().getPrivKeyBytes(), NetworkType.from(key.getParameters()));

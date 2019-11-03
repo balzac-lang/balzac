@@ -33,28 +33,28 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.bitcoinj.core.DumpedPrivateKey;
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Utils;
 
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
 public class ECKeyStore {
 
-    public static String getUniqueID(ECKey key) {
-        return BitcoinUtils.encode(Utils.sha256hash160(key.getPrivKeyBytes()));
-    }
 
-    public static String getUniqueID(String wif) {
-        return getUniqueID(DumpedPrivateKey.fromBase58(null, wif).getKey());
+    public static String getUniqueID(PrivateKey key) {
+        return BitcoinUtils.encode(Utils.sha256hash160(key.getBytes()));
     }
 
     private char[] password;
     private KeyStore ks;
+    private Map<String,NetworkType> netwotkTypeMap = new HashMap<>();
 
     /**
      * Create a new ECKeyStore with an <b>empty password</b>.
@@ -95,26 +95,21 @@ public class ECKeyStore {
         }
     }
 
-    public String addKey(String wif) throws KeyStoreException {
-        return addKey(DumpedPrivateKey.fromBase58(null, wif).getKey());
-    }
-
-    public String addKey(ECKey key) throws KeyStoreException {
-        checkState(!key.isPubKeyOnly(), "Only private key are allowed.");
-        String alias = getUniqueID(key);
-        SecretKey secretKey = new SecretKeySpec(key.getPrivKeyBytes(), "EC");
+    public String addKey(PrivateKey key) throws KeyStoreException {
+        String keyID = getUniqueID(key);
+        SecretKey secretKey = new SecretKeySpec(key.getBytes(), "EC");
         SecretKeyEntry kEntry = new SecretKeyEntry(secretKey);
-        ks.setEntry(alias, kEntry, new PasswordProtection(password));
-        return alias;
+        ks.setEntry(keyID, kEntry, new PasswordProtection(password));
+        netwotkTypeMap.put(keyID, key.getNetworkType());
+        return keyID;
     }
 
-    public ECKey getKey(String keyID) throws KeyStoreException {
+    public PrivateKey getKey(String keyID) throws KeyStoreException {
         checkState(ks.containsAlias(keyID));
         Key entryKey;
         try {
             entryKey = ks.getKey(keyID, password);
-            ECKey key = ECKey.fromPrivate(entryKey.getEncoded());
-            return key;
+            return PrivateKey.from(entryKey.getEncoded(), netwotkTypeMap.get(keyID));
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException e) {
             throw new KeyStoreException("Cannot fetch key "+keyID+": "+e.getMessage(), e);
         }

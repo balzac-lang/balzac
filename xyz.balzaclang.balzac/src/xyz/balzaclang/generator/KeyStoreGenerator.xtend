@@ -17,17 +17,10 @@
 package xyz.balzaclang.generator
 
 import com.google.inject.Inject
-import xyz.balzaclang.balzac.KeyLiteral
-import xyz.balzaclang.balzac.Model
-import xyz.balzaclang.balzac.PackageDeclaration
-import xyz.balzaclang.lib.ECKeyStore
-import xyz.balzaclang.utils.ASTUtils
-import xyz.balzaclang.utils.SecureStorageUtils
 import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStoreException
 import org.apache.log4j.Logger
-import org.bitcoinj.core.DumpedPrivateKey
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.equinox.security.storage.ISecurePreferences
 import org.eclipse.xtext.EcoreUtil2
@@ -36,6 +29,13 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import xyz.balzaclang.balzac.KeyLiteral
+import xyz.balzaclang.balzac.Model
+import xyz.balzaclang.balzac.PackageDeclaration
+import xyz.balzaclang.lib.ECKeyStore
+import xyz.balzaclang.lib.model.PrivateKey
+import xyz.balzaclang.utils.ASTUtils
+import xyz.balzaclang.utils.SecureStorageUtils
 
 class KeyStoreGenerator extends AbstractGenerator {
 
@@ -44,7 +44,6 @@ class KeyStoreGenerator extends AbstractGenerator {
     public static val KEYSTORE__FILENAME = "ks.p12"
 
     @Inject extension IQualifiedNameProvider
-    @Inject extension ASTUtils
     @Inject(optional=true) ISecurePreferences secureStorage
 
     override doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
@@ -80,7 +79,7 @@ class KeyStoreGenerator extends AbstractGenerator {
             val ecks = new ECKeyStore(getKsPassword())
 
             for (k : keys) {
-                val key = DumpedPrivateKey.fromBase58(k.networkParams.toNetworkParameters, k.value).key
+                val key = PrivateKey.fromBase58(k.value)
                 val alias = ecks.addKey(key)
                 logger.info('''adding key with alias «alias»''')
             }

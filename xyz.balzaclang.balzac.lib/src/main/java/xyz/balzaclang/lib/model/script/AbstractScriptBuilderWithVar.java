@@ -51,6 +51,7 @@ import org.bitcoinj.script.ScriptOpCodes;
 
 import xyz.balzaclang.lib.ECKeyStore;
 import xyz.balzaclang.lib.model.Hash;
+import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.Signature;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 import xyz.balzaclang.lib.utils.Env;
@@ -233,19 +234,20 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 checkState(keystore != null, "keystore must be set to retrieve the private keys");
                 checkState(keystore.containsKey(keyID), "key "+keyID+" not found on the specified keystore");
 
-                ECKey key = keystore.getKey(keyID);
+                PrivateKey privkey = keystore.getKey(keyID);
+                ECKey key = ECKey.fromPrivate(privkey.getBytes());
                 SigHash hashType = sig.hashType;
                 boolean anyoneCanPay = sig.anyoneCanPay;
 
                 // create the signature
                 TransactionSignature txSig = tx.calculateSignature(inputIndex, key, outScript, hashType, anyoneCanPay);
                 Sha256Hash hash = tx.hashForSignature(inputIndex, outScript, (byte) txSig.sighashFlags);
-                boolean isValid =  ECKey.verify(hash.getBytes(), txSig, key.getPubKey());
+                boolean isValid =  ECKey.verify(hash.getBytes(), txSig, privkey.toPublicKey().getBytes());
                 checkState(isValid);
                 checkState(txSig.isCanonical());
                 sb.data(txSig.encodeToBitcoin());
                 if (isP2PKH) {
-                    sb.data(key.getPubKey());
+                    sb.data(privkey.toPublicKey().getBytes());
                 }
             }
             else {

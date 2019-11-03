@@ -22,7 +22,9 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.SignatureDecodeException;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.crypto.TransactionSignature;
 
 import xyz.balzaclang.lib.ECKeyStore;
@@ -34,16 +36,20 @@ public class Signature {
     private final byte[] signature;
     private Optional<PublicKey> pubkey = Optional.empty();
 
+    public static void isValidAndCanonical(byte[] signature) throws VerificationException, SignatureDecodeException {
+		TransactionSignature.decodeFromBitcoin(signature, true, true);
+    }
+    
     public Signature(byte[] signature) {
         this(signature, null);
     }
 
     public Signature(byte[] signature, PublicKey pubkey) {
-        checkArgument(signature != null, "Signature cannot be null");
+    	checkArgument(signature != null, "Signature cannot be null");
         this.signature = Arrays.copyOf(signature, signature.length);
         setPubkey(pubkey);
     }
-
+    
     public byte[] getSignature() {
         return signature;
     }

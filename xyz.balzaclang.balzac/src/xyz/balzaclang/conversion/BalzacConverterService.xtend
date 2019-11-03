@@ -17,20 +17,20 @@
 package xyz.balzaclang.conversion
 
 import com.google.inject.Inject
-import xyz.balzaclang.conversion.converter.NumberValueConverter
-import xyz.balzaclang.conversion.converter.TimestampValueConverter
-import xyz.balzaclang.conversion.converter.ints.IntUnderscoreValueConverter
-import xyz.balzaclang.lib.utils.BitcoinUtils
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.DumpedPrivateKey
-import org.bitcoinj.crypto.TransactionSignature
 import org.eclipse.xtext.common.services.DefaultTerminalConverters
 import org.eclipse.xtext.conversion.IValueConverter
 import org.eclipse.xtext.conversion.ValueConverter
 import org.eclipse.xtext.conversion.ValueConverterException
 import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter
-import org.eclipse.xtext.nodemodel.INode
 import org.eclipse.xtext.conversion.impl.AbstractValueConverter
+import org.eclipse.xtext.nodemodel.INode
+import xyz.balzaclang.conversion.converter.NumberValueConverter
+import xyz.balzaclang.conversion.converter.TimestampValueConverter
+import xyz.balzaclang.conversion.converter.ints.IntUnderscoreValueConverter
+import xyz.balzaclang.lib.model.Address
+import xyz.balzaclang.lib.model.PrivateKey
+import xyz.balzaclang.lib.model.Signature
+import xyz.balzaclang.lib.utils.BitcoinUtils
 
 class BalzacConverterService extends DefaultTerminalConverters {
 
@@ -96,7 +96,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                 val value = string.split(":").get(1)
 
                 try {
-                    TransactionSignature.decodeFromBitcoin(BitcoinUtils.decode(value), true, true)
+                    Signature.isValidAndCanonical(BitcoinUtils.decode(value))
                 }
                 catch (Exception e) {
                     throw new ValueConverterException("Couldn't convert input '" + value + "' to a valid signature. Details: "+e.message, node, null);
@@ -114,7 +114,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                 var value = string.split(":").get(1)
 
                 try {
-                    DumpedPrivateKey.fromBase58(null, value);   // it ignores the network byte
+                    PrivateKey.fromBase58(value)
                     return value;
                 }
                 catch (Exception e) {
@@ -133,7 +133,7 @@ class BalzacConverterService extends DefaultTerminalConverters {
                 var value = string.split(":").get(1)
 
                 try {
-                    Address.fromString(null, value);    // it ignores the network byte
+                    Address.fromBase58(value)
                     return value;
                 }
                 catch(Exception e)

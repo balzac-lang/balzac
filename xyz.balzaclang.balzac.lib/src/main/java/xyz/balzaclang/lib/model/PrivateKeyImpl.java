@@ -32,7 +32,7 @@ class PrivateKeyImpl implements PrivateKey {
     PrivateKeyImpl(byte[] privkey, NetworkType params) {
         this.params = params;
         this.privkey = Arrays.copyOf(privkey, privkey.length);
-        this.pubkey = PublicKey.fromString(BitcoinUtils.encode(ECKey.fromPrivate(privkey).getPubKey()));
+        this.pubkey = PublicKey.fromBytes(ECKey.fromPrivate(privkey).getPubKey());
         this.address = Address.fromPubkey(pubkey.getBytes(), params);
     }
 
@@ -59,6 +59,11 @@ class PrivateKeyImpl implements PrivateKey {
     @Override
     public Address toAddress() {
         return address;
+    }
+
+    @Override
+    public NetworkType getNetworkType() {
+    	return params;
     }
 
     @Override

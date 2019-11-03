@@ -82,7 +82,7 @@ import org.eclipse.xtext.EcoreUtil2
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 
-import static org.bitcoinj.script.ScriptOpCodes.*
+import static xyz.balzaclang.lib.model.script.ScriptOpCodes.*
 
 /*
  * EXPRESSIONS
@@ -354,7 +354,7 @@ class ScriptCompiler {
 
         val key = resKey.first
         if (key instanceof PrivateKey) {
-            var sb = new ScriptBuilderWithVar().signaturePlaceholder(ECKeyStore.getUniqueID(key.wif), hashType, anyoneCanPay)
+            var sb = new ScriptBuilderWithVar().signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, anyoneCanPay)
             sb
         }
         else {

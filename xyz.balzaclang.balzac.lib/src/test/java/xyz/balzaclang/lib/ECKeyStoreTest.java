@@ -15,30 +15,35 @@
  */
 package xyz.balzaclang.lib;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.security.KeyStoreException;
 
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.params.TestNet3Params;
 import org.junit.Test;
+
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.PrivateKey;
 
 public class ECKeyStoreTest {
 
     @Test
     public void changePassword() throws KeyStoreException {
         ECKeyStore ks = new ECKeyStore();
-        ECKey k1 = new ECKey();
-        String wif = k1.getPrivateKeyEncoded(TestNet3Params.get()).toBase58();
+        PrivateKey k1 = PrivateKey.fresh(NetworkType.TESTNET);
+        
         // add a key
         String alias1 = ks.addKey(k1);
+        
         // change password
         ks.changePassword("test".toCharArray());
+        
         // retrieve the key
-        ECKey k2 = ks.getKey(ECKeyStore.getUniqueID(wif));
+        PrivateKey k2 = ks.getKey(ECKeyStore.getUniqueID(k1));
 
         assertTrue(ks.containsKey(alias1));
-        assertEquals(k1.getPrivKey(), k2.getPrivKey());
+        assertArrayEquals(k1.getBytes(), k2.getBytes());
+        assertEquals(k1.getNetworkType(), k2.getNetworkType());
     }
 }

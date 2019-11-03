@@ -36,6 +36,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class ScriptBuilderWithVarTest {
@@ -114,8 +116,8 @@ public class ScriptBuilderWithVarTest {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
 
-        ECKey k1 = new ECKey();
-        ECKey k2 = new ECKey();
+        PrivateKey k1 = PrivateKey.fresh(NetworkType.TESTNET);
+        PrivateKey k2 = PrivateKey.fresh(NetworkType.TESTNET);
 
         String idK1 = ecks.addKey(k1);
         String idK2 = ecks.addKey(k2);
@@ -160,7 +162,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature1() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.ALL;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -173,7 +175,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature2() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.ALL;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -186,7 +188,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature3() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -199,7 +201,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature4() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -212,7 +214,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature5() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.NONE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -225,7 +227,7 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_signature6() {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         SigHash hashType = SigHash.NONE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
@@ -237,7 +239,7 @@ public class ScriptBuilderWithVarTest {
     }
     @Test
     public void test_derialize_signature() throws KeyStoreException {
-        ECKey key = new ECKey();
+        PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         String keyID = ECKeyStore.getUniqueID(key);
         String serialScript = "15 [sig,"+keyID+",**]";
 
