@@ -87,6 +87,11 @@
                     }
                 })
 
+                // fix scroll-bar show/hide on resizing
+                $("#xtext-editor").mouseup(function() {
+                	editor.refresh();
+                })
+
                 $("#compile").click(function() {
                     $("#compile").addClass("running")
                     setTimeout(function() {
