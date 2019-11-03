@@ -37,7 +37,7 @@ class WebUtilsServlet extends HttpServlet {
     val gson = new Gson
 
     @Accessors
-    private static class KeyResult {
+    static class KeyResult {
         val String privkeyTestnet
         val String privkeyMainnet
         val String pubkey
@@ -46,13 +46,13 @@ class WebUtilsServlet extends HttpServlet {
     }
 
     @Accessors
-    private static class HashRequest {
+    static class HashRequest {
         val String value
         val boolean hashAsString
     }
 
     @Accessors
-    private static class HashResult {
+    static class HashResult {
         val String value
         val String type
         val String sha1

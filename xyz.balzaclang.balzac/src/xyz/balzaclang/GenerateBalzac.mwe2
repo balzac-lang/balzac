@@ -52,6 +52,9 @@ Workflow {
                 generateStub = true
                 generateXtendStub = false
             }
+            fragment = web.WebIntegrationFragment {
+                framework = "codemirror"
+            }
         }
     }
 }

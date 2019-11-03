@@ -5,7 +5,8 @@
 }
 
 #xtext-editor {
-    height: 400px
+    height: 400px;
+    font-size: 11pt;
 }
 
 .resizable {
