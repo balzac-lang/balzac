@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.utils;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -21,6 +21,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.bitcoinj.script.ScriptPattern;
 import org.junit.Test;
+
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.Output;
+import xyz.balzaclang.lib.utils.PlaceholderUtils;
 
 public class PlaceholderUtilsTest {
 

@@ -33,7 +33,7 @@ public enum NetworkType {
         return this == TESTNET? NetworkParameters.fromID(NetworkParameters.ID_TESTNET): NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
     }
 
-    static NetworkType from(NetworkParameters parameters) {
+    public static NetworkType from(NetworkParameters parameters) {
         return parameters.getId().equals(NetworkParameters.ID_TESTNET)? TESTNET: MAINNET;
     }
 }

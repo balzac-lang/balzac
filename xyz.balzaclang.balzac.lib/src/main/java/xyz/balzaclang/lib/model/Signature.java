@@ -28,6 +28,9 @@ import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.crypto.TransactionSignature;
 
 import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.Input;
+import xyz.balzaclang.lib.model.transaction.Output;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
 

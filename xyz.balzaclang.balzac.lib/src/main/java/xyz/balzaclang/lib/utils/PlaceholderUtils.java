@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.utils;
 
+import xyz.balzaclang.lib.model.Address;
+import xyz.balzaclang.lib.model.Hash;
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.PrivateKey;
+import xyz.balzaclang.lib.model.PublicKey;
+import xyz.balzaclang.lib.model.Signature;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
+import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 
 public class PlaceholderUtils {
     public static final long INT = 0L;

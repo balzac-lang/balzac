@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.model.transaction;
 
 import java.io.Serializable;
 

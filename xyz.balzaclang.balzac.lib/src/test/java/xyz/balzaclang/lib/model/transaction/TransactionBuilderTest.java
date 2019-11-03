@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.model.transaction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,8 +23,13 @@ import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
+import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
+import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.Input;
+import xyz.balzaclang.lib.model.transaction.TransactionBuilder;
 import xyz.balzaclang.lib.utils.ObjectUtils;
 
 public class TransactionBuilderTest {

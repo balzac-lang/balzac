@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.model.transaction;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
 import xyz.balzaclang.lib.utils.Env;

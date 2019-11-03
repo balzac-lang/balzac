@@ -31,9 +31,9 @@ import org.bitcoinj.script.ScriptException;
 import xyz.balzaclang.lib.ECKeyStore;
 import xyz.balzaclang.lib.client.BitcoinClient;
 import xyz.balzaclang.lib.client.TransactionNotFoundException;
-import xyz.balzaclang.lib.model.ITransactionBuilder;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.OutputScript;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 import xyz.balzaclang.lib.validation.ValidationResult.InputValidationError;
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.model.transaction;
 
+import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 
 public class CoinbaseTransactionBuilder extends TransactionBuilder {

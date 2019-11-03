@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.balzaclang.lib.model;
+package xyz.balzaclang.lib.model.transaction;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,6 +23,9 @@ import java.security.KeyStoreException;
 import org.junit.Test;
 
 import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.model.NetworkType;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
 public class ITransactionBuilderTest {
