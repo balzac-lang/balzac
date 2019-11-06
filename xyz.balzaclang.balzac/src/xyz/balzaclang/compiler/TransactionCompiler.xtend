@@ -17,18 +17,19 @@
 package xyz.balzaclang.compiler
 
 import com.google.inject.Inject
+import org.apache.log4j.Logger
+import org.eclipse.xtext.util.OnChangeEvictingCache
 import xyz.balzaclang.balzac.Reference
 import xyz.balzaclang.balzac.Transaction
-import xyz.balzaclang.lib.model.CoinbaseTransactionBuilder
-import xyz.balzaclang.lib.model.ITransactionBuilder
-import xyz.balzaclang.lib.model.TransactionBuilder
 import xyz.balzaclang.lib.model.script.InputScript
+import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
+import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.CompilerUtils
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
-import org.apache.log4j.Logger
-import org.eclipse.xtext.util.OnChangeEvictingCache
+
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 
 class TransactionCompiler {

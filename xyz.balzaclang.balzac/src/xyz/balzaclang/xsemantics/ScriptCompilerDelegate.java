@@ -20,9 +20,9 @@ import com.google.inject.Inject;
 import xyz.balzaclang.balzac.Input;
 import xyz.balzaclang.balzac.Output;
 import xyz.balzaclang.compiler.ScriptCompiler;
-import xyz.balzaclang.lib.model.ITransactionBuilder;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 
 /**
  * This class solves maven-build problems of interpreter.xsemantics

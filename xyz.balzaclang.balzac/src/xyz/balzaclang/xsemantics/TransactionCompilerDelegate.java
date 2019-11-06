@@ -19,7 +19,7 @@ import com.google.inject.Inject;
 
 import xyz.balzaclang.balzac.Transaction;
 import xyz.balzaclang.compiler.TransactionCompiler;
-import xyz.balzaclang.lib.model.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 
 /**
  * This class solves maven-build problems of interpreter.xsemantics

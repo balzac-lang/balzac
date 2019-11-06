@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import java.security.KeyStoreException
+import org.eclipse.emf.ecore.util.EcoreUtil
+import org.eclipse.xtext.EcoreUtil2
+import org.slf4j.LoggerFactory
 import xyz.balzaclang.balzac.AddressLiteral
 import xyz.balzaclang.balzac.AddressType
 import xyz.balzaclang.balzac.AndExpression
@@ -75,18 +79,14 @@ import xyz.balzaclang.balzac.TransactionType
 import xyz.balzaclang.lib.model.Address
 import xyz.balzaclang.lib.model.Hash
 import xyz.balzaclang.lib.model.Hash.HashAlgorithm
-import xyz.balzaclang.lib.model.ITransactionBuilder
-import xyz.balzaclang.lib.model.PlaceholderUtils
 import xyz.balzaclang.lib.model.PrivateKey
 import xyz.balzaclang.lib.model.PublicKey
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
 import xyz.balzaclang.lib.utils.BitcoinUtils
+import xyz.balzaclang.lib.utils.PlaceholderUtils
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.BalzacLogger
 import xyz.balzaclang.utils.BitcoinClientFactory
-import java.security.KeyStoreException
-import org.eclipse.emf.ecore.util.EcoreUtil
-import org.eclipse.xtext.EcoreUtil2
-import org.slf4j.LoggerFactory
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 

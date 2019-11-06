@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.bitcoinj</groupId>
             <artifactId>bitcoinj-core</artifactId>
-            <version>0.16.3-LIB</version>
+            <version>0.16.4-LIB</version>
         </dependency>
         <dependency>
             <groupId>com.sulacosoft</groupId>

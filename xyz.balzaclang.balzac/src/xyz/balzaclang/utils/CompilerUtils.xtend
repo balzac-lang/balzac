@@ -17,6 +17,9 @@
 package xyz.balzaclang.utils
 
 import com.google.inject.Singleton
+import java.util.List
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.EcoreUtil2
 import xyz.balzaclang.balzac.AddressType
 import xyz.balzaclang.balzac.BooleanType
 import xyz.balzaclang.balzac.HashType
@@ -32,13 +35,10 @@ import xyz.balzaclang.balzac.Type
 import xyz.balzaclang.compiler.CompileException
 import xyz.balzaclang.lib.model.Address
 import xyz.balzaclang.lib.model.Hash
-import xyz.balzaclang.lib.model.ITransactionBuilder
 import xyz.balzaclang.lib.model.PrivateKey
 import xyz.balzaclang.lib.model.PublicKey
 import xyz.balzaclang.lib.model.Signature
-import java.util.List
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.xtext.EcoreUtil2
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
 
 @Singleton
 class CompilerUtils {

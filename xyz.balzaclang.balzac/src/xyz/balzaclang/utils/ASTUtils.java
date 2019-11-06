@@ -57,14 +57,14 @@ import xyz.balzaclang.balzac.Versig;
 import xyz.balzaclang.lib.ECKeyStore;
 import xyz.balzaclang.lib.model.Address;
 import xyz.balzaclang.lib.model.Hash;
-import xyz.balzaclang.lib.model.ITransactionBuilder;
 import xyz.balzaclang.lib.model.NetworkType;
-import xyz.balzaclang.lib.model.PlaceholderUtils;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.PublicKey;
-import xyz.balzaclang.lib.model.SerialTransactionBuilder;
 import xyz.balzaclang.lib.model.Signature;
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
+import xyz.balzaclang.lib.utils.PlaceholderUtils;
 import xyz.balzaclang.xsemantics.BalzacInterpreter;
 import xyz.balzaclang.xsemantics.Rho;
 

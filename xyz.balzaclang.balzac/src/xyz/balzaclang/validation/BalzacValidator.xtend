@@ -70,9 +70,9 @@ import xyz.balzaclang.balzac.TransactionInputOperation
 import xyz.balzaclang.balzac.TransactionOutputOperation
 import xyz.balzaclang.balzac.Versig
 import xyz.balzaclang.lib.ECKeyStore
-import xyz.balzaclang.lib.model.ITransactionBuilder
-import xyz.balzaclang.lib.model.SerialTransactionBuilder
-import xyz.balzaclang.lib.model.TransactionBuilder
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
+import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder
+import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.lib.validation.ValidationResult.InputValidationError
 import xyz.balzaclang.lib.validation.Validator
 import xyz.balzaclang.utils.ASTUtils

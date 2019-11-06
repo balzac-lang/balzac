@@ -17,6 +17,8 @@
 package xyz.balzaclang.compiler
 
 import com.google.inject.Inject
+import javax.inject.Singleton
+import org.eclipse.xtext.EcoreUtil2
 import xyz.balzaclang.balzac.AndExpression
 import xyz.balzaclang.balzac.ArithmeticSigned
 import xyz.balzaclang.balzac.BalzacFactory
@@ -64,25 +66,23 @@ import xyz.balzaclang.balzac.TransactionParameter
 import xyz.balzaclang.balzac.Versig
 import xyz.balzaclang.lib.ECKeyStore
 import xyz.balzaclang.lib.model.Address
-import xyz.balzaclang.lib.model.ITransactionBuilder
 import xyz.balzaclang.lib.model.PrivateKey
 import xyz.balzaclang.lib.model.PublicKey
-import xyz.balzaclang.lib.model.SerialTransactionBuilder
-import xyz.balzaclang.lib.model.TransactionBuilder
 import xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar
 import xyz.balzaclang.lib.model.script.InputScript
 import xyz.balzaclang.lib.model.script.OutputScript
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
+import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder
+import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.lib.utils.BitcoinUtils
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.CompilerUtils
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
-import javax.inject.Singleton
-import org.eclipse.xtext.EcoreUtil2
-
-import static extension xyz.balzaclang.utils.ASTExtensions.*
 
 import static xyz.balzaclang.lib.model.script.ScriptOpCodes.*
+
+import static extension xyz.balzaclang.utils.ASTExtensions.*
 
 /*
  * EXPRESSIONS

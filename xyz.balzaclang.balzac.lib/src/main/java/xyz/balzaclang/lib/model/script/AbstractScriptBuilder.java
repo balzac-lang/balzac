@@ -49,61 +49,68 @@ import com.google.common.collect.ImmutableList;
  * @see ScriptBuilder2
  */
 @SuppressWarnings("javadoc")
-public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> extends ScriptBuilder implements Serializable {
+public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> implements Serializable {
 
+	private ScriptBuilder sb;
+	
     private static final long serialVersionUID = 1L;
 
     protected AbstractScriptBuilder() {
-        super();
+        sb = new ScriptBuilder();
     }
 
     protected AbstractScriptBuilder(Script template) {
-        super(template);
+    	sb = new ScriptBuilder(template);
     }
 
     public List<ScriptChunk> getChunks() {
-        return chunks;
+        return sb.getChunks();
     }
 
+    @SuppressWarnings("unchecked")
+    public T addChunk(ScriptChunk chunk) {
+    	sb.addChunk(chunk);
+        return (T) this;
+    }
+    
     public int size() {
         return getChunks().size();
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public T data(byte[] data) {
-        super.data(data);
+        sb.data(data);
         return (T) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public T number(long num) {
-        super.number(num);
+        sb.number(num);
         return (T) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public T op(int op) {
-        super.op(op);
+        sb.op(op);
         return (T) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public T opTrue() {
-        super.opTrue();
+        sb.opTrue();
         return (T) this;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     public T opFalse() {
-        super.opFalse();
+        sb.opFalse();
         return (T) this;
     }
 
+    public Script build() {
+    	return sb.build();
+    }
+    
     /**
      * Optimize this script builder.
      * Removed the opcodes that don't change the semantic of the resulting script.

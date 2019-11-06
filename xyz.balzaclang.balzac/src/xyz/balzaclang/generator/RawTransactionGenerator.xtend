@@ -17,12 +17,6 @@
 package xyz.balzaclang.generator
 
 import com.google.inject.Inject
-import xyz.balzaclang.balzac.Eval
-import xyz.balzaclang.balzac.Model
-import xyz.balzaclang.balzac.PackageDeclaration
-import xyz.balzaclang.lib.model.ITransactionBuilder
-import xyz.balzaclang.lib.utils.BitcoinUtils
-import xyz.balzaclang.xsemantics.BalzacInterpreter
 import java.io.File
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
@@ -32,6 +26,12 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import xyz.balzaclang.balzac.Eval
+import xyz.balzaclang.balzac.Model
+import xyz.balzaclang.balzac.PackageDeclaration
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
+import xyz.balzaclang.lib.utils.BitcoinUtils
+import xyz.balzaclang.xsemantics.BalzacInterpreter
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 
