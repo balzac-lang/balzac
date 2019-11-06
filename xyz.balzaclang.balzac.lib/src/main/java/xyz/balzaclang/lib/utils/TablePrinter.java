@@ -37,7 +37,7 @@ public class TablePrinter {
     private String rowSuffix = " ";
     private int rowSuffixSize = 1;
     private String valueSeparator = " ";
-    private int valueSeparatorSize = 6;
+    private int valueSeparatorSize = 2;
     private String noValueRow;
 
 

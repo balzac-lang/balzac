@@ -57,7 +57,7 @@ import xyz.balzaclang.lib.utils.BitcoinUtils;
 import xyz.balzaclang.lib.utils.Env;
 import xyz.balzaclang.lib.utils.EnvI;
 
-public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
+public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 
@@ -68,13 +68,6 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     private final Env<Object> env = new Env<>();
 
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
-
-    public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
-        private static final long serialVersionUID = 1L;
-        public ScriptBuilderWithVar() {}
-        public ScriptBuilderWithVar(Script s) {super(s);}
-        public ScriptBuilderWithVar(String serial) {super(serial);}
-    }
 
     private static class SignatureUtil implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -130,18 +123,18 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         }
     }
 
-    protected AbstractScriptBuilderWithVar() {
+    protected ScriptBuilderWithVar() {
         this(new Script(new byte[]{}));
     }
 
-    protected AbstractScriptBuilderWithVar(Script script) {
+    protected ScriptBuilderWithVar(Script script) {
         super(script);
     }
 
-    protected AbstractScriptBuilderWithVar(String serializedScript) {
-        this.deserialize(serializedScript);
+    protected ScriptBuilderWithVar(String script) {
+        this.deserialize(script);
     }
-
+    
     @Override
     public Script build() {
         checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
@@ -217,7 +210,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
         for (ScriptChunk chunk : getChunks()) {
 
-            ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
+            ScriptBuilderWithVar<T> sb = new ScriptBuilderWithVar<>();
             if (isSignature(chunk)) {
                 String mapKey = getMapKey(chunk);
                 SignatureUtil sig = this.signatures.get(mapKey);
@@ -269,7 +262,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @return this builder
      */
     public T append(Script append) {
-        ScriptBuilderWithVar sb = new ScriptBuilderWithVar(append);
+        ScriptBuilderWithVar<T> sb = new ScriptBuilderWithVar<>(append);
         return this.append(sb);
     }
 
@@ -281,7 +274,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @return this builder
      */
     @SuppressWarnings("unchecked")
-    public <U extends AbstractScriptBuilderWithVar<U>> T append(AbstractScriptBuilderWithVar<U> append) {
+    public <U extends ScriptBuilderWithVar<U>> T append(ScriptBuilderWithVar<U> append) {
         for (ScriptChunk ch : append.getChunks()) {
 
             if (isVariable(ch)) {
@@ -460,21 +453,21 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     @SuppressWarnings("incomplete-switch")
     protected static String encodeModifier(SigHash sigHash, boolean anyoneCanPay) {
         switch (sigHash) {
-        case ALL: return (anyoneCanPay?"1":"*")+"*";
-        case NONE: return (anyoneCanPay?"1":"*")+"0";
-        case SINGLE: return (anyoneCanPay?"1":"*")+"1";
+        case ALL: return (anyoneCanPay?"SI":"AI")+"AO";
+        case NONE: return (anyoneCanPay?"SI":"AI")+"NO";
+        case SINGLE: return (anyoneCanPay?"SI":"AI")+"SO";
         }
         throw new IllegalStateException();
     }
 
     protected static Object[] decodeModifier(String modifier) {
         switch (modifier) {
-        case "**": return new Object[]{SigHash.ALL, Boolean.FALSE};
-        case "1*": return new Object[]{SigHash.ALL, Boolean.TRUE};
-        case "*0": return new Object[]{SigHash.NONE, Boolean.FALSE};
-        case "10": return new Object[]{SigHash.NONE, Boolean.TRUE};
-        case "*1": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
-        case "11": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
+        case "AIAO": return new Object[]{SigHash.ALL, Boolean.FALSE};
+        case "SIAO": return new Object[]{SigHash.ALL, Boolean.TRUE};
+        case "AINO": return new Object[]{SigHash.NONE, Boolean.FALSE};
+        case "SINO": return new Object[]{SigHash.NONE, Boolean.TRUE};
+        case "AISO": return new Object[]{SigHash.SINGLE, Boolean.FALSE};
+        case "SISO": return new Object[]{SigHash.SINGLE, Boolean.TRUE};
         }
         throw new IllegalStateException(modifier);
     }
@@ -536,7 +529,7 @@ public abstract class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
             return false;
         if (getClass() != obj.getClass())
             return false;
-        AbstractScriptBuilderWithVar<?> other = (AbstractScriptBuilderWithVar<?>) obj;
+        ScriptBuilderWithVar<?> other = (ScriptBuilderWithVar<?>) obj;
         if (env == null) {
             if (other.env != null)
                 return false;

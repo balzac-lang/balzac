@@ -41,11 +41,11 @@ import com.google.common.collect.ImmutableList;
  * new ScriptBuilder2().number(42).number(5).data(new byte[]{})
  * </pre>
  *
- * <p>This class is extended by {@code AbstractScriptBuilderWithVar}, that, in turn,
+ * <p>This class is extended by {@code ScriptBuilderWithVar}, that, in turn,
  * is extended by {@code ScriptBuilder2} (which is concrete and public).</p>
  *
  * @param <T> a class extending {@code AbstractScriptBuilder}
- * @see AbstractScriptBuilderWithVar
+ * @see ScriptBuilderWithVar
  * @see ScriptBuilder2
  */
 @SuppressWarnings("javadoc")

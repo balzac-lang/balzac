@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 
-public abstract class InputScript extends AbstractScriptBuilderWithVar<InputScript> {
+public abstract class InputScript extends ScriptBuilderWithVar<InputScript> {
 
     private static final long serialVersionUID = 1L;
 

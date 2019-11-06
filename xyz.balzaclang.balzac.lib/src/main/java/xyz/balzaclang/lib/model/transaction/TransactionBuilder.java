@@ -461,7 +461,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         tp.addRow("ready", tb.isReady());
         tp.addRow("locktime", tb.locktime!=UNSET_LOCKTIME?String.valueOf(tb.locktime):"none");
         sb.append(tp.toString());
-        sb.append("\n\n");
+        sb.append("\n");
     }
 
     private static void addVariables(StringBuilder sb, EnvI<Object,?> env) {
@@ -473,7 +473,7 @@ public class TransactionBuilder implements ITransactionBuilder {
                     env.getValueOrDefault(name, "").toString());
         }
         sb.append(tp.toString());
-        sb.append("\n\n");
+        sb.append("\n");
     }
 
     private static void addInputs(StringBuilder sb, List<Input> inputs) {
@@ -502,7 +502,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             }
         }
         sb.append(tp.toString());
-        sb.append("\n\n");
+        sb.append("\n");
     }
 
     private static void addOutputs(StringBuilder sb, List<Output> inputs) {
@@ -529,7 +529,7 @@ public class TransactionBuilder implements ITransactionBuilder {
             }
         }
         sb.append(tp.toString());
-        sb.append("\n\n");
+        sb.append("\n");
     }
 
     private static List<String> getCompactVariables(EnvI<Object,?> env) {
