@@ -57,10 +57,26 @@ import xyz.balzaclang.lib.utils.BitcoinUtils;
 import xyz.balzaclang.lib.utils.Env;
 import xyz.balzaclang.lib.utils.EnvI;
 
-public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
+abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 
+	public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
+		private static final long serialVersionUID = 1L;
+		
+	    public ScriptBuilderWithVar() {
+	        this(new Script(new byte[]{}));
+	    }
+
+	    public ScriptBuilderWithVar(Script script) {
+	        super(script);
+	    }
+
+	    public ScriptBuilderWithVar(String script) {
+	        this.deserialize(script);
+	    }
+	}	
+	
     private static final long serialVersionUID = 1L;
     private static final String SIGNATURE_PREFIX = "[$sig$]";
     private static final String FREEVAR_PREFIX = "[$var$]";
@@ -123,15 +139,15 @@ public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
         }
     }
 
-    protected ScriptBuilderWithVar() {
+    protected AbstractScriptBuilderWithVar() {
         this(new Script(new byte[]{}));
     }
 
-    protected ScriptBuilderWithVar(Script script) {
+    protected AbstractScriptBuilderWithVar(Script script) {
         super(script);
     }
 
-    protected ScriptBuilderWithVar(String script) {
+    protected AbstractScriptBuilderWithVar(String script) {
         this.deserialize(script);
     }
     
@@ -210,7 +226,7 @@ public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
 
         for (ScriptChunk chunk : getChunks()) {
 
-            ScriptBuilderWithVar<T> sb = new ScriptBuilderWithVar<>();
+            ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
             if (isSignature(chunk)) {
                 String mapKey = getMapKey(chunk);
                 SignatureUtil sig = this.signatures.get(mapKey);
@@ -262,7 +278,7 @@ public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
      * @return this builder
      */
     public T append(Script append) {
-        ScriptBuilderWithVar<T> sb = new ScriptBuilderWithVar<>(append);
+    	ScriptBuilderWithVar sb = new ScriptBuilderWithVar(append);
         return this.append(sb);
     }
 
@@ -274,7 +290,7 @@ public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
      * @return this builder
      */
     @SuppressWarnings("unchecked")
-    public <U extends ScriptBuilderWithVar<U>> T append(ScriptBuilderWithVar<U> append) {
+    public <U extends AbstractScriptBuilderWithVar<U>> T append(AbstractScriptBuilderWithVar<U> append) {
         for (ScriptChunk ch : append.getChunks()) {
 
             if (isVariable(ch)) {
@@ -529,7 +545,7 @@ public class ScriptBuilderWithVar<T extends ScriptBuilderWithVar<T>>
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ScriptBuilderWithVar<?> other = (ScriptBuilderWithVar<?>) obj;
+        AbstractScriptBuilderWithVar<?> other = (AbstractScriptBuilderWithVar<?>) obj;
         if (env == null) {
             if (other.env != null)
                 return false;

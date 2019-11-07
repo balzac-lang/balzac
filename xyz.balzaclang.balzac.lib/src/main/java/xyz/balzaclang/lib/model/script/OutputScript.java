@@ -27,7 +27,7 @@ import org.bitcoinj.script.ScriptPattern;
 
 import xyz.balzaclang.lib.model.Address;
 
-public abstract class OutputScript extends ScriptBuilderWithVar<OutputScript> {
+public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputScript> {
 
     private static final long serialVersionUID = 1L;
 

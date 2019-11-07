@@ -28,7 +28,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.junit.Test;
 
 import xyz.balzaclang.lib.model.script.AbstractScriptBuilder;
-import xyz.balzaclang.lib.model.script.ScriptBuilderWithVar;
+import static xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class AbstractScriptBuilderTest {
 
@@ -155,7 +155,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize_sb() {
-        Script s = new ScriptBuilderWithVar<>()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
                 .optimize()
@@ -167,7 +167,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize2_sb() {
-        Script s = new ScriptBuilderWithVar<>()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .number(4)
                 .op(OP_FROMALTSTACK)
@@ -180,7 +180,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize3_sb() {
-        Script s = new ScriptBuilderWithVar<>()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
                 .number(4)
@@ -195,7 +195,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize4_sb() {
-        Script s = new ScriptBuilderWithVar<>()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
                 .op(OP_FROMALTSTACK)
@@ -210,7 +210,7 @@ public class AbstractScriptBuilderTest {
 
     @Test
     public void test_optimize5_sb() {
-        Script s = new ScriptBuilderWithVar<>()
+        Script s = new ScriptBuilderWithVar()
                 .op(OP_TOALTSTACK)
                 .op(OP_TOALTSTACK)
                 .number(4)
