@@ -35,24 +35,34 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import xyz.balzaclang.balzac.AddressLiteral;
+import xyz.balzaclang.balzac.AddressType;
 import xyz.balzaclang.balzac.BalzacFactory;
 import xyz.balzaclang.balzac.BooleanLiteral;
+import xyz.balzaclang.balzac.BooleanType;
 import xyz.balzaclang.balzac.Constant;
 import xyz.balzaclang.balzac.Expression;
 import xyz.balzaclang.balzac.HashLiteral;
+import xyz.balzaclang.balzac.HashType;
+import xyz.balzaclang.balzac.IntType;
 import xyz.balzaclang.balzac.Interpretable;
 import xyz.balzaclang.balzac.KeyLiteral;
+import xyz.balzaclang.balzac.KeyType;
 import xyz.balzaclang.balzac.Literal;
 import xyz.balzaclang.balzac.Network;
 import xyz.balzaclang.balzac.NumberLiteral;
 import xyz.balzaclang.balzac.PubKeyLiteral;
+import xyz.balzaclang.balzac.PubkeyType;
 import xyz.balzaclang.balzac.Reference;
 import xyz.balzaclang.balzac.RelativeTime;
 import xyz.balzaclang.balzac.Script;
 import xyz.balzaclang.balzac.SignatureLiteral;
+import xyz.balzaclang.balzac.SignatureType;
 import xyz.balzaclang.balzac.StringLiteral;
+import xyz.balzaclang.balzac.StringType;
 import xyz.balzaclang.balzac.TransactionExpression;
 import xyz.balzaclang.balzac.TransactionParameter;
+import xyz.balzaclang.balzac.TransactionType;
+import xyz.balzaclang.balzac.Type;
 import xyz.balzaclang.balzac.Versig;
 import xyz.balzaclang.lib.ECKeyStore;
 import xyz.balzaclang.lib.model.Address;
@@ -362,5 +372,19 @@ public class ASTUtils {
             }
         }
         return Optional.<xyz.balzaclang.balzac.Transaction>absent();
+    }
+
+    public Class<?> convertType(Type type) {
+    	if(type instanceof IntType) return Long.class;
+        if(type instanceof StringType) return String.class;
+        if(type instanceof BooleanType) return Boolean.class;
+        if(type instanceof HashType) return Hash.class;
+        if(type instanceof KeyType) return PrivateKey.class;
+        if(type instanceof PubkeyType) return PublicKey.class;
+        if(type instanceof AddressType) return Address.class;
+        if(type instanceof TransactionType) return ITransactionBuilder.class;
+        if(type instanceof SignatureType) return Signature.class;
+
+        throw new IllegalArgumentException("Unexpected type " + type);
     }
 }

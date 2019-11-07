@@ -76,7 +76,6 @@ import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder
 import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.lib.utils.BitcoinUtils
 import xyz.balzaclang.utils.ASTUtils
-import xyz.balzaclang.utils.CompilerUtils
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
@@ -96,7 +95,6 @@ import static extension xyz.balzaclang.utils.ASTExtensions.*
 @Singleton
 class ScriptCompiler {
 
-    @Inject extension CompilerUtils
     @Inject extension ASTUtils
     @Inject extension BalzacInterpreter
 

@@ -26,7 +26,6 @@ import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
 import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.utils.ASTUtils
-import xyz.balzaclang.utils.CompilerUtils
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
@@ -39,7 +38,6 @@ class TransactionCompiler {
     @Inject extension BalzacInterpreter
     @Inject extension ASTUtils astUtils
     @Inject extension ScriptCompiler
-    @Inject extension CompilerUtils
     @Inject OnChangeEvictingCache cache;
 
     def ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
