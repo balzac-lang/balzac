@@ -109,10 +109,6 @@ class ScriptCompiler {
      */
     def InputScript compileInputScript(Input input, ITransactionBuilder parentTx, Rho rho) {
 
-        if (!rho.evaluateWitnesses) {
-            return InputScript.create()
-        }
-
         val outpoint = input.outpoint
         val outScript = parentTx.outputs.get(outpoint).script
 

@@ -30,7 +30,6 @@ public class Rho extends HashMap<Referrable,Object> {
 
     private final Set<EObject> visited = new HashSet<>();
     public final NetworkType networkParams;
-    private boolean evaluateWitnesses = true;
 
     public Rho(NetworkType params) {
         this.networkParams = params;
@@ -39,15 +38,6 @@ public class Rho extends HashMap<Referrable,Object> {
     public Rho addVisited(EObject tx) {
         visited.add(tx);
         return this;
-    }
-
-    public Rho setEvaluateWitnesses(boolean value) {
-        evaluateWitnesses = value;
-        return this;
-    }
-
-    public boolean getEvaluateWitnesses() {
-        return evaluateWitnesses;
     }
 
     public Rho removeVisited(EObject tx) {
