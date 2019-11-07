@@ -51,8 +51,8 @@ import com.google.common.collect.ImmutableList;
 @SuppressWarnings("javadoc")
 public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> implements Serializable {
 
-	private ScriptBuilder sb;
-	
+    private ScriptBuilder sb;
+
     private static final long serialVersionUID = 1L;
 
     protected AbstractScriptBuilder() {
@@ -60,7 +60,7 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
     }
 
     protected AbstractScriptBuilder(Script template) {
-    	sb = new ScriptBuilder(template);
+        sb = new ScriptBuilder(template);
     }
 
     public List<ScriptChunk> getChunks() {
@@ -69,10 +69,10 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
 
     @SuppressWarnings("unchecked")
     public T addChunk(ScriptChunk chunk) {
-    	sb.addChunk(chunk);
+        sb.addChunk(chunk);
         return (T) this;
     }
-    
+
     public int size() {
         return getChunks().size();
     }
@@ -108,9 +108,9 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
     }
 
     public Script build() {
-    	return sb.build();
+        return sb.build();
     }
-    
+
     /**
      * Optimize this script builder.
      * Removed the opcodes that don't change the semantic of the resulting script.

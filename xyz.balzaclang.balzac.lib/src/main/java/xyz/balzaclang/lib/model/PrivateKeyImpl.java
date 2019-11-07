@@ -63,7 +63,7 @@ class PrivateKeyImpl implements PrivateKey {
 
     @Override
     public NetworkType getNetworkType() {
-    	return params;
+        return params;
     }
 
     @Override

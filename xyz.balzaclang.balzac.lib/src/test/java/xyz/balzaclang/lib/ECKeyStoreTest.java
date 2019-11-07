@@ -32,13 +32,13 @@ public class ECKeyStoreTest {
     public void changePassword() throws KeyStoreException {
         ECKeyStore ks = new ECKeyStore();
         PrivateKey k1 = PrivateKey.fresh(NetworkType.TESTNET);
-        
+
         // add a key
         String alias1 = ks.addKey(k1);
-        
+
         // change password
         ks.changePassword("test".toCharArray());
-        
+
         // retrieve the key
         PrivateKey k2 = ks.getKey(ECKeyStore.getUniqueID(k1));
 

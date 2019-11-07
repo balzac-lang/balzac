@@ -662,7 +662,7 @@ class BalzacValidator extends AbstractBalzacValidator {
          * Verify that the output values are positive
          */
         hasError = !checkPositiveOutputValue(txBuilder, source, sourceIsTx)
-        
+
         return hasError
     }
 

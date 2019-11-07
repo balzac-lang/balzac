@@ -22,7 +22,7 @@ public class BalzacLogger implements Logger {
 
     private final Logger logger;
 
-    private String prefix = "    ";
+    private String prefix = "  ";
     private int prefixCount = 0;
 
     public BalzacLogger(Logger logger) {

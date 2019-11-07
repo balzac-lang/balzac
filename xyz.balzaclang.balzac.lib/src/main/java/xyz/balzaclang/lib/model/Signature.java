@@ -40,19 +40,19 @@ public class Signature {
     private Optional<PublicKey> pubkey = Optional.empty();
 
     public static void isValidAndCanonical(byte[] signature) throws VerificationException, SignatureDecodeException {
-		TransactionSignature.decodeFromBitcoin(signature, true, true);
+        TransactionSignature.decodeFromBitcoin(signature, true, true);
     }
-    
+
     public Signature(byte[] signature) {
         this(signature, null);
     }
 
     public Signature(byte[] signature, PublicKey pubkey) {
-    	checkArgument(signature != null, "Signature cannot be null");
+        checkArgument(signature != null, "Signature cannot be null");
         this.signature = Arrays.copyOf(signature, signature.length);
         setPubkey(pubkey);
     }
-    
+
     public byte[] getSignature() {
         return signature;
     }

@@ -243,7 +243,7 @@ public class ScriptBuilderWithVarTest {
         String serialScript = "15 [sig,"+keyID+",AIAO]";
 
         ScriptBuilderWithVar res = new ScriptBuilderWithVar(serialScript);
-        
+
         assertEquals(1, res.signatureSize());
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());

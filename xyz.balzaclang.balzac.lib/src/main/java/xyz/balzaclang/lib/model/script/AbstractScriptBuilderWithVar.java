@@ -61,22 +61,22 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     extends AbstractScriptBuilder<T>
     implements EnvI<Object,T> {
 
-	public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
-		private static final long serialVersionUID = 1L;
-		
-	    public ScriptBuilderWithVar() {
-	        this(new Script(new byte[]{}));
-	    }
+    public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
+        private static final long serialVersionUID = 1L;
 
-	    public ScriptBuilderWithVar(Script script) {
-	        super(script);
-	    }
+        public ScriptBuilderWithVar() {
+            this(new Script(new byte[]{}));
+        }
 
-	    public ScriptBuilderWithVar(String script) {
-	        this.deserialize(script);
-	    }
-	}	
-	
+        public ScriptBuilderWithVar(Script script) {
+            super(script);
+        }
+
+        public ScriptBuilderWithVar(String script) {
+            this.deserialize(script);
+        }
+    }
+
     private static final long serialVersionUID = 1L;
     private static final String SIGNATURE_PREFIX = "[$sig$]";
     private static final String FREEVAR_PREFIX = "[$var$]";
@@ -150,7 +150,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     protected AbstractScriptBuilderWithVar(String script) {
         this.deserialize(script);
     }
-    
+
     @Override
     public Script build() {
         checkState(isReady(), "there exist some free-variables or signatures that need to be set before building");
@@ -278,7 +278,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @return this builder
      */
     public T append(Script append) {
-    	ScriptBuilderWithVar sb = new ScriptBuilderWithVar(append);
+        ScriptBuilderWithVar sb = new ScriptBuilderWithVar(append);
         return this.append(sb);
     }
 

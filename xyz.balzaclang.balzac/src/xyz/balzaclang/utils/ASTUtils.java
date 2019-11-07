@@ -146,10 +146,6 @@ public class ASTUtils {
         return refs;
     }
 
-    public boolean hasTxVariables(EObject exp) {
-        return !getTxVariables(exp).isEmpty();
-    }
-
     public <T extends Interpretable> T interpretSafe(T exp) {
         return interpretSafe(exp, new Rho(networkParams(exp)));
     }
@@ -296,18 +292,6 @@ public class ASTUtils {
         return seconds % 512 > 0;
     }
 
-    public long setRelativeTimelockFlag(long i) {
-        // true if the 22th bit is UNSET
-        long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
-        return i | mask;
-    }
-
-    public boolean isRelativeTimelockFlag(long n) {
-        // true if the 22th bit is SET
-        int mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
-        return (n & mask) != 0;
-    }
-
     /**
      * Cast the given number to unsigned-short (16 bit)
      * @param i the number to cast
@@ -318,15 +302,20 @@ public class ASTUtils {
         long mask = 0x0000FFFF;
         long value = i & mask;
 
-        if (value!=i)
+        if (value != i)
             throw new NumberFormatException("The number does not fit in 16 bits");
 
         return value;
     }
 
+    /**
+     * Return true if the given number fits in 16 bits unsigned.
+     * @param i the number to check
+     * @return true if it fits, false otherwise
+     */
     public boolean fitIn16bits (long i) {
         try {
-            castUnsignedShort((int)i);
+            castUnsignedShort(i);
             return true;
         }
         catch (NumberFormatException e) {
@@ -335,7 +324,15 @@ public class ASTUtils {
     }
 
     public long getSequenceNumber(long value, boolean isBlock, Rho rho) {
-        return isBlock? castUnsignedShort(value): setRelativeTimelockFlag(getDelayValue(value));
+        if (isBlock) {
+            return castUnsignedShort(value);
+        }
+        else {
+            long delay = getDelayValue(value);
+            long mask = 0b0000_0000__0100_0000__0000_0000__0000_0000;
+            // set the 22th bit
+            return delay | mask;
+        }
     }
 
     public NetworkType networkParams(EObject obj) {
@@ -375,7 +372,7 @@ public class ASTUtils {
     }
 
     public Class<?> convertType(Type type) {
-    	if(type instanceof IntType) return Long.class;
+        if(type instanceof IntType) return Long.class;
         if(type instanceof StringType) return String.class;
         if(type instanceof BooleanType) return Boolean.class;
         if(type instanceof HashType) return Hash.class;
