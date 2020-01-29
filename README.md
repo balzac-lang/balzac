@@ -76,7 +76,7 @@ docker build -f docker/Dockerfile-build -t balzac:latest .
 docker run -p 8080:8080 balzac:latest
 ```
 
-### Prebuild image
+### Prebuilt image
 
 DockerHub: [balzaclang/balzac](https://hub.docker.com/r/balzaclang/balzac)
 
