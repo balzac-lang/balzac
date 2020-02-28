@@ -60,8 +60,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
     /**
      * Create contents of the preference page.
      *
-     * @param parent
-     *            the parent composite
+     * @param parent the parent composite
      */
     @Override
     public Control createContents(Composite parent) {
@@ -159,8 +158,7 @@ public class KeystoreGenerationPreferences extends PreferencePage implements IWo
         if (!repeatPasswordText.getText().isEmpty()) {
             try {
                 secureStorage.node(SecureStorageUtils.SECURE_STORAGE__NODE__KEYSTORE).put(
-                        SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, repeatPasswordText.getText(),
-                        true);
+                    SecureStorageUtils.SECURE_STORAGE__PROPERTY__KEYSTORE_PASSWORD, repeatPasswordText.getText(), true);
             } catch (StorageException e) {
                 e.printStackTrace();
                 this.setErrorMessage("An error occurred reading the secure storage");

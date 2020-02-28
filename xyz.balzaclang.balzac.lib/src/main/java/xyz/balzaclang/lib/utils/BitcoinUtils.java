@@ -34,7 +34,7 @@ public class BitcoinUtils {
     }
 
     public static Long sizeOf(Boolean value) {
-        return value? 1L : 0L;
+        return value ? 1L : 0L;
     }
 
     public static Long sizeOf(String value) {
@@ -62,7 +62,7 @@ public class BitcoinUtils {
             return new ScriptBuilder().data(((Hash) obj).getBytes()).build();
 
         else if (obj instanceof Boolean)
-            return ((Boolean) obj)? new ScriptBuilder().opTrue().build(): new ScriptBuilder().opFalse().build();
+            return ((Boolean) obj) ? new ScriptBuilder().opTrue().build() : new ScriptBuilder().opFalse().build();
 
         else if (obj instanceof TransactionSignature)
             return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();

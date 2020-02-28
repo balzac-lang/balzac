@@ -18,8 +18,8 @@ package xyz.balzaclang.lib.model;
 import org.bitcoinj.core.NetworkParameters;
 
 public enum NetworkType {
-    MAINNET,
-    TESTNET;
+
+    MAINNET, TESTNET;
 
     public boolean isTestnet() {
         return this == TESTNET;
@@ -30,10 +30,11 @@ public enum NetworkType {
     }
 
     public NetworkParameters toNetworkParameters() {
-        return this == TESTNET? NetworkParameters.fromID(NetworkParameters.ID_TESTNET): NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
+        return this == TESTNET ? NetworkParameters.fromID(NetworkParameters.ID_TESTNET)
+            : NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
     }
 
     public static NetworkType from(NetworkParameters parameters) {
-        return parameters.getId().equals(NetworkParameters.ID_TESTNET)? TESTNET: MAINNET;
+        return parameters.getId().equals(NetworkParameters.ID_TESTNET) ? TESTNET : MAINNET;
     }
 }

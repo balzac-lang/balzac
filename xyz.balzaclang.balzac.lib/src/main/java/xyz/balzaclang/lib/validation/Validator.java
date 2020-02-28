@@ -50,7 +50,9 @@ public class Validator {
         }
     }
 
-    public static ValidationResult checkWitnessesCorrecltySpendsOutputs(ITransactionBuilder txBuilder, ECKeyStore keyStore) {
+    public static ValidationResult checkWitnessesCorrecltySpendsOutputs(
+        ITransactionBuilder txBuilder,
+        ECKeyStore keyStore) {
         // preconditions
         if (txBuilder.isCoinbase()) {
             return ValidationResult.ok("Transaction is a coinbase");
@@ -61,22 +63,20 @@ public class Validator {
 
         try {
             Transaction tx = txBuilder.toTransaction(keyStore);
-            for (int i=0; i<tx.getInputs().size(); i++) {
+            for (int i = 0; i < tx.getInputs().size(); i++) {
                 Script inputScript = tx.getInput(i).getScriptSig();
                 Script outputScript = tx.getInput(i).getOutpoint().getConnectedOutput().getScriptPubKey();
 
                 try {
                     inputScript.correctlySpends(tx, i, outputScript, Script.ALL_VERIFY_FLAGS);
-                }
-                catch (ScriptException e) {
+                } catch (ScriptException e) {
                     return new InputValidationError(i, e.getMessage(), inputScript, outputScript);
                 }
             }
             return ValidationResult.ok("All inputs correctly spend their outputs");
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             String message = "Generic error.";
-            message += e.getMessage() != null? " Details: " + e.getMessage() : "";
+            message += e.getMessage() != null ? " Details: " + e.getMessage() : "";
             return ValidationResult.error(message);
         }
     }
@@ -105,25 +105,19 @@ public class Validator {
         try {
             body.run();
             return ValidationResult.ok();
-        }
-        catch (InvalidChecksum e) {
+        } catch (InvalidChecksum e) {
             message = "Checksum does not validate";
-        }
-        catch (InvalidCharacter e) {
+        } catch (InvalidCharacter e) {
             message = "Invalid character '" + Character.toString(e.character) + "' at position " + e.position;
-        }
-        catch (InvalidDataLength e) {
+        } catch (InvalidDataLength e) {
             message = "Invalid data length";
-        }
-        catch (WrongNetwork e) {
+        } catch (WrongNetwork e) {
             message = "Wrong network type";
-        }
-        catch (AddressFormatException e) {
+        } catch (AddressFormatException e) {
             message = "Unable to decode";
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             message = "Generic error.";
-            message += e.getMessage() != null? " Details: " + e.getMessage() : "";
+            message += e.getMessage() != null ? " Details: " + e.getMessage() : "";
         }
         return ValidationResult.error(message);
     }
@@ -133,13 +127,11 @@ public class Validator {
         try {
             body.run();
             return ValidationResult.ok();
-        }
-        catch (VerificationException e) {
+        } catch (VerificationException e) {
             message = "Transaction is invalid. Details: " + e.getMessage();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             message = "Generic error.";
-            message += e.getMessage() != null? " Details: " + e.getMessage() : "";
+            message += e.getMessage() != null ? " Details: " + e.getMessage() : "";
         }
         return ValidationResult.error(message);
     }

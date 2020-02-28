@@ -15,6 +15,7 @@
  */
 
 package xyz.balzaclang.lib;
+
 import static com.google.common.base.Preconditions.checkState;
 
 import java.io.File;
@@ -47,18 +48,18 @@ import xyz.balzaclang.lib.utils.BitcoinUtils;
 
 public class ECKeyStore {
 
-
     public static String getUniqueID(PrivateKey key) {
         return BitcoinUtils.encode(Utils.sha256hash160(key.getBytes()));
     }
 
     private char[] password;
     private KeyStore ks;
-    private Map<String,NetworkType> netwotkTypeMap = new HashMap<>();
+    private Map<String, NetworkType> netwotkTypeMap = new HashMap<>();
 
     /**
-     * Create a new ECKeyStore with an <b>empty password</b>.
-     * Use {@link #changePassword(char[])} to set a new password.
+     * Create a new ECKeyStore with an <b>empty password</b>. Use
+     * {@link #changePassword(char[])} to set a new password.
+     * 
      * @return an instance of ECKeyStore
      * @throws KeyStoreException if an error occur creating the {@link KeyStore}
      */
@@ -67,9 +68,10 @@ public class ECKeyStore {
     }
 
     /**
-     * Create a new ECKeyStore with the specified password.
-     * The same password is used to store the keystore via {@link #store(File)} and for entries.
-     * Use {@link #changePassword(char[])} to set a new password.
+     * Create a new ECKeyStore with the specified password. The same password is
+     * used to store the keystore via {@link #store(File)} and for entries. Use
+     * {@link #changePassword(char[])} to set a new password.
+     * 
      * @param password a password for the store and its entries.
      * @return an instance of ECKeyStore.
      * @throws KeyStoreException if an error occur creating the {@link KeyStore}
@@ -81,7 +83,8 @@ public class ECKeyStore {
     /**
      * Load the keystore from the given input stream, or create a new one if null.
      * The password is used to decrypt the keystore <b>and each entry</b>.
-     * @param input the input stream from which load the keystore.
+     * 
+     * @param input    the input stream from which load the keystore.
      * @param password a password for the store and its entries.
      * @throws KeyStoreException
      */
@@ -91,7 +94,7 @@ public class ECKeyStore {
         try {
             ks.load(input, password);
         } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
-            throw new KeyStoreException("Cannot create the keystore: "+e.getMessage(), e);
+            throw new KeyStoreException("Cannot create the keystore: " + e.getMessage(), e);
         }
     }
 
@@ -111,7 +114,7 @@ public class ECKeyStore {
             entryKey = ks.getKey(keyID, password);
             return PrivateKey.from(entryKey.getEncoded(), netwotkTypeMap.get(keyID));
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException e) {
-            throw new KeyStoreException("Cannot fetch key "+keyID+": "+e.getMessage(), e);
+            throw new KeyStoreException("Cannot fetch key " + keyID + ": " + e.getMessage(), e);
         }
     }
 
@@ -123,15 +126,15 @@ public class ECKeyStore {
         try (FileOutputStream fos = new FileOutputStream(ksFile)) {
             ks.store(fos, password);
         } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
-            throw new KeyStoreException("Cannot store keystore "+ksFile.getAbsolutePath()+": "+e.getMessage(), e);
+            throw new KeyStoreException("Cannot store keystore " + ksFile.getAbsolutePath() + ": " + e.getMessage(), e);
         }
     }
 
     public void changePassword(char[] password) throws KeyStoreException {
         try {
             for (String alias : Collections.list(ks.aliases())) {
-                Entry entry = ks.getEntry(alias, new PasswordProtection(this.password));    // read
-                ks.setEntry(alias, entry, new PasswordProtection(password));                // override
+                Entry entry = ks.getEntry(alias, new PasswordProtection(this.password)); // read
+                ks.setEntry(alias, entry, new PasswordProtection(password)); // override
             }
 
             // update the password

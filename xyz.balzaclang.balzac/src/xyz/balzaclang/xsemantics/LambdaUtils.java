@@ -35,8 +35,7 @@ public class LambdaUtils {
     }
 
     public TypeVariable createTypeVariable(String name) {
-        TypeVariable typeVariable = BalzacFactory.eINSTANCE
-                .createTypeVariable();
+        TypeVariable typeVariable = BalzacFactory.eINSTANCE.createTypeVariable();
         typeVariable.setValue(name);
         return typeVariable;
     }

@@ -46,7 +46,7 @@ public class ScriptBuilderWithVarTest {
     @Before
     public void before() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         ecks = new ECKeyStore();
-        ecks.changePassword(new char[]{'t','e','s','t'});
+        ecks.changePassword(new char[] { 't', 'e', 's', 't' });
     }
 
     @After
@@ -97,7 +97,6 @@ public class ScriptBuilderWithVarTest {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
 
-
         sb = sb.removeVariable("foo");
         assertEquals(0, sb.size());
         assertFalse(sb.hasVariable("foo"));
@@ -105,7 +104,6 @@ public class ScriptBuilderWithVarTest {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
     }
-
 
     @Test
     public void test_signature() throws KeyStoreException {
@@ -130,8 +128,8 @@ public class ScriptBuilderWithVarTest {
         assertEquals(2, sb.signatureSize());
 
         Transaction tx = new Transaction(new MainNetParams());
-        tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[]{42,42}));
-        sb.setAllSignatures(ecks, tx, 0, new byte[]{}, false);
+        tx.addInput(new TransactionInput(new MainNetParams(), null, new byte[] { 42, 42 }));
+        sb.setAllSignatures(ecks, tx, 0, new byte[] {}, false);
         System.out.println(sb);
 
         assertEquals(2, sb.size());
@@ -167,7 +165,7 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",AIAO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AIAO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -180,7 +178,7 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",SIAO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SIAO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -193,7 +191,7 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",AISO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AISO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -206,7 +204,7 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",SISO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SISO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -219,7 +217,7 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",AINO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AINO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -232,15 +230,16 @@ public class ScriptBuilderWithVarTest {
         sb.number(15);
         sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig,"+ECKeyStore.getUniqueID(key)+",SINO]";
+        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SINO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
+
     @Test
     public void test_derialize_signature() throws KeyStoreException {
         PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
         String keyID = ECKeyStore.getUniqueID(key);
-        String serialScript = "15 [sig,"+keyID+",AIAO]";
+        String serialScript = "15 [sig," + keyID + ",AIAO]";
 
         ScriptBuilderWithVar res = new ScriptBuilderWithVar(serialScript);
 
@@ -248,35 +247,35 @@ public class ScriptBuilderWithVarTest {
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());
 
-        serialScript = "15 [sig,"+keyID+",SIAO]";
+        serialScript = "15 [sig," + keyID + ",SIAO]";
         res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.signatureSize());
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());
 
-        serialScript = "15 [sig,"+keyID+",AINO]";
+        serialScript = "15 [sig," + keyID + ",AINO]";
         res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.signatureSize());
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());
 
-        serialScript = "15 [sig,"+keyID+",SINO]";
+        serialScript = "15 [sig," + keyID + ",SINO]";
         res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.signatureSize());
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());
 
-        serialScript = "15 [sig,"+keyID+",AISO]";
+        serialScript = "15 [sig," + keyID + ",AISO]";
         res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.signatureSize());
         assertEquals(2, res.size());
         assertEquals(serialScript, res.serialize());
 
-        serialScript = "15 [sig,"+keyID+",SISO]";
+        serialScript = "15 [sig," + keyID + ",SISO]";
         res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.signatureSize());
@@ -286,11 +285,9 @@ public class ScriptBuilderWithVarTest {
 
     @Test
     public void test_serialize_deserialize() {
-        String[] scripts = {
-                "HASH160 PUSHDATA[8174e27d08a37d26e81bbb99c39d20426b782645] EQUAL",
-                "DUP HASH160 PUSHDATA[a9776115106b0599bf5f6f82c22e83429babad4d] EQUALVERIFY CHECKSIG",
-                "RETURN PUSHDATA[44415441]"
-        };
+        String[] scripts = { "HASH160 PUSHDATA[8174e27d08a37d26e81bbb99c39d20426b782645] EQUAL",
+            "DUP HASH160 PUSHDATA[a9776115106b0599bf5f6f82c22e83429babad4d] EQUALVERIFY CHECKSIG",
+            "RETURN PUSHDATA[44415441]" };
 
         for (String s : scripts) {
             assertEquals(s, new ScriptBuilderWithVar(s).serialize());

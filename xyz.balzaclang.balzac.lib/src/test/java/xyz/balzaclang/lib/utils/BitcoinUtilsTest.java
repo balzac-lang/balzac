@@ -17,5 +17,4 @@ package xyz.balzaclang.lib.utils;
 
 public class BitcoinUtilsTest {
 
-
 }

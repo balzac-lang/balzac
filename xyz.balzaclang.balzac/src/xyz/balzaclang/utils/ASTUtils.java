@@ -83,21 +83,23 @@ public class ASTUtils {
 
     private static Logger logger = Logger.getLogger(ASTUtils.class);
 
-    @Inject private BalzacInterpreter interpreter;
-    @Inject private OnChangeEvictingCache cache;
+    @Inject
+    private BalzacInterpreter interpreter;
+    @Inject
+    private OnChangeEvictingCache cache;
 
     private static final String cacheECKeyStoreID = "eckeystore";
 
     public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
         Resource resource = obj.eResource();
-        logger.debug("Get the ECKeyStore for resource "+resource);
+        logger.debug("Get the ECKeyStore for resource " + resource);
 
         try {
             ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
 
                 @Override
                 public ECKeyStore get() {
-                    logger.debug("Generating new ECKeyStore for resource "+resource);
+                    logger.debug("Generating new ECKeyStore for resource " + resource);
                     ECKeyStore kstore;
                     try {
                         kstore = new ECKeyStore();
@@ -106,22 +108,22 @@ public class ASTUtils {
                         keys.add(getPlaceholderPrivateKey(obj));
                         for (KeyLiteral k : keys) {
                             String uniqueID = kstore.addKey(PrivateKey.fromBase58(k.getValue()));
-                            logger.info("keystore: added key "+uniqueID);
+                            logger.info("keystore: added key " + uniqueID);
                         }
                         return kstore;
                     } catch (KeyStoreException e) {
-                        logger.error("Error when creating the ECKeyStore for resource "+resource);
+                        logger.error("Error when creating the ECKeyStore for resource " + resource);
                         return null;
                     }
                 }
             });
             return value;
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (e.getCause() instanceof KeyStoreException) {
                 throw (KeyStoreException) e.getCause();
             }
-            else throw e;
+            else
+                throw e;
         }
     }
 
@@ -136,13 +138,9 @@ public class ASTUtils {
         List<Reference> list = new ArrayList<>(EcoreUtil2.getAllContentsOfType(exp, Reference.class));
         if (exp instanceof Reference)
             list.add((Reference) exp);
-        Set<TransactionParameter> refs =
-                list
-                .stream()
-                .map( v -> v.getRef() )
-                .filter( r -> r instanceof TransactionParameter )
-                .map( r -> (TransactionParameter) r )
-                .collect(Collectors.toSet());
+        Set<TransactionParameter> refs = list.stream().map(v -> v.getRef())
+            .filter(r -> r instanceof TransactionParameter).map(r -> (TransactionParameter) r)
+            .collect(Collectors.toSet());
         return refs;
     }
 
@@ -213,12 +211,12 @@ public class ASTUtils {
             return res;
         }
         else {
-            throw new IllegalStateException("Unexpected type "+value.getClass());
+            throw new IllegalStateException("Unexpected type " + value.getClass());
         }
     }
 
     public boolean isCoinbase(xyz.balzaclang.balzac.Transaction tx) {
-        return tx.getInputs().size()==1 && tx.getInputs().get(0).isPlaceholder();
+        return tx.getInputs().size() == 1 && tx.getInputs().get(0).isPlaceholder();
     }
 
     public boolean isCoinbase(TransactionExpression tx) {
@@ -266,22 +264,13 @@ public class ASTUtils {
         return !isP2PKH(script) && !isOpReturn(script, rho);
     }
 
-
-
     public boolean containsRelativeForTx(List<RelativeTime> timelocks, ITransactionBuilder tx, Rho rho) {
-        return timelocks.stream()
-                .filter( x ->
-                    tx.equals(interpreter.interpret(x.getTx(), rho).getFirst())
-                )
-                .count()>0;
+        return timelocks.stream().filter(x -> tx.equals(interpreter.interpret(x.getTx(), rho).getFirst())).count() > 0;
     }
 
     public RelativeTime getRelativeForTx(List<RelativeTime> timelocks, ITransactionBuilder tx, Rho rho) {
-        return timelocks.stream()
-                .filter( x ->
-                    tx.equals(interpreter.interpret(x.getTx(), rho).getFirst())
-                ).map( x -> (RelativeTime) x)
-                .collect(Collectors.toList()).get(0);
+        return timelocks.stream().filter(x -> tx.equals(interpreter.interpret(x.getTx(), rho).getFirst()))
+            .map(x -> (RelativeTime) x).collect(Collectors.toList()).get(0);
     }
 
     public long getDelayValue(long seconds) {
@@ -294,6 +283,7 @@ public class ASTUtils {
 
     /**
      * Cast the given number to unsigned-short (16 bit)
+     * 
      * @param i the number to cast
      * @return the number itself
      * @throws NumberFormatException if the number does not fit in 16-bit
@@ -310,15 +300,15 @@ public class ASTUtils {
 
     /**
      * Return true if the given number fits in 16 bits unsigned.
+     * 
      * @param i the number to check
      * @return true if it fits, false otherwise
      */
-    public boolean fitIn16bits (long i) {
+    public boolean fitIn16bits(long i) {
         try {
             castUnsignedShort(i);
             return true;
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return false;
         }
     }
@@ -338,10 +328,10 @@ public class ASTUtils {
     public NetworkType networkParams(EObject obj) {
         List<Network> list = EcoreUtil2.getAllContentsOfType(EcoreUtil2.getRootContainer(obj), Network.class);
 
-        if (list.size()==0) // network undeclared, assume testnet
+        if (list.size() == 0) // network undeclared, assume testnet
             return NetworkType.TESTNET;
 
-        if (list.size()==1) {
+        if (list.size() == 1) {
             Network net = list.get(0);
 
             if (net.isTestnet())
@@ -372,15 +362,24 @@ public class ASTUtils {
     }
 
     public Class<?> convertType(Type type) {
-        if(type instanceof IntType) return Long.class;
-        if(type instanceof StringType) return String.class;
-        if(type instanceof BooleanType) return Boolean.class;
-        if(type instanceof HashType) return Hash.class;
-        if(type instanceof KeyType) return PrivateKey.class;
-        if(type instanceof PubkeyType) return PublicKey.class;
-        if(type instanceof AddressType) return Address.class;
-        if(type instanceof TransactionType) return ITransactionBuilder.class;
-        if(type instanceof SignatureType) return Signature.class;
+        if (type instanceof IntType)
+            return Long.class;
+        if (type instanceof StringType)
+            return String.class;
+        if (type instanceof BooleanType)
+            return Boolean.class;
+        if (type instanceof HashType)
+            return Hash.class;
+        if (type instanceof KeyType)
+            return PrivateKey.class;
+        if (type instanceof PubkeyType)
+            return PublicKey.class;
+        if (type instanceof AddressType)
+            return Address.class;
+        if (type instanceof TransactionType)
+            return ITransactionBuilder.class;
+        if (type instanceof SignatureType)
+            return Signature.class;
 
         throw new IllegalArgumentException("Unexpected type " + type);
     }

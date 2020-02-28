@@ -38,32 +38,32 @@ public class Input implements Serializable {
         this.locktime = locktime;
     }
 
-    static Input of(InputScript script){
+    static Input of(InputScript script) {
         return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, UNSET_LOCKTIME);
     }
 
-    static Input of(InputScript script, long locktime){
+    static Input of(InputScript script, long locktime) {
         return of((ITransactionBuilder) null, UNSET_OUTINDEX, script, locktime);
     }
 
-    static Input of(int index, InputScript script){
+    static Input of(int index, InputScript script) {
         return of((ITransactionBuilder) null, index, script, UNSET_LOCKTIME);
     }
 
-    static Input of(ITransactionBuilder tx, int index, InputScript script){
+    static Input of(ITransactionBuilder tx, int index, InputScript script) {
         return of(tx, index, script, UNSET_LOCKTIME);
     }
 
-    static Input of(ITransactionBuilder tx, int index, InputScript script, long locktime){
+    static Input of(ITransactionBuilder tx, int index, InputScript script, long locktime) {
         return new Input(tx, index, script, locktime);
     }
 
     public boolean hasParentTx() {
-        return getParentTx()!=null;
+        return getParentTx() != null;
     };
 
     public boolean hasLocktime() {
-        return locktime!=UNSET_LOCKTIME;
+        return locktime != UNSET_LOCKTIME;
     };
 
     public ITransactionBuilder getParentTx() {
@@ -109,12 +109,14 @@ public class Input implements Serializable {
         if (parentTx == null) {
             if (other.parentTx != null)
                 return false;
-        } else if (!parentTx.equals(other.parentTx))
+        }
+        else if (!parentTx.equals(other.parentTx))
             return false;
         if (script == null) {
             if (other.script != null)
                 return false;
-        } else if (!script.equals(other.script))
+        }
+        else if (!script.equals(other.script))
             return false;
         return true;
     }

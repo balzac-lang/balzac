@@ -40,7 +40,7 @@ public class ServerSocketDaemonTest {
         List<Integer> expectedExecution = new ArrayList<>();
 
         // producer
-        Thread t1 = new Thread(()-> {
+        Thread t1 = new Thread(() -> {
             ServerSocketClient client;
             try {
                 client = server.getClient();
@@ -50,12 +50,13 @@ public class ServerSocketDaemonTest {
                 client.write("2");
                 expectedExecution.add(3);
                 client.write("3");
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         });
         t1.start();
 
         // consumer
-        Thread t2 = new Thread(()-> {
+        Thread t2 = new Thread(() -> {
             try {
                 expectedExecution.add(1);
                 server.read();
@@ -63,7 +64,8 @@ public class ServerSocketDaemonTest {
                 server.read();
                 expectedExecution.add(3);
                 server.read();
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         });
         t2.start();
 
@@ -71,7 +73,7 @@ public class ServerSocketDaemonTest {
         t2.join();
         int prev = 0;
         for (int i : expectedExecution) {
-            assertTrue("prev "+prev+", i "+i,i>=prev);
+            assertTrue("prev " + prev + ", i " + i, i >= prev);
             prev = i;
         }
 

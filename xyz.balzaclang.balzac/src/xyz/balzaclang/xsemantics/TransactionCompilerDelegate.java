@@ -26,7 +26,8 @@ import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
  */
 class TransactionCompilerDelegate {
 
-    @Inject private TransactionCompiler compiler;
+    @Inject
+    private TransactionCompiler compiler;
 
     public ITransactionBuilder compileTransaction(Transaction tx, Rho rho) {
         return compiler.compileTransaction(tx, rho);

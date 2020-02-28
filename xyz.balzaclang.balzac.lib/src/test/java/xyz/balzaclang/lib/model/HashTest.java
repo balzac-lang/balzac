@@ -62,184 +62,79 @@ public class HashTest {
 
     @Test
     public void test_hash_refl() {
-        HashAlgorithm[] hashClasses = new HashAlgorithm[]{HashAlgorithm.HASH160,  HashAlgorithm.HASH256, HashAlgorithm.RIPEMD160, HashAlgorithm.SHA256, HashAlgorithm.SHA1};
-        Object[] values = new Object[]{1, 1L,"",true,new byte[42], new Hash(new byte[20]), new Hash(new byte[20]), new Hash(new byte[32]), new Hash(new byte[32])};
+        HashAlgorithm[] hashClasses = new HashAlgorithm[] { HashAlgorithm.HASH160, HashAlgorithm.HASH256,
+            HashAlgorithm.RIPEMD160, HashAlgorithm.SHA256, HashAlgorithm.SHA1 };
+        Object[] values = new Object[] { 1, 1L, "", true, new byte[42], new Hash(new byte[20]), new Hash(new byte[20]),
+            new Hash(new byte[32]), new Hash(new byte[32]) };
 
         for (HashAlgorithm hashCls : hashClasses) {
             for (Object v : values) {
-                    assertArrayEquals(
-                        executeScript(v, hashCls),
-                        Hash.hash(v, hashCls).getBytes()
-                    );
+                assertArrayEquals(executeScript(v, hashCls), Hash.hash(v, hashCls).getBytes());
             }
         }
     }
 
     @Test
     public void test_hashes_empty() {
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.SHA1),
-                Hash.sha1(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.RIPEMD160),
-                Hash.ripemd160(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.SHA256),
-                Hash.sha256(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.HASH160),
-                Hash.hash160(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.HASH256),
-                Hash.hash256(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.HASH256),
-                Hash.sha256(Hash.sha256(new byte[]{})).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(new byte[]{}, HashAlgorithm.HASH160),
-                Hash.ripemd160(Hash.sha256(new byte[]{})).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(new byte[]{}, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
-                Hash.hash256(new byte[]{}).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(new byte[]{}, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
-                Hash.hash160(new byte[]{}).getBytes()
-        );
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.SHA1), Hash.sha1(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.RIPEMD160),
+            Hash.ripemd160(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.SHA256), Hash.sha256(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.HASH160), Hash.hash160(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.HASH256), Hash.hash256(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.HASH256),
+            Hash.sha256(Hash.sha256(new byte[] {})).getBytes());
+        assertArrayEquals(executeScript(new byte[] {}, HashAlgorithm.HASH160),
+            Hash.ripemd160(Hash.sha256(new byte[] {})).getBytes());
+        assertArrayEquals(executeScript(executeScript(new byte[] {}, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
+            Hash.hash256(new byte[] {}).getBytes());
+        assertArrayEquals(executeScript(executeScript(new byte[] {}, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
+            Hash.hash160(new byte[] {}).getBytes());
     }
 
     @Test
     public void test_hashes_boolean() {
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.SHA1),
-                Hash.sha1(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.RIPEMD160),
-                Hash.ripemd160(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.SHA256),
-                Hash.sha256(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.HASH160),
-                Hash.hash160(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.HASH256),
-                Hash.hash256(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.HASH256),
-                Hash.sha256(Hash.sha256(true)).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(true, HashAlgorithm.HASH160),
-                Hash.ripemd160(Hash.sha256(true)).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(true, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
-                Hash.hash256(true).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(true, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
-                Hash.hash160(true).getBytes()
-        );
+        assertArrayEquals(executeScript(true, HashAlgorithm.SHA1), Hash.sha1(true).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.RIPEMD160), Hash.ripemd160(true).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.SHA256), Hash.sha256(true).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.HASH160), Hash.hash160(true).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.HASH256), Hash.hash256(true).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.HASH256), Hash.sha256(Hash.sha256(true)).getBytes());
+        assertArrayEquals(executeScript(true, HashAlgorithm.HASH160), Hash.ripemd160(Hash.sha256(true)).getBytes());
+        assertArrayEquals(executeScript(executeScript(true, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
+            Hash.hash256(true).getBytes());
+        assertArrayEquals(executeScript(executeScript(true, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
+            Hash.hash160(true).getBytes());
 
-
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.SHA1),
-                Hash.sha1(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.RIPEMD160),
-                Hash.ripemd160(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.SHA256),
-                Hash.sha256(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.HASH160),
-                Hash.hash160(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.HASH256),
-                Hash.hash256(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.HASH256),
-                Hash.sha256(Hash.sha256(false)).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(false, HashAlgorithm.HASH160),
-                Hash.ripemd160(Hash.sha256(false)).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(false, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
-                Hash.hash256(false).getBytes()
-        );
-        assertArrayEquals(
-                executeScript(executeScript(false, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
-                Hash.hash160(false).getBytes()
-        );
+        assertArrayEquals(executeScript(false, HashAlgorithm.SHA1), Hash.sha1(false).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.RIPEMD160), Hash.ripemd160(false).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.SHA256), Hash.sha256(false).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.HASH160), Hash.hash160(false).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.HASH256), Hash.hash256(false).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.HASH256), Hash.sha256(Hash.sha256(false)).getBytes());
+        assertArrayEquals(executeScript(false, HashAlgorithm.HASH160), Hash.ripemd160(Hash.sha256(false)).getBytes());
+        assertArrayEquals(executeScript(executeScript(false, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
+            Hash.hash256(false).getBytes());
+        assertArrayEquals(executeScript(executeScript(false, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
+            Hash.hash160(false).getBytes());
     }
 
     @Test
     public void test_hashes_integers() {
-        for (long i=-100; i<100; i++) {
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.SHA1),
-                    Hash.sha1(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.RIPEMD160),
-                    Hash.ripemd160(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.SHA256),
-                    Hash.sha256(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.HASH160),
-                    Hash.hash160(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.HASH256),
-                    Hash.hash256(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.HASH256),
-                    Hash.sha256(Hash.sha256(i)).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(i, HashAlgorithm.HASH160),
-                    Hash.ripemd160(Hash.sha256(i)).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(executeScript(i, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
-                    Hash.hash256(i).getBytes()
-            );
-            assertArrayEquals(
-                    executeScript(executeScript(i, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
-                    Hash.hash160(i).getBytes()
-            );
+        for (long i = -100; i < 100; i++) {
+            assertArrayEquals(executeScript(i, HashAlgorithm.SHA1), Hash.sha1(i).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.RIPEMD160), Hash.ripemd160(i).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.SHA256), Hash.sha256(i).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.HASH160), Hash.hash160(i).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.HASH256), Hash.hash256(i).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.HASH256), Hash.sha256(Hash.sha256(i)).getBytes());
+            assertArrayEquals(executeScript(i, HashAlgorithm.HASH160), Hash.ripemd160(Hash.sha256(i)).getBytes());
+            assertArrayEquals(executeScript(executeScript(i, HashAlgorithm.SHA256), HashAlgorithm.SHA256),
+                Hash.hash256(i).getBytes());
+            assertArrayEquals(executeScript(executeScript(i, HashAlgorithm.SHA256), HashAlgorithm.RIPEMD160),
+                Hash.hash160(i).getBytes());
         }
     }
-
-
-
-
-
-
 
     private byte[] executeScript(Object input, HashAlgorithm alg) {
         if (input instanceof byte[])
@@ -270,7 +165,8 @@ public class HashTest {
         case SHA1:
             operation = ScriptOpCodes.OP_SHA1;
             break;
-            default: throw new IllegalArgumentException("unexpected class "+alg);
+        default:
+            throw new IllegalArgumentException("unexpected class " + alg);
         }
 
         LinkedList<byte[]> stack = new LinkedList<>();

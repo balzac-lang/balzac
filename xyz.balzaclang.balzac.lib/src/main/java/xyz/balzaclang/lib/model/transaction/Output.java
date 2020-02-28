@@ -32,7 +32,7 @@ public class Output implements Serializable {
     }
 
     public static Output of(OutputScript script, long value) {
-        return new Output(script,value);
+        return new Output(script, value);
     }
 
     public OutputScript getScript() {
@@ -64,7 +64,8 @@ public class Output implements Serializable {
         if (script == null) {
             if (other.script != null)
                 return false;
-        } else if (!script.equals(other.script))
+        }
+        else if (!script.equals(other.script))
             return false;
         if (value != other.value)
             return false;

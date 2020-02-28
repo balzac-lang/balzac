@@ -45,7 +45,7 @@ public class BalzacStringRepresentation extends StringRepresentation {
     }
 
     public String stringRep(BooleanLiteral intConstant) {
-        return intConstant.isTrue()? "true" : "false";
+        return intConstant.isTrue() ? "true" : "false";
     }
 
     public String stringRep(StringLiteral stringConstant) {
@@ -53,9 +53,7 @@ public class BalzacStringRepresentation extends StringRepresentation {
     }
 
     public String stringRep(Parameter parameter) {
-        return parameter.getName()
-                + ((parameter.getType()) != null ? " : "
-                        + string(parameter.getType()) : "");
+        return parameter.getName() + ((parameter.getType()) != null ? " : " + string(parameter.getType()) : "");
     }
 
     public String stringRep(Reference ref) {
@@ -63,8 +61,7 @@ public class BalzacStringRepresentation extends StringRepresentation {
     }
 
     public String stringRep(TypeSubstitutions substitutions) {
-        return "subst{" + stringIterable(substitutions.getSubstitutions())
-                + "}";
+        return "subst{" + stringIterable(substitutions.getSubstitutions()) + "}";
     }
 
     public String stringRep(Entry<String, Type> entry) {
@@ -105,6 +102,7 @@ public class BalzacStringRepresentation extends StringRepresentation {
         else if (type == null) {
             return "";
         }
-        else return "["+type.getClass().getSimpleName()+"]";
+        else
+            return "[" + type.getClass().getSimpleName() + "]";
     }
 }

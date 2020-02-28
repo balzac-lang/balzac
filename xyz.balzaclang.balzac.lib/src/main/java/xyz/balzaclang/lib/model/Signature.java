@@ -33,7 +33,6 @@ import xyz.balzaclang.lib.model.transaction.Input;
 import xyz.balzaclang.lib.model.transaction.Output;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
-
 public class Signature {
 
     private final byte[] signature;
@@ -67,7 +66,9 @@ public class Signature {
 
     @Override
     public String toString() {
-        return "sig:"+BitcoinUtils.encode(signature) + (pubkey.isPresent()? "[pubkey:" + pubkey.get().getBytesAsString() +  "]" : "");
+        return "sig:"
+            + BitcoinUtils.encode(signature)
+            + (pubkey.isPresent() ? "[pubkey:" + pubkey.get().getBytesAsString() + "]" : "");
     }
 
     @Override
@@ -93,11 +94,11 @@ public class Signature {
     }
 
     public static Signature computeSignature(
-            PrivateKey key,
-            ITransactionBuilder txBuilder,
-            ECKeyStore keyStore,
-            int inputIndex,
-            SignatureModifier modifier) {
+        PrivateKey key,
+        ITransactionBuilder txBuilder,
+        ECKeyStore keyStore,
+        int inputIndex,
+        SignatureModifier modifier) {
 
         Transaction tx = txBuilder.toTransaction(keyStore);
 
@@ -106,13 +107,8 @@ public class Signature {
         Output output = input.getParentTx().getOutputs().get(outputIndex);
         byte[] outputScript = output.getScript().build().getProgram();
 
-        TransactionSignature sig = tx.calculateSignature(
-                inputIndex,
-                ECKey.fromPrivate(key.getBytes()),
-                outputScript,
-                modifier.toHashType(),
-                modifier.toAnyoneCanPay());
-
+        TransactionSignature sig = tx.calculateSignature(inputIndex, ECKey.fromPrivate(key.getBytes()), outputScript,
+            modifier.toHashType(), modifier.toAnyoneCanPay());
 
         return new Signature(sig.encodeToBitcoin(), key.toPublicKey());
     }

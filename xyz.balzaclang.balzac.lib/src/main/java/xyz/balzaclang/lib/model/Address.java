@@ -41,7 +41,7 @@ public interface Address {
         return fromBase58(address.getWif());
     }
 
-    public static Address from(PublicKey pubkey,  NetworkType params) {
+    public static Address from(PublicKey pubkey, NetworkType params) {
         return from(pubkey.toAddress(params));
     }
 

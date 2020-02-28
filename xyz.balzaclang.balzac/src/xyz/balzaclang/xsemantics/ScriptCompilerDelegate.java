@@ -29,7 +29,8 @@ import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
  */
 class ScriptCompilerDelegate {
 
-    @Inject private ScriptCompiler compiler;
+    @Inject
+    private ScriptCompiler compiler;
 
     public InputScript compileInputScript(Input input, ITransactionBuilder parentTx, Rho rho) {
         return compiler.compileInputScript(input, parentTx, rho);

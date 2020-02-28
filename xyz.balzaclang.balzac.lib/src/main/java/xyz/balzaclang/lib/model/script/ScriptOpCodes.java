@@ -19,6 +19,7 @@ package xyz.balzaclang.lib.model.script;
  * From org.bitcoinj.script.ScriptOpCodes
  */
 public class ScriptOpCodes {
+
     // push value
     public static final int OP_0 = 0x00; // push empty vector
     public static final int OP_FALSE = OP_0;

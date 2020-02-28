@@ -23,8 +23,8 @@ import xyz.balzaclang.balzac.Model;
 
 public class BalzacQualifiedNameProvider extends DefaultDeclarativeQualifiedNameProvider {
 
-    protected QualifiedName qualifiedName(Model ele){
-        if (ele.getPackage()!=null)
+    protected QualifiedName qualifiedName(Model ele) {
+        if (ele.getPackage() != null)
             return getConverter().toQualifiedName(ele.getPackage().getName());
         return null;
     }

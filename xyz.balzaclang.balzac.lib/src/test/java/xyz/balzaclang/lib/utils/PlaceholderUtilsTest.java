@@ -65,10 +65,7 @@ public class PlaceholderUtilsTest {
     }
 
     private void _publicKeyIsDerivedFromPrivateOne(NetworkType params) {
-        assertEquals(
-                PlaceholderUtils.KEY(params).toPublicKey(),
-                PlaceholderUtils.PUBKEY(params)
-                );
+        assertEquals(PlaceholderUtils.KEY(params).toPublicKey(), PlaceholderUtils.PUBKEY(params));
     }
 
     @Test
@@ -82,10 +79,7 @@ public class PlaceholderUtilsTest {
     }
 
     private void _addressIsDerivedFromPrivateKey(NetworkType params) {
-        assertEquals(
-                PlaceholderUtils.KEY(params).toAddress(),
-                PlaceholderUtils.ADDRESS(params)
-                );
+        assertEquals(PlaceholderUtils.KEY(params).toAddress(), PlaceholderUtils.ADDRESS(params));
     }
 
     @Test
@@ -113,9 +107,8 @@ public class PlaceholderUtilsTest {
             // worth 50 BTC
             assertEquals(50_0000_0000L, output.getValue());
             // address is from placeholder
-            assertArrayEquals(
-                    PlaceholderUtils.ADDRESS(params).getBytes(),
-                    ScriptPattern.extractHashFromP2PKH(output.getScript().getOutputScript()));
+            assertArrayEquals(PlaceholderUtils.ADDRESS(params).getBytes(),
+                ScriptPattern.extractHashFromP2PKH(output.getScript().getOutputScript()));
         }
     }
 }

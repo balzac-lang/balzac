@@ -32,8 +32,11 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
     private static final long serialVersionUID = 1L;
 
     abstract public Script getOutputScript();
+
     abstract public boolean isP2SH();
+
     abstract public boolean isP2PKH();
+
     abstract public boolean isOP_RETURN();
 
     public String getType() {
@@ -48,6 +51,7 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
 
     public static OutputScript createP2SH() {
         return new OutputScript() {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -85,6 +89,7 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
 
     public static OutputScript createP2PKH(byte[] addressByte) {
         return new OutputScript() {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -104,12 +109,8 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
 
             @Override
             public Script getOutputScript() {
-                return new ScriptBuilder()
-                        .op(OP_DUP)
-                        .op(OP_HASH160)
-                        .data(addressByte)
-                        .op(OP_EQUALVERIFY)
-                        .op(OP_CHECKSIG).build();
+                return new ScriptBuilder().op(OP_DUP).op(OP_HASH160).data(addressByte).op(OP_EQUALVERIFY)
+                    .op(OP_CHECKSIG).build();
             }
 
             @Override
@@ -126,6 +127,7 @@ public abstract class OutputScript extends AbstractScriptBuilderWithVar<OutputSc
 
     public static OutputScript createOP_RETURN(byte[] bytes) {
         return new OutputScript() {
+
             private static final long serialVersionUID = 1L;
 
             @Override

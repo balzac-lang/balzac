@@ -25,11 +25,11 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public class Env<T> implements EnvI<T,Env<T>> {
+public class Env<T> implements EnvI<T, Env<T>> {
 
     private static final long serialVersionUID = 1L;
-    private final Map<String,Class<? extends T>> variablesType = new HashMap<>();
-    private final Map<String,T> variablesBinding = new HashMap<>();
+    private final Map<String, Class<? extends T>> variablesType = new HashMap<>();
+    private final Map<String, T> variablesBinding = new HashMap<>();
 
     @Override
     public boolean hasVariable(String name) {
@@ -70,7 +70,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkNotNull(name, "'name' cannot be null");
         checkNotNull(defaultValue, "'defaultValue' cannot be null");
         checkArgument(hasVariable(name), "'%s' is not a variable", name);
-        return isBound(name)? getValue(name): defaultValue;
+        return isBound(name) ? getValue(name) : defaultValue;
     }
 
     @Override
@@ -86,7 +86,8 @@ public class Env<T> implements EnvI<T,Env<T>> {
     public Env<T> addVariable(String name, Class<? extends T> type) {
         checkNotNull(name, "'name' cannot be null");
         checkNotNull(type, "'type' cannot be null");
-        checkArgument(!hasVariable(name) || type.equals(getType(name)), "'"+name+"' is already associated with class '"+variablesType.get(name)+"'");
+        checkArgument(!hasVariable(name) || type.equals(getType(name)),
+            "'" + name + "' is already associated with class '" + variablesType.get(name) + "'");
         variablesType.put(name, type);
         return this;
     }
@@ -105,8 +106,16 @@ public class Env<T> implements EnvI<T,Env<T>> {
         checkNotNull(name, "'name' cannot be null");
         checkNotNull(value, "'value' cannot be null");
         checkArgument(hasVariable(name), "'%s' is not a variable", name);
-        checkArgument(getType(name).isInstance(value), "'"+name+"' is associated with class '"+getType(name)+"', but 'value' is object of class '"+value.getClass()+"'");
-        checkArgument(isFree(name), "'"+name+"' is already associated with value '"+variablesBinding.get(name)+"'");
+        checkArgument(getType(name).isInstance(value),
+            "'"
+                + name
+                + "' is associated with class '"
+                + getType(name)
+                + "', but 'value' is object of class '"
+                + value.getClass()
+                + "'");
+        checkArgument(isFree(name),
+            "'" + name + "' is already associated with value '" + variablesBinding.get(name) + "'");
         variablesBinding.put(name, value);
         return this;
     }
@@ -128,7 +137,7 @@ public class Env<T> implements EnvI<T,Env<T>> {
 
     @Override
     public boolean isReady() {
-        return getFreeVariables().size()==0;
+        return getFreeVariables().size() == 0;
     }
 
     @Override
@@ -139,10 +148,10 @@ public class Env<T> implements EnvI<T,Env<T>> {
 
     @Override
     public String toString() {
-        TablePrinter tp = new TablePrinter(new String[]{"Name","Type","Binding"}, "No variables");
+        TablePrinter tp = new TablePrinter(new String[] { "Name", "Type", "Binding" }, "No variables");
         Set<String> variables = getVariables();
         for (String name : variables) {
-            tp.addRow(name, getType(name).getSimpleName(), isBound(name)? getValue(name).toString(): "");
+            tp.addRow(name, getType(name).getSimpleName(), isBound(name) ? getValue(name).toString() : "");
         }
         return tp.toString();
     }

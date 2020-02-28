@@ -41,7 +41,7 @@ public class BalzacLogger implements Logger {
 
     private String prependPrefix(String str) {
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i<prefixCount; i++)
+        for (int i = 0; i < prefixCount; i++)
             sb.append(prefix);
         return sb.append(str).toString();
     }

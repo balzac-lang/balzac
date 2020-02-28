@@ -28,44 +28,55 @@ import xyz.balzaclang.lib.ECKeyStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.utils.EnvI;
 
-public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, Serializable {
+public interface ITransactionBuilder extends EnvI<Object, ITransactionBuilder>, Serializable {
 
     /**
-     * Check that this transaction builder is ready to be converted using {@link #toTransaction()}.
-     * @return true if this transaction builder is ready to be converted, false otherwise.
+     * Check that this transaction builder is ready to be converted using
+     * {@link #toTransaction()}.
+     * 
+     * @return true if this transaction builder is ready to be converted, false
+     *         otherwise.
      */
     public abstract boolean isReady();
 
     /**
-     * Create a bitcoinj transaction. This method assumes that this builder {@link #isReady()} (i.e. has not
-     * unbound free variables.
-     * @param kstore a keystore containing the private keys needed for transaction building.
+     * Create a bitcoinj transaction. This method assumes that this builder
+     * {@link #isReady()} (i.e. has not unbound free variables.
+     * 
+     * @param kstore a keystore containing the private keys needed for transaction
+     *               building.
      * @return a bitcoinj transaction.
      */
     public abstract Transaction toTransaction(ECKeyStore kstore);
 
     /**
      * Return the inputs.
+     * 
      * @return the inputs
      */
     public abstract List<Input> getInputs();
 
     /**
      * Return the number of outputs.
+     * 
      * @return the number of outputs
      */
     public abstract List<Output> getOutputs();
 
     /**
-     * Return true if this builder will generate a coinbase transaction, false otherwise.
-     * @return true if this builder will generate a coinbase transaction, false otherwise.
+     * Return true if this builder will generate a coinbase transaction, false
+     * otherwise.
+     * 
+     * @return true if this builder will generate a coinbase transaction, false
+     *         otherwise.
      */
     public abstract boolean isCoinbase();
 
     /**
      * Return a transaction builder from a bitcoin serialized transaction
+     * 
      * @param params the network parameters
-     * @param bytes the payload of the transaction
+     * @param bytes  the payload of the transaction
      * @return the builder
      */
     public static ITransactionBuilder fromSerializedTransaction(NetworkType params, String bytes) {
@@ -73,8 +84,9 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
     }
 
     /**
-     * Return a transaction builder from a {@link Transaction}.
-     * Same of <code>fromSerializedTransaction(tx.getParams(), tx.bitcoinSerialize()}</code>
+     * Return a transaction builder from a {@link Transaction}. Same of
+     * <code>fromSerializedTransaction(tx.getParams(), tx.bitcoinSerialize()}</code>
+     * 
      * @param tx a bitcoin transaction
      * @return the builder
      */
@@ -84,8 +96,9 @@ public interface ITransactionBuilder extends EnvI<Object,ITransactionBuilder>, S
 
     /**
      * Return a transaction builder from a bitcoin serialized transaction
+     * 
      * @param params the network parameters
-     * @param bytes the payload of the transaction
+     * @param bytes  the payload of the transaction
      * @return the builder
      */
     public static ITransactionBuilder fromSerializedTransaction(NetworkType params, byte[] bytes) {

@@ -47,12 +47,18 @@ import xyz.balzaclang.xsemantics.TypeSubstitutions;
 @SuppressWarnings("restriction")
 public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
 
-    @Inject private BalzacGrammarAccess grammar;
-    @Inject private BalzacTypeSystem typeSystem;
-    @Inject private BalzacStringRepresentation strRep;
+    @Inject
+    private BalzacGrammarAccess grammar;
+    @Inject
+    private BalzacTypeSystem typeSystem;
+    @Inject
+    private BalzacStringRepresentation strRep;
 
     @Override
-    protected void createCodeMinings(IDocument document, XtextResource resource, CancelIndicator indicator,
+    protected void createCodeMinings(
+        IDocument document,
+        XtextResource resource,
+        CancelIndicator indicator,
         IAcceptor<? super ICodeMining> acceptor) throws BadLocationException {
 
         // get all operations to open document
@@ -72,10 +78,11 @@ public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
                     hasType = true;
                 }
                 if (!hasType && equalsSign.equals(child.getGrammarElement())) {
-                    // create line content code mining for inline annotation after grammarElement ')'
+                    // create line content code mining for inline annotation after grammarElement
+                    // ')'
                     Result<Type> res = typeSystem.typeExpression(new TypeSubstitutions(), c);
                     if (!res.failed()) {
-                        String annotationText = ": " + strRep.stringRep(res.getFirst())+" ";
+                        String annotationText = ": " + strRep.stringRep(res.getFirst()) + " ";
                         acceptor.accept(createNewLineContentCodeMining(child.getTotalOffset(), annotationText));
                     }
                 }
@@ -83,9 +90,12 @@ public class BalzacCodeMiningProvider extends AbstractXtextCodeMiningProvider {
         }
 
         // TODO: implement me
-        // use acceptor.accept(super.createNewLineHeaderCodeMining(...)) to add a new code mining to the final list
+        // use acceptor.accept(super.createNewLineHeaderCodeMining(...)) to add a new
+        // code mining to the
+        // final list
 
         // example:
-        // acceptor.accept(createNewLineHeaderCodeMining(1, document, "Header annotation"));
+        // acceptor.accept(createNewLineHeaderCodeMining(1, document, "Header
+        // annotation"));
     }
 }

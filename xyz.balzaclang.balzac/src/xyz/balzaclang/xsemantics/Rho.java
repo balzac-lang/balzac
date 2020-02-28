@@ -24,7 +24,7 @@ import org.eclipse.emf.ecore.EObject;
 import xyz.balzaclang.balzac.Referrable;
 import xyz.balzaclang.lib.model.NetworkType;
 
-public class Rho extends HashMap<Referrable,Object> {
+public class Rho extends HashMap<Referrable, Object> {
 
     private static final long serialVersionUID = 1L;
 

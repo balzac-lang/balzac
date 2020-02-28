@@ -37,33 +37,32 @@ public class EnvTest {
         try {
             env.isFree(name);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
 
         try {
             env.isBound(name);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
-
 
         try {
             env.getValue(name);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
 
         try {
             env.getType(name);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
 
         try {
             env.bindVariable(name, 10);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
     }
 
     @Test
@@ -72,7 +71,7 @@ public class EnvTest {
         String name = "any";
 
         env.addVariable(name, Integer.class);
-        env.addVariable(name, Integer.class);   // multi add with the same time is fine
+        env.addVariable(name, Integer.class); // multi add with the same time is fine
 
         assertTrue(env.hasVariable(name));
         assertTrue(env.isFree(name));
@@ -90,8 +89,8 @@ public class EnvTest {
             // fails if try to set another type
             env.addVariable(name, String.class);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
 
         env.bindVariable(name, 10);
 
@@ -109,8 +108,8 @@ public class EnvTest {
             // fails if try to set another type
             env.bindVariable(name, 42);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
     }
 
     @Test
@@ -169,8 +168,8 @@ public class EnvTest {
         try {
             env.getValue("a", Long.class);
             fail();
+        } catch (IllegalArgumentException e) {
         }
-        catch (IllegalArgumentException e) {}
     }
 
     @Test
@@ -191,28 +190,28 @@ public class EnvTest {
         Env<Number> env1 = new Env<Number>();
         Env<Integer> env2 = new Env<Integer>();
         assertFalse(env1.equals(null)); // null
-        assertTrue(env1.equals(env1));  // same obj
-        assertFalse(env1.equals(5));    // different class
+        assertTrue(env1.equals(env1)); // same obj
+        assertFalse(env1.equals(5)); // different class
 
         assertTrue(env1.equals(env2));
         assertTrue(env1.hashCode() == env2.hashCode());
 
         env1.addVariable("a", Integer.class);
-        assertFalse(env1.equals(env2));         // env1 has variable "a"
+        assertFalse(env1.equals(env2)); // env1 has variable "a"
         assertFalse(env1.hashCode() == env2.hashCode());
 
         env2.addVariable("a", Integer.class);
-        assertTrue(env1.equals(env2));          // both have variable "a"
+        assertTrue(env1.equals(env2)); // both have variable "a"
         assertTrue(env1.hashCode() == env2.hashCode());
 
         env1.bindVariable("a", 42);
-        assertFalse(env1.equals(env2));         // "a" is bound in env1
+        assertFalse(env1.equals(env2)); // "a" is bound in env1
         assertFalse(env1.hashCode() == env2.hashCode());
 
         env1.addVariable("b", Long.class);
         env2.addVariable("b", Integer.class);
 
-        assertFalse(env1.equals(env2));         // "b" has different type
+        assertFalse(env1.equals(env2)); // "b" has different type
         assertFalse(env1.hashCode() == env2.hashCode());
     }
 }

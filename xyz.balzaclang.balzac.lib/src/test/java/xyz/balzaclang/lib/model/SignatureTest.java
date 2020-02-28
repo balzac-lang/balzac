@@ -27,7 +27,7 @@ public class SignatureTest {
 
     @Test
     public void testCreate() {
-        byte[] sigbytes = new byte[]{1,2,3,4};
+        byte[] sigbytes = new byte[] { 1, 2, 3, 4 };
         Signature sig = new Signature(sigbytes);
 
         assertTrue(Arrays.equals(sig.getSignature(), sigbytes));
@@ -36,7 +36,7 @@ public class SignatureTest {
 
     @Test
     public void testSigImmutability() {
-        byte[] sigbytes = new byte[]{1,2,3,4};
+        byte[] sigbytes = new byte[] { 1, 2, 3, 4 };
         Signature sig = new Signature(sigbytes);
 
         sigbytes[3] = 0;
@@ -47,8 +47,8 @@ public class SignatureTest {
     @Test
     public void testEquality() {
         // two signature are equals despite their public keys
-        Signature sigA = new Signature(new byte[] {1,2,3,4});
-        Signature sigB = new Signature(new byte[] {1,2,3,4}, PublicKey.fresh());
+        Signature sigA = new Signature(new byte[] { 1, 2, 3, 4 });
+        Signature sigB = new Signature(new byte[] { 1, 2, 3, 4 }, PublicKey.fresh());
 
         assertTrue(sigA.equals(sigB));
         assertTrue(sigA.hashCode() == sigB.hashCode());

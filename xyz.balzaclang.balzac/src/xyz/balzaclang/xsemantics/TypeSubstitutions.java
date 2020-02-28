@@ -27,6 +27,7 @@ import org.eclipse.emf.ecore.EObject;
 import xyz.balzaclang.balzac.Type;
 
 public class TypeSubstitutions {
+
     protected Map<String, Type> substitutions = new HashMap<>();
 
     protected Set<EObject> visited = new HashSet<>();

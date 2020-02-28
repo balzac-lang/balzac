@@ -31,11 +31,12 @@ public abstract class InputScript extends AbstractScriptBuilderWithVar<InputScri
     abstract public OutputScript getRedeemScript();
 
     public String getType() {
-        return isP2SH()? "P2SH": "STANDARD";
+        return isP2SH() ? "P2SH" : "STANDARD";
     }
 
     public static InputScript create() {
         return new InputScript() {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -81,7 +82,7 @@ public abstract class InputScript extends AbstractScriptBuilderWithVar<InputScri
 
         @Override
         public String toString() {
-            return super.toString()+" <"+redeemScript.toString()+">";
+            return super.toString() + " <" + redeemScript.toString() + ">";
         }
     }
 }

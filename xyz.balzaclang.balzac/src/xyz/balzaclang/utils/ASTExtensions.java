@@ -35,9 +35,8 @@ public class ASTExtensions {
     public static String nodeToString(EObject eobj) {
         try {
             return NodeModelUtils.getTokenText(NodeModelUtils.getNode(eobj));
-        }
-        catch (Exception e) {
-            String errorMsg = e.getClass().getSimpleName()+(e.getMessage() != null? ": "+e.getMessage(): "");
+        } catch (Exception e) {
+            String errorMsg = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
             logger.error("Error retrieving the node text for eobject {}: {}", eobj, errorMsg);
             return "<unable to retrieve the node string>";
         }
@@ -45,13 +44,20 @@ public class ASTExtensions {
 
     public static SignatureModifier toSignatureModifier(Modifier mod) {
         switch (mod) {
-        case AIAO: return SignatureModifier.ALL_INPUT_ALL_OUTPUT;
-        case AISO: return SignatureModifier.ALL_INPUT_SINGLE_OUTPUT;
-        case AINO: return SignatureModifier.ALL_INPUT_NO_OUTPUT;
-        case SIAO: return SignatureModifier.SINGLE_INPUT_ALL_OUTPUT;
-        case SISO: return SignatureModifier.SINGLE_INPUT_SINGLE_OUTPUT;
-        case SINO: return SignatureModifier.SINGLE_INPUT_NO_OUTPUT;
-        default: throw new IllegalStateException();
+        case AIAO:
+            return SignatureModifier.ALL_INPUT_ALL_OUTPUT;
+        case AISO:
+            return SignatureModifier.ALL_INPUT_SINGLE_OUTPUT;
+        case AINO:
+            return SignatureModifier.ALL_INPUT_NO_OUTPUT;
+        case SIAO:
+            return SignatureModifier.SINGLE_INPUT_ALL_OUTPUT;
+        case SISO:
+            return SignatureModifier.SINGLE_INPUT_SINGLE_OUTPUT;
+        case SINO:
+            return SignatureModifier.SINGLE_INPUT_NO_OUTPUT;
+        default:
+            throw new IllegalStateException();
         }
     }
 
@@ -62,7 +68,7 @@ public class ASTExtensions {
             return ((xyz.balzaclang.balzac.Transaction) ref).getName();
         if (ref instanceof Constant)
             return ((Constant) ref).getName();
-        throw new IllegalStateException("Unexpected class "+ref.getClass());
+        throw new IllegalStateException("Unexpected class " + ref.getClass());
     }
 
     public static EAttribute getLiteralName(Referrable ref) {
@@ -72,6 +78,6 @@ public class ASTExtensions {
             return BalzacPackage.Literals.TRANSACTION__NAME;
         if (ref instanceof Constant)
             return BalzacPackage.Literals.CONSTANT__NAME;
-        throw new IllegalStateException("Unexpected class "+ref.getClass());
+        throw new IllegalStateException("Unexpected class " + ref.getClass());
     }
 }

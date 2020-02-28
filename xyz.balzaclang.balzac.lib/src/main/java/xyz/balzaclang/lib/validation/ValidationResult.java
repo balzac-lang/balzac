@@ -42,6 +42,7 @@ public class ValidationResult {
     }
 
     public static class InputValidationError extends ValidationResult {
+
         public final int index;
         public final String inputScript;
         public final String outputScript;
@@ -52,7 +53,7 @@ public class ValidationResult {
             this.index = index;
             this.inputScript = input.toString();
             this.outputScript = output.toString();
-            this.reedemScript = isP2SH(output)? decode(getLastChunk(input)).toString() : null;
+            this.reedemScript = isP2SH(output) ? decode(getLastChunk(input)).toString() : null;
         }
 
         private static boolean isP2SH(Script script) {

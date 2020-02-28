@@ -36,7 +36,10 @@ import xyz.balzaclang.lib.utils.BitcoinUtils;
 public class Hash implements Comparable<Hash> {
 
     private final byte[] bytes;
-    public enum HashAlgorithm { SHA256, RIPEMD160, HASH256, HASH160, SHA1 }
+
+    public enum HashAlgorithm {
+        SHA256, RIPEMD160, HASH256, HASH160, SHA1
+    }
 
     public Hash(byte[] bytes) {
         this.bytes = bytes;
@@ -92,17 +95,29 @@ public class Hash implements Comparable<Hash> {
     }
 
     public static Hash hash(Object input, HashAlgorithm alg) {
-        checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean || input instanceof String || input instanceof byte[]);
+        checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean
+            || input instanceof String || input instanceof byte[]);
 
         String methodName = null;
 
         switch (alg) {
-        case HASH160: methodName = "hash160"; break;
-        case HASH256: methodName = "hash256"; break;
-        case RIPEMD160: methodName = "ripemd160"; break;
-        case SHA256: methodName = "sha256"; break;
-        case SHA1: methodName = "sha1"; break;
-            default: throw new IllegalArgumentException("unexpected class "+alg);
+        case HASH160:
+            methodName = "hash160";
+            break;
+        case HASH256:
+            methodName = "hash256";
+            break;
+        case RIPEMD160:
+            methodName = "ripemd160";
+            break;
+        case SHA256:
+            methodName = "sha256";
+            break;
+        case SHA1:
+            methodName = "sha1";
+            break;
+        default:
+            throw new IllegalArgumentException("unexpected class " + alg);
         }
 
         try {
@@ -228,13 +243,16 @@ public class Hash implements Comparable<Hash> {
 
     private static byte[] getIntegerBytes(Number n1) {
         long n = n1.longValue();
-        if (n==0) return ZERO;
-        if (n==-1) return NEGATIVE_ONE;
-        if (1<=n && n<=16) return Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(n), false));
-        return new ScriptBuilder().number(n).build().getChunks().get(0).data;   // get the data part of the push operation
+        if (n == 0)
+            return ZERO;
+        if (n == -1)
+            return NEGATIVE_ONE;
+        if (1 <= n && n <= 16)
+            return Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(n), false));
+        return new ScriptBuilder().number(n).build().getChunks().get(0).data; // get the data part of the push operation
     }
 
-    private static final byte[] FALSE = new byte[]{};
+    private static final byte[] FALSE = new byte[] {};
     private static final byte[] NEGATIVE_ONE = Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE.negate(), false));
     private static final byte[] TRUE = Utils.reverseBytes(Utils.encodeMPI(BigInteger.ONE, false));;
     private static final byte[] ZERO = FALSE;
