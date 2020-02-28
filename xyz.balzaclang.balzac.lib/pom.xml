@@ -20,13 +20,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bitcoinj</groupId>
             <artifactId>bitcoinj-core</artifactId>
-            <version>0.16.4-LIB</version>
+            <version>0.16.5-LIB</version>
         </dependency>
         <dependency>
             <groupId>com.sulacosoft</groupId>
@@ -36,12 +36,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>22.0-android</version>
+            <version>28.2-android</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.26</version>
+            <version>1.7.30</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

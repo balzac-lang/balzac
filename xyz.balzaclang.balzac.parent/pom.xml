@@ -8,9 +8,9 @@
     <packaging>pom</packaging>
 
     <properties>
-    <xtext-version>2.20.0</xtext-version>
-    <tycho-version>1.5.1</tycho-version>
-    <xsemantics-version>1.19.0-SNAPSHOT</xsemantics-version>
+        <xtext-version>2.20.0</xtext-version>
+        <tycho-version>1.6.0</tycho-version>
+        <xsemantics-version>1.19.0-SNAPSHOT</xsemantics-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -175,7 +175,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.5</version>
+                    <version>3.1.0</version>
                     <configuration>
                         <filesets>
                             <fileset>
