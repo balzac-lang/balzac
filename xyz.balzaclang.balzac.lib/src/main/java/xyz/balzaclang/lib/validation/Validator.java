@@ -29,8 +29,6 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptException;
 
 import xyz.balzaclang.lib.ECKeyStore;
-import xyz.balzaclang.lib.client.BitcoinClient;
-import xyz.balzaclang.lib.client.TransactionNotFoundException;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.OutputScript;
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
@@ -81,14 +79,6 @@ public class Validator {
             message += e.getMessage() != null? " Details: " + e.getMessage() : "";
             return ValidationResult.error(message);
         }
-    }
-
-    public static ValidationResult validateTransactionById(String txid, BitcoinClient client, NetworkType params) {
-        return transactionExceptionHandler(() -> {
-            String bytes = client.getRawTransaction(txid);
-            Transaction tx = new Transaction(params.toNetworkParameters(), BitcoinUtils.decode(bytes));
-            tx.verify();
-        });
     }
 
     public static ValidationResult validateRawTransaction(String bytes, NetworkType params) {
@@ -143,9 +133,6 @@ public class Validator {
         try {
             body.run();
             return ValidationResult.ok();
-        }
-        catch (TransactionNotFoundException e) {
-            message = "Transaction not found. Make sure you are in the correct network";
         }
         catch (VerificationException e) {
             message = "Transaction is invalid. Details: " + e.getMessage();

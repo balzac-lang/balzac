@@ -86,7 +86,6 @@ import xyz.balzaclang.lib.utils.BitcoinUtils
 import xyz.balzaclang.lib.utils.PlaceholderUtils
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.BalzacLogger
-import xyz.balzaclang.utils.BitcoinClientFactory
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 
@@ -95,7 +94,6 @@ system xyz.balzaclang.xsemantics.BalzacInterpreter
 inject extension ASTUtils astUtils
 inject extension TransactionCompilerDelegate compiler
 inject extension ScriptCompilerDelegate scriptCompiler
-inject BitcoinClientFactory clientFactory
 
 val logger = new BalzacLogger(LoggerFactory.getLogger(BalzacInterpreter))
 

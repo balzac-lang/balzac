@@ -457,13 +457,6 @@
     </extension>
     <extension point="org.eclipse.ui.preferencePages">
         <page category="xyz.balzaclang.Balzac"
-            class="xyz.balzaclang.ui.BalzacExecutableExtensionFactory:xyz.balzaclang.ui.preferences.TrustedNodesPreferences"
-            id="xyz.balzaclang.Balzac.node" name="Trusted Nodes">
-            <keywordReference
-                id="xyz.balzaclang.ui.keyword_Balzac">
-            </keywordReference>
-        </page>
-        <page category="xyz.balzaclang.Balzac"
             class="xyz.balzaclang.ui.BalzacExecutableExtensionFactory:xyz.balzaclang.ui.preferences.KeystoreGenerationPreferences"
             id="xyz.balzaclang.Balzac.node" name="Keystore">
             <keywordReference
