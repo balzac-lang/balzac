@@ -1,6 +1,6 @@
 FROM alpine:latest AS extractor
 ARG BITCOIND_CONNECTOR_TAG=v0.16.0
-ARG BITCOINJ_TAG=0.16.3-LIB
+ARG BITCOINJ_TAG=0.16.6-LIB
 RUN apk add git
 RUN echo "Cloning https://github.com/natzei/BitcoindConnector4J.git"
 RUN git clone https://github.com/natzei/BitcoindConnector4J.git
