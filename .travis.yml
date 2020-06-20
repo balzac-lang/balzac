@@ -45,15 +45,14 @@ notifications:
 deploy:
 - provider: releases
   prerelease: true
-  api_key:
-    secure: HsBfFwrcgz3ctUJD/4cRGZ2uNeq8rVJsrsvN+komldZOAkNNtfu5RsXBfpBvqjIoY0hnW1fShOY8IMo5MPU59FR+4jLO5Y30wWGFiTCF5739ZZf+jwQ4W7pDhEEb4b2QF+MEMWDg6RU7iLAY4wCE7GmddW8KMz5n6taY+Yv6vmfSaHnI9kD5k8D35+58DG/s3JA2dW0JM3vEUiBoeyPmSD4IGuGKsQZ5rbo05Fua0N4t29ilJbv1tijp/WRisD6zE83YZpwAXC/HFmnM9z+9HLjMskUT1ZsNi71Jj8tqCyyFgBXOR4Qk3b19fr8fz6rnJ72UpqbBzAGLb9u5gesI0cyJw/5uRqdy8dJX/i2/GZa9HxH3TwyGbDtH6V6mkQh8kTQlgRMBL1aRjlfs9t3UTgaJGuEh5URK8Re3UCf86nRwQ5HPpTanvJIVtdg/yG155mWo4iPBAYGgON37Ht+88IyNNxIqJ5NjcWRBZ+k/WMfrjYVEUH5w2g+eloVABWuWyFlk7aT7z0E2NV/Z28KIU1ej/H428mgaTSBcUfdl9j9DHeTh1aI1P8qgSoVVWsu2sCWmScmiKovWeIuElvT6aZ/2nnjfpr8wP78Bp17zAzRAx9SAU4Wzbubrj5PsjT2TEqIPAV55mVZt3I9ZtZedCNLKnz64hflRFPHxJnw+MrE=
+  token:
+    secure: "qeCqHJ+Q1RKja4tGFlAskA/l8AFFdMJ0fQD4JwXJg1oYfgebOOv8ahf9qiF5gX+jn/G9PWDZT0mM0qH2y16Rzgj2x2Np+hX2tpwV+hQrIjn0gd73/M0vaDQ5XIk1iLuRC2i/DiX+/YflNcNntpAx6slLiAKT/jX4B3PSMnHh+WNt9qwOCODKWskM0M2gxojTlOSBKcNShGmgbj3C7SkRmNuvt8y0C7iOgpDSpSYJf/cO1tptC4AAKo5HWaqEvCCErHI+kTBpQ8qGUjdtRBouwKcRaSbwelVSVWblekiY7A9vbKEMwVE7xBNHV+LeeVabq9QJZ9+NBtWr//h5yCT1knben0J0NUuSFX1RLJr7n67jxesGJRaU9iuikpZHOVGmVCeaD7h7XrKo29myVa2X7LkQkXFHVVNDDekrcWc0esPeNt7GJIVwqQqWKL3IfhUNygx4a2X/wfOcbVw/0TM7JZn1akj1gxrGfOFWXpIEKHlsFixyb73eWo101j/m9EsXTX5fe7LIW1ckF56WP52Tv1sOeAfjJYGS7szQjLdXTWrGT1ABMZroan2Y84VmExTkyyr791mHEgcDDdAvmWZmo+EBJc6BFiagNtZLxt2Q7xDmU2djoSkEyShsnvMFnDjX1AT89yYgaNFzfhMD+wj0o5KlfVI1eLovG+S2jZSTlMk="
   file_glob: true
   file: xyz.balzaclang.balzac.web/target/balzac*.war
   on:
     tags: true
     jdk: openjdk8
     repo: balzac-lang/balzac
-  skip-cleanup: true
 - provider: script
   script: bash scripts/docker_push.sh
   on:
@@ -61,4 +60,4 @@ deploy:
     jdk: openjdk8
     repo: balzac-lang/balzac
 
-    
+
