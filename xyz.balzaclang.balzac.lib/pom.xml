@@ -26,12 +26,12 @@
         <dependency>
             <groupId>org.bitcoinj</groupId>
             <artifactId>bitcoinj-core</artifactId>
-            <version>0.16.6-LIB</version>
+            <version>0.16.7-LIB</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>28.2-android</version>
+            <version>29.0-android</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
