@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><?pde version="3.8"?><target name="xyz.balzaclang.balzac.target" sequenceNumber="39">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="xyz.balzaclang.balzac.target" sequenceNumber="39">
 <locations>
     <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
         <unit id="org.slf4j.api" version="1.7.10.v20170428-1633"/>
@@ -9,10 +11,10 @@
         <unit id="org.eclipse.xsemantics.runtime.feature.feature.group" version="1.19.0.v20191203-1556"/>
         <repository location="http://download.eclipse.org/xsemantics/milestones/1.19"/>
     </location>
-    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-        <unit id="org.eclipse.xtext.sdk.feature.group" version="2.20.0.v20191202-1256"/>
-        <repository location="http://download.eclipse.org/releases/2019-12"/>
-        <unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.11.1.v20191121-1148"/>
-    </location>
+	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="http://download.eclipse.org/releases/2020-06"/>
+		<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.11.3.v20200520-0756"/>
+		<unit id="org.eclipse.xtext.sdk.feature.group" version="2.22.0.v20200602-1533"/>
+	</location>
 </locations>
 </target>

@@ -6,9 +6,9 @@ Bundle-Vendor: University of Cagliari
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: xyz.balzaclang.balzac; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext;bundle-version="2.17.0",
+Require-Bundle: org.eclipse.xtext;bundle-version="2.22.0",
  org.eclipse.xtext.xbase,
- org.eclipse.xsemantics.runtime;bundle-version="1.17.0",
+ org.eclipse.xsemantics.runtime;bundle-version="1.19.0",
  org.eclipse.equinox.security;bundle-version="1.2.300",
  org.eclipse.equinox.common;bundle-version="3.9.0",
  org.eclipse.emf.ecore,

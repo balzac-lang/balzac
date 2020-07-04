@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <xtext-version>2.20.0</xtext-version>
+        <xtext-version>2.22.0</xtext-version>
         <tycho-version>1.6.0</tycho-version>
         <xsemantics-version>1.19.0-SNAPSHOT</xsemantics-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
