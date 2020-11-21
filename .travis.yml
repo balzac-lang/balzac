@@ -14,7 +14,7 @@ env:
   - GRADLE_VERSION=5.6.2
   - BITCOIND_CONNECTOR_TAG=v0.16.0
   - BITCOINJ_TAG=0.16.9-LIB
-  - LATEST_VERSION=$(git log -n 1 --pretty=format:"%h")
+  - LATEST_VERSION=$(date +%Y%m%d_%s)_$(git log -n 1 --pretty=format:"%h")
 
 install:
 - sudo apt-get -qq update
