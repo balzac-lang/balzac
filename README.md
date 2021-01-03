@@ -93,8 +93,8 @@ The project is currently developed using *Eclipse IDE for Java and DSL Developer
 Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclipse-packages/).
 
 Dependencies
-- Xsemantics 1.19 ([update site](http://download.eclipse.org/xsemantics/milestones/1.19/))
-- Jacoco (optional) (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html))
+- [Xsemantics](https://github.com/eclipse/xsemantics)
+- [Jacoco](http://www.eclemma.org/installation.html) (optional)
 
 ## Donate
 
