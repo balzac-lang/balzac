@@ -1,7 +1,6 @@
 [![Build Status](https://travis-ci.org/balzac-lang/balzac.svg?branch=master)](https://travis-ci.org/balzac-lang/balzac)
 [![Coverage Status](https://coveralls.io/repos/github/balzac-lang/balzac/badge.svg)](https://coveralls.io/github/balzac-lang/balzac)
-
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)](https://en.cryptobadges.io/donate/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/micro/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)](https://en.cryptobadges.io/donate/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)
 
 # Balzac
 
