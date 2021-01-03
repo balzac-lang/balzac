@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/balzac-lang/balzac.svg?branch=master)](https://travis-ci.org/balzac-lang/balzac)
 [![Coverage Status](https://coveralls.io/repos/github/balzac-lang/balzac/badge.svg)](https://coveralls.io/github/balzac-lang/balzac)
 
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)](https://en.cryptobadges.io/donate/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)
+
 # Balzac
 
 A domain-specific language to write Bitcoin transactions, based on the paper
@@ -94,3 +96,7 @@ Install it using the [Eclipse installer](http://www.eclipse.org/downloads/eclips
 Dependencies
 - Xsemantics 1.19 ([update site](http://download.eclipse.org/xsemantics/milestones/1.19/))
 - Jacoco (optional) (see [http://www.eclemma.org/installation.html](http://www.eclemma.org/installation.html))
+
+## Donate
+
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/big/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)](https://en.cryptobadges.io/donate/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)
