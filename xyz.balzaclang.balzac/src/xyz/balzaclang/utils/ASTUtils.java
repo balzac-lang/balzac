@@ -64,7 +64,7 @@ import xyz.balzaclang.balzac.TransactionParameter;
 import xyz.balzaclang.balzac.TransactionType;
 import xyz.balzaclang.balzac.Type;
 import xyz.balzaclang.balzac.Versig;
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.Address;
 import xyz.balzaclang.lib.model.Hash;
 import xyz.balzaclang.lib.model.NetworkType;
@@ -90,19 +90,19 @@ public class ASTUtils {
 
     private static final String cacheECKeyStoreID = "eckeystore";
 
-    public ECKeyStore getECKeyStore(EObject obj) throws KeyStoreException {
+    public PrivateKeysStore getPrivateKeysStore(EObject obj) throws KeyStoreException {
         Resource resource = obj.eResource();
         logger.debug("Get the ECKeyStore for resource " + resource);
 
         try {
-            ECKeyStore value = cache.get(cacheECKeyStoreID, resource, new Provider<ECKeyStore>() {
+            PrivateKeysStore value = cache.get(cacheECKeyStoreID, resource, new Provider<PrivateKeysStore>() {
 
                 @Override
-                public ECKeyStore get() {
+                public PrivateKeysStore get() {
                     logger.debug("Generating new ECKeyStore for resource " + resource);
-                    ECKeyStore kstore;
+                    PrivateKeysStore kstore;
                     try {
-                        kstore = new ECKeyStore();
+                        kstore = new PrivateKeysStore();
                         EObject root = EcoreUtil2.getRootContainer(obj);
                         List<KeyLiteral> keys = EcoreUtil2.getAllContentsOfType(root, KeyLiteral.class);
                         keys.add(getPlaceholderPrivateKey(obj));
@@ -112,7 +112,7 @@ public class ASTUtils {
                         }
                         return kstore;
                     } catch (KeyStoreException e) {
-                        logger.error("Error when creating the ECKeyStore for resource " + resource);
+                        logger.error("Error when creating the PrivateKeysStore for resource " + resource);
                         return null;
                     }
                 }
@@ -283,7 +283,7 @@ public class ASTUtils {
 
     /**
      * Cast the given number to unsigned-short (16 bit)
-     * 
+     *
      * @param i the number to cast
      * @return the number itself
      * @throws NumberFormatException if the number does not fit in 16-bit
@@ -300,7 +300,7 @@ public class ASTUtils {
 
     /**
      * Return true if the given number fits in 16 bits unsigned.
-     * 
+     *
      * @param i the number to check
      * @return true if it fits, false otherwise
      */

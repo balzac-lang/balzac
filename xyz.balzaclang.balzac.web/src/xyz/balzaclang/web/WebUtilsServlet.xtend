@@ -66,7 +66,7 @@ class WebUtilsServlet extends HttpServlet {
         if (req.requestURI.contains("/api/keys")) {
             val key = PrivateKey.fresh(NetworkType.TESTNET)
             val privkeyTestnet = key.wif
-            val privkeyMainnet = PrivateKey.copy(key, NetworkType.MAINNET).wif
+            val privkeyMainnet = key.withNetwork(NetworkType.MAINNET).wif
             val publickey = key.toPublicKey.bytesAsString
             val addressTestnet = Address.from(key.toPublicKey, NetworkType.TESTNET).wif
             val addressMainnet = Address.from(key.toPublicKey, NetworkType.MAINNET).wif

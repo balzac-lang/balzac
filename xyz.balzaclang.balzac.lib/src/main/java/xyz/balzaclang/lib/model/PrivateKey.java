@@ -23,6 +23,8 @@ public interface PrivateKey {
 
     public byte[] getBytes();
 
+    public boolean compressPublicKey();
+
     public String getWif();
 
     public String getBytesAsString();
@@ -33,21 +35,21 @@ public interface PrivateKey {
 
     public NetworkType getNetworkType();
 
+    public PrivateKey withNetwork(NetworkType networkType);
+
     public static PrivateKey fromBase58(String wif) {
         DumpedPrivateKey key = DumpedPrivateKey.fromBase58(null, wif);
-        return from(key.getKey().getPrivKeyBytes(), NetworkType.from(key.getParameters()));
+        byte[] keyBytes = key.getKey().getPrivKeyBytes();
+        boolean compressPubkey = key.isPubKeyCompressed();
+        return from(keyBytes, compressPubkey, NetworkType.from(key.getParameters()));
     }
 
-    public static PrivateKey from(byte[] keyBytes, NetworkType params) {
-        return new PrivateKeyImpl(keyBytes, params);
+    public static PrivateKey from(byte[] keyBytes, boolean compressPubkey, NetworkType params) {
+        return new PrivateKeyImpl(keyBytes, compressPubkey, params);
     }
 
     public static PrivateKey fresh(NetworkType params) {
-        return from(new ECKey().getPrivKeyBytes(), params);
+        ECKey key = new ECKey();
+        return from(key.getPrivKeyBytes(), key.isCompressed(), params);
     }
-
-    public static PrivateKey copy(PrivateKey key, NetworkType params) {
-        return from(key.getBytes(), params);
-    }
-
 }

@@ -64,7 +64,6 @@ import xyz.balzaclang.balzac.Size
 import xyz.balzaclang.balzac.StringLiteral
 import xyz.balzaclang.balzac.TransactionParameter
 import xyz.balzaclang.balzac.Versig
-import xyz.balzaclang.lib.ECKeyStore
 import xyz.balzaclang.lib.model.Address
 import xyz.balzaclang.lib.model.PrivateKey
 import xyz.balzaclang.lib.model.PublicKey
@@ -82,6 +81,7 @@ import xyz.balzaclang.xsemantics.Rho
 import static xyz.balzaclang.lib.model.script.ScriptOpCodes.*
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
+import xyz.balzaclang.lib.PrivateKeysStore
 
 /*
  * EXPRESSIONS
@@ -348,7 +348,7 @@ class ScriptCompiler {
 
         val key = resKey.first
         if (key instanceof PrivateKey) {
-            var sb = new ScriptBuilderWithVar().signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, anyoneCanPay)
+            var sb = new ScriptBuilderWithVar().signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, anyoneCanPay)
             sb
         }
         else {

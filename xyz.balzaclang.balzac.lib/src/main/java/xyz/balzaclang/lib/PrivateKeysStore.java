@@ -46,7 +46,7 @@ import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
-public class ECKeyStore {
+public class PrivateKeysStore {
 
     public static String getUniqueID(PrivateKey key) {
         return BitcoinUtils.encode(Utils.sha256hash160(key.getBytes()));
@@ -55,15 +55,16 @@ public class ECKeyStore {
     private char[] password;
     private KeyStore ks;
     private Map<String, NetworkType> netwotkTypeMap = new HashMap<>();
+    private Map<String, Boolean> compressPubkeyMap = new HashMap<>();
 
     /**
      * Create a new ECKeyStore with an <b>empty password</b>. Use
      * {@link #changePassword(char[])} to set a new password.
-     * 
+     *
      * @return an instance of ECKeyStore
      * @throws KeyStoreException if an error occur creating the {@link KeyStore}
      */
-    public ECKeyStore() throws KeyStoreException {
+    public PrivateKeysStore() throws KeyStoreException {
         this(new char[0]);
     }
 
@@ -71,24 +72,24 @@ public class ECKeyStore {
      * Create a new ECKeyStore with the specified password. The same password is
      * used to store the keystore via {@link #store(File)} and for entries. Use
      * {@link #changePassword(char[])} to set a new password.
-     * 
+     *
      * @param password a password for the store and its entries.
      * @return an instance of ECKeyStore.
      * @throws KeyStoreException if an error occur creating the {@link KeyStore}
      */
-    public ECKeyStore(char[] password) throws KeyStoreException {
+    public PrivateKeysStore(char[] password) throws KeyStoreException {
         this(null, password);
     }
 
     /**
      * Load the keystore from the given input stream, or create a new one if null.
      * The password is used to decrypt the keystore <b>and each entry</b>.
-     * 
+     *
      * @param input    the input stream from which load the keystore.
      * @param password a password for the store and its entries.
      * @throws KeyStoreException
      */
-    public ECKeyStore(InputStream input, char[] password) throws KeyStoreException {
+    public PrivateKeysStore(InputStream input, char[] password) throws KeyStoreException {
         this.password = Arrays.copyOf(password, password.length);
         this.ks = KeyStore.getInstance("pkcs12");
         try {
@@ -104,6 +105,7 @@ public class ECKeyStore {
         SecretKeyEntry kEntry = new SecretKeyEntry(secretKey);
         ks.setEntry(keyID, kEntry, new PasswordProtection(password));
         netwotkTypeMap.put(keyID, key.getNetworkType());
+        compressPubkeyMap.put(keyID, key.compressPublicKey());
         return keyID;
     }
 
@@ -112,7 +114,9 @@ public class ECKeyStore {
         Key entryKey;
         try {
             entryKey = ks.getKey(keyID, password);
-            return PrivateKey.from(entryKey.getEncoded(), netwotkTypeMap.get(keyID));
+            boolean compressPublicKey = compressPubkeyMap.get(keyID);
+            NetworkType networkType = netwotkTypeMap.get(keyID);
+            return PrivateKey.from(entryKey.getEncoded(), compressPublicKey, networkType);
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException e) {
             throw new KeyStoreException("Cannot fetch key " + keyID + ": " + e.getMessage(), e);
         }

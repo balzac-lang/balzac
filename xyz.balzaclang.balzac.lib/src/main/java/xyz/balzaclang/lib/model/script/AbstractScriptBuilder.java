@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableList;
  * <p>
  * Examples:
  * </p>
- * 
+ *
  * <pre>
  * // OK
  * new AbstractScriptBuilder(){}.number(42).number(5).data(new byte[]{})
@@ -128,22 +128,22 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
      * </tr>
      * <tr>
      * <td>
-     * 
+     *
      * <pre>
      * ... 42 (TOALTSTACK FROMALTSTACK)* 21 ...
      * </pre>
-     * 
+     *
      * </td>
      * <td>
-     * 
+     *
      * <pre>
      * ... 42 21 ...
      * </pre>
-     * 
+     *
      * </td>
      * </tr>
      * </table>
-     * 
+     *
      * @return this builder
      */
     @SuppressWarnings("unchecked")
@@ -157,7 +157,7 @@ public abstract class AbstractScriptBuilder<T extends AbstractScriptBuilder<T>> 
     /**
      * Optimize the given script, returning a copy. A copy is returned even if no
      * optimization can be performed.
-     * 
+     *
      * @param script the script to optimize.
      * @return an optimized script.
      */

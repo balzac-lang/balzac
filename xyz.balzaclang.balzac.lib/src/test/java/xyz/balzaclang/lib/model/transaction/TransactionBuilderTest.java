@@ -26,10 +26,6 @@ import com.google.common.collect.Sets;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
-import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder;
-import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
-import xyz.balzaclang.lib.model.transaction.Input;
-import xyz.balzaclang.lib.model.transaction.TransactionBuilder;
 import xyz.balzaclang.lib.utils.ObjectUtils;
 
 public class TransactionBuilderTest {

@@ -27,7 +27,7 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.crypto.TransactionSignature;
 
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 import xyz.balzaclang.lib.model.transaction.Input;
 import xyz.balzaclang.lib.model.transaction.Output;
@@ -96,7 +96,7 @@ public class Signature {
     public static Signature computeSignature(
         PrivateKey key,
         ITransactionBuilder txBuilder,
-        ECKeyStore keyStore,
+        PrivateKeysStore keyStore,
         int inputIndex,
         SignatureModifier modifier) {
 

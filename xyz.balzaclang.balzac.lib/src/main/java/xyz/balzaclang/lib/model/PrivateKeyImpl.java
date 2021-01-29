@@ -26,13 +26,15 @@ class PrivateKeyImpl implements PrivateKey {
 
     private final NetworkType params;
     private final byte[] privkey;
+    private final boolean compressPubkey;
     private final PublicKey pubkey;
     private final Address address;
 
-    PrivateKeyImpl(byte[] privkey, NetworkType params) {
+    PrivateKeyImpl(byte[] privkey, boolean compressPubkey, NetworkType params) {
         this.params = params;
         this.privkey = Arrays.copyOf(privkey, privkey.length);
-        this.pubkey = PublicKey.fromBytes(ECKey.fromPrivate(privkey).getPubKey());
+        this.compressPubkey = compressPubkey;
+        this.pubkey = PublicKey.fromBytes(ECKey.fromPrivate(privkey, compressPubkey).getPubKey());
         this.address = Address.fromPubkey(pubkey.getBytes(), params);
     }
 
@@ -41,9 +43,15 @@ class PrivateKeyImpl implements PrivateKey {
         return Arrays.copyOf(privkey, privkey.length);
     }
 
+
+    @Override
+    public boolean compressPublicKey() {
+        return compressPubkey;
+    }
+
     @Override
     public String getWif() {
-        return ECKey.fromPrivate(privkey).getPrivateKeyAsWiF(params.toNetworkParameters());
+        return ECKey.fromPrivate(privkey, compressPubkey).getPrivateKeyAsWiF(params.toNetworkParameters());
     }
 
     @Override
@@ -64,6 +72,11 @@ class PrivateKeyImpl implements PrivateKey {
     @Override
     public NetworkType getNetworkType() {
         return params;
+    }
+
+    @Override
+    public PrivateKey withNetwork(NetworkType networkType) {
+        return new PrivateKeyImpl(privkey, compressPubkey, networkType);
     }
 
     @Override

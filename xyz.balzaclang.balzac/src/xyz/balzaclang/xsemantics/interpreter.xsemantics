@@ -252,7 +252,7 @@ from {
          res = xyz.balzaclang.lib.model.Signature.computeSignature(
             key,
             txBuilder,
-            s.ECKeyStore,
+            s.privateKeysStore,
             s.inputIdx,
             s.modifier.toSignatureModifier
         )
@@ -436,7 +436,7 @@ from {
         G |- comparison.left |> rho ~> var ITransactionBuilder leftResult
         G |- comparison.right |> rho ~> var ITransactionBuilder rightResult
 
-        var areEqual = ITransactionBuilder.equals(leftResult,rightResult,comparison.ECKeyStore)
+        var areEqual = ITransactionBuilder.equals(leftResult,rightResult,comparison.privateKeysStore)
 
         result = switch(comparison.op) {
             case "==": areEqual
@@ -736,7 +736,7 @@ from {
     G |- op.tx |> rho ~> var ITransactionBuilder txB
 
     try {
-        val tx = txB.toTransaction(op.ECKeyStore)
+        val tx = txB.toTransaction(op.privateKeysStore)
         result = new Hash(tx.txId.bytes)
     }
     catch (KeyStoreException e) {

@@ -69,7 +69,6 @@ import xyz.balzaclang.balzac.TransactionHexLiteral
 import xyz.balzaclang.balzac.TransactionInputOperation
 import xyz.balzaclang.balzac.TransactionOutputOperation
 import xyz.balzaclang.balzac.Versig
-import xyz.balzaclang.lib.ECKeyStore
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
 import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder
 import xyz.balzaclang.lib.model.transaction.TransactionBuilder
@@ -80,6 +79,7 @@ import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
+import xyz.balzaclang.lib.PrivateKeysStore
 
 /**
  * This class contains custom validation rules.
@@ -647,7 +647,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         /*
          * Verify that the input correctly spends the output
          */
-        hasError = !correctlySpendsOutput(txBuilder, tx.ECKeyStore, source, sourceIsTx)
+        hasError = !correctlySpendsOutput(txBuilder, tx.privateKeysStore, source, sourceIsTx)
 
         if(hasError) return false;  // interrupt the check
 
@@ -751,7 +751,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         if (!txA.ready || !txB.ready)
             return true
 
-        if (txA.toTransaction(inputA.ECKeyStore) == txB.toTransaction(inputB.ECKeyStore) && inputA.outpoint==inputB.outpoint
+        if (txA.toTransaction(inputA.privateKeysStore) == txB.toTransaction(inputB.privateKeysStore) && inputA.outpoint==inputB.outpoint
         ) {
             error(
                 "Double spending. You cannot redeem the output twice.",
@@ -800,7 +800,7 @@ class BalzacValidator extends AbstractBalzacValidator {
         return true;
     }
 
-    def boolean correctlySpendsOutput(TransactionBuilder txBuilder, ECKeyStore keystore, EObject source, boolean sourceIsTx) {
+    def boolean correctlySpendsOutput(TransactionBuilder txBuilder, PrivateKeysStore keystore, EObject source, boolean sourceIsTx) {
 
         val validationResult = Validator.checkWitnessesCorrecltySpendsOutputs(txBuilder, keystore)
 
@@ -945,7 +945,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                     return;
                 }
 
-                if ( ITransactionBuilder.equals(tx1.first as ITransactionBuilder, tx2.first as ITransactionBuilder, tlock.ECKeyStore) )
+                if ( ITransactionBuilder.equals(tx1.first as ITransactionBuilder, tx2.first as ITransactionBuilder, tlock.privateKeysStore) )
                     error(
                         "Duplicated relative timelock",
                         tlock,
@@ -977,7 +977,7 @@ class BalzacValidator extends AbstractBalzacValidator {
                     return;
                 }
 
-                if ( ITransactionBuilder.equals(tx.first as ITransactionBuilder, inTx.first as ITransactionBuilder, tlock.ECKeyStore) ) {
+                if ( ITransactionBuilder.equals(tx.first as ITransactionBuilder, inTx.first as ITransactionBuilder, tlock.privateKeysStore) ) {
                     return
                 }
             }

@@ -26,7 +26,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.junit.Test;
 
-import xyz.balzaclang.lib.model.Hash;
 import xyz.balzaclang.lib.model.Hash.HashAlgorithm;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 

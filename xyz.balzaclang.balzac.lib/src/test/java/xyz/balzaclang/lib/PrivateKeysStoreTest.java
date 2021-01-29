@@ -26,11 +26,11 @@ import org.junit.Test;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.PrivateKey;
 
-public class ECKeyStoreTest {
+public class PrivateKeysStoreTest {
 
     @Test
     public void changePassword() throws KeyStoreException {
-        ECKeyStore ks = new ECKeyStore();
+        PrivateKeysStore ks = new PrivateKeysStore();
         PrivateKey k1 = PrivateKey.fresh(NetworkType.TESTNET);
 
         // add a key
@@ -40,7 +40,7 @@ public class ECKeyStoreTest {
         ks.changePassword("test".toCharArray());
 
         // retrieve the key
-        PrivateKey k2 = ks.getKey(ECKeyStore.getUniqueID(k1));
+        PrivateKey k2 = ks.getKey(PrivateKeysStore.getUniqueID(k1));
 
         assertTrue(ks.containsKey(alias1));
         assertArrayEquals(k1.getBytes(), k2.getBytes());

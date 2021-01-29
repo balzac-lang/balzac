@@ -49,7 +49,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.Hash;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.Signature;
@@ -221,7 +221,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     /**
      * Replace all the signatures placeholder with the actual signatures. Each
      * placeholder is already associated with the key and the modifiers.
-     * 
+     *
      * @param tx         the transaction to be signed
      * @param inputIndex the index of the input that will contain this script
      * @param outScript  the redeemed output script
@@ -229,7 +229,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
      * @throws KeyStoreException if an error occurs retrieving private keys
      */
     @SuppressWarnings("unchecked")
-    public T setAllSignatures(ECKeyStore keystore, Transaction tx, int inputIndex, byte[] outScript, boolean isP2PKH)
+    public T setAllSignatures(PrivateKeysStore keystore, Transaction tx, int inputIndex, byte[] outScript, boolean isP2PKH)
         throws KeyStoreException {
 
         List<ScriptChunk> newChunks = new ArrayList<>();
@@ -284,7 +284,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
     /**
      * Append the given script to this builder.
-     * 
+     *
      * @param append the script to append
      * @return this builder
      */
@@ -296,7 +296,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     /**
      * Append the given script builder to this one. If it contains some free
      * variables or signatures placeholder, they are merged ensuring consistency.
-     * 
+     *
      * @param <U>    the concrete type of the given builder
      * @param append the script builder to append
      * @return this builder
@@ -352,7 +352,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
     /**
      * Extract a string representation of this builder.
-     * 
+     *
      * @return a string representing this builder
      */
     public String serialize() {
@@ -365,7 +365,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
     /**
      * Parse the given string to initialize this builder.
-     * 
+     *
      * @param str a string representation of this builder
      * @return this builder
      */

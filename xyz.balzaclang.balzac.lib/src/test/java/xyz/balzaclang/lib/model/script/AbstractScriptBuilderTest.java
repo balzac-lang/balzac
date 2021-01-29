@@ -27,8 +27,7 @@ import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.junit.Test;
 
-import xyz.balzaclang.lib.model.script.AbstractScriptBuilder;
-import static xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
+import xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class AbstractScriptBuilderTest {
 

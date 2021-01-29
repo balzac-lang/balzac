@@ -34,18 +34,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
 
 public class ScriptBuilderWithVarTest {
 
-    ECKeyStore ecks;
+    PrivateKeysStore ecks;
 
     @Before
     public void before() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        ecks = new ECKeyStore();
+        ecks = new PrivateKeysStore();
         ecks.changePassword(new char[] { 't', 'e', 's', 't' });
     }
 
@@ -163,9 +163,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.ALL;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AIAO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",AIAO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -176,9 +176,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.ALL;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SIAO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",SIAO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -189,9 +189,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AISO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",AISO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -202,9 +202,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.SINGLE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SISO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",SISO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -215,9 +215,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.NONE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, false);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, false);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",AINO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",AINO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -228,9 +228,9 @@ public class ScriptBuilderWithVarTest {
         SigHash hashType = SigHash.NONE;
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.signaturePlaceholder(ECKeyStore.getUniqueID(key), hashType, true);
+        sb.signaturePlaceholder(PrivateKeysStore.getUniqueID(key), hashType, true);
 
-        String expected = "15 [sig," + ECKeyStore.getUniqueID(key) + ",SINO]";
+        String expected = "15 [sig," + PrivateKeysStore.getUniqueID(key) + ",SINO]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
@@ -238,7 +238,7 @@ public class ScriptBuilderWithVarTest {
     @Test
     public void test_derialize_signature() throws KeyStoreException {
         PrivateKey key = PrivateKey.fresh(NetworkType.TESTNET);
-        String keyID = ECKeyStore.getUniqueID(key);
+        String keyID = PrivateKeysStore.getUniqueID(key);
         String serialScript = "15 [sig," + keyID + ",AIAO]";
 
         ScriptBuilderWithVar res = new ScriptBuilderWithVar(serialScript);

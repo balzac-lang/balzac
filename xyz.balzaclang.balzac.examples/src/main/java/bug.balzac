@@ -16,7 +16,7 @@ const kC = key:cVhDA3Yxkeacnci8WUokAfQT6Nv4tGpmy1GzSYtJdYqDDwZipPPB
 const kCpub = kB.toPubkey
 
 // tx redeemable with Alice's private key
-transaction A_funds { 
+transaction A_funds {
     input = _
     output = 1 BTC: fun(x). versig(kApub; x)
 }

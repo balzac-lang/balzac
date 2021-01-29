@@ -43,7 +43,7 @@ import org.bitcoinj.script.ScriptPattern;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
@@ -235,7 +235,7 @@ public class TransactionBuilder implements ITransactionBuilder {
      * valid input. In this way, we avoid to expose other implementation details,
      * even to subclasses
      * </p>
-     * 
+     *
      * @param inputScript the input script that redeem {@code tx} at
      *                    {@code outIndex}.
      * @return this builder.
@@ -252,7 +252,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 
     /**
      * Add a new transaction input.
-     * 
+     *
      * @param tx          the parent transaction to redeem.
      * @param outIndex    the index of the output script to redeem.
      * @param inputScript the input script that redeem {@code tx} at
@@ -269,7 +269,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 
     /**
      * Add a new transaction input.
-     * 
+     *
      * @param tx          the parent transaction to redeem.
      * @param outIndex    the index of the output script to redeem.
      * @param inputScript the input script that redeem {@code tx} at
@@ -307,7 +307,7 @@ public class TransactionBuilder implements ITransactionBuilder {
 
     /**
      * Add a new transaction output.
-     * 
+     *
      * @param outputScript the output script.
      * @param satoshis     the amount of satoshis of the output.
      * @return this builder.
@@ -336,7 +336,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     /**
      * Set the transaction locktime (absolute locktime which could represent a block
      * number or a timestamp).
-     * 
+     *
      * @param locktime the value to set.
      * @return this builder.
      */
@@ -348,7 +348,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     /**
      * Recursively check that this transaction and all the ancestors don't have free
      * variables.
-     * 
+     *
      * @return true if this transaction and all the ancestors don't have free
      *         variables, false otherwise.
      */
@@ -359,7 +359,7 @@ public class TransactionBuilder implements ITransactionBuilder {
     }
 
     @Override
-    public Transaction toTransaction(ECKeyStore keystore) {
+    public Transaction toTransaction(PrivateKeysStore keystore) {
         checkState(this.isReady(), "the transaction and all its ancestors are not ready");
 
         Transaction tx = new Transaction(params.toNetworkParameters());
@@ -394,7 +394,6 @@ public class TransactionBuilder implements ITransactionBuilder {
                 else {
                     txInput.setSequenceNumber(input.getLocktime());
                 }
-//              txInput.setScriptSig(input.script.build());
                 tx.addInput(txInput);
             }
         }

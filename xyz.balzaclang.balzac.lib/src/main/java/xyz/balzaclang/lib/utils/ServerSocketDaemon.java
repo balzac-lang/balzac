@@ -52,7 +52,7 @@ public class ServerSocketDaemon implements Runnable {
 
     /**
      * Create a new daemon a the specified port number.
-     * 
+     *
      * @param port the port that the daemon will use.
      */
     public ServerSocketDaemon(int port) {
@@ -63,7 +63,7 @@ public class ServerSocketDaemon implements Runnable {
     /**
      * Return the server port. If might be different from the {@code port} parameter
      * given in the constructor.
-     * 
+     *
      * @return the server port
      */
     public int getPort() {
@@ -72,7 +72,7 @@ public class ServerSocketDaemon implements Runnable {
 
     /**
      * Check if the server is running.
-     * 
+     *
      * @return true if the server started correctly, false otherwise.
      */
     public boolean isOnline() {
@@ -81,7 +81,7 @@ public class ServerSocketDaemon implements Runnable {
 
     /**
      * Block until the server is online and waiting for connections.
-     * 
+     *
      * @throws InterruptedException if the thread is interrupted
      */
     public void waitUntilOnline() throws InterruptedException {
@@ -93,7 +93,7 @@ public class ServerSocketDaemon implements Runnable {
     /**
      * Read a value. If there is no value to read, it blocks until another thread
      * will send a value through a socket connection.
-     * 
+     *
      * @return the read value
      * @throws InterruptedException if the thread is interrupted
      */
@@ -105,7 +105,7 @@ public class ServerSocketDaemon implements Runnable {
     /**
      * Read a value. If there is no value to read, it blocks until another thread
      * will send a value through a socket connection or the given timeout expires.
-     * 
+     *
      * @param timeout timeout value
      * @param unit    time-unit for the given timeout
      * @return the read value
@@ -212,7 +212,7 @@ public class ServerSocketDaemon implements Runnable {
     /**
      * Return a Socket for this daemon. The socket is creating using
      * {@code InetAddress.getLocalHost()} as host.
-     * 
+     *
      * @return a socket.
      * @throws IOException if an I/O error occurs when creating the socket.
      */
@@ -224,7 +224,7 @@ public class ServerSocketDaemon implements Runnable {
 
     /**
      * Return a client that allows to write to this server.
-     * 
+     *
      * @return the client.
      * @throws IOException if an I/O error occurs creating the socket.
      */

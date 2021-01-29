@@ -28,7 +28,7 @@ import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptException;
 
-import xyz.balzaclang.lib.ECKeyStore;
+import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.OutputScript;
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
@@ -52,7 +52,7 @@ public class Validator {
 
     public static ValidationResult checkWitnessesCorrecltySpendsOutputs(
         ITransactionBuilder txBuilder,
-        ECKeyStore keyStore) {
+        PrivateKeysStore keyStore) {
         // preconditions
         if (txBuilder.isCoinbase()) {
             return ValidationResult.ok("Transaction is a coinbase");

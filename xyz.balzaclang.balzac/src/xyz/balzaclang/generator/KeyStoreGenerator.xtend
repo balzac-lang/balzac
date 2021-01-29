@@ -32,10 +32,10 @@ import org.eclipse.xtext.naming.IQualifiedNameProvider
 import xyz.balzaclang.balzac.KeyLiteral
 import xyz.balzaclang.balzac.Model
 import xyz.balzaclang.balzac.PackageDeclaration
-import xyz.balzaclang.lib.ECKeyStore
 import xyz.balzaclang.lib.model.PrivateKey
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.utils.SecureStorageUtils
+import xyz.balzaclang.lib.PrivateKeysStore
 
 class KeyStoreGenerator extends AbstractGenerator {
 
@@ -76,7 +76,7 @@ class KeyStoreGenerator extends AbstractGenerator {
         val keys = EcoreUtil2.getAllContentsOfType(model, KeyLiteral)
 
         try {
-            val ecks = new ECKeyStore(getKsPassword())
+            val ecks = new PrivateKeysStore(getKsPassword())
 
             for (k : keys) {
                 val key = PrivateKey.fromBase58(k.value)

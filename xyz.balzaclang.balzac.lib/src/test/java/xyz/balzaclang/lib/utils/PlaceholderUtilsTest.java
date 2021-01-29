@@ -25,7 +25,6 @@ import org.junit.Test;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 import xyz.balzaclang.lib.model.transaction.Output;
-import xyz.balzaclang.lib.utils.PlaceholderUtils;
 
 public class PlaceholderUtilsTest {
 
