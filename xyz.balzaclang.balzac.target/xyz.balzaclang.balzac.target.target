@@ -7,14 +7,22 @@
         <unit id="org.slf4j.api.source" version="1.7.30.v20200204-2150"/>
         <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20210223232630/repository"/>
     </location>
-    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-        <unit id="org.eclipse.xsemantics.runtime.feature.feature.group" version="1.19.0.v20191203-1556"/>
-        <repository location="http://download.eclipse.org/xsemantics/milestones/1.19"/>
-    </location>
 	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="http://download.eclipse.org/releases/2020-06"/>
-		<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.11.3.v20200520-0756"/>
-		<unit id="org.eclipse.xtext.sdk.feature.group" version="2.22.0.v20200602-1533"/>
+		<repository location="http://download.eclipse.org/xsemantics/milestones/1.20"/>
+		<unit id="org.eclipse.xsemantics.doc.feature.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.examples.feature.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.feature.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.feature.source.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.implemented.examples.feature.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.runtime.feature.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.runtime.feature.source.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.sdk.feature.group" version="1.20.0.v20210401-0731"/>
+		<unit id="org.eclipse.xsemantics.sdk.source.feature.group" version="1.20.0.v20210401-0731"/>
+	</location>
+	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		<repository location="http://download.eclipse.org/releases/2021-03"/>
+		<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.12.1.v20210218-2134"/>
+		<unit id="org.eclipse.xtext.sdk.feature.group" version="2.25.0.v20210301-1429"/>
 	</location>
 </locations>
 </target>
