@@ -3,9 +3,9 @@
 <target name="xyz.balzaclang.balzac.target" sequenceNumber="39">
 <locations>
     <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-        <unit id="org.slf4j.api" version="1.7.10.v20170428-1633"/>
-        <unit id="org.slf4j.api.source" version="1.7.10.v20170428-1633"/>
-        <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20190226160451/repository"/>
+        <unit id="org.slf4j.api" version="1.7.30.v20200204-2150"/>
+        <unit id="org.slf4j.api.source" version="1.7.30.v20200204-2150"/>
+        <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20210223232630/repository"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
         <unit id="org.eclipse.xsemantics.runtime.feature.feature.group" version="1.19.0.v20191203-1556"/>
