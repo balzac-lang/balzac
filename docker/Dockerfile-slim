@@ -1,4 +1,4 @@
-FROM tomcat:latest
+FROM tomcat:8
 
 LABEL maintainer="atzeinicola@gmail.com"
 
