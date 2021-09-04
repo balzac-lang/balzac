@@ -47,11 +47,12 @@ import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.script.InputScript;
 import xyz.balzaclang.lib.model.script.OutputScript;
+import xyz.balzaclang.lib.model.script.primitives.Primitive;
 import xyz.balzaclang.lib.utils.Env;
 import xyz.balzaclang.lib.utils.EnvI;
 import xyz.balzaclang.lib.utils.TablePrinter;
 
-public class TransactionBuilder implements ITransactionBuilder {
+public class TransactionBuilder implements ITransactionBuilder, EnvI<Primitive, TransactionBuilder> {
 
     private static final long serialVersionUID = 1L;
 
@@ -62,9 +63,9 @@ public class TransactionBuilder implements ITransactionBuilder {
     private final List<Input> inputs = new ArrayList<>();
     private final List<Output> outputs = new ArrayList<>();
     private long locktime = UNSET_LOCKTIME;
-    private final Env<Object> env = new Env<>();
+    private final Env<Primitive> env = new Env<>();
 
-    private final Map<Set<String>, Consumer<Map<String, Object>>> variablesHook = new HashMap<>();
+    private final Map<Set<String>, Consumer<Map<String, Primitive>>> variablesHook = new HashMap<>();
 
     public TransactionBuilder(NetworkType params) {
         this.params = params;
@@ -86,27 +87,27 @@ public class TransactionBuilder implements ITransactionBuilder {
     }
 
     @Override
-    public Class<?> getType(String name) {
+    public Class<? extends Primitive> getType(String name) {
         return env.getType(name);
     }
 
     @Override
-    public Object getValue(String name) {
+    public Primitive getValue(String name) {
         return env.getValue(name);
     }
 
     @Override
-    public Object getValueOrDefault(String name, Object defaultValue) {
+    public Primitive getValueOrDefault(String name, Primitive defaultValue) {
         return env.getValueOrDefault(name, defaultValue);
     }
 
     @Override
-    public <E> E getValue(String name, Class<E> clazz) {
+    public <E extends Primitive> E getValue(String name, Class<E> clazz) {
         return env.getValue(name, clazz);
     }
 
     @Override
-    public TransactionBuilder addVariable(String name, Class<?> type) {
+    public TransactionBuilder addVariable(String name, Class<? extends Primitive> type) {
         env.addVariable(name, type);
         return this;
     }
@@ -127,15 +128,15 @@ public class TransactionBuilder implements ITransactionBuilder {
     }
 
     @Override
-    public TransactionBuilder bindVariable(String name, Object value) {
+    public TransactionBuilder bindVariable(String name, Primitive value) {
         env.bindVariable(name, value);
         Iterator<Set<String>> it = variablesHook.keySet().iterator();
         while (it.hasNext()) {
             Set<String> variables = it.next();
             boolean allBound = variables.stream().allMatch(this::isBound);
             if (allBound) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(v -> v, v -> getValue(v)));
-                Consumer<Map<String, Object>> hook = variablesHook.get(variables);
+                Map<String, Primitive> values = variables.stream().collect(Collectors.toMap(v -> v, v -> getValue(v)));
+                Consumer<Map<String, Primitive>> hook = variablesHook.get(variables);
                 hook.accept(values); // execute the hook
                 it.remove(); // remove the hook
             }
@@ -152,7 +153,7 @@ public class TransactionBuilder implements ITransactionBuilder {
      * @param hook  the consumer
      * @return this builder
      */
-    public TransactionBuilder addHookToVariableBinding(Set<String> names, Consumer<Map<String, Object>> hook) {
+    public TransactionBuilder addHookToVariableBinding(Set<String> names, Consumer<Map<String, Primitive>> hook) {
         checkNotNull(names, "'names' cannot be null");
         checkNotNull(hook, "'hook' cannot be null");
         checkArgument(!names.isEmpty(), "cannot add an hook for an empty set of variables");
@@ -496,10 +497,10 @@ public class TransactionBuilder implements ITransactionBuilder {
         sb.append("\n");
     }
 
-    private static void addVariables(StringBuilder sb, EnvI<Object, ?> env) {
+    private static void addVariables(StringBuilder sb, EnvI<Primitive, ?> env) {
         TablePrinter tp = new TablePrinter("Variables", new String[] { "Name", "Type", "Binding" }, "No variables");
         for (String name : new TreeSet<>(env.getVariables())) {
-            tp.addRow(name, env.getType(name).getSimpleName(), env.getValueOrDefault(name, "").toString());
+            tp.addRow(name, env.getType(name).getSimpleName(), env.getValueOrDefault(name, Primitive.of("")).toString());
         }
         sb.append(tp.toString());
         sb.append("\n");
@@ -550,7 +551,7 @@ public class TransactionBuilder implements ITransactionBuilder {
         sb.append("\n");
     }
 
-    private static List<String> getCompactVariables(EnvI<Object, ?> env) {
+    private static List<String> getCompactVariables(EnvI<Primitive, ?> env) {
         List<String> res = new ArrayList<>();
         Collection<String> variables = new TreeSet<>(env.getVariables());
 

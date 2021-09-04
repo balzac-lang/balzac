@@ -74,12 +74,12 @@ public class Env<T> implements EnvI<T, Env<T>> {
     }
 
     @Override
-    public <A extends T> A getValue(String name, Class<A> type) {
+    public <A extends T> A getValue(String name, Class<A> expectedType) {
         checkNotNull(name, "'name' cannot be null");
-        checkNotNull(type, "'type' cannot be null");
-        Class<? extends T> expectedType = getType(name);
-        checkArgument(expectedType.equals(type));
-        return type.cast(variablesBinding.get(name));
+        checkNotNull(expectedType, "'expectedType' cannot be null");
+        Class<? extends T> actualType = getType(name);
+        checkArgument(actualType.equals(expectedType));
+        return expectedType.cast(variablesBinding.get(name));
     }
 
     @Override

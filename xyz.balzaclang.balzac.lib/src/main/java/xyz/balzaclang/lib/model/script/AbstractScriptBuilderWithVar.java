@@ -50,15 +50,15 @@ import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 
 import xyz.balzaclang.lib.PrivateKeysStore;
-import xyz.balzaclang.lib.model.Hash;
 import xyz.balzaclang.lib.model.PrivateKey;
-import xyz.balzaclang.lib.model.Signature;
+import xyz.balzaclang.lib.model.script.primitives.Primitive;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 import xyz.balzaclang.lib.utils.Env;
 import xyz.balzaclang.lib.utils.EnvI;
 
+
 abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuilderWithVar<T>>
-    extends AbstractScriptBuilder<T> implements EnvI<Object, T> {
+    extends AbstractScriptBuilder<T> implements EnvI<Primitive, T> {
 
     public static class ScriptBuilderWithVar extends AbstractScriptBuilderWithVar<ScriptBuilderWithVar> {
 
@@ -81,7 +81,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     private static final String SIGNATURE_PREFIX = "[$sig$]";
     private static final String FREEVAR_PREFIX = "[$var$]";
 
-    private final Env<Object> env = new Env<>();
+    private final Env<Primitive> env = new Env<>();
 
     protected final Map<String, SignatureUtil> signatures = new HashMap<>();
 
@@ -165,7 +165,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     }
 
     public T signaturePlaceholderKeyFree(String keyVarname, SigHash hashType, boolean anyoneCanPay) {
-        this.addVariable(keyVarname, String.class);
+        this.addVariable(keyVarname, Primitive.String.class);
         return this.signaturePlaceholder(FREEVAR_PREFIX + keyVarname, hashType, anyoneCanPay);
     }
 
@@ -247,7 +247,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                     // check that the variable is bound
                     String varName = keyID.substring(FREEVAR_PREFIX.length());
                     checkState(isBound(varName), "variable " + varName + " must be bound to retrieve the key");
-                    keyID = getValue(varName, String.class);
+                    keyID = getValue(varName, Primitive.String.class).value();
                 }
 
                 checkState(keystore != null, "keystore must be set to retrieve the private keys");
@@ -419,7 +419,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
             str.append(",");
             str.append(name);
             str.append(",");
-            str.append(getType(name).getCanonicalName());
+            str.append(getType(name).getName());
             str.append("]");
             str.append(" ");
         }
@@ -437,6 +437,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
         return str.toString();
     }
 
+    @SuppressWarnings("unchecked")
     protected void deserializeChunk(String w) {
 
         if (w.startsWith("[")) {
@@ -450,7 +451,8 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
                 try {
                     String name = vals[1];
                     Class<?> clazz = Class.forName(vals[2]);
-                    this.addVariable(name, clazz);
+                    checkState(Primitive.class.isAssignableFrom(clazz), "invalid type " + clazz.getSimpleName());
+                    this.addVariable(name, (Class<Primitive>) clazz);
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Error retrieving the class " + vals[2], e);
                 }
@@ -615,30 +617,28 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
     }
 
     @Override
-    public Class<?> getType(String name) {
+    public Class<? extends Primitive> getType(String name) {
         return env.getType(name);
     }
 
     @Override
-    public Object getValue(String name) {
+    public Primitive getValue(String name) {
         return env.getValue(name);
     }
 
     @Override
-    public <E> E getValue(String name, Class<E> clazz) {
+    public <P extends Primitive> P getValue(String name, Class<P> clazz) {
         return env.getValue(name, clazz);
     }
 
     @Override
-    public Object getValueOrDefault(String name, Object defaultValue) {
+    public Primitive getValueOrDefault(String name, Primitive defaultValue) {
         return env.getValueOrDefault(name, defaultValue);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public T addVariable(String name, Class<?> type) {
-        checkArgument(Number.class.isAssignableFrom(type) || String.class.equals(type) || Boolean.class.equals(type)
-            || Hash.class.isAssignableFrom(type) || Signature.class.isAssignableFrom(type), "invalid type " + type);
+    public T addVariable(String name, Class<? extends Primitive> type) {
         addVariableChunk(name);
         env.addVariable(name, type);
         return (T) this;
@@ -654,7 +654,7 @@ abstract public class AbstractScriptBuilderWithVar<T extends AbstractScriptBuild
 
     @SuppressWarnings("unchecked")
     @Override
-    public T bindVariable(String name, Object value) {
+    public T bindVariable(String name, Primitive value) {
         env.bindVariable(name, value);
         return (T) this;
     }

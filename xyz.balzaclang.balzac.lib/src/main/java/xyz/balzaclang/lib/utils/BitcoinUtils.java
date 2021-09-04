@@ -26,6 +26,7 @@ import org.bitcoinj.script.ScriptBuilder;
 
 import xyz.balzaclang.lib.model.Hash;
 import xyz.balzaclang.lib.model.Signature;
+import xyz.balzaclang.lib.model.script.primitives.Primitive;
 
 public class BitcoinUtils {
 
@@ -52,29 +53,48 @@ public class BitcoinUtils {
     // TODO: move this to a new interface
     public static Script toScript(Object obj) {
 
-        if (obj instanceof Number)
-            return new ScriptBuilder().number(((Number) obj).longValue()).build();
+        if (obj instanceof Number n)
+            return new ScriptBuilder().number(n.longValue()).build();
 
-        else if (obj instanceof String)
-            return new ScriptBuilder().data(((String) obj).getBytes(Charset.forName("UTF-8"))).build();
+        else if (obj instanceof Primitive.Number n)
+            return new ScriptBuilder().number(n.value().longValue()).build();
 
-        else if (obj instanceof Hash)
-            return new ScriptBuilder().data(((Hash) obj).getBytes()).build();
+        else if (obj instanceof String str)
+            return new ScriptBuilder().data(str.getBytes(Charset.forName("UTF-8"))).build();
 
-        else if (obj instanceof Boolean)
-            return ((Boolean) obj) ? new ScriptBuilder().opTrue().build() : new ScriptBuilder().opFalse().build();
+        else if (obj instanceof Primitive.String s)
+            return new ScriptBuilder().data(s.value().getBytes(Charset.forName("UTF-8"))).build();
 
-        else if (obj instanceof TransactionSignature)
-            return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
+        else if (obj instanceof Hash hash)
+            return new ScriptBuilder().data(hash.getBytes()).build();
 
-        else if (obj instanceof Signature) {
-            Signature sig = (Signature) obj;
+        else if (obj instanceof Primitive.Hash hash)
+            return new ScriptBuilder().data(hash.value().getBytes()).build();
+
+        else if (obj instanceof Boolean bool)
+            return bool ? new ScriptBuilder().opTrue().build() : new ScriptBuilder().opFalse().build();
+
+        else if (obj instanceof Primitive.Boolean bool)
+            return bool.value() ? new ScriptBuilder().opTrue().build() : new ScriptBuilder().opFalse().build();
+
+        else if (obj instanceof Signature sig) {
             ScriptBuilder sb = new ScriptBuilder();
             sb.data(sig.getSignature());
             if (sig.getPubkey().isPresent())
                 sb.data(sig.getPubkey().get().getBytes());
             return sb.build();
         }
+
+        else if (obj instanceof Primitive.Signature sig) {
+            ScriptBuilder sb = new ScriptBuilder();
+            sb.data(sig.value().getSignature());
+            if (sig.value().getPubkey().isPresent())
+                sb.data(sig.value().getPubkey().get().getBytes());
+            return sb.build();
+        }
+
+        else if (obj instanceof TransactionSignature)
+            return new ScriptBuilder().data(((TransactionSignature) obj).encodeToBitcoin()).build();
 
         throw new IllegalArgumentException();
     }

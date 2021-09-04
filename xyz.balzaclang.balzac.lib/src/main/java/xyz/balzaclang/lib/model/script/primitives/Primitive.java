@@ -15,15 +15,13 @@
  */
 package xyz.balzaclang.lib.model.script.primitives;
 
-public interface Primitive<T> {
+public interface Primitive {
 
-    public T getValue();
-
-    record Number(java.lang.Number value) { }
-    record String(java.lang.String value) { }
-    record Boolean(java.lang.Boolean value) { }
-    record Hash(xyz.balzaclang.lib.model.Hash value) { }
-    record Signature(xyz.balzaclang.lib.model.Signature value) { }
+    record Number(java.lang.Number value) implements Primitive { }
+    record String(java.lang.String value) implements Primitive { }
+    record Boolean(java.lang.Boolean value) implements Primitive { }
+    record Hash(xyz.balzaclang.lib.model.Hash value) implements Primitive { }
+    record Signature(xyz.balzaclang.lib.model.Signature value) implements Primitive { }
 
     public static Number of(java.lang.Number value) {
         return new Number(value);
