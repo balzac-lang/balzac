@@ -16,6 +16,7 @@
 package xyz.balzaclang.lib.model;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -30,6 +31,46 @@ import xyz.balzaclang.lib.model.Hash.HashAlgorithm;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
 public class HashTest {
+
+    @Test
+    public void testSha1Digest() {
+        String valueToHash = "Hello world!";
+        String actual = Hash.sha1(valueToHash).getBytesAsString();
+        String expected = "d3486ae9136e7856bc42212385ea797094475802";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSha256Digest() {
+        String valueToHash = "Hello world!";
+        String actual = Hash.sha256(valueToHash).getBytesAsString();
+        String expected = "c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRipemd160Digest() {
+        String valueToHash = "Hello world!";
+        String actual = Hash.ripemd160(valueToHash).getBytesAsString();
+        String expected = "7f772647d88750add82d8e1a7a3e5c0902a346a3";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHash256Digest() {
+        String valueToHash = "Hello world!";
+        String actual = Hash.hash256(valueToHash).getBytesAsString();
+        String expected = "7982970534e089b839957b7e174725ce1878731ed6d700766e59cb16f1c25e27";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testHash160Digest() {
+        String valueToHash = "Hello world!";
+        String actual = Hash.hash160(valueToHash).getBytesAsString();
+        String expected = "621281c15fb62d5c6013ea29007491e8b174e1b9";
+        assertEquals(expected, actual);
+    }
 
     @Test
     public void testCompareTo() {
