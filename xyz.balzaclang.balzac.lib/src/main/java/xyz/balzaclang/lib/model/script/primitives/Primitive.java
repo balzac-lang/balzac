@@ -15,6 +15,8 @@
  */
 package xyz.balzaclang.lib.model.script.primitives;
 
+import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
+
 public interface Primitive {
 
     record Number(java.lang.Number value) implements Primitive { }
@@ -22,6 +24,10 @@ public interface Primitive {
     record Boolean(java.lang.Boolean value) implements Primitive { }
     record Hash(xyz.balzaclang.lib.model.Hash value) implements Primitive { }
     record Signature(xyz.balzaclang.lib.model.Signature value) implements Primitive { }
+    record PrivateKey(xyz.balzaclang.lib.model.PrivateKey value) implements Primitive { }
+    record PublicKey(xyz.balzaclang.lib.model.PublicKey value) implements Primitive { }
+    record Address(xyz.balzaclang.lib.model.Address value) implements Primitive { }
+    record Transaction(ITransactionBuilder value) implements Primitive { }
 
     public static Number of(java.lang.Number value) {
         return new Number(value);
@@ -41,5 +47,21 @@ public interface Primitive {
 
     public static Signature of(xyz.balzaclang.lib.model.Signature value) {
         return new Signature(value);
+    }
+
+    public static PrivateKey of(xyz.balzaclang.lib.model.PrivateKey value) {
+        return new PrivateKey(value);
+    }
+
+    public static PublicKey of(xyz.balzaclang.lib.model.PublicKey value) {
+        return new PublicKey(value);
+    }
+
+    public static Address of(xyz.balzaclang.lib.model.Address value) {
+        return new Address(value);
+    }
+
+    public static Transaction of(xyz.balzaclang.lib.model.transaction.ITransactionBuilder value) {
+        return new Transaction(value);
     }
 }

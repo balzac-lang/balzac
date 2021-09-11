@@ -14,8 +14,10 @@
         <xsemantics-version>1.20.0-SNAPSHOT</xsemantics-version>
         <xsemantics-p2-url>http://download.eclipse.org/xsemantics/milestones/1.20</xsemantics-p2-url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <java.version>16</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <lib.version>1.0.0-SNAPSHOT</lib.version>
         <!-- Define overridable properties for tycho-surefire-plugin -->
         <platformSystemProperties></platformSystemProperties>
@@ -34,8 +36,8 @@
         <module>../xyz.balzaclang.balzac.repository</module>
         <module>../xyz.balzaclang.balzac.lib</module>
         <module>../xyz.balzaclang.balzac.logging</module>
-<!--         <module>../xyz.balzaclang.balzac.tests</module> -->
-<!--         <module>../xyz.balzaclang.balzac.ui.tests</module> -->
+        <!-- <module>../xyz.balzaclang.balzac.tests</module> -->
+        <!-- <module>../xyz.balzaclang.balzac.ui.tests</module> -->
     </modules>
 
     <dependencyManagement>
@@ -52,6 +54,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-versions-plugin</artifactId>
@@ -144,6 +151,12 @@
 
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                </plugin>
+
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-versions-plugin</artifactId>
@@ -293,17 +306,17 @@
                         <useProjectSettings>false</useProjectSettings>
                     </configuration>
                 </plugin>
-                <!-- to skip running (and compiling) tests use commandline
-                    flag: -Dmaven.test.skip To skip tests, but still compile them, use: -DskipTests
-                    To allow all tests in a pom to pass/fail, use commandline flag: -fae (fail
-                    at end) -->
+                <!-- to skip running (and compiling) tests use commandline flag: -Dmaven.test.skip
+                    To skip tests, but still compile them, use: -DskipTests To allow all tests
+                    in a pom to pass/fail, use commandline flag: -fae (fail at end) -->
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-surefire-plugin</artifactId>
                     <version>${tycho-version}</version>
                     <configuration>
                         <!-- THE FOLLOWING LINE MUST NOT BE BROKEN BY AUTOFORMATTING -->
-                        <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties}</argLine>
+                        <argLine>${tycho.testArgLine} ${platformSystemProperties}
+                            ${systemProperties} ${moduleProperties}</argLine>
                         <failIfNoTests>false</failIfNoTests>
                         <useUIHarness>false</useUIHarness>
                     </configuration>
