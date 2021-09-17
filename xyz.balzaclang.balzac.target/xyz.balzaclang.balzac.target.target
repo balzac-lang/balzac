@@ -6,6 +6,8 @@
         <unit id="org.slf4j.api" version="1.7.30.v20200204-2150"/>
         <unit id="org.slf4j.api.source" version="1.7.30.v20200204-2150"/>
         <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20210223232630/repository"/>
+        <unit id="org.apache.commons.logging" version="1.2.0.v20180409-1502"/>
+        <unit id="org.apache.commons.logging.source" version="1.2.0.v20180409-1502"/>
     </location>
 	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 		<repository location="http://download.eclipse.org/xsemantics/milestones/1.20"/>
@@ -19,10 +21,10 @@
 		<unit id="org.eclipse.xsemantics.sdk.feature.group" version="1.20.0.v20210401-0731"/>
 		<unit id="org.eclipse.xsemantics.sdk.source.feature.group" version="1.20.0.v20210401-0731"/>
 	</location>
-	<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-		<repository location="http://download.eclipse.org/releases/2021-03"/>
-		<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.12.1.v20210218-2134"/>
-		<unit id="org.eclipse.xtext.sdk.feature.group" version="2.25.0.v20210301-1429"/>
-	</location>
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+        <repository location="http://download.eclipse.org/releases/2021-06"/>
+        <unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="2.12.1.v20210218-2134"/>
+        <unit id="org.eclipse.xtext.sdk.feature.group" version="2.25.0.v20210301-1429"/>
+    </location>
 </locations>
 </target>

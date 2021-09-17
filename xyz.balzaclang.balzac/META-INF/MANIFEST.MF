@@ -9,13 +9,13 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;bundle-version="2.25.0",
  org.eclipse.xtext.xbase,
  org.eclipse.xsemantics.runtime;bundle-version="1.20.0",
- org.eclipse.equinox.security;bundle-version="1.2.300",
- org.eclipse.equinox.common;bundle-version="3.9.0",
+ org.eclipse.equinox.security;bundle-version="1.3.600",
+ org.eclipse.equinox.common;bundle-version="3.15.0",
  org.eclipse.emf.ecore,
  org.eclipse.xtext.xbase.lib;bundle-version="2.14.0",
  org.eclipse.xtext.util,
  org.eclipse.emf.common,
- org.eclipse.xtend.lib;bundle-version="2.14.0",
+ org.eclipse.xtend.lib;bundle-version="2.25.0",
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
 Bundle-RequiredExecutionEnvironment: JavaSE-16
 Export-Package: xyz.balzaclang,

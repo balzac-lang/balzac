@@ -2,7 +2,7 @@ os: linux
 dist: xenial
 language: java
 jdk:
-- openjdk11
+- openjdk16
 
 services:
 - docker
@@ -13,9 +13,8 @@ cache:
 
 env:
   global:
-  - GRADLE_VERSION=4.10.3
-  - BITCOIND_CONNECTOR_TAG=v0.16.0
-  - BITCOINJ_TAG=0.16.10-LIB
+  - GRADLE_VERSION=7.2
+  - BITCOINJ_TAG=0.16.12-LIB
   - LATEST_VERSION=$(git tag --list --points-at $HEAD)
 
 install:
@@ -23,8 +22,6 @@ install:
 - sudo apt-get install -y protobuf-compiler
 
 before_script:
-- gradle -version
-- gradle wrapper --gradle-version=$GRADLE_VERSION
 - "./scripts/install-deps.sh"
 
 script:

@@ -10,14 +10,14 @@
     <properties>
         <mwe2Version>2.12.1</mwe2Version>
         <xtext-version>2.25.0</xtext-version>
-        <tycho-version>1.7.0</tycho-version>
+        <tycho-version>2.4.0</tycho-version>
         <xsemantics-version>1.20.0-SNAPSHOT</xsemantics-version>
         <xsemantics-p2-url>http://download.eclipse.org/xsemantics/milestones/1.20</xsemantics-p2-url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>16</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>16</maven.compiler.release>
+        <tycho.target.execution-environment>JavaSE-16</tycho.target.execution-environment>
         <lib.version>1.0.0-SNAPSHOT</lib.version>
         <!-- Define overridable properties for tycho-surefire-plugin -->
         <platformSystemProperties></platformSystemProperties>
@@ -72,7 +72,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-source-plugin</artifactId>
-                <version>${tycho-version}</version>
                 <executions>
                     <execution>
                         <id>plugin-source</id>
@@ -80,19 +79,14 @@
                             <goal>plugin-source</goal>
                         </goals>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho.extras</groupId>
-                <artifactId>tycho-source-feature-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <executions>
                     <execution>
-                        <id>source-feature</id>
-                        <phase>package</phase>
+                        <id>feature-source</id>
                         <goals>
-                            <goal>source-feature</goal>
+                            <goal>feature-source</goal>
                         </goals>
+                        <configuration>
+                        <!-- put your configuration here -->
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -115,6 +109,7 @@
                 <artifactId>target-platform-configuration</artifactId>
                 <version>${tycho-version}</version>
                 <configuration>
+                    <executionEnvironment>${tycho.target.execution-environment}</executionEnvironment>
                     <target>
                         <artifact>
                             <groupId>xyz.balzaclang.balzac</groupId>
@@ -162,6 +157,13 @@
                     <artifactId>tycho-versions-plugin</artifactId>
                     <version>${tycho-version}</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-source-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                </plugin>
+
                 <!-- https://github.com/eclipse/xtext/issues/1231#issuecomment-401833957 -->
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
@@ -211,15 +213,9 @@
                             <pluginExecutions>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                                        <groupId>
-                                            org.apache.maven.plugins
-                                        </groupId>
-                                        <artifactId>
-                                            maven-resources-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [2.4.3,)
-                                        </versionRange>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-resources-plugin</artifactId>
+                                        <versionRange>[2.4.3,)</versionRange>
                                         <goals>
                                             <goal>resources</goal>
                                             <goal>testResources</goal>
@@ -231,15 +227,9 @@
                                 </pluginExecution>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                                        <groupId>
-                                            org.codehaus.mojo
-                                        </groupId>
-                                        <artifactId>
-                                            build-helper-maven-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [1.9.1,)
-                                        </versionRange>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>build-helper-maven-plugin</artifactId>
+                                        <versionRange>[1.9.1,)</versionRange>
                                         <goals>
                                             <goal>add-resource</goal>
                                             <goal>add-source</goal>
@@ -253,15 +243,9 @@
                                 </pluginExecution>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                                        <groupId>
-                                            org.eclipse.tycho
-                                        </groupId>
-                                        <artifactId>
-                                            tycho-compiler-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [0.23.1,)
-                                        </versionRange>
+                                        <groupId>org.eclipse.tycho</groupId>
+                                        <artifactId>tycho-compiler-plugin</artifactId>
+                                        <versionRange>[0.23.1,)</versionRange>
                                         <goals>
                                             <goal>compile</goal>
                                         </goals>
@@ -272,20 +256,27 @@
                                 </pluginExecution>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                                        <groupId>
-                                            org.eclipse.tycho
-                                        </groupId>
-                                        <artifactId>
-                                            tycho-packaging-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [0.23.1,)
-                                        </versionRange>
+                                        <groupId>org.eclipse.tycho</groupId>
+                                        <artifactId>tycho-packaging-plugin</artifactId>
+                                        <versionRange>[0.23.1,)</versionRange>
                                         <goals>
                                             <goal>build-qualifier</goal>
                                             <goal>build-qualifier-aggregator</goal>
                                             <goal>validate-id</goal>
                                             <goal>validate-version</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.eclipse.tycho</groupId>
+                                        <artifactId>target-platform-configuration</artifactId>
+                                        <versionRange>[2.4.0,)</versionRange>
+                                        <goals>
+                                            <goal>target-platform</goal>
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
@@ -315,8 +306,7 @@
                     <version>${tycho-version}</version>
                     <configuration>
                         <!-- THE FOLLOWING LINE MUST NOT BE BROKEN BY AUTOFORMATTING -->
-                        <argLine>${tycho.testArgLine} ${platformSystemProperties}
-                            ${systemProperties} ${moduleProperties}</argLine>
+                        <argLine>${tycho.testArgLine} ${platformSystemProperties} ${systemProperties} ${moduleProperties}</argLine>
                         <failIfNoTests>false</failIfNoTests>
                         <useUIHarness>false</useUIHarness>
                     </configuration>
