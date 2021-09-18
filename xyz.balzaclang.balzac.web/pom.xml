@@ -12,6 +12,7 @@
     <packaging>war</packaging>
 
     <properties>
+        <jetty.version>10.0.6</jetty.version>
         <commit>${git.commit.id.abbrev}</commit>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
     </properties>
@@ -42,9 +43,11 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <dateFormat>yyyyMMdd-HHmmss</dateFormat><!--  human-readable part of the version number -->
+                    <dateFormat>yyyyMMdd-HHmmss</dateFormat><!-- human-readable part of
+                        the version number -->
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <generateGitPropertiesFile>false</generateGitPropertiesFile><!-- somehow necessary. otherwise the variables are not available in the pom -->
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile><!-- somehow
+                        necessary. otherwise the variables are not available in the pom -->
                 </configuration>
             </plugin>
             <plugin>
@@ -62,13 +65,13 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.4.17.v20190418</version>
+                <version>${jetty.version}</version>
                 <configuration>
                     <webAppSourceDirectory>WebRoot</webAppSourceDirectory>
-                    <webAppConfig>
+                    <webApp>
                         <contextPath>/</contextPath>
                         <webInfIncludeJarPattern>.*/bootstrap-toggle-[^/]*\.jar$|.*/font-awesome-[^/]*\.jar$|.*/requirejs-[^/]*\.jar$|.*/bootstrap-[^/]*\.jar$|.*/org.eclipse.xtext.web-[^/]*\.jar$|.*/jquery-[^/]*\.jar$|.*/popper.js-[^/]*\.jar$|.*/codemirror-[^/]*\.jar$|.*/classes/.*</webInfIncludeJarPattern>
-                    </webAppConfig>
+                    </webApp>
                 </configuration>
             </plugin>
             <plugin>
@@ -170,9 +173,9 @@
             <version>2.2.2</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-annotations</artifactId>
-            <version>9.4.17.v20190418</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -8,6 +8,7 @@ import org.eclipse.xtext.xtext.generator.*
 import org.eclipse.xtext.xtext.generator.model.project.*
 import org.eclipse.xtext.xtext.generator.scoping.*
 import org.eclipse.xtext.xtext.generator.ui.codemining.CodeMiningFragment
+import org.eclipse.xtext.xtext.generator.web.WebIntegrationFragment
 
 var rootPath = ".."
 
@@ -52,8 +53,9 @@ Workflow {
                 generateStub = true
                 generateXtendStub = false
             }
-            fragment = web.WebIntegrationFragment {
+            fragment = WebIntegrationFragment {
                 framework = "codemirror"
+                generateJettyLauncher = false
             }
         }
     }
