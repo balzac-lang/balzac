@@ -17,8 +17,9 @@ package xyz.balzaclang.web
 
 import com.google.gson.Gson
 import java.io.IOException
+import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import javax.servlet.ServletException
@@ -40,6 +41,7 @@ class VersionServlet extends HttpServlet {
 
     @Accessors
     private static class Version {
+        val String javaVersion
         val String version
         val String commit
         val String build
@@ -47,35 +49,39 @@ class VersionServlet extends HttpServlet {
     }
 
     val static Logger logger = LoggerFactory.getLogger(VersionServlet)
-    val static dateFormat =  DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-    val static now = LocalDateTime.now(ZoneId.of("UTC")).withNano(0).format(DateTimeFormatter.ISO_DATE_TIME)
+    val static inputDateTimeFormatter =  DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+    val static outputDateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+
+    val static now = Instant.now.atZone(ZoneOffset.UTC).withNano(0).format(outputDateTimeFormatter)
 
     val Gson gson = new Gson
     var Version version
 
     override init() throws ServletException {
 
-        val properties = new Properties()
+        val properties = new Properties(System.properties)
         val propertiesInput = VersionServlet.classLoader.getResourceAsStream("info.properties")
         properties.load(propertiesInput)
 
+        val javaVersion = properties.getProperty("java.version", "unknown")
         val version = properties.getProperty("build.version", "unknown")
         val commit = properties.getProperty("build.commit", "unknown")
         var buildTime = properties.getProperty("build.timestamp", "unknown")
 
         if (buildTime != "unknown") {
             try {
-                buildTime = LocalDateTime.parse(buildTime, dateFormat).format(DateTimeFormatter.ISO_DATE_TIME)
+                buildTime = LocalDateTime.parse(buildTime, VersionServlet.inputDateTimeFormatter).atZone(ZoneOffset.UTC).format(outputDateTimeFormatter)
             }
             catch(Exception e){
-                logger.warn("Unable to parse the build time from '{}'", buildTime)
+                logger.warn('''Unable to parse the build time from value '«buildTime»' ''', e)
             }
         }
 
-        version = new Version(version, commit, buildTime)
+        version = new Version(javaVersion, version, commit, buildTime)
 
         logger.info('''
         Balzac
+         - java:       «this.version.javaVersion»
          - version:    «this.version.version»
          - commit:     «this.version.commit»
          - build:      «this.version.build»
