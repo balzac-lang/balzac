@@ -179,6 +179,7 @@
                     data : null,
                     cache : false,
                     success : function(data) {
+                        $("#javaVersion").html("Java: "+data.javaVersion)
                         $("#version").html("Version: "+data.version)
                         $("#commit").html("Commit: "+data.commit)
                         $("#build-time").html("Built at: "+data.build)
@@ -584,6 +585,11 @@
                     </div>
                 </div>
                 <div class="row text-center small mt-2 grayout">
+                    <div class="col">
+                        <span id="javaVersion">Java: unknown</span>
+                    </div>
+                </div>
+                <div class="row text-center small mt-0 grayout">
                     <div class="col">
                         <span id="version">Version: unknown</span>
                     </div>
