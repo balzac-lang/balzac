@@ -35,6 +35,7 @@ gradle -p $HOME/bitcoinj install -x test
 
 ## Install
 ```
+export MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED"
 mvn -f xyz.balzaclang.balzac.parent/ -U clean install
 ```
 
@@ -50,6 +51,7 @@ In order to run Balzac locally you can
 ### Maven + Jetty
 
 ```
+export MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED"
 mvn -f xyz.balzaclang.balzac.web/ jetty:run
 ```
 
