@@ -53,18 +53,35 @@ mvn -f xyz.balzaclang.balzac.parent/ -U clean install
 In order to run Balzac locally you can
 
 - build on your machine and run using Maven + Jetty
-- build on your machine and load the war (saved into `xyz.balzaclang.balzac.web/target/`) inside any web container (e.g. Tomcat)
+- build on your machine and load the WAR package inside any servlet container (e.g. Tomcat)
 - build on your machine and run in Docker (see `docker/Dockerfile-slim` to create the image)
 - download from DockerHub and run in Docker
 
-### Maven + Jetty
+### Build a WAR package
 
 ```
-export MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED"
+mvn -f xyz.balzaclang.balzac.web/ package
+```
+
+The WAR package is saved in `xyz.balzaclang.balzac.web/target/`.
+
+
+### Run with Maven + Jetty
+
+```
 mvn -f xyz.balzaclang.balzac.web/ jetty:run
 ```
 
+Or alternatively
+
+```
+mvn -f xyz.balzaclang.balzac.web/ jetty:run-war
+```
+
+
 ### Build with Maven, run with Docker
+
+Assuming the WAR package is saved in `xyz.balzaclang.balzac.web/target/`, you can generate the Docker image executing:
 
 ```
 docker build -f docker/Dockerfile-slim -t balzac:latest .

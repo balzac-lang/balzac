@@ -13,12 +13,11 @@
 
     <properties>
         <jetty.version>10.0.6</jetty.version>
-        <commit>${git.commit.id.abbrev}</commit>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
     </properties>
 
     <build>
-        <finalName>balzac##${project.version}+${commit}.${maven.build.timestamp}</finalName>
+        <finalName>balzac##${project.version}+${git.commit.id.abbrev}.${maven.build.timestamp}</finalName>
         <sourceDirectory>src</sourceDirectory>
         <resources>
             <resource>
@@ -31,23 +30,19 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.6</version>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>5.0.0</version>
                 <executions>
                     <execution>
-                        <phase>validate</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>revision</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <dateFormat>yyyyMMdd-HHmmss</dateFormat><!-- human-readable part of
-                        the version number -->
-                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <generateGitPropertiesFile>false</generateGitPropertiesFile><!-- somehow
-                        necessary. otherwise the variables are not available in the pom -->
+                    <injectAllReactorProjects>true</injectAllReactorProjects>
                 </configuration>
             </plugin>
             <plugin>
@@ -69,6 +64,7 @@
                 <configuration>
                     <webAppSourceDirectory>WebRoot</webAppSourceDirectory>
                     <webApp>
+                        <war>${project.build.directory}/${project.build.finalName}.war</war>
                         <contextPath>/</contextPath>
                         <webInfIncludeJarPattern>.*/bootstrap-toggle-[^/]*\.jar$|.*/font-awesome-[^/]*\.jar$|.*/requirejs-[^/]*\.jar$|.*/bootstrap-[^/]*\.jar$|.*/org.eclipse.xtext.web-[^/]*\.jar$|.*/jquery-[^/]*\.jar$|.*/popper.js-[^/]*\.jar$|.*/codemirror-[^/]*\.jar$|.*/classes/.*</webInfIncludeJarPattern>
                     </webApp>
