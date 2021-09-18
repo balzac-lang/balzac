@@ -114,37 +114,38 @@
                 </executions>
             </plugin>
 
-            <!-- <plugin> -->
-            <!-- <groupId>org.jacoco</groupId> -->
-            <!-- <artifactId>jacoco-maven-plugin</artifactId> -->
-            <!-- <version>0.8.3</version> -->
-            <!-- <executions> -->
-            <!-- <execution> -->
-            <!-- <id>default-prepare-agent</id> -->
-            <!-- <goals> -->
-            <!-- <goal>prepare-agent</goal> -->
-            <!-- </goals> -->
-            <!-- </execution> -->
-            <!-- </executions> -->
-            <!-- </plugin> -->
-            <!-- <plugin> -->
-            <!-- <groupId>org.eluder.coveralls</groupId> -->
-            <!-- <artifactId>coveralls-maven-plugin</artifactId> -->
-            <!-- <version>4.3.0</version> -->
-            <!-- </plugin> -->
-            <!-- <plugin> -->
-            <!-- <groupId>org.apache.maven.plugins</groupId> -->
-            <!-- <artifactId>maven-surefire-plugin</artifactId> -->
-            <!-- <version>2.22.1</version> -->
-            <!-- <configuration> -->
-            <!-- <junitArtifactName>junit:junit</junitArtifactName> -->
-            <!-- <encoding>UTF-8</encoding> -->
-            <!-- <inputEncoding>UTF-8</inputEncoding> -->
-            <!-- <outputEncoding>UTF-8</outputEncoding> -->
-            <!-- <argLine>@{argLine} -Xms256m -Xmx512m -XX:MaxPermSize=128m -ea -->
-            <!-- -Dfile.encoding=UTF-8</argLine> -->
-            <!-- </configuration> -->
-            <!-- </plugin> -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.7</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>4.3.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
+                <configuration>
+                    <junitArtifactName>junit:junit</junitArtifactName>
+                    <encoding>UTF-8</encoding>
+                    <inputEncoding>UTF-8</inputEncoding>
+                    <outputEncoding>UTF-8</outputEncoding>
+                    <argLine>@{argLine} -Xms256m -Xmx512m -ea -Dfile.encoding=UTF-8</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
