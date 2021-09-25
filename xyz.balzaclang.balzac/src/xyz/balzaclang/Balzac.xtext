@@ -41,7 +41,7 @@ QualifiedNameWithWildcard:
 
 Element:
     Constant
-|    Transaction
+|   Transaction
 |   Participant
 |   Assertion;
 
@@ -156,45 +156,43 @@ SelectorOperation returns Expression:
 
 AtomicExpression returns Expression:
 '(' Expression ')'
-|    Literal
-|    Reference
-
-|    Hash
+|   Literal
+|   Reference
+|   Hash
 |   Signature
-|    Versig
-|    IfThenElse
-|    Min
+|   Versig
+|   IfThenElse
+|   Min
 |   Max
 |   Between
 |   Size
-|    CheckBlock
+|   CheckBlock
 |   CheckDate
 |   CheckBlockDelay
-|   CheckTimeDelay
-;
+|   CheckTimeDelay;
 
 Reference:
     {This} "this"
-| ref=[Referrable|QualifiedName] ( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
+|   ref=[Referrable|QualifiedName] ( => "("(actualParams+=Expression ("," actualParams+=Expression)*)?")")?;
 
 Referrable:
     Parameter
 |   Transaction
-|    Constant;
+|   Constant;
 
 Literal:
     NumberLiteral
-|    StringLiteral
-|    BooleanLiteral
-|    DateLiteral
+|   StringLiteral
+|   BooleanLiteral
+|   DateLiteral
 |   MinuteLiteral
 |   HourLiteral
 |   DayLiteral
-|    HashLiteral
-|    KeyLiteral
-|    AddressLiteral
+|   HashLiteral
+|   KeyLiteral
+|   AddressLiteral
 |   PubKeyLiteral
-|    SignatureLiteral
+|   SignatureLiteral
 |   Placeholder;
 
 
@@ -222,11 +220,11 @@ Signature: "sig" "(" privkey=Expression ")" ("[" modifier=Modifier "]")? (hasTx?
 
 enum Modifier:
     AIAO
-|    AISO
-|    AINO
-|    SIAO
-|    SISO
-|    SINO;
+|   AISO
+|   AINO
+|   SIAO
+|   SISO
+|   SINO;
 
 Versig:
     "versig" "("
@@ -235,9 +233,9 @@ Versig:
     ")";
 
 Hash: Hash160 | Hash256 | Ripemd160 | Sha256 | Sha1;
-Hash160:     'hash160' "(" value=Expression ")";
-Hash256:     'hash256' "(" value=Expression ")";
-Ripemd160:     'ripemd160' "(" value=Expression ")";
+Hash160:    'hash160' "(" value=Expression ")";
+Hash256:    'hash256' "(" value=Expression ")";
+Ripemd160:  'ripemd160' "(" value=Expression ")";
 Sha256:     'sha256' "(" value=Expression ")";
 Sha1:       'sha1' "(" value=Expression ")";
 
@@ -253,11 +251,11 @@ CheckTimeDelay: "checkTimeDelay" exp=Expression ":" continuation=AtomicExpressio
 Type:
     BasicType
 |   {VoidType} value=VoidTypeEnum
-|    {TypeVariable} value=ID;
+|   {TypeVariable} value=ID;
 
 BasicType:
     {IntType} value=IntTypeEnum
-|    {StringType} value=StringTypeEnum
+|   {StringType} value=StringTypeEnum
 |   {BooleanType} value=BoolTypeEnum
 |   {HashType} value=HashTypeEnum
 |   {KeyType} value=KeyTypeEnum
@@ -285,22 +283,22 @@ enum HashTypeEnum: hash;
 enum VoidTypeEnum: void;
 
 Typeable:
-  Parameter
-| Constant
-| Transaction
-| TransactionExpression
-| AbsoluteTime
-| RelativeTime
-| Script
-| Input
-| Output
-| Expression
-| Eval;
+    Parameter
+|   Constant
+|   Transaction
+|   TransactionExpression
+|   AbsoluteTime
+|   RelativeTime
+|   Script
+|   Input
+|   Output
+|   Expression
+|   Eval;
 
 Interpretable:
     Expression
 |   Script
-|    Transaction
+|   Transaction
 |   TransactionExpression;
 
 Number returns ecore::ELong: INT | INT_HEX;
