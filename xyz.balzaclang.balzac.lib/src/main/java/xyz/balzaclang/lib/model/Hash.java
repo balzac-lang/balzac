@@ -97,28 +97,14 @@ public class Hash implements Comparable<Hash> {
     public static Hash hash(Object input, HashAlgorithm alg) {
         checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean
             || input instanceof String || input instanceof byte[]);
-
-        String methodName = null;
-
-        switch (alg) {
-        case HASH160:
-            methodName = "hash160";
-            break;
-        case HASH256:
-            methodName = "hash256";
-            break;
-        case RIPEMD160:
-            methodName = "ripemd160";
-            break;
-        case SHA256:
-            methodName = "sha256";
-            break;
-        case SHA1:
-            methodName = "sha1";
-            break;
-        default:
-            throw new IllegalArgumentException("unexpected class " + alg);
-        }
+     
+        String methodName = switch (alg) {
+            case HASH160 ->     { yield "hash160"; }
+            case HASH256 ->     { yield "hash256"; }
+            case RIPEMD160 ->   { yield "ripemd160"; }
+            case SHA256 ->      { yield "sha256"; }
+            case SHA1 ->        { yield "sha1"; }
+        };
 
         try {
             Method method = MethodUtils.getMatchingMethod(Hash.class, methodName, input.getClass());
