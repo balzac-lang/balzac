@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.bitcoinj</groupId>
             <artifactId>bitcoinj-core</artifactId>
-            <version>0.16.10-LIB</version>
+            <version>0.16.11-LIB</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

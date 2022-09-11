@@ -15,7 +15,7 @@ env:
   global:
   - GRADLE_VERSION=4.10.3
   - BITCOIND_CONNECTOR_TAG=v0.16.0
-  - BITCOINJ_TAG=0.16.10-LIB
+  - BITCOINJ_TAG=0.16.11-LIB
   - LATEST_VERSION=$(git tag --list --points-at $HEAD)
 
 install:
