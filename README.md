@@ -24,15 +24,6 @@ A domain-specific language to write Bitcoin transactions, based on the paper
 
 Execute the script `install-deps.sh` or alternatively follow these steps:
 
-**Install a customized version of BitcoindConnector4J**
-```
-echo "Cloning https://github.com/natzei/BitcoindConnector4J.git"
-git -C $HOME clone https://github.com/natzei/BitcoindConnector4J.git
-git -C $HOME/BitcoindConnector4J checkout release-0.16
-gradle -p $HOME/BitcoindConnector4J install
-```
-[Compare versions](https://github.com/SulacoSoft/BitcoindConnector4J/compare/master...natzei:master)
-
 **Install a customized version of BitcoinJ**
 ```
 echo "Cloning https://github.com/natzei/bitcoinj.git"
