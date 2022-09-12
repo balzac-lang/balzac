@@ -2,7 +2,7 @@ os: linux
 dist: xenial
 language: java
 jdk:
-- openjdk11
+- openjdk17
 
 services:
 - docker
@@ -13,6 +13,7 @@ cache:
 
 env:
   global:
+  - MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED"
   - GRADLE_VERSION=4.10.3
   - BITCOINJ_TAG=0.16.13-LIB
   - LATEST_VERSION=$(git tag --list --points-at $HEAD)
@@ -59,7 +60,7 @@ deploy:
   script: bash scripts/docker_push.sh
   on:
     tags: true
-    jdk: openjdk11
+    jdk: openjdk17
     repo: balzac-lang/balzac
 
 
