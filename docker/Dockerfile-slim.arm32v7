@@ -1,4 +1,4 @@
-FROM arm32v7/tomcat:8
+FROM arm32v7/tomcat:8-jdk17
 
 LABEL maintainer="atzeinicola@gmail.com"
 

@@ -22,7 +22,7 @@ Require-Bundle: org.eclipse.xtext.ui,
  org.eclipse.xsemantics.runtime
 Import-Package: org.apache.log4j,
  org.eclipse.xtext.ui.codemining;resolution:=optional
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: xyz.balzaclang.ui.quickfix,
  xyz.balzaclang.ui.contentassist,
  xyz.balzaclang.balzac.ui.internal

@@ -8,14 +8,16 @@
     <packaging>pom</packaging>
 
     <properties>
-	    <mwe2Version>2.12.1</mwe2Version>
-        <xtext-version>2.25.0</xtext-version>
-        <tycho-version>1.7.0</tycho-version>
-        <xsemantics-version>1.20.0-SNAPSHOT</xsemantics-version>
-        <xsemantics-p2-url>http://download.eclipse.org/xsemantics/milestones/1.20</xsemantics-p2-url>
+	    <mwe2Version>2.13.0</mwe2Version>
+        <xtext-version>2.27.0</xtext-version>
+        <tycho-version>2.6.0</tycho-version>
+        <xsemantics-version>1.22.0-SNAPSHOT</xsemantics-version>
+        <xsemantics-p2-url>http://download.eclipse.org/xsemantics/milestones/1.22</xsemantics-p2-url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+        <tycho.target.execution-environment>JavaSE-17</tycho.target.execution-environment>
         <lib.version>1.0.0-SNAPSHOT</lib.version>
         <!-- Define overridable properties for tycho-surefire-plugin -->
         <platformSystemProperties></platformSystemProperties>
@@ -145,10 +147,23 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                </plugin>
+
+                <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-versions-plugin</artifactId>
                     <version>${tycho-version}</version>
                 </plugin>
+                
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-source-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                </plugin>
+
                 <!-- https://github.com/eclipse/xtext/issues/1231#issuecomment-401833957 -->
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
@@ -273,6 +288,19 @@
                                             <goal>build-qualifier-aggregator</goal>
                                             <goal>validate-id</goal>
                                             <goal>validate-version</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.eclipse.tycho</groupId>
+                                        <artifactId>target-platform-configuration</artifactId>
+                                        <versionRange>[2.4.0,)</versionRange>
+                                        <goals>
+                                            <goal>target-platform</goal>
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
