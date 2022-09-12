@@ -26,9 +26,8 @@ import org.bitcoinj.core.Utils;
 
 import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
-import xyz.balzaclang.lib.utils.EnvI;
 
-public interface ITransactionBuilder extends EnvI<Object, ITransactionBuilder>, Serializable {
+public interface ITransactionBuilder extends Serializable {
 
     /**
      * Check that this transaction builder is ready to be converted using

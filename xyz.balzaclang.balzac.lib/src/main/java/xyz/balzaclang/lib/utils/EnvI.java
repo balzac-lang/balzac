@@ -69,10 +69,10 @@ public interface EnvI<T, ENV extends EnvI<T, ENV>> extends Serializable {
      *
      * @param <A>   a type that extends T
      * @param name  the variable name
-     * @param clazz the expected class of the object
+     * @param expectedType the expected class of the object
      * @return the value associated to the variable
      */
-    public <A extends T> A getValue(String name, Class<A> clazz);
+    public <A extends T> A getValue(String name, Class<A> expectedType);
 
     /**
      * Return the value of the variable {@code name}. The variable must be bound,

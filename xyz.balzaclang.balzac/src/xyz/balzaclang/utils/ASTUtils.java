@@ -71,6 +71,7 @@ import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.PublicKey;
 import xyz.balzaclang.lib.model.Signature;
+import xyz.balzaclang.lib.model.script.primitives.Primitive;
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder;
 import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder;
 import xyz.balzaclang.lib.utils.BitcoinUtils;
@@ -361,25 +362,25 @@ public class ASTUtils {
         return Optional.<xyz.balzaclang.balzac.Transaction>absent();
     }
 
-    public Class<?> convertType(Type type) {
+    public Class<? extends Primitive> convertType(Type type) {
         if (type instanceof IntType)
-            return Long.class;
+            return Primitive.Number.class;
         if (type instanceof StringType)
-            return String.class;
+            return Primitive.String.class;
         if (type instanceof BooleanType)
-            return Boolean.class;
+            return Primitive.Boolean.class;
         if (type instanceof HashType)
-            return Hash.class;
+            return Primitive.Hash.class;
         if (type instanceof KeyType)
-            return PrivateKey.class;
+            return Primitive.PrivateKey.class;
         if (type instanceof PubkeyType)
-            return PublicKey.class;
+            return Primitive.PublicKey.class;
         if (type instanceof AddressType)
-            return Address.class;
+            return Primitive.Address.class;
         if (type instanceof TransactionType)
-            return ITransactionBuilder.class;
+            return Primitive.Transaction.class;
         if (type instanceof SignatureType)
-            return Signature.class;
+            return Primitive.Signature.class;
 
         throw new IllegalArgumentException("Unexpected type " + type);
     }

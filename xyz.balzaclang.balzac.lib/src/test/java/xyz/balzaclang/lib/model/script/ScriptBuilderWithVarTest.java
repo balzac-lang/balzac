@@ -38,6 +38,7 @@ import xyz.balzaclang.lib.PrivateKeysStore;
 import xyz.balzaclang.lib.model.NetworkType;
 import xyz.balzaclang.lib.model.PrivateKey;
 import xyz.balzaclang.lib.model.script.AbstractScriptBuilderWithVar.ScriptBuilderWithVar;
+import xyz.balzaclang.lib.model.script.primitives.Primitive;
 
 public class ScriptBuilderWithVarTest {
 
@@ -73,14 +74,14 @@ public class ScriptBuilderWithVarTest {
         assertEquals(0, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
 
-        sb.addVariable("foo", Long.class);
+        sb.addVariable("foo", Primitive.Number.class);
         assertTrue(sb.hasVariable("foo"));
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getFreeVariables().size());
         assertEquals(0, sb.signatureSize());
 
-        sb = sb.bindVariable("foo", 5L);
+        sb = sb.bindVariable("foo", Primitive.of(5L));
         assertEquals(1, sb.size());
         assertEquals(1, sb.getVariables().size());
         assertEquals(1, sb.getBoundVariables().size());
@@ -141,20 +142,20 @@ public class ScriptBuilderWithVarTest {
     public void test_serialize_freeVariable() {
         ScriptBuilderWithVar sb = new ScriptBuilderWithVar();
         sb.number(15);
-        sb.addVariable("Donald", String.class);
-        String expected = "15 [var,Donald,java.lang.String]";
+        sb.addVariable("Donald", Primitive.String.class);
+        String expected = "15 [var,Donald,xyz.balzaclang.lib.model.script.primitives.Primitive$String]";
         String actual = sb.serialize();
         assertEquals(expected, actual);
     }
 
     @Test
     public void test_derialize_freeVariable() {
-        String serialScript = "15 [var,Donald,java.lang.String]";
+        String serialScript = "15 [var,Donald,xyz.balzaclang.lib.model.script.primitives.Primitive$String]";
         ScriptBuilderWithVar res = new ScriptBuilderWithVar(serialScript);
 
         assertEquals(1, res.getFreeVariables().size());
         assertEquals(2, res.size());
-        assertEquals(String.class, res.getType("Donald"));
+        assertEquals(Primitive.String.class, res.getType("Donald"));
     }
 
     @Test

@@ -17,19 +17,28 @@
 package xyz.balzaclang.compiler
 
 import com.google.inject.Inject
+import java.util.ArrayList
+import java.util.Collection
 import org.apache.log4j.Logger
 import org.eclipse.xtext.util.OnChangeEvictingCache
 import xyz.balzaclang.balzac.Reference
-import xyz.balzaclang.balzac.Transaction
+import xyz.balzaclang.lib.model.Address
 import xyz.balzaclang.lib.model.script.InputScript
+import xyz.balzaclang.lib.model.script.primitives.Primitive
 import xyz.balzaclang.lib.model.transaction.CoinbaseTransactionBuilder
 import xyz.balzaclang.lib.model.transaction.ITransactionBuilder
+import xyz.balzaclang.lib.model.transaction.SerialTransactionBuilder
 import xyz.balzaclang.lib.model.transaction.TransactionBuilder
 import xyz.balzaclang.utils.ASTUtils
 import xyz.balzaclang.xsemantics.BalzacInterpreter
 import xyz.balzaclang.xsemantics.Rho
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
+import xyz.balzaclang.lib.model.Hash
+import xyz.balzaclang.lib.model.Signature
+import xyz.balzaclang.lib.model.PrivateKey
+import xyz.balzaclang.lib.model.PublicKey
+import xyz.balzaclang.balzac.Transaction
 
 class TransactionCompiler {
 
@@ -254,5 +263,83 @@ class TransactionCompiler {
         rho.removeVisited(tx)
 
         return tb
+    }
+    
+    def private dispatch Collection<String> variables(TransactionBuilder builder) {
+        return builder.variables
+    }
+
+    def private dispatch Collection<String> variables(ITransactionBuilder builder) {
+        return new ArrayList<String>()
+    }
+
+    def private dispatch Collection<String> variables(SerialTransactionBuilder builder) {
+        return new ArrayList<String>()
+    }
+
+    def private dispatch Collection<String> freeVariables(TransactionBuilder builder) {
+        return builder.freeVariables
+    }
+
+    def private dispatch Collection<String> freeVariables(CoinbaseTransactionBuilder builder) {
+        return new ArrayList<String>()
+    }
+
+    def private dispatch Collection<String> freeVariables(SerialTransactionBuilder builder) {
+        return new ArrayList<String>()
+    }
+
+    def private dispatch ITransactionBuilder bindVariable(TransactionBuilder builder, String name, Object value) {
+        return builder.bindVariable(name, value.toPrimitive)
+    }
+
+    def private dispatch ITransactionBuilder bindVariable(CoinbaseTransactionBuilder builder, String name, Primitive value) {
+        logger.warn('''Unable to bind variable '«name»' and value '«value»' for CoinbaseTransactionBuilder''')
+        return builder
+    }
+
+    def private dispatch ITransactionBuilder bindVariable(SerialTransactionBuilder builder, String name, Primitive value) {
+        logger.warn('''Unable to bind variable '«name»' and value '«value»' for SerialTransactionBuilder''')
+        return builder
+    }
+
+    def private dispatch Primitive toPrimitive(Number obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(String obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(Boolean obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(Hash obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(Signature obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(PrivateKey obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(PublicKey obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(Address obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(ITransactionBuilder obj) {
+        return Primitive.of(obj)
+    }
+
+    def private dispatch Primitive toPrimitive(Object obj) {
+        throw new RuntimeException('''Unable to convert object «obj» to a Primitive type''')
     }
 }
