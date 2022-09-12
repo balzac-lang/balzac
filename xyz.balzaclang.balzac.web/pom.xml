@@ -67,13 +67,14 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.4.17.v20190418</version>
+                <version>10.0.6</version>
                 <configuration>
                     <webAppSourceDirectory>WebRoot</webAppSourceDirectory>
-                    <webAppConfig>
+                    <webApp>
+                        <war>${project.build.directory}/${project.build.finalName}.war</war>
                         <contextPath>/</contextPath>
                         <webInfIncludeJarPattern>.*/bootstrap-toggle-[^/]*\.jar$|.*/font-awesome-[^/]*\.jar$|.*/requirejs-[^/]*\.jar$|.*/bootstrap-[^/]*\.jar$|.*/org.eclipse.xtext.web-[^/]*\.jar$|.*/jquery-[^/]*\.jar$|.*/popper.js-[^/]*\.jar$|.*/codemirror-[^/]*\.jar$|.*/classes/.*</webInfIncludeJarPattern>
-                    </webAppConfig>
+                    </webApp>
                 </configuration>
             </plugin>
             <plugin>
@@ -175,9 +176,9 @@
             <version>2.2.2</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-annotations</artifactId>
-            <version>9.4.17.v20190418</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
