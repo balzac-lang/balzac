@@ -36,7 +36,7 @@ import xyz.balzaclang.lib.utils.BitcoinUtils;
 public class Signature {
 
     private final byte[] signature;
-    private Optional<PublicKey> pubkey = Optional.empty();
+    private final Optional<PublicKey> pubkey;
 
     public static void isValidAndCanonical(byte[] signature) throws VerificationException, SignatureDecodeException {
         TransactionSignature.decodeFromBitcoin(signature, true, true);
@@ -49,7 +49,7 @@ public class Signature {
     public Signature(byte[] signature, PublicKey pubkey) {
         checkArgument(signature != null, "Signature cannot be null");
         this.signature = Arrays.copyOf(signature, signature.length);
-        setPubkey(pubkey);
+        this.pubkey = Optional.ofNullable(pubkey);
     }
 
     public byte[] getSignature() {
@@ -58,10 +58,6 @@ public class Signature {
 
     public Optional<PublicKey> getPubkey() {
         return pubkey;
-    }
-
-    public void setPubkey(PublicKey pubkey) {
-        this.pubkey = Optional.ofNullable(pubkey);
     }
 
     @Override

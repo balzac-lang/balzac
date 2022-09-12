@@ -216,11 +216,12 @@ axiom InterpretHashLiteral
 rule InterpretSignatureLiteral
     G |- SignatureLiteral s |> Rho rho ~> xyz.balzaclang.lib.model.Signature sig
 from {
-    sig = new xyz.balzaclang.lib.model.Signature(BitcoinUtils.decode(s.value), null)
-
     if (s.pubkey !== null) {
         G |- s.pubkey |> rho ~> var PublicKey key
-        sig.pubkey = key
+        sig = new xyz.balzaclang.lib.model.Signature(BitcoinUtils.decode(s.value), key)
+    }
+    else {
+        sig = new xyz.balzaclang.lib.model.Signature(BitcoinUtils.decode(s.value))
     }
 }
 
