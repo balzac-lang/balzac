@@ -22,14 +22,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.bouncycastle.crypto.digests.SHA1Digest;
 
 import xyz.balzaclang.lib.utils.BitcoinUtils;
 
@@ -114,16 +114,12 @@ public class Hash implements Comparable<Hash> {
         }
     }
 
-    public static Hash hash160(byte[] bytes) {
-        return new Hash(Utils.sha256hash160(bytes));
-    }
-
-    public static Hash hash256(byte[] bytes) {
-        return new Hash(Sha256Hash.hashTwice(bytes));
+    public static Hash sha1(byte[] bytes) {
+        return hash(bytes, "SHA-1");
     }
 
     public static Hash sha256(byte[] bytes) {
-        return new Hash(Sha256Hash.hash(bytes));
+        return hash(bytes, "SHA-256");
     }
 
     public static Hash ripemd160(byte[] bytes) {
@@ -134,12 +130,23 @@ public class Hash implements Comparable<Hash> {
         return new Hash(ripmemdHash);
     }
 
-    public static Hash sha1(byte[] bytes) {
-        SHA1Digest digest = new SHA1Digest();
-        digest.update(bytes, 0, bytes.length);
-        byte[] sha1Hash = new byte[20];
-        digest.doFinal(sha1Hash, 0);
-        return new Hash(sha1Hash);
+    public static Hash hash160(byte[] bytes) {
+        return ripemd160(sha256(bytes));
+    }
+
+    public static Hash hash256(byte[] bytes) {
+        return sha256(sha256(bytes));
+    }
+
+    private static Hash hash(byte[] bytes, String algo) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(algo);
+            digest.update(bytes);
+            byte[] digested = digest.digest();
+            return new Hash(digested);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Unable to instantiate a message digest for " + algo, e);
+        }
     }
 
     public static Hash hash160(Hash obj) {
