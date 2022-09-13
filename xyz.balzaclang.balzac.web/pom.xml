@@ -17,10 +17,11 @@
         <exported.build.version>${project.version}</exported.build.version>
         <exported.build.commit>${git.commit.id.abbrev}</exported.build.commit>
         <exported.build.timestamp>${maven.build.timestamp}</exported.build.timestamp>
+        <warName>balzac##${project.version}+${commit}.${maven.build.timestamp}</warName>
     </properties>
 
     <build>
-        <finalName>balzac##${project.version}+${commit}.${maven.build.timestamp}</finalName>
+        <finalName>${warName}</finalName>
         <sourceDirectory>src</sourceDirectory>
         <resources>
             <resource>
