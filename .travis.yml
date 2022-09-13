@@ -25,10 +25,10 @@ before_script:
 - "./scripts/install-deps.sh"
 
 script:
-- mvn -f xyz.balzaclang.balzac.parent/ -U clean install
+- mvn -B -f xyz.balzaclang.balzac.parent/ -U clean install
 
 after_success:
-- mvn -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
+- mvn -B -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
 - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 build -t balzaclang/balzac:${TAG_VERSION} .
 
 notifications:
