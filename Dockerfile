@@ -2,7 +2,11 @@ FROM tomcat:9-jdk17
 
 LABEL maintainer="atzeinicola@gmail.com"
 
-ADD xyz.balzaclang.balzac.web/target/*.war /usr/local/tomcat/webapps/
+ARG war
+
+ENV WAR_FILE=${war:-xyz.balzaclang.balzac.web/target/*.war}
+
+ADD $WAR_FILE /usr/local/tomcat/webapps/
 
 EXPOSE 8080
 

@@ -29,7 +29,7 @@ script:
 
 after_success:
 - mvn -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
-- docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 build -f docker/Dockerfile-slim -t balzaclang/balzac:${TAG_VERSION} .
+- docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 build -t balzaclang/balzac:${TAG_VERSION} .
 
 notifications:
   email:
