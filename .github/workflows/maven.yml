@@ -100,9 +100,9 @@ jobs:
         images: balzaclang/balzac
         tags: |
           type=raw,value=latest,enable=${{ inputs.latestTag || false }}
-          type=raw,value=test,enable=${{ inputs.testTag || false }}
-          type=raw,value={{ github.ref_name }},enable=${{ github.ref_type == 'tag' }}
-          type=sha,enable=true,priority=100,prefix=sha-,suffix=,format=short
+          type=raw,value=test,enable=${{ inputs.testTag || true }}
+          type=raw,value=test-{{sha}},enable=${{ inputs.testTag || true }}
+          type=raw,value={{tag}},enable=${{ github.ref_type == 'tag' }}
 
     - name: Build Docker images
       uses: docker/build-push-action@v3
