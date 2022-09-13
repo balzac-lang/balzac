@@ -99,9 +99,9 @@ jobs:
       with:
         images: balzaclang/balzac
         tags: |
-          type=raw,value=latest,enable=${{ inputs.latestTag || github.ref_name == 'latest' || false }}
+          type=raw,value=latest,enable=${{ inputs.latestTag || false }}
           type=raw,value=test,enable=${{ inputs.testTag || false }}
-          type=raw,value={{ github.ref_name }}
+          type=raw,value={{ github.ref_name }},enable=${{ github.ref_type == 'tag' }}
           type=sha,enable=true,priority=100,prefix=sha-,suffix=,format=short
 
     - name: Build Docker images
