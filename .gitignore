@@ -18,6 +18,7 @@ xsemantics-gen
 
 # Push these files
 !.gitignore
+!.github
 !.classpath
 !.project
 !.travis.yml
