@@ -15,7 +15,7 @@ env:
   global:
   - MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED"
   - BITCOINJ_TAG=0.16.13-LIB
-  - LATEST_VERSION=$(git tag --list --points-at $HEAD)
+  - TAG_VERSION=$(git tag --list --points-at $HEAD | grep -v "latest")
 
 install:
 - sudo apt-get -qq update
@@ -25,14 +25,11 @@ before_script:
 - "./scripts/install-deps.sh"
 
 script:
-- ls -l "xyz.balzaclang.balzac" | grep -e "xyz\.balzaclang\.balzac\.lib.*-bundled\.jar"
 - mvn -f xyz.balzaclang.balzac.parent/ -U clean install
 
 after_success:
 - mvn -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=$REPO_TOKEN
-- docker build -f docker/Dockerfile-slim -t balzaclang/balzac:latest -t balzaclang/balzac:${LATEST_VERSION} .
-- docker build -f docker/Dockerfile-slim.arm32v7 -t balzaclang/balzac-arm32v7:latest -t balzaclang/balzac-arm32v7:${LATEST_VERSION} .
-- docker build -f docker/Dockerfile-slim.arm64v8 -t balzaclang/balzac-arm64v8:latest -t balzaclang/balzac-arm64v8:${LATEST_VERSION} .
+- docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 build -f docker/Dockerfile-slim -t balzaclang/balzac:${TAG_VERSION} .
 
 notifications:
   email:
@@ -51,7 +48,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    jdk: openjdk11
+    jdk: openjdk17
     repo: balzac-lang/balzac
 - provider: script
   script: bash scripts/docker_push.sh
@@ -59,5 +56,4 @@ deploy:
     tags: true
     jdk: openjdk17
     repo: balzac-lang/balzac
-
 
