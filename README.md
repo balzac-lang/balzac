@@ -1,4 +1,5 @@
 [![Build Status](https://app.travis-ci.com/balzac-lang/balzac.svg?branch=master)](https://app.travis-ci.com/balzac-lang/balzac)
+[![Build Status](https://github.com/balzac-lang/balzac/actions/workflows/maven.yml/badge.svg)](https://github.com/balzac-lang/balzac/actions/workflows/maven.yml)
 [![Coverage Status](https://coveralls.io/repos/github/balzac-lang/balzac/badge.svg)](https://coveralls.io/github/balzac-lang/balzac)
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/micro/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)](https://en.cryptobadges.io/donate/1BALZaCuLUEnGYv6TJLMkya6QG1oxM8fKg)
 

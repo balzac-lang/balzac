@@ -1,0 +1,115 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      latestTag:
+        description: Tag the image as 'latest'
+        type: boolean
+        default: false
+      testTag:
+        description: Tag the image as 'test'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Java 17 on ubuntu-latest
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+        cache: maven
+
+    - name: Install BitcoinJ dependency
+      env:
+        BITCOINJ_TAG: 0.16.13-LIB
+      run: |
+        [[ "${BITCOINJ_TAG}" == "" ]] && (echo "BITCOINJ_TAG is not set" && exit 1)
+
+        echo "Cleaning directory $PWD/bitcoinj"
+        rm -rf $PWD/bitcoinj || (echo "Unable to delete dir $PWD/bitcoinj" && exit 1)
+
+        echo "Cloning repo https://github.com/natzei/bitcoinj.git"
+        git clone https://github.com/natzei/bitcoinj.git || (echo "Unable to clone https://github.com/natzei/bitcoinj.git" && exit 1)
+
+        echo "Checking out tag $BITCOINJ_TAG"
+        git -C $PWD/bitcoinj checkout $BITCOINJ_TAG || (echo "Unable to checkout branch $BITCOINJ_TAG" && exit 1)
+
+        echo "Installing BitcoinJ $BITCOINJ_TAG"
+        $PWD/bitcoinj/gradlew -p $PWD/bitcoinj publishToMavenLocal -x test || (echo "Unable to install bitcoinj" && exit 1)
+
+        echo "Cleaning directory $PWD/bitcoinj"
+        rm -rf $PWD/bitcoinj || (echo "Unable to delete dir $PWD/bitcoinj" && exit 1)
+
+    - name: Build with Maven
+      run: mvn -B -f xyz.balzaclang.balzac.parent/ -DwarName=balzac-artifact -U clean install
+
+    - name: Upload war artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: war-artifact
+        path: xyz.balzaclang.balzac.web/target/balzac-artifact.war
+
+    - name: Publish coverage metrics to Coveralls.io
+      run: mvn -B -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
+
+  docker-build:
+    runs-on: ubuntu-latest
+    name: Build multi-arch docker images
+    needs: [build]
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Download war artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: war-artifact
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: balzaclang/balzac
+        tags: |
+          type=raw,value=latest,enable=${{ inputs.latestTag || github.ref_name == 'latest' || false }}
+          type=raw,value=test,enable=${{ inputs.testTag || false }}
+          type=raw,value={{ github.ref_name }}
+          type=sha,enable=true,priority=100,prefix=sha-,suffix=,format=short
+
+    - name: Build Docker images
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
+        push: ${{ github.ref_type == 'tag' }}
+        build-args: war=balzac-artifact.war
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
