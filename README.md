@@ -83,8 +83,7 @@ mvn -f xyz.balzaclang.balzac.web/ jetty:run-war
 Assuming the WAR package is saved in `xyz.balzaclang.balzac.web/target/`, you can generate the Docker image by executing:
 
 ```
-docker build -t balzac:latest .
-docker run -p 8080:8080 balzac:latest
+docker build -t balzaclang/balzac:latest .
 ```
 
 You can specify a custom war file by using the `build-arg war=<path>` parameter.
@@ -96,7 +95,12 @@ DockerHub: [balzaclang/balzac](https://hub.docker.com/r/balzaclang/balzac)
 
 ```
 docker pull balzaclang/balzac:latest
-docker run -p 8080:8080 balzaclang/balzac:latest
+```
+
+### Docker run
+
+```
+docker run --rm -p 8080:8080 --name balzac balzaclang/balzac:latest
 ```
 
 

@@ -55,13 +55,13 @@ jobs:
         rm -rf $PWD/bitcoinj || (echo "Unable to delete dir $PWD/bitcoinj" && exit 1)
 
     - name: Build with Maven
-      run: mvn -B -f xyz.balzaclang.balzac.parent/ -DwarName=balzac-artifact -U clean install
+      run: mvn -B -f xyz.balzaclang.balzac.parent/ -DwarName=balzac -U clean install
 
     - name: Upload war artifact
       uses: actions/upload-artifact@v3
       with:
         name: war-artifact
-        path: xyz.balzaclang.balzac.web/target/balzac-artifact.war
+        path: xyz.balzaclang.balzac.web/target/balzac.war
 
     - name: Publish coverage metrics to Coveralls.io
       run: mvn -B -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
@@ -110,6 +110,6 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64,linux/arm/v7
         push: ${{ github.ref_type == 'tag' }}
-        build-args: war=balzac-artifact.war
+        build-args: war=balzac.war
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
