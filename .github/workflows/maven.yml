@@ -69,7 +69,6 @@ jobs:
       uses: fnkr/github-action-ghr@v1
       if: ${{ github.ref_type == 'tag' }}
       env:
-        GHR_COMPRESS: xz
         GHR_PATH: xyz.balzaclang.balzac.web/target/balzac.war
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
