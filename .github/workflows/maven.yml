@@ -3,7 +3,6 @@ name: Java CI with Maven
 on:
   push:
     branches: [ "master" ]
-    tags: '*'
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
