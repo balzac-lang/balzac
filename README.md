@@ -97,6 +97,15 @@ DockerHub: [balzaclang/balzac](https://hub.docker.com/r/balzaclang/balzac)
 docker pull balzaclang/balzac:latest
 ```
 
+Balzac is available for the following architectures:
+
+```
+- linux/amd64
+- linux/arm/v7
+- linux/arm64
+```
+
+
 ### Docker run
 
 ```
