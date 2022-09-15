@@ -65,6 +65,14 @@ jobs:
         name: war-artifact
         path: xyz.balzaclang.balzac.web/target/balzac.war
 
+    - name: Upload war artifact to Github Releases
+      uses: fnkr/github-action-ghr@v1
+      if: ${{ github.ref_type == 'tag' }}
+      env:
+        GHR_COMPRESS: xz
+        GHR_PATH: xyz.balzaclang.balzac.web/target/balzac.war
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Publish coverage metrics to Coveralls.io
       run: mvn -B -f xyz.balzaclang.balzac.lib/ jacoco:report coveralls:report -DrepoToken=${{ secrets.COVERALLS_REPO_TOKEN }}
 
