@@ -17,7 +17,6 @@
 package xyz.balzaclang.compiler
 
 import com.google.inject.Inject
-import javax.inject.Singleton
 import org.eclipse.xtext.EcoreUtil2
 import xyz.balzaclang.balzac.AndExpression
 import xyz.balzaclang.balzac.ArithmeticSigned
@@ -82,6 +81,7 @@ import static xyz.balzaclang.lib.model.script.ScriptOpCodes.*
 
 import static extension xyz.balzaclang.utils.ASTExtensions.*
 import xyz.balzaclang.lib.PrivateKeysStore
+import jakarta.inject.Singleton
 
 /*
  * EXPRESSIONS
