@@ -9,12 +9,11 @@ A domain-specific language to write Bitcoin transactions, based on the paper
 
 **Online editor**:
 
-- [http://blockchain.unica.it/balzac/](http://blockchain.unica.it/balzac/)
 - [http://balzac-lang.xyz](http://balzac-lang.xyz) (mirror)
 
 **Documentation**
 
-- online: [https://blockchain.unica.it/balzac/docs](https://blockchain.unica.it/balzac/docs)
+- online: [http://docs.balzac-lang.xyz/](http://docs.balzac-lang.xyz/)
 - repository: [https://github.com/balzac-lang/balzac-doc](https://github.com/balzac-lang/balzac-doc)
 
 
