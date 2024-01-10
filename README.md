@@ -9,7 +9,7 @@ A domain-specific language to write Bitcoin transactions, based on the paper
 
 **Online editor**:
 
-- [http://balzac-lang.xyz](http://balzac-lang.xyz) (mirror)
+- [http://balzac-lang.xyz](http://balzac-lang.xyz)
 
 **Documentation**
 
