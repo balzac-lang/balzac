@@ -1,4 +1,4 @@
-FROM tomcat:9-jdk17
+FROM tomcat:10-jdk17
 
 LABEL maintainer="atzeinicola@gmail.com"
 
