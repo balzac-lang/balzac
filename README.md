@@ -7,17 +7,16 @@
 A domain-specific language to write Bitcoin transactions, based on the paper
 [A formal model of Bitcoin transactions](https://eprint.iacr.org/2017/1124.pdf) presented at [Financial Cryptography and Data Security 2018](http://fc18.ifca.ai/).
 
-**Online editor**:
+**Online editor**: [balzac-lang.xyz](http://balzac-lang.xyz)
 
-- [http://balzac-lang.xyz](http://balzac-lang.xyz)
+**Documentation**: [docs.balzac-lang.xyz](http://docs.balzac-lang.xyz)
 
-**Documentation**
+## Quickstart
 
-- online: [http://docs.balzac-lang.xyz/](http://docs.balzac-lang.xyz/)
-- repository: [https://github.com/balzac-lang/balzac-doc](https://github.com/balzac-lang/balzac-doc)
-
-
-
+```
+docker pull balzaclang/balzac:latest
+docker run --rm -p 8080:8080 --name balzac balzaclang/balzac:latest
+```
 
 ## Setup
 
