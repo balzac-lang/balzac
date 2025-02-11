@@ -9,16 +9,6 @@ on:
     branches: [ "master" ]
     paths-ignore:
     - 'README.md'
-  workflow_dispatch:
-    inputs:
-      latestTag:
-        description: Tag the image as 'latest'
-        type: boolean
-        default: false
-      testTag:
-        description: Tag the image as 'test'
-        type: boolean
-        default: false
   schedule:
   - cron: '0 0 1 * *'
 
