@@ -264,7 +264,7 @@ class TransactionCompiler {
 
         return tb
     }
-    
+
     def private dispatch Collection<String> variables(TransactionBuilder builder) {
         return builder.variables
     }

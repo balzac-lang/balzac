@@ -97,7 +97,7 @@ public class Hash implements Comparable<Hash> {
     public static Hash hash(Object input, HashAlgorithm alg) {
         checkArgument(input instanceof Number || input instanceof Hash || input instanceof Boolean
             || input instanceof String || input instanceof byte[]);
-     
+
         String methodName = switch (alg) {
             case HASH160 ->     { yield "hash160"; }
             case HASH256 ->     { yield "hash256"; }
