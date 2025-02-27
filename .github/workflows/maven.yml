@@ -31,7 +31,7 @@ jobs:
 
     - name: Install BitcoinJ dependency
       env:
-        BITCOINJ_TAG: 0.16.13-LIB
+        BITCOINJ_TAG: 0.16.14-LIB
       run: |
         [[ "${BITCOINJ_TAG}" == "" ]] && (echo "BITCOINJ_TAG is not set" && exit 1)
 

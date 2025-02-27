@@ -25,3 +25,4 @@ xsemantics-gen
 !xyz.balzaclang.balzac.lib-*-bundled.jar
 
 plugin.xml_gen
+*.iml
