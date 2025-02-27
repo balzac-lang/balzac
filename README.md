@@ -19,16 +19,16 @@ docker run --rm -p 8080:8080 --name balzac balzaclang/balzac:latest
 
 ## Setup
 
-Execute the script `install-deps.sh` or alternatively follow these steps:
+**Install a customized version of BitcoinJ (v0.16)**
 
-**Install a customized version of BitcoinJ**
 ```
 echo "Cloning https://github.com/natzei/bitcoinj.git"
 git -C $HOME clone https://github.com/natzei/bitcoinj.git
 git -C $HOME/bitcoinj checkout lib
-gradle -p $HOME/bitcoinj install -x test
+./gradlew -p $HOME/bitcoinj publishToMavenLocal -x test
 ```
-[Compare versions](https://github.com/bitcoinj/bitcoinj/compare/master...natzei:lib)
+
+[Compare versions](https://github.com/bitcoinj/bitcoinj/compare/master...natzei:libhttps://github.com/bitcoinj/bitcoinj/compare/master...natzei:lib)
 
 ## Install
 ```
