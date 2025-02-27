@@ -68,7 +68,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>10.0.6</version>
+                <version>11.0.24</version>
                 <configuration>
                     <webAppSourceDirectory>WebRoot</webAppSourceDirectory>
                     <webApp>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
-            <version>5.0.0</version>
+            <version>4.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
