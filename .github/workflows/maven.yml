@@ -9,6 +9,12 @@ on:
     branches: [ "master" ]
     paths-ignore:
     - 'README.md'
+  workflow_dispatch:
+    inputs:
+      latestTag:
+        description: Tag the image as 'latest'
+        type: boolean
+        default: false
   schedule:
   - cron: '0 0 1 * *'
 
@@ -103,8 +109,6 @@ jobs:
         images: balzaclang/balzac
         tags: |
           type=raw,value=latest,enable=${{ inputs.latestTag || false }}
-          type=raw,value=test,enable=${{ inputs.testTag || false }}
-          type=raw,value=test-{{sha}},enable=${{ inputs.testTag || false }}
           type=raw,value={{tag}},enable=${{ github.ref_type == 'tag' }}
 
     - name: Build Docker images
