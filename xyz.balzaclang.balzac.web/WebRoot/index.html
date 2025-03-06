@@ -9,8 +9,8 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.49.0/lib/codemirror.css" />
-    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.49.0/addon/hint/show-hint.css" />
+    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.62.2/lib/codemirror.css" />
+    <link rel="stylesheet" type="text/css" href="webjars/codemirror/5.62.2/addon/hint/show-hint.css" />
     <link rel="stylesheet" type="text/css" href="xtext/2.33.0/xtext-codemirror.css"/>
 
     <!-- Loading buttons -->
@@ -18,17 +18,17 @@
     <link rel="stylesheet" type="text/css" href="loading-btn/loading-btn.css"/>
 
     <!-- Bootstrap CSS -->
-    <link rel='stylesheet' href='webjars/bootstrap/4.6.2/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='webjars/bootstrap/5.3.3/css/bootstrap.min.css'>
 
     <!-- Font Awesome -->
-    <script defer src="webjars/font-awesome/5.11.2/js/all.min.js"></script>
+    <script defer src="webjars/font-awesome/6.7.2/js/all.min.js"></script>
 
     <!-- Bootstrap Toggle CSS -->
     <link href="webjars/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 
     <link rel="stylesheet" type="text/css" href="style.css"/>
 
-    <script src="webjars/requirejs/2.3.6/require.min.js"></script>
+    <script src="webjars/requirejs/2.3.7/require.min.js"></script>
     <script type="text/javascript">
         var baseUrl = window.location.pathname;
         var fileIndex = baseUrl.indexOf("index.html");
@@ -38,14 +38,14 @@
             baseUrl: baseUrl,
             paths: {
                 "xtext/balzac": "xtext-resources/generated/mode-balzac",
-                "jquery": "webjars/jquery/3.4.1/jquery.min",
+                "jquery": "webjars/jquery/3.7.1/jquery.min",
                 "xtext/xtext-codemirror": "xtext/2.33.0/xtext-codemirror",
-                "bootstrap": "webjars/bootstrap/4.6.2/js/bootstrap.bundle.min",
+                "bootstrap": "webjars/bootstrap/5.3.3/js/bootstrap.bundle.min",
                 "bootstrap-toggle": "webjars/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min"
             },
             packages: [{
                 name: "codemirror",
-                location: "webjars/codemirror/5.49.0",
+                location: "webjars/codemirror/5.62.2",
                 main: "lib/codemirror"
             }],
             shim: {
@@ -53,8 +53,7 @@
             }
         });
 
-        require(["xtext/balzac", "xtext/xtext-codemirror", "jquery", "bootstrap", "bootstrap-toggle"], function(mode, xtext) {
-
+        require(["xtext/balzac", "xtext/xtext-codemirror", "jquery", "bootstrap", "bootstrap-toggle"], function(mode, xtext, _, bs) {
             $(document).ready(function () {
 
                 // initialize the editor
@@ -173,7 +172,7 @@
                     }, 300);
                 });
 
-                // retrive and set build/version info
+                // retrieve and set build/version info
                 $.ajax({
                     url : "version",
                     data : null,
@@ -188,19 +187,11 @@
                     dataType : "json"
                 });
 
-                const keyTooltipTitle = "Private keys are computed server-side and are not logged."
-                $("#key-tooltip").attr("title", keyTooltipTitle);
-                $("#key-tooltip").attr("data-html","true");
-                $("#key-tooltip").attr("data-placement","right");
-                $("#key-tooltip").tooltip();
-
-                const hashTooltipTitle = "Let Balzac infer the type of the input: it tries to evaluate the input as Long, Boolean or String in this order."
-                $("#hash-tooltip").attr("title", hashTooltipTitle);
-                $("#hash-tooltip").attr("data-html","true");
-                $("#hash-tooltip").attr("data-placement","right");
-                $("#hash-tooltip").tooltip();
-
-                $("[title]").tooltip();
+                // Enable tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                  return new bs.Tooltip(tooltipTriggerEl)
+                })
 
                 // set copy on click for warnings/errors
 
@@ -226,90 +217,128 @@
                 // Start observing the target node for configured mutations
                 observer.observe(targetNode, config);
             });
-        });
 
-        function setCopyOnClick() {
-            $('[class^="xtext-annotation"]').off('click');
-            $('[class^="xtext-annotation"]').on('click', function(evt){
-                const message = evt.target.title
-                const copyText = document.createElement("textarea");
-                document.body.appendChild(copyText);
-                copyText.value = message;
+            function setCopyOnClick() {
+
+                $('[class^="xtext-annotation"]').each(function(){
+                    const elm = $(this);
+                    elm.css('cursor', 'pointer');
+
+                    // Init the tooltip
+                    elm.attr('data-bs-toggle', 'tooltip');
+                    elm.attr('data-bs-placement', 'right');
+                    const tooltip = bs.Tooltip.getOrCreateInstance(elm);
+
+                    // Fix icon positioning
+                    elm.parent().css('top', '5px')
+                    elm.parent().css('left', '6px')
+
+                    elm.on('click', function(evt){
+                        // Copy error/warning message
+                        const message = evt.target.ariaLabel
+                        const copyText = document.createElement("textarea");
+                        document.body.appendChild(copyText);
+                        copyText.value = message;
+                        copyText.select();
+                        copyText.setSelectionRange(0, 99999)
+                        document.execCommand("copy");
+                        document.body.removeChild(copyText);
+
+                        // Update the tooltip message to acknowledge the copy
+                        tooltip.setContent({ '.tooltip-inner': 'Copied!' })
+
+                        // Set back the error message
+                        setTimeout(function(){
+                            tooltip.setContent({ '.tooltip-inner': message })
+                        }, 3000)
+                    });
+                });
+            }
+
+            function populateKeys(data) {
+                const isTestnet = $("#isTestnet").prop("checked")
+
+                $("#privkey").prop("value", isTestnet? data.privkeyTestnet: data.privkeyMainnet)
+                $("#pubkey").prop("value", data.pubkey)
+                $("#addr").prop("value", isTestnet? data.addressTestnet: data.addressMainnet)
+
+                $('#isTestnet').change(function() {
+                   populateKeys(data)
+                })
+            }
+
+            function populateHashes(data) {
+                $("#sha1").prop("value", data.sha1)
+                $("#sha256").prop("value", data.sha256)
+                $("#ripemd160").prop("value", data.ripemd160)
+                $("#hash160").prop("value", data.hash160)
+                $("#hash256").prop("value", data.hash256)
+            }
+
+            function copyToClipboard(elm, id) {
+                var copyText = document.getElementById(id);
                 copyText.select();
-                copyText.setSelectionRange(0, 99999)
                 document.execCommand("copy");
-                document.body.removeChild(copyText);
+                copyText.blur();
+                showCopiedTooltip(elm);
+            }
 
-                $(evt.target).parent().tooltip("enable");
-                $(evt.target).parent().tooltip("show");
+            function showCopiedTooltip(elm) {
+                elm.attr("data-bs-title", "Copied!");
+                elm.attr("data-bs-placement","auto");
+                const tooltip = bs.Tooltip.getOrCreateInstance(elm)
+                tooltip.enable();
+                tooltip.show();
+                // hide after 1 sec
                 setTimeout(function(){
-                    $(evt.target).parent().tooltip("disable");
-                    $(evt.target).parent().tooltip("hide");
-                }, 1000)
-            })
+                    tooltip.hide();
+                }, 1000);
+                // dispose the tooltip when the CSS transition is completed
+                elm.on('hidden.bs.tooltip', function () {
+                    tooltip.disable();
+                });
+            }
 
-            $('[class^="xtext-annotation"]').parent().attr("title", "Copied");
-            $('[class^="xtext-annotation"]').parent().tooltip('disable');
-            $('[class^="xtext-annotation"]').parent().css('cursor', 'pointer')
-            $('[class^="xtext-annotation"]').parent().css('top', '5px')
-            $('[class^="xtext-annotation"]').parent().css('left', '6px')
-        }
 
-        function populateKeys(data) {
-            const isTestnet = $("#isTestnet").prop("checked")
+            // Enable examples selection
+            $('[data-example-file]').each(function(){
+                const elm = $(this);
+                const exampleFile = elm.attr('data-example-file');
 
-            $("#privkey").prop("value", isTestnet? data.privkeyTestnet: data.privkeyMainnet)
-            $("#pubkey").prop("value", data.pubkey)
-            $("#addr").prop("value", isTestnet? data.addressTestnet: data.addressMainnet)
-
-            $('#isTestnet').change(function() {
-               populateKeys(data)
-            })
-        }
-
-        function populateHashes(data) {
-            $("#sha1").prop("value", data.sha1)
-            $("#sha256").prop("value", data.sha256)
-            $("#ripemd160").prop("value", data.ripemd160)
-            $("#hash160").prop("value", data.hash160)
-            $("#hash256").prop("value", data.hash256)
-        }
-
-        function copyToClipboard(elm, id) {
-            var copyText = document.getElementById(id);
-            copyText.select();
-            document.execCommand("copy");
-            copyText.blur();
-            showCopiedTooltip($(elm));
-        }
-
-        function showCopiedTooltip(elm) {
-            elm.attr("title", "Copied");
-            elm.attr("data-placement","auto");
-            elm.tooltip("show");
-            // hide after 1 sec
-            setTimeout(function(){
-                elm.tooltip("hide");
-            }, 1000);
-            // dispose the tooltip when hide is completed
-            elm.on('hidden.bs.tooltip', function () {
-                elm.tooltip("dispose");
+                // Get the example and set the editor's content
+                elm.click(function() {
+                    $.ajax({
+                        mimeType: 'text/plain; charset=x-user-defined',
+                        url : exampleFile,
+                        data : null,
+                        cache : false,
+                        success : function(data) {
+                            editor.setValue(data);
+                        },
+                        dataType : "text"
+                    });
+                });
             });
-        }
 
-        function loadExample(url) {
-            $.ajax({
-                mimeType: 'text/plain; charset=x-user-defined',
-                url : url,
-                data : null,
-                cache : false,
-                success : function(data) {
-                    editor.setValue(data);
-                },
-                dataType : "text"
+            // Enable copy to clipboard buttons
+            [
+                'privkey',
+                'pubkey',
+                'addr',
+                'sha1',
+                'sha256',
+                'ripemd160',
+                'hash256',
+                'hash160',
+            ].forEach(id => {
+                $('#' + id).siblings('span').children('button').click(function(){
+                    console.log()
+                    copyToClipboard($(this), id)
+                });
             });
-        }
-        </script>
+
+        }) // require ends here
+    </script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-101929937-2"></script>
@@ -346,9 +375,9 @@
         <div id="sidebar-wrapper">
             <div id="sidebar-content" class="container pl-2 pr-2">
 
-                <div class="d-flex align-items-end flex-column" style="height: 100%;">
+                <div class="h-100">
 
-                    <div class="text-right mb-4 pt-2">
+                    <div class="text-end mb-4 pt-2">
                         <button id="sidebar-close" type="button" class="btn btn-default">
                             <i class="fa fa-times"></i>
                         </button>
@@ -357,164 +386,161 @@
                     <!-- Generate new key -->
                     <div class="mb-5">
 
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Private key (wif)</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Private key (wif)</span>
                             <input type="text" id="privkey" class="form-control"
                                 aria-label="Private key in WIF format"
                                 aria-describedby="privkey" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'privkey')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Public key (hex)</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Public key (hex)</span>
                             <input type="text" id="pubkey" class="form-control"
                                 aria-label="Public key in hexadecimal format"
                                 aria-describedby="pubkey" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'pubkey')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text">Address (wif)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                             <input type="text" id="addr" class="form-control"
                                 aria-label="Public address in WIF format"
                                 aria-describedby="addr" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'addr')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
 
-                        <div class="col-12 text-right mb-3 pr-0 pl-0">
+                        <div class="col-12 text-end mb-3 pr-0 pl-0">
                             <input id="isTestnet" checked type="checkbox"
                                 data-toggle="toggle"
                                 data-on="Testnet"
                                 data-off="Mainnet"
-                                data-onstyle="info"
-                                data-offstyle="info"
+                                data-onstyle="primary"
+                                data-offstyle="primary"
                                 data-size="small"
                                 >
-                                <a class="fa-icon small-info align-middle" href="#" id="key-tooltip"><i class="fa fa-info-circle"></i></a>
+                                <a class="fa-icon small-info align-middle" href="#" id="key-tooltip"
+                                        data-bs-toggle="tooltip" data-bs-placement="right"
+                                        title="Private keys are computed server-side and are not logged.">
+                                    <i class="fa fa-info-circle"></i>
+                                </a>
                         </div>
 
-                        <div class="text-center" class="btn btn-info btn-block mb-5">
-                            <div id="newkey-button" type="button" class="btn btn-info btn-block ld-ext-right">Generate new key
+                        <div class="text-center" class="btn btn-primary btn-block mb-5">
+                            <div id="newkey-button" type="button" class="btn btn-primary btn-block ld-ext-right w-100">Generate new key
                                 <div class="loader ld ld-ring ld-spin"></div>
                             </div>
                         </div>
+
                     </div>
+
+                    <hr/>
 
                     <!-- Hash -->
                     <div class="mb-5 mt-5">
 
-                        <input type="text" id="value-to-hash" class="form-control mb-3"
+                        <input type="text" id="value-to-hash" class="small form-control mb-3"
                                 aria-label="Value to Hash"
                                 aria-describedby="value-to-hash" autocomplete="off" placeholder="Enter a value to hash">
 
 
-                        <div class="col-12 text-right mb-3 pr-0 pl-0">
+                        <div class="col-12 text-end mb-3 pr-0 pl-0">
                             <input id="hash-as-string" checked type="checkbox"
 
                                 data-toggle="toggle"
                                 data-on="String"
                                 data-off="Infer type"
-                                data-onstyle="info"
-                                data-offstyle="info"
+                                data-onstyle="primary"
+                                data-offstyle="primary"
                                 data-size="small"
                                 >
-                               <a class="fa-icon small-info align-middle" href="#" id="hash-tooltip"><i class="fa fa-info-circle"></i></a>
+                               <a class="fa-icon small-info align-middle" href="#" id="hash-tooltip"
+                                       data-bs-toggle="tooltip" data-bs-placement="right"
+                                       title="Let Balzac infer the type of the input: it tries to evaluate the input as Long, Boolean or String in this order.">
+                                   <i class="fa fa-info-circle"></i>
+                               </a>
                         </div>
 
 
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Sha1</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Sha1</span>
                             <input type="text" id="sha1" class="form-control"
                                 aria-label="Sha1 hash"
                                 aria-describedby="sha1" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'sha1')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Sha256</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Sha256</span>
                             <input type="text" id="sha256" class="form-control"
                                 aria-label="Sha256 hash"
                                 aria-describedby="sha256" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'sha256')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Ripemd160</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Ripemd160</span>
                             <input type="text" id="ripemd160" class="form-control"
                                 aria-label="Ripemd160 hash"
                                 aria-describedby="ripemd160" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'ripemd160')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-2">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Hash256</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Hash256</span>
                             <input type="text" id="hash256" class="form-control"
                                 aria-label="Hash256 hash"
                                 aria-describedby="hash256" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'hash256')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Hash160</span>
-                            </div>
+                        <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text">Hash160</span>
                             <input type="text" id="hash160" class="form-control"
                                 aria-label="Hash160 hash"
                                 aria-describedby="hash160" autocomplete="off" readonly>
-                            <div class="input-group-append">
-                                <button class="input-group-text btn" type="button" onclick="copyToClipboard(this, 'hash160')">
+                            <span class="input-group-text p-0">
+                                <button class="btn h-100" type="button">
                                     <i class="fa fa-clone"></i>
                                 </button>
-                            </div>
+                            </span>
                         </div>
 
-                        <div class="text-center" class="btn btn-info btn-block mb-5">
-                            <div id="compute-hash-button" type="button" class="btn btn-info btn-block ld-ext-right">Compute Hash
+                        <div class="text-center" class="btn btn-primary btn-block mb-5">
+                            <div id="compute-hash-button" type="button" class="btn btn-primary btn-block ld-ext-right w-100">Compute Hash
                                 <div class="loader ld ld-ring ld-spin"></div>
                             </div>
                         </div>
 
                     </div>
 
+                    <hr/>
+
                     <!-- Delete local storage -->
-                    <div class="mt-auto mb-2 text-right">
-                        <a class="fa-icon" id="clearLocalStorage" href="" title="Delete local storage" data-toggle="tooltip" data-placement="right">
+                    <div class="mt-auto mb-2 text-end">
+                        <a class="fa-icon" id="clearLocalStorage" href="" title="Delete local storage" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="fa fa-trash-alt"></i>
                         </a>
                     </div>
@@ -544,17 +570,15 @@
                     </div>
                     <div class="card-body">
                         <div class="text-center mb-2">
-                            <div class="dropdown">
-                                <button class="btn btn-info dropdown-toggle" type="button"
-                                    id="selectExample" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">Select an example</button>
-                                <div class="dropdown-menu" aria-labelledby="selectExample">
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/nutshell.balzac')">Balzac in a nutshell</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle.balzac')">Oracle</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/oracle-timed.balzac')">Oracle (timed)</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/escrow-alice.balzac')">Escrow (Alice's view)</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/tc.balzac')">Timed Commitment</button>
-                                    <button class="dropdown-item btn" type="button" onclick="loadExample('examples/signatures.balzac')">Signature modifiers</button>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Select an example</button>
+                                <div class="dropdown-menu">
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/nutshell.balzac">Balzac in a nutshell</button>
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/oracle.balzac">Oracle</button>
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/oracle-timed.balzac">Oracle (timed)</button>
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/escrow-alice.balzac">Escrow (Alice's view)</button>
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/tc.balzac">Timed Commitment</button>
+                                    <button class="dropdown-item btn" type="button" data-example-file="examples/signatures.balzac">Signature modifiers</button>
                                 </div>
                             </div>
                         </div>
